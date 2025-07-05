@@ -4,11 +4,11 @@ import {
   ConversationHistory,
   MessageList,
   ChatInput,
-  AgentConfiguration
 } from '@/components';
 import { Message, Conversation, AgentConfig, Agent } from '@/types';
 
 import './App.css';
+import { AgentConfiguration } from './modules/agent/AgentConfiguration';
 
 // Default agents data
 const DEFAULT_AGENTS: Agent[] = [

@@ -52,3 +52,13 @@ export interface ProviderConfig {
   name: string;
   apiKey: string;
 }
+
+export interface AgentSettings {
+  id: string;
+  name: string;
+  persona: 'helpful' | 'professional' | 'creative' | 'analytical' | 'casual';
+  responseLength: 'short' | 'medium' | 'long' | 'detailed';
+  temperature: number;
+  maxTokens: number;
+  systemPrompt: string;
+}
