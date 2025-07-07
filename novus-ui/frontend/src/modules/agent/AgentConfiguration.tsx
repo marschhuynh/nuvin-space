@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -8,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Bot, CheckCircle, Circle, Clock, Settings } from 'lucide-react';
+import { Bot, CheckCircle, Circle, Clock, Settings, Globe, Home } from 'lucide-react';
 import { AgentConfig, AgentSettings } from '@/types';
 import { useAgentStore } from '@/store/useAgentStore';
 import { useProviderStore } from '@/store/useProviderStore';
@@ -20,9 +19,8 @@ interface AgentConfigurationProps {
 
 export function AgentConfiguration({
   onConfigChange,
-  onReset
   }: AgentConfigurationProps) {
-    const { agents, activeAgentId, setActiveAgent, reset } = useAgentStore();
+    const { agents, activeAgentId, setActiveAgent } = useAgentStore();
     const { providers, activeProviderId, setActiveProvider } = useProviderStore();
 
   // Notify parent when store changes
@@ -40,17 +38,11 @@ export function AgentConfiguration({
     setActiveAgent(agentId);
   };
 
-  const handleReset = () => {
-    reset();
-    onReset?.();
-  };
-
   const handleProviderChange = (providerId: string) => {
     setActiveProvider(providerId);
   };
 
   const selectedAgent = agents.find(agent => agent.id === activeAgentId);
-  const selectedProvider = providers.find(provider => provider.id === activeProviderId);
 
   const getStatusIcon = (status?: AgentSettings['status']) => {
     switch (status) {
@@ -63,20 +55,14 @@ export function AgentConfiguration({
     }
   };
 
-  const getStatusText = (status?: AgentSettings['status']) => {
-    switch (status) {
-      case 'active':
-        return 'Active';
-      case 'busy':
-        return 'Busy';
-      default:
-        return 'Available';
-    }
-  };
-
   // Helper function to get agent description based on persona
   const getAgentDescription = (agent: AgentSettings): string => {
     if (agent.description) return agent.description;
+
+    // For remote agents, show the URL info
+    if (agent.agentType === 'remote') {
+      return `Remote A2A agent${agent.url ? ` connected to ${agent.url}` : ''}. This agent is hosted externally and follows the Agent2Agent protocol.`;
+    }
 
     // Generate description based on persona and agent type
     const personaDescriptions = {
@@ -151,7 +137,15 @@ export function AgentConfiguration({
                   <SelectItem key={agent.id} value={agent.id} className="text-xs sm:text-sm">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(agent.status || 'active')}
+                      {agent.agentType === 'remote' ? (
+                        <Globe className="h-3 w-3 text-blue-500" />
+                      ) : (
+                        <Home className="h-3 w-3 text-green-500" />
+                      )}
                       <span className="truncate">{agent.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {agent.agentType === 'remote' ? '(A2A)' : '(Local)'}
+                      </span>
                     </div>
                   </SelectItem>
                 ))}

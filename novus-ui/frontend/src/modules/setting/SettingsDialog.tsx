@@ -13,8 +13,7 @@ import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
 import { GeneralSettings } from './GeneralSettings';
 import {
   AgentSettings,
-  AddAgentModal,
-  EditAgentModal
+  AgentModal
 } from '../agent/components';
 import { AddProviderModal, ProviderSettings } from '../provider';
 
@@ -29,11 +28,10 @@ type TabType = 'general' | 'providers' | 'agent';
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [activeTab, setActiveTab] = useState<TabType>('general');
   const [showAddProviderModal, setShowAddProviderModal] = useState(false);
-  const [showAddAgentModal, setShowAddAgentModal] = useState(false);
-  const [showEditAgentModal, setShowEditAgentModal] = useState(false);
-  const [editingAgentId, setEditingAgentId] = useState<string | null>(null);
+  const [showAgentModal, setShowAgentModal] = useState(false);
+  const [editingAgent, setEditingAgent] = useState<any | null>(null);
 
-  const { reset: resetAgents } = useAgentStore();
+  const { agents, reset: resetAgents } = useAgentStore();
   const { reset: resetProviders } = useProviderStore();
   const { preferences, updatePreferences, reset: resetPreferences } = useUserPreferenceStore();
 
@@ -51,9 +49,20 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     }
   };
 
+  const handleAddAgent = () => {
+    setEditingAgent(null);
+    setShowAgentModal(true);
+  };
+
   const handleEditAgent = (agentId: string) => {
-    setEditingAgentId(agentId);
-    setShowEditAgentModal(true);
+    const agent = agents.find(a => a.id === agentId);
+    setEditingAgent(agent || null);
+    setShowAgentModal(true);
+  };
+
+  const handleCloseAgentModal = () => {
+    setShowAgentModal(false);
+    setEditingAgent(null);
   };
 
   const tabs = [
@@ -102,7 +111,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
               {activeTab === 'agent' && (
                 <AgentSettings
-                  onAddAgent={() => setShowAddAgentModal(true)}
+                  onAddAgent={handleAddAgent}
                   onEditAgent={handleEditAgent}
                 />
               )}
@@ -128,14 +137,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         open={showAddProviderModal}
         onOpenChange={setShowAddProviderModal}
       />
-      <AddAgentModal
-        open={showAddAgentModal}
-        onOpenChange={setShowAddAgentModal}
-      />
-      <EditAgentModal
-        open={showEditAgentModal}
-        onOpenChange={setShowEditAgentModal}
-        agentId={editingAgentId}
+      <AgentModal
+        open={showAgentModal}
+        onOpenChange={handleCloseAgentModal}
+        agent={editingAgent}
       />
     </>
   );

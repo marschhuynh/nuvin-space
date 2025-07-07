@@ -63,6 +63,7 @@ export interface AgentSettings {
   maxTokens: number;
   systemPrompt: string;
   agentType: 'local' | 'remote';
+  url?: string; // URL for remote A2A agents
   modelConfig: ModelConfig;
   // Optional properties to make it compatible with Agent interface where needed
   description?: string;
