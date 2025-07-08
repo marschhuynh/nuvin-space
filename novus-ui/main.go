@@ -6,6 +6,7 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/mac"
 )
 
 //go:embed all:frontend/dist
@@ -28,11 +29,18 @@ func main() {
 		Debug: options.Debug{
 			OpenInspectorOnStartup: false,
 		},
-		// Logger:             logger.NewFileLogger(logPath),
-		// LogLevel:           logger.DEBUG,
-		// LogLevelProduction: logger.DEBUG,
 		Bind: []interface{}{
 			app,
+		},
+		Mac: &mac.Options{
+			Appearance:           mac.NSAppearanceNameDarkAqua,
+			WebviewIsTransparent: true,
+			WindowIsTranslucent:  true,
+			About: &mac.AboutInfo{
+				Title:   "Nuvin Space",
+				Message: "© 2025 Marsch Huynh <marsch.huynh@gmail.com>",
+				Icon:    nil, // Icon is handled through wails.json
+			},
 		},
 	})
 

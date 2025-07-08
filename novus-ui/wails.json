@@ -9,5 +9,13 @@
   "author": {
     "name": "Marsch Huynh",
     "email": "marsch.huynh@gmail.com"
+  },
+  "info": {
+    "companyName": "Marsch Huynh",
+    "productName": "Nuvin Space",
+    "productVersion": "1.0.0",
+    "copyright": "© 2025 Marsch Huynh",
+    "comments": "Nuvin Space Application",
+    "icon": "icons/appicon.png"
   }
 }

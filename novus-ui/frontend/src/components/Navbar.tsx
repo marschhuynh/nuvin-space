@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { MessageCircle, User, Settings } from 'lucide-react';
-import { Button } from './ui/button';
+import { Settings } from 'lucide-react';
 import { SettingsDialog } from '@/modules/setting/SettingsDialog';
+
+import { Button } from './ui/button';
+import appIcon from '../assets/logo.svg'
 
 interface NavbarProps {
   userName?: string;
@@ -15,8 +17,16 @@ export function Navbar({ userName = "Guest" }: NavbarProps) {
       <nav className="border-b border-border bg-card px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <MessageCircle className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-semibold">Nuvin Space</h1>
+              <div className="flex items-center gap-3">
+                <div className="relative rounded-md bg-orange-50 dark:bg-orange-950/80 p-1.5 cursor-pointer">
+                  <img
+                    src={appIcon}
+                    alt="Nuvin Space"
+                    className="h-9 w-9 transition-transform duration-200 scale-120 active:animate-[wiggle_0.3s_ease-in-out]"
+                  />
+              </div>
+              <h1 className="text-xl font-semibold tracking-tight">Nuvin Space</h1>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <Button
