@@ -5,12 +5,11 @@ import { Message, Conversation, AgentConfig } from '@/types';
 import { useConversationStore } from '@/store';
 import { generateUUID } from '@/lib/utils';
 
-import './App.css';
 import { MessageList, ChatInput } from './modules/messenger';
 import { AgentConfiguration } from './modules/agent/AgentConfiguration';
 import { smartFetch } from './lib/fetch-proxy';
 
-window.fetch = smartFetch;
+// window.fetch = smartFetch;
 
 function App() {
   const {
@@ -114,12 +113,11 @@ function App() {
       const errorMessage: Message = {
         id: generateUUID(),
         role: 'assistant',
-        content: `❌ Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}. ${
-          !activeAgent ? 'No agent selected.' :
+        content: `❌ Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}. ${!activeAgent ? 'No agent selected.' :
           !activeProvider && agentType === 'local' ? 'No provider configured for local agent.' :
-          activeAgent.agentType === 'remote' && !activeAgent.url ? 'No URL configured for remote agent.' :
-          'Please check your configuration and try again.'
-        }`,
+            activeAgent.agentType === 'remote' && !activeAgent.url ? 'No URL configured for remote agent.' :
+              'Please check your configuration and try again.'
+          }`,
         timestamp: new Date().toISOString()
       };
 

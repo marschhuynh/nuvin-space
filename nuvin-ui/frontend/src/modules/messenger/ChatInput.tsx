@@ -47,11 +47,11 @@ export function ChatInput({
 
       // Calculate the new height based on scroll height
       const scrollHeight = textarea.scrollHeight;
-      const minHeight = 56; // Increased min height for more padding
+      const minHeight = 58; // Increased min height for more padding
       const maxHeight = 200; // Increased max height proportionally
 
       // Ensure we stay within bounds
-      const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+      const newHeight = Math.min(Math.max(scrollHeight + 2, minHeight), maxHeight);
 
       // Set the calculated height
       textarea.style.height = `${newHeight}px`;
@@ -92,21 +92,15 @@ export function ChatInput({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
-            className="resize-none focus-visible:ring-2 focus-visible:ring-ring pr-16 py-4 px-4 bg-white border border-border shadow-sm transition-all duration-200 chat-input-textarea overflow-hidden text-base placeholder:text-gray-400/60 focus:placeholder:text-gray-300/50"
+            className="resize-none focus-visible:ring-0 shadow-sm pr-16 py-4 px-4 bg-white border focus-visible:border-gray-400 transition-all duration-200 chat-input-textarea overflow-auto text-base placeholder:text-gray-400/60 focus:placeholder:text-gray-300/50"
             rows={1}
-            style={{
-              minHeight: '56px',
-              maxHeight: '200px',
-              height: '56px' // Start with increased height
-            }}
           />
 
           {/* Dynamic Button Position - centered for single line, bottom-aligned for multi-line */}
-          <div className={`absolute right-4 transition-all duration-200 ${(message.trim() || isLoading) ? 'opacity-100' : 'opacity-0'} ${
-            isMultiLine
-              ? 'bottom-4' // Bottom alignment for multi-line
-              : 'top-1/2 transform -translate-y-1/2' // Centered for single line
-          }`}>
+          <div className={`absolute right-4 transition-all duration-200 ${(message.trim() || isLoading) ? 'opacity-100' : 'opacity-0'} ${isMultiLine
+            ? 'bottom-4' // Bottom alignment for multi-line
+            : 'top-1/2 transform -translate-y-1/2' // Centered for single line
+            }`}>
             {isLoading ? (
               <Button
                 size="sm"
@@ -124,16 +118,14 @@ export function ChatInput({
                 size="sm"
                 disabled={!message.trim()}
                 onClick={handleSend}
-                className={`h-8 w-8 p-0 rounded-full transition-all duration-200 ${
-                  message.trim()
-                    ? 'bg-primary hover:bg-primary/90 send-button-ready'
-                    : 'bg-muted send-button-disabled opacity-0'
-                }`}
+                className={`h-8 w-8 p-0 rounded-full transition-all duration-200 ${message.trim()
+                  ? 'bg-primary hover:bg-primary/90 send-button-ready'
+                  : 'bg-muted send-button-disabled opacity-0'
+                  }`}
               >
                 <Send
-                  className={`h-3 w-3 transition-transform duration-200 ${
-                    message.trim() ? 'scale-100 opacity-100' : 'scale-75 opacity-30'
-                  }`}
+                  className={`h-3 w-3 transition-transform duration-200 ${message.trim() ? 'scale-100 opacity-100' : 'scale-75 opacity-30'
+                    }`}
                 />
               </Button>
             )}

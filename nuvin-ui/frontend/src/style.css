@@ -127,3 +127,28 @@
         font-family: "RobotoFlex", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 }
+
+/* Custom scrollbar styles for chat input */
+.chat-input-textarea::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-input-textarea::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-input-textarea::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+
+.chat-input-textarea::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* Firefox scrollbar */
+.chat-input-textarea {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+}

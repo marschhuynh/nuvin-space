@@ -244,8 +244,10 @@ export async function smartFetch(
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<Response> {
-  return fetchProxy(input, init);
+  console.log('smartFetch', input, init);
+  return fetch(input, init);
   // if (isWailsEnvironment()) {
+  //   return fetchProxy(input, init);
   // } else {
   //   return fetch(input, init);
   // }

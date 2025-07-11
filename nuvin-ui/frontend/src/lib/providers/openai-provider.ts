@@ -1,8 +1,7 @@
 import { LLMProvider, CompletionParams, CompletionResult } from './llm-provider';
-import { fetchProxy } from '../fetch-proxy';
 
-export class GithubCopilotProvider implements LLMProvider {
-  readonly type = 'GitHub';
+export class OpenAIProvider implements LLMProvider {
+  readonly type = 'OpenAI';
   private apiKey: string;
 
   constructor(apiKey: string) {
@@ -10,7 +9,7 @@ export class GithubCopilotProvider implements LLMProvider {
   }
 
   async generateCompletion(params: CompletionParams): Promise<CompletionResult> {
-    const response = await fetchProxy('https://api.githubcopilot.com/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -27,7 +26,7 @@ export class GithubCopilotProvider implements LLMProvider {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`GitHub Copilot API error: ${response.status} - ${text}`);
+      throw new Error(`OpenAI API error: ${response.status} - ${text}`);
     }
 
     const data = await response.json();

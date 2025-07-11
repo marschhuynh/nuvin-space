@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Plus, History } from 'lucide-react';
-import { ConversationItem } from './ConversationItem';
 import { Conversation } from '@/types';
+import { ConversationItem } from './ConversationItem';
 
 interface ConversationHistoryProps {
   conversations: Conversation[];
