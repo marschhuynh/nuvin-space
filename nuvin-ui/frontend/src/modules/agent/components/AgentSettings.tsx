@@ -9,22 +9,21 @@ interface AgentSettingsProps {
 
 export function AgentSettings({ onAddAgent, onEditAgent }: AgentSettingsProps) {
   const { agents, deleteAgent } = useAgentStore();
-
   return (
-    <div className="flex flex-1 flex-col gap-4 min-h-0">
-      <div className="flex-shrink-0">
-        <Button onClick={onAddAgent} className="w-full">
+    <div>
+      <div className="flex flex-1 justify-between items-center p-6 border-b">
+        <h2 className="text-xl font-semibold">Agent Settings</h2>
+        <Button onClick={onAddAgent}>
           <Plus className="h-4 w-4 mr-2" />
           Add New Agent
         </Button>
       </div>
-
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="font-medium text-sm mb-3 flex-shrink-0">
-          Existing Agents ({agents.length})
-        </div>
-        <div className="flex flex-col flex-1 border rounded-lg bg-muted/20 overflow-hidden">
-          <div className="p-3 space-y-3 pb-6 overflow-auto">
+      <div className="flex flex-1 flex-col gap-4 min-h-0 p-6">
+        <div className="flex-1 flex flex-col min-h-0">
+          <div className="font-medium text-sm mb-3 flex-shrink-0">
+            Existing Agents ({agents.length})
+          </div>
+          <div className="space-y-3 pb-6 overflow-auto">
             {agents.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 No agents added yet

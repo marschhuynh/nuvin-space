@@ -1,7 +1,10 @@
 import { useMemo, useCallback } from 'react';
 import { useProviderStore } from '@/store/useProviderStore';
-import { useModelsStore, ModelInfoWithState } from '@/store/useModelsStore';
-import { ModelConfig } from '@/types';
+import {
+  useModelsStore,
+  type ModelInfoWithState,
+} from '@/store/useModelsStore';
+import type { ModelConfig } from '@/types';
 
 export interface ActiveModelInfo {
   // Current model configuration from provider
@@ -27,7 +30,7 @@ export function useActiveModel(): ActiveModelInfo {
 
   return useMemo((): ActiveModelInfo => {
     // Get active provider
-    const activeProvider = providers.find(p => p.id === activeProviderId);
+    const activeProvider = providers.find((p) => p.id === activeProviderId);
 
     if (!activeProvider) {
       return {
@@ -44,14 +47,17 @@ export function useActiveModel(): ActiveModelInfo {
 
     // Get models for active provider
     const providerModels = models[activeProviderId] || [];
-    const enabledModels = providerModels.filter(model => model.enabled);
+    const enabledModels = providerModels.filter((model) => model.enabled);
     const isLoading = loading[activeProviderId] || false;
     const error = errors[activeProviderId] || null;
 
     // Get current model info
     const modelConfig = activeProvider.activeModel;
     const modelInfo = modelConfig
-      ? providerModels.find(model => model.id === modelConfig.model || model.name === modelConfig.model)
+      ? providerModels.find(
+          (model) =>
+            model.id === modelConfig.model || model.name === modelConfig.model,
+        )
       : null;
 
     const hasActiveModel = !!modelConfig?.model;
@@ -72,52 +78,77 @@ export function useActiveModel(): ActiveModelInfo {
 
 export function useActiveModelActions() {
   const { updateProvider, activeProviderId } = useProviderStore();
-  const { updateModelState, setModels, setLoading, setError } = useModelsStore();
+  const { updateModelState, setModels, setLoading, setError } =
+    useModelsStore();
 
-  const updateActiveModel = useCallback((model: string) => {
-    const { providers } = useProviderStore.getState();
-    const activeProvider = providers.find(p => p.id === activeProviderId);
+  const updateActiveModel = useCallback(
+    (model: string) => {
+      const { providers } = useProviderStore.getState();
+      const activeProvider = providers.find((p) => p.id === activeProviderId);
 
-    if (activeProvider) {
-      updateProvider({
-        ...activeProvider,
-        activeModel: {
-          ...activeProvider.activeModel,
-          model
-        }
-      });
-    }
-  }, [activeProviderId, updateProvider]);
-
-  const toggleModelEnabled = useCallback((modelId: string) => {
-    if (activeProviderId) {
-      const { models } = useModelsStore.getState();
-      const providerModels = models[activeProviderId] || [];
-      const model = providerModels.find(m => m.id === modelId);
-
-      if (model) {
-        updateModelState(activeProviderId, modelId, !model.enabled);
+      if (activeProvider) {
+        updateProvider({
+          ...activeProvider,
+          activeModel: {
+            ...activeProvider.activeModel,
+            model,
+          },
+        });
       }
-    }
-  }, [activeProviderId, updateModelState]);
+    },
+    [activeProviderId, updateProvider],
+  );
 
-  const setProviderModels = useCallback((models: Array<{ id: string; name: string; description?: string; contextLength?: number; inputCost?: number; outputCost?: number; }>) => {
-    if (activeProviderId) {
-      setModels(activeProviderId, models);
-    }
-  }, [activeProviderId, setModels]);
+  const toggleModelEnabled = useCallback(
+    (modelId: string) => {
+      if (activeProviderId) {
+        const { models } = useModelsStore.getState();
+        const providerModels = models[activeProviderId] || [];
+        const model = providerModels.find((m) => m.id === modelId);
 
-  const setProviderLoading = useCallback((loading: boolean) => {
-    if (activeProviderId) {
-      setLoading(activeProviderId, loading);
-    }
-  }, [activeProviderId, setLoading]);
+        if (model) {
+          updateModelState(activeProviderId, modelId, !model.enabled);
+        }
+      }
+    },
+    [activeProviderId, updateModelState],
+  );
 
-  const setProviderError = useCallback((error: string | null) => {
-    if (activeProviderId) {
-      setError(activeProviderId, error);
-    }
-  }, [activeProviderId, setError]);
+  const setProviderModels = useCallback(
+    (
+      models: Array<{
+        id: string;
+        name: string;
+        description?: string;
+        contextLength?: number;
+        inputCost?: number;
+        outputCost?: number;
+      }>,
+    ) => {
+      if (activeProviderId) {
+        setModels(activeProviderId, models);
+      }
+    },
+    [activeProviderId, setModels],
+  );
+
+  const setProviderLoading = useCallback(
+    (loading: boolean) => {
+      if (activeProviderId) {
+        setLoading(activeProviderId, loading);
+      }
+    },
+    [activeProviderId, setLoading],
+  );
+
+  const setProviderError = useCallback(
+    (error: string | null) => {
+      if (activeProviderId) {
+        setError(activeProviderId, error);
+      }
+    },
+    [activeProviderId, setError],
+  );
 
   return {
     updateActiveModel,

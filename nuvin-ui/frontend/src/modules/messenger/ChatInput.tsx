@@ -1,4 +1,10 @@
-import { useState, KeyboardEvent, useEffect, useRef } from 'react';
+import {
+  useState,
+  type KeyboardEvent,
+  useEffect,
+  useRef,
+  useCallback,
+} from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Send, Square } from 'lucide-react';
@@ -38,7 +44,7 @@ export function ChatInput({
     onStop?.();
   };
 
-  const autoResize = () => {
+  const autoResize = useCallback(() => {
     if (textareaRef.current) {
       const textarea = textareaRef.current;
 
@@ -62,7 +68,7 @@ export function ChatInput({
       // Determine if we're in multi-line mode (height greater than single line)
       setIsMultiLine(newHeight > minHeight);
     }
-  };
+  }, []);
 
   const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -72,7 +78,7 @@ export function ChatInput({
     setTimeout(autoResize, 0);
   };
 
-  // Auto-resize when message changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <Auto-resize when message changes>
   useEffect(() => {
     autoResize();
   }, [message]);
@@ -80,7 +86,7 @@ export function ChatInput({
   // Auto-resize on component mount
   useEffect(() => {
     autoResize();
-  }, []);
+  }, [autoResize]);
 
   const isLoading = disabled; // Loading state when disabled
 

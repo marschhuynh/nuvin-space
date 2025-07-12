@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useProviderStore } from '@/store/useProviderStore';
-import { ProviderConfig } from '@/types';
-import { LLMProviderConfig, ProviderType } from '@/lib/providers';
+import type { ProviderConfig } from '@/types';
+import type { LLMProviderConfig, ProviderType } from '@/lib/providers';
 
 export interface ActiveProviderInfo {
   provider: ProviderConfig | null;
@@ -14,7 +14,7 @@ export function useActiveProvider(): ProviderConfig | null {
   const { providers, activeProviderId } = useProviderStore();
 
   return useMemo(() => {
-    return providers.find(p => p.id === activeProviderId) || null;
+    return providers.find((p) => p.id === activeProviderId) || null;
   }, [providers, activeProviderId]);
 }
 
@@ -22,7 +22,7 @@ export function useActiveProviderConfig(): ProviderConfig | null {
   const { providers, activeProviderId } = useProviderStore();
 
   return useMemo(() => {
-    return providers.find(p => p.id === activeProviderId) || null;
+    return providers.find((p) => p.id === activeProviderId) || null;
   }, [providers, activeProviderId]);
 }
 
@@ -30,7 +30,7 @@ export function useActiveProviderLLMConfig(): LLMProviderConfig | null {
   const { providers, activeProviderId } = useProviderStore();
 
   return useMemo(() => {
-    const provider = providers.find(p => p.id === activeProviderId);
+    const provider = providers.find((p) => p.id === activeProviderId);
     if (!provider) return null;
 
     return {

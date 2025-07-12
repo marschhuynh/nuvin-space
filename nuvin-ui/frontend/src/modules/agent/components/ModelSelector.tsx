@@ -1,15 +1,13 @@
-import { useEffect } from 'react';
 import { Loader2, AlertCircle, Info } from 'lucide-react';
 import {
-  LLMProviderConfig,
-  ProviderType,
+  type LLMProviderConfig,
   fetchProviderModels,
 } from '@/lib/providers/provider-utils';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ModelSelectView } from './ModelSelectView';
-import { useActiveProvider } from '../hooks/useActiveProvider';
-import { useActiveModel, useActiveModelActions } from '../hooks/useActiveModel';
+import { useModelsStore } from '@/store/useModelsStore';
+import { useProviderStore } from '@/store/useProviderStore';
 
 interface ModelSelectorProps {
   providerConfig: LLMProviderConfig;
@@ -26,55 +24,27 @@ export function ModelSelector({
   disabled = false,
   className,
 }: ModelSelectorProps) {
-  const activeProviderConfig = useActiveProvider();
-  const { enabledModels, isLoading, error } = useActiveModel();
-  const { setProviderModels, setProviderLoading, setProviderError } = useActiveModelActions();
+  const { activeProviderId } = useProviderStore();
+  const { getEnabledModels, loading, errors, setModels, setError, setLoading } =
+    useModelsStore();
 
-  useEffect(() => {
-    console.log('Rendering ModelSelector with providerConfig:', activeProviderConfig);
-    async function loadModels() {
-      if (!activeProviderConfig?.apiKey) {
-        setProviderModels([]);
-        return;
-      }
-
-      setProviderLoading(true);
-      setProviderError(null);
-
-      try {
-        const fetchedModels = await fetchProviderModels({
-          type: activeProviderConfig.type as ProviderType,
-          apiKey: activeProviderConfig.apiKey,
-          name: activeProviderConfig.name,
-        });
-        setProviderModels(fetchedModels);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Failed to load models';
-        setProviderError(errorMessage);
-        setProviderModels([]);
-        console.error('Failed to fetch models:', err);
-      }
-    }
-
-    loadModels();
-  }, [activeProviderConfig, setProviderModels, setProviderLoading, setProviderError]);
+  const enabledModels = getEnabledModels(activeProviderId || '');
+  const isLoading = loading[activeProviderId || ''] || false;
+  const error = errors[activeProviderId || ''] || null;
 
   const handleRefresh = () => {
-    if (!isLoading && providerConfig?.apiKey) {
-      setProviderError(null);
-      setProviderModels([]);
+    if (!isLoading && providerConfig?.apiKey && activeProviderId) {
+      setError(activeProviderId, null);
       // Trigger useEffect by updating a dependency
       const loadModels = async () => {
-        setProviderLoading(true);
+        setLoading(activeProviderId, true);
         try {
           const fetchedModels = await fetchProviderModels(providerConfig);
-          setProviderModels(fetchedModels);
+          setModels(activeProviderId, fetchedModels);
         } catch (err) {
           const errorMessage =
             err instanceof Error ? err.message : 'Failed to load models';
-          setProviderError(errorMessage);
-          setProviderModels([]);
+          setError(activeProviderId, errorMessage);
         }
       };
       loadModels();

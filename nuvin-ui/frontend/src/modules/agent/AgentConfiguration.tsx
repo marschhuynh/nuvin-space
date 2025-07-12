@@ -7,10 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { A2AError, a2aService, agentManager, ProviderType } from '@/lib';
+import { A2AError, a2aService, type ProviderType } from '@/lib';
 import { useAgentStore } from '@/store/useAgentStore';
 import { useProviderStore } from '@/store/useProviderStore';
-import { AgentConfig, AgentSettings } from '@/types';
+import type { AgentConfig, AgentSettings } from '@/types';
 import {
   AlertCircle,
   Bot,
@@ -96,12 +96,12 @@ export function AgentConfiguration({
       const authConfig =
         agent.auth && agent.auth.type !== 'none'
           ? {
-            type: agent.auth.type,
-            token: agent.auth.token,
-            username: agent.auth.username,
-            password: agent.auth.password,
-            headerName: agent.auth.headerName,
-          }
+              type: agent.auth.type,
+              token: agent.auth.token,
+              username: agent.auth.username,
+              password: agent.auth.password,
+              headerName: agent.auth.headerName,
+            }
           : undefined;
 
       // Fetch agent card information
@@ -132,19 +132,22 @@ export function AgentConfiguration({
     setActiveProvider(providerId);
   };
 
-  const handleModelChange = useCallback((modelName: string) => {
-    const activeProvider = providers.find((p) => p.id === activeProviderId);
-    if (activeProvider) {
-      const updatedProvider = {
-        ...activeProvider,
-        activeModel: {
-          ...activeProvider.activeModel,
-          model: modelName,
-        },
-      };
-      updateProvider(updatedProvider);
-    }
-  }, [activeProviderId]);
+  const handleModelChange = useCallback(
+    (modelName: string) => {
+      const activeProvider = providers.find((p) => p.id === activeProviderId);
+      if (activeProvider) {
+        const updatedProvider = {
+          ...activeProvider,
+          activeModel: {
+            ...activeProvider.activeModel,
+            model: modelName,
+          },
+        };
+        updateProvider(updatedProvider);
+      }
+    },
+    [activeProviderId],
+  );
 
   const handleRefreshAgentCard = () => {
     const selectedAgent = agents.find((agent) => agent.id === activeAgentId);
@@ -268,17 +271,19 @@ export function AgentConfiguration({
                       Available Tools ({currentTools.length})
                     </Label>
                     <div className="space-y-1 sm:space-y-2 max-h-28 sm:max-h-100 overflow-y-auto">
-                      {getAgentTools(selectedAgent).map((tool, index) => (
+                      {getAgentTools(selectedAgent).map((tool) => (
                         <div
-                          key={index}
-                          className={`flex items-start gap-2 p-1.5 sm:p-2 rounded-md text-xs ${tool.enabled
-                            ? 'bg-green-50 border border-green-200'
-                            : 'bg-gray-50 border border-gray-200'
-                            }`}
+                          key={`${tool.name}`}
+                          className={`flex items-start gap-2 p-1.5 sm:p-2 rounded-md text-xs ${
+                            tool.enabled
+                              ? 'bg-green-50 border border-green-200'
+                              : 'bg-gray-50 border border-gray-200'
+                          }`}
                         >
                           <div
-                            className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mt-1 sm:mt-1.5 ${tool.enabled ? 'bg-green-500' : 'bg-gray-400'
-                              }`}
+                            className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mt-1 sm:mt-1.5 ${
+                              tool.enabled ? 'bg-green-500' : 'bg-gray-400'
+                            }`}
                           />
                           <div className="flex-1 min-w-0">
                             <div className="font-medium truncate">
@@ -436,7 +441,7 @@ export function AgentConfiguration({
                       <div className="space-y-1 max-h-24 overflow-y-auto">
                         {agentCardInfo.capabilities.map((capability, index) => (
                           <div
-                            key={index}
+                            key={capability}
                             className="flex items-center gap-2 p-1.5 sm:p-2 rounded-md text-xs bg-blue-50 border border-blue-200"
                           >
                             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-500" />
