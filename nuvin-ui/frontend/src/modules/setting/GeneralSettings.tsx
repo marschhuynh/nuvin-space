@@ -1,5 +1,11 @@
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { UserPreferences } from '@/store/useUserPreferenceStore';
 
 interface GeneralSettingsProps {
@@ -7,7 +13,10 @@ interface GeneralSettingsProps {
   onSettingsChange: (settings: Partial<UserPreferences>) => void;
 }
 
-export function GeneralSettings({ settings, onSettingsChange }: GeneralSettingsProps) {
+export function GeneralSettings({
+  settings,
+  onSettingsChange,
+}: GeneralSettingsProps) {
   return (
     <div className="grid gap-6 overflow-y-auto">
       {/* Theme Setting */}
@@ -82,9 +91,7 @@ export function GeneralSettings({ settings, onSettingsChange }: GeneralSettingsP
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
             settings.autoSave ? 'bg-primary' : 'bg-input'
           }`}
-          onClick={() =>
-            onSettingsChange({ autoSave: !settings.autoSave })
-          }
+          onClick={() => onSettingsChange({ autoSave: !settings.autoSave })}
         >
           <span
             className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${

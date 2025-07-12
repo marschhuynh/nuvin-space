@@ -11,12 +11,8 @@ import { useProviderStore } from '@/store/useProviderStore';
 import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
 
 import { GeneralSettings } from './GeneralSettings';
-import {
-  AgentSettings,
-  AgentModal
-} from '../agent/components';
+import { AgentSettings, AgentModal } from '../agent/components';
 import { AddProviderModal, ProviderSettings } from '../provider';
-
 
 interface SettingsDialogProps {
   open: boolean;
@@ -33,7 +29,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
   const { agents, reset: resetAgents } = useAgentStore();
   const { reset: resetProviders } = useProviderStore();
-  const { preferences, updatePreferences, reset: resetPreferences } = useUserPreferenceStore();
+  const {
+    preferences,
+    updatePreferences,
+    reset: resetPreferences,
+  } = useUserPreferenceStore();
 
   const handleReset = () => {
     switch (activeTab) {
@@ -55,7 +55,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   };
 
   const handleEditAgent = (agentId: string) => {
-    const agent = agents.find(a => a.id === agentId);
+    const agent = agents.find((a) => a.id === agentId);
     setEditingAgent(agent || null);
     setShowAgentModal(true);
   };
@@ -124,9 +124,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               Reset to Defaults
             </Button>
             <div className="flex gap-2">
-              <Button onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
+              <Button onClick={() => onOpenChange(false)}>Cancel</Button>
             </div>
           </div>
         </DialogContent>

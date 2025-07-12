@@ -68,10 +68,10 @@ export interface AgentSettings {
   // Authentication for remote A2A agents
   auth?: {
     type: 'bearer' | 'apikey' | 'basic' | 'none';
-    token?: string;        // For bearer tokens or API keys
-    username?: string;     // For basic auth
-    password?: string;     // For basic auth
-    headerName?: string;   // Custom header name for API keys (default: 'Authorization')
+    token?: string; // For bearer tokens or API keys
+    username?: string; // For basic auth
+    password?: string; // For basic auth
+    headerName?: string; // Custom header name for API keys (default: 'Authorization')
   };
   // Optional properties to make it compatible with Agent interface where needed
   description?: string;

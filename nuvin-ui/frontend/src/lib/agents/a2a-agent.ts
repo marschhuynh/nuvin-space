@@ -17,11 +17,14 @@ export class A2AAgent extends BaseAgent {
       token: this.settings.auth.token,
       username: this.settings.auth.username,
       password: this.settings.auth.password,
-      headerName: this.settings.auth.headerName
+      headerName: this.settings.auth.headerName,
     };
   }
 
-  async sendMessage(content: string, options: SendMessageOptions = {}): Promise<MessageResponse> {
+  async sendMessage(
+    content: string,
+    options: SendMessageOptions = {},
+  ): Promise<MessageResponse> {
     if (!this.settings.url) {
       throw new Error('No URL configured for remote agent');
     }
@@ -37,19 +40,37 @@ export class A2AAgent extends BaseAgent {
       acceptedOutputModes: ['text'],
       timeout: options.timeout,
       enableRetry: options.enableRetry,
-      maxRetries: options.maxRetries
+      maxRetries: options.maxRetries,
     };
 
     try {
       if (options.stream && options.onChunk) {
-        return await this.sendStreamingMessage(content, options, messageId, timestamp, startTime, authConfig, a2aOptions);
+        return await this.sendStreamingMessage(
+          content,
+          options,
+          messageId,
+          timestamp,
+          startTime,
+          authConfig,
+          a2aOptions,
+        );
       }
 
-      const response = await a2aService.sendMessage(this.settings.url, content, authConfig, a2aOptions);
+      const response = await a2aService.sendMessage(
+        this.settings.url,
+        content,
+        authConfig,
+        a2aOptions,
+      );
 
       let finalResponse = response;
       if (response.kind === 'task' && response.status.state === 'working') {
-        finalResponse = await this.pollForTaskCompletion(this.settings.url, response.id, authConfig, options.timeout || 60000);
+        finalResponse = await this.pollForTaskCompletion(
+          this.settings.url,
+          response.id,
+          authConfig,
+          options.timeout || 60000,
+        );
       }
 
       const responseContent = this.extractResponseContent(finalResponse);
@@ -58,7 +79,12 @@ export class A2AAgent extends BaseAgent {
 
       this.addToHistory(options.conversationId || 'default', [
         { id: generateUUID(), role: 'user', content, timestamp },
-        { id: generateUUID(), role: 'assistant', content: responseContent, timestamp: new Date().toISOString() }
+        {
+          id: generateUUID(),
+          role: 'assistant',
+          content: responseContent,
+          timestamp: new Date().toISOString(),
+        },
       ]);
 
       return {
@@ -71,8 +97,8 @@ export class A2AAgent extends BaseAgent {
           agentId: this.settings.id,
           responseTime: Date.now() - startTime,
           model: 'A2A Agent',
-          taskId: finalResponse.kind === 'task' ? finalResponse.id : undefined
-        }
+          taskId: finalResponse.kind === 'task' ? finalResponse.id : undefined,
+        },
       };
     } catch (error) {
       if (error instanceof A2AError) {
@@ -82,7 +108,12 @@ export class A2AAgent extends BaseAgent {
     }
   }
 
-  private async pollForTaskCompletion(agentUrl: string, taskId: string, authConfig: A2AAuthConfig | undefined, totalTimeout: number): Promise<Task> {
+  private async pollForTaskCompletion(
+    agentUrl: string,
+    taskId: string,
+    authConfig: A2AAuthConfig | undefined,
+    totalTimeout: number,
+  ): Promise<Task> {
     const startTime = Date.now();
     let pollInterval = 1000;
     const maxInterval = 5000;
@@ -91,13 +122,16 @@ export class A2AAgent extends BaseAgent {
       try {
         const task = await a2aService.getTask(agentUrl, taskId, authConfig);
         if (!task) throw new Error(`Task ${taskId} not found`);
-        if (task.status.state === 'completed' || ['failed', 'canceled', 'input-required'].includes(task.status.state)) {
+        if (
+          task.status.state === 'completed' ||
+          ['failed', 'canceled', 'input-required'].includes(task.status.state)
+        ) {
           return task;
         }
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
         pollInterval = Math.min(pollInterval * 1.5, maxInterval);
       } catch {
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
       }
     }
     return await a2aService.getTask(agentUrl, taskId, authConfig);
@@ -105,10 +139,18 @@ export class A2AAgent extends BaseAgent {
 
   private extractResponseContent(response: Task | A2AMessage): string {
     if (response.kind === 'message') {
-      return response.parts.filter((p: Part) => p.kind === 'text').map((p: any) => p.text).join('\n') || 'No response content';
+      return (
+        response.parts
+          .filter((p: Part) => p.kind === 'text')
+          .map((p: any) => p.text)
+          .join('\n') || 'No response content'
+      );
     }
     if (response.status.message?.parts) {
-      const statusText = response.status.message.parts.filter((p: Part) => p.kind === 'text').map((p: any) => p.text).join('\n');
+      const statusText = response.status.message.parts
+        .filter((p: Part) => p.kind === 'text')
+        .map((p: any) => p.text)
+        .join('\n');
       if (statusText) return statusText;
     }
     for (const artifact of response.artifacts || []) {
@@ -126,7 +168,7 @@ export class A2AAgent extends BaseAgent {
     timestamp: string,
     startTime: number,
     authConfig: A2AAuthConfig | undefined,
-    a2aOptions: A2AMessageOptions
+    a2aOptions: A2AMessageOptions,
   ): Promise<MessageResponse> {
     if (!this.settings.url) {
       throw new Error('No URL configured for remote agent');
@@ -136,7 +178,12 @@ export class A2AAgent extends BaseAgent {
     let finalTimestamp = new Date().toISOString();
     let taskId: string | undefined;
 
-    const stream = a2aService.sendMessageStream(this.settings.url, content, authConfig, a2aOptions);
+    const stream = a2aService.sendMessageStream(
+      this.settings.url,
+      content,
+      authConfig,
+      a2aOptions,
+    );
 
     for await (const event of stream) {
       if (event.kind === 'task') {
@@ -184,7 +231,12 @@ export class A2AAgent extends BaseAgent {
 
     this.addToHistory(options.conversationId || 'default', [
       { id: generateUUID(), role: 'user', content, timestamp },
-      { id: generateUUID(), role: 'assistant', content: accumulated, timestamp: finalTimestamp }
+      {
+        id: generateUUID(),
+        role: 'assistant',
+        content: accumulated,
+        timestamp: finalTimestamp,
+      },
     ]);
 
     return {
@@ -197,8 +249,8 @@ export class A2AAgent extends BaseAgent {
         agentId: this.settings.id,
         responseTime: Date.now() - startTime,
         model: 'A2A Agent (Streaming)',
-        taskId
-      }
+        taskId,
+      },
     };
   }
 }

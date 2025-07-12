@@ -2,5 +2,5 @@
 export {
   useAgentManager,
   useAgentStatuses,
-  useAgentConnectivity
+  useAgentConnectivity,
 } from './useAgentManager';

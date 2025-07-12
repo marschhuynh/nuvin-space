@@ -25,7 +25,7 @@ export function Message({ role, content }: MessageProps) {
   }, [content]);
 
   const toggleRawView = useCallback(() => {
-    setShowRaw(prev => !prev);
+    setShowRaw((prev) => !prev);
   }, []);
 
   return (
@@ -48,7 +48,9 @@ export function Message({ role, content }: MessageProps) {
       >
         {role === 'user' || showRaw ? (
           // For user messages or raw view, show plain text
-          <pre className="text-sm whitespace-pre-wrap font-sans">{content.trim()}</pre>
+          <pre className="text-sm whitespace-pre-wrap font-sans">
+            {content.trim()}
+          </pre>
         ) : (
           // For assistant messages in rendered view, show markdown
           <div className="text-sm">
@@ -66,7 +68,7 @@ export function Message({ role, content }: MessageProps) {
               className={`p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted text-muted-foreground ${
                 showRaw ? 'bg-muted/50' : ''
               }`}
-              title={showRaw ? "Show rendered content" : "Show raw content"}
+              title={showRaw ? 'Show rendered content' : 'Show raw content'}
             >
               <FileText className="h-4 w-4" />
             </button>

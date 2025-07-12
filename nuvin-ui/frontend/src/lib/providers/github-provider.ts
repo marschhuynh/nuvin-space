@@ -1,28 +1,35 @@
-import { LLMProvider, CompletionParams, CompletionResult, ModelInfo } from './llm-provider';
+import {
+  LLMProvider,
+  CompletionParams,
+  CompletionResult,
+  ModelInfo,
+} from './llm-provider';
 
 export class GithubCopilotProvider implements LLMProvider {
   readonly type = 'GitHub';
   private apiKey: string;
-  private apiUrl: string = "https://api.github.com";
+  private apiUrl: string = 'https://api.github.com';
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
   }
 
-  async generateCompletion(params: CompletionParams): Promise<CompletionResult> {
+  async generateCompletion(
+    params: CompletionParams,
+  ): Promise<CompletionResult> {
     const response = await fetch(`${this.apiUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`
+        Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
         model: params.model,
         messages: params.messages,
         temperature: params.temperature,
         max_tokens: params.maxTokens,
-        top_p: params.topP
-      })
+        top_p: params.topP,
+      }),
     });
 
     if (!response.ok) {
@@ -35,12 +42,14 @@ export class GithubCopilotProvider implements LLMProvider {
     return { content };
   }
 
-  async *generateCompletionStream(params: CompletionParams): AsyncGenerator<string> {
+  async *generateCompletionStream(
+    params: CompletionParams,
+  ): AsyncGenerator<string> {
     const response = await fetch(`${this.apiUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`
+        Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
         model: params.model,
@@ -48,8 +57,8 @@ export class GithubCopilotProvider implements LLMProvider {
         temperature: params.temperature,
         max_tokens: params.maxTokens,
         top_p: params.topP,
-        stream: true
-      })
+        stream: true,
+      }),
     });
 
     if (!response.ok || !response.body) {
@@ -89,14 +98,16 @@ export class GithubCopilotProvider implements LLMProvider {
       const response = await fetch(`${this.apiUrl}/catalog/models`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           'X-GitHub-Api-Version': '2022-11-28',
-        }
+        },
       });
 
       if (!response.ok) {
-        console.warn(`GitHub Models API error: ${response.status}. Falling back to known models.`);
-        return this.getFallbackModels();
+        console.warn(
+          `GitHub Models API error: ${response.status}. Returning empty models list.`,
+        );
+        return [];
       }
 
       const data = await response.json();
@@ -108,7 +119,9 @@ export class GithubCopilotProvider implements LLMProvider {
           return {
             id: model.name || model.id,
             name: this.getModelDisplayName(model.name || model.id),
-            description: model.description || `${model.name || model.id} via GitHub Copilot`,
+            description:
+              model.description ||
+              `${model.name || model.id} via GitHub Copilot`,
             contextLength: this.getContextLength(model.name || model.id),
             inputCost: 0, // No additional cost through Copilot subscription
             outputCost: 0,
@@ -116,106 +129,37 @@ export class GithubCopilotProvider implements LLMProvider {
         })
         .sort((a: ModelInfo, b: ModelInfo) => this.sortModels(a, b));
 
-      return transformedModels.length > 0 ? transformedModels : this.getFallbackModels();
+      return transformedModels;
     } catch (error) {
       console.error('Failed to fetch GitHub models:', error);
-      return this.getFallbackModels();
+      return [];
     }
-  }
-
-  private getFallbackModels(): ModelInfo[] {
-    return [
-      {
-        id: "claude-3.7-sonnet",
-        name: "Claude 3.7 Sonnet",
-        description: "Most advanced model for complex coding tasks via GitHub Copilot",
-        contextLength: 200000,
-        inputCost: 0,
-        outputCost: 0,
-      },
-      {
-        id: "claude-3.5-sonnet",
-        name: "Claude 3.5 Sonnet",
-        description: "Good balance for everyday coding support via GitHub Copilot",
-        contextLength: 200000,
-        inputCost: 0,
-        outputCost: 0,
-      },
-      {
-        id: "o3-mini",
-        name: "OpenAI o3-mini",
-        description: "Fast reasoning model for coding tasks via GitHub Copilot",
-        contextLength: 128000,
-        inputCost: 0,
-        outputCost: 0,
-      },
-      {
-        id: "gemini-2.0-flash",
-        name: "Gemini 2.0 Flash",
-        description: "Fast multimodal model via GitHub Copilot",
-        contextLength: 128000,
-        inputCost: 0,
-        outputCost: 0,
-      },
-      {
-        id: "gpt-4o",
-        name: "GPT-4o",
-        description: "GPT-4o via GitHub Copilot",
-        contextLength: 128000,
-        inputCost: 0,
-        outputCost: 0,
-      },
-      {
-        id: "gpt-4o-mini",
-        name: "GPT-4o Mini",
-        description: "GPT-4o Mini via GitHub Copilot",
-        contextLength: 128000,
-        inputCost: 0,
-        outputCost: 0,
-      },
-      {
-        id: "gpt-4",
-        name: "GPT-4",
-        description: "GPT-4 via GitHub Copilot",
-        contextLength: 8192,
-        inputCost: 0,
-        outputCost: 0,
-      },
-      {
-        id: "gpt-3.5-turbo",
-        name: "GPT-3.5 Turbo",
-        description: "GPT-3.5 Turbo via GitHub Copilot",
-        contextLength: 16385,
-        inputCost: 0,
-        outputCost: 0,
-      },
-    ];
   }
 
   private getModelDisplayName(modelId: string): string {
     const nameMap: Record<string, string> = {
-      "claude-3.7-sonnet": "Claude 3.7 Sonnet",
-      "claude-3.5-sonnet": "Claude 3.5 Sonnet",
-      "o3-mini": "OpenAI o3-mini",
-      "gemini-2.0-flash": "Gemini 2.0 Flash",
-      "gpt-4o": "GPT-4o",
-      "gpt-4o-mini": "GPT-4o Mini",
-      "gpt-4": "GPT-4",
-      "gpt-3.5-turbo": "GPT-3.5 Turbo",
+      'claude-3.7-sonnet': 'Claude 3.7 Sonnet',
+      'claude-3.5-sonnet': 'Claude 3.5 Sonnet',
+      'o3-mini': 'OpenAI o3-mini',
+      'gemini-2.0-flash': 'Gemini 2.0 Flash',
+      'gpt-4o': 'GPT-4o',
+      'gpt-4o-mini': 'GPT-4o Mini',
+      'gpt-4': 'GPT-4',
+      'gpt-3.5-turbo': 'GPT-3.5 Turbo',
     };
     return nameMap[modelId] || modelId;
   }
 
   private getContextLength(modelId: string): number {
     const contextMap: Record<string, number> = {
-      "claude-3.7-sonnet": 200000,
-      "claude-3.5-sonnet": 200000,
-      "o3-mini": 128000,
-      "gemini-2.0-flash": 128000,
-      "gpt-4o": 128000,
-      "gpt-4o-mini": 128000,
-      "gpt-4": 8192,
-      "gpt-3.5-turbo": 16385,
+      'claude-3.7-sonnet': 200000,
+      'claude-3.5-sonnet': 200000,
+      'o3-mini': 128000,
+      'gemini-2.0-flash': 128000,
+      'gpt-4o': 128000,
+      'gpt-4o-mini': 128000,
+      'gpt-4': 8192,
+      'gpt-3.5-turbo': 16385,
     };
     return contextMap[modelId] || 128000;
   }
@@ -235,11 +179,11 @@ export class GithubCopilotProvider implements LLMProvider {
 
     const priorityA = getModelPriority(a.id);
     const priorityB = getModelPriority(b.id);
-    
+
     if (priorityA !== priorityB) {
       return priorityB - priorityA; // Higher priority first
     }
-    
+
     return a.name.localeCompare(b.name);
   }
 }

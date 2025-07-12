@@ -2,7 +2,13 @@ import { AgentSettings, ProviderConfig, Message } from '@/types';
 import { LogError } from '@wails/runtime';
 import { generateUUID } from './utils';
 
-import { a2aService, A2AAuthConfig, A2AMessageOptions, A2AError, A2AErrorType } from './a2a';
+import {
+  a2aService,
+  A2AAuthConfig,
+  A2AMessageOptions,
+  A2AError,
+  A2AErrorType,
+} from './a2a';
 import type { Task, Message as A2AMessage, Part } from './a2a';
 import { BaseAgent, LocalAgent, A2AAgent } from './agents';
 
@@ -103,19 +109,25 @@ export class AgentManager {
       this.agentInstance = null;
       return;
     }
-    if (this.activeAgent.agentType === "local") {
+    if (this.activeAgent.agentType === 'local') {
       if (!this.activeProvider || !this.activeProvider.modelConfig) {
         this.agentInstance = null;
         return;
       }
-      this.agentInstance = new LocalAgent(this.activeAgent, this.activeProvider, this.conversationHistory);
-    } else if (this.activeAgent.agentType === "remote") {
-      this.agentInstance = new A2AAgent(this.activeAgent, this.conversationHistory);
+      this.agentInstance = new LocalAgent(
+        this.activeAgent,
+        this.activeProvider,
+        this.conversationHistory,
+      );
+    } else if (this.activeAgent.agentType === 'remote') {
+      this.agentInstance = new A2AAgent(
+        this.activeAgent,
+        this.conversationHistory,
+      );
     } else {
       this.agentInstance = null;
     }
   }
-
 
   private createA2AAuthConfig(agent: AgentSettings): A2AAuthConfig | undefined {
     if (!agent.auth || agent.agentType !== 'remote') {
@@ -127,13 +139,13 @@ export class AgentManager {
       token: agent.auth.token,
       username: agent.auth.username,
       password: agent.auth.password,
-      headerName: agent.auth.headerName
+      headerName: agent.auth.headerName,
     };
   }
 
   async sendMessage(
     content: string,
-    options: SendMessageOptions = {}
+    options: SendMessageOptions = {},
   ): Promise<MessageResponse> {
     if (!this.activeAgent) {
       throw new Error('No active agent selected');
@@ -155,10 +167,13 @@ export class AgentManager {
       const response = await this.agentInstance.sendMessage(content, options);
       return response;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
 
       if (options.onError) {
-        options.onError(error instanceof Error ? error : new Error(errorMessage));
+        options.onError(
+          error instanceof Error ? error : new Error(errorMessage),
+        );
       }
 
       throw error;
@@ -175,7 +190,10 @@ export class AgentManager {
   /**
    * Add messages to conversation history
    */
-  private addToConversationHistory(conversationId: string, messages: Message[]): void {
+  private addToConversationHistory(
+    conversationId: string,
+    messages: Message[],
+  ): void {
     const existing = this.conversationHistory.get(conversationId) || [];
     this.conversationHistory.set(conversationId, [...existing, ...messages]);
   }
@@ -191,11 +209,15 @@ export class AgentManager {
     }
   }
 
-  async getTask(agentUrl: string, taskId: string, options?: {
-    timeout?: number;
-    enableRetry?: boolean;
-    maxRetries?: number;
-  }): Promise<Task | null> {
+  async getTask(
+    agentUrl: string,
+    taskId: string,
+    options?: {
+      timeout?: number;
+      enableRetry?: boolean;
+      maxRetries?: number;
+    },
+  ): Promise<Task | null> {
     try {
       // Find agent settings for the URL to get auth config
       let authConfig: A2AAuthConfig | undefined;
@@ -203,7 +225,13 @@ export class AgentManager {
         authConfig = this.createA2AAuthConfig(this.activeAgent);
       }
 
-      return await a2aService.getTask(agentUrl, taskId, authConfig, undefined, options);
+      return await a2aService.getTask(
+        agentUrl,
+        taskId,
+        authConfig,
+        undefined,
+        options,
+      );
     } catch (error) {
       if (error instanceof A2AError) {
         console.error('Failed to get task:', error.getUserMessage());
@@ -214,11 +242,15 @@ export class AgentManager {
     }
   }
 
-  async cancelTask(agentUrl: string, taskId: string, options?: {
-    timeout?: number;
-    enableRetry?: boolean;
-    maxRetries?: number;
-  }): Promise<boolean> {
+  async cancelTask(
+    agentUrl: string,
+    taskId: string,
+    options?: {
+      timeout?: number;
+      enableRetry?: boolean;
+      maxRetries?: number;
+    },
+  ): Promise<boolean> {
     try {
       // Find agent settings for the URL to get auth config
       let authConfig: A2AAuthConfig | undefined;
@@ -226,7 +258,12 @@ export class AgentManager {
         authConfig = this.createA2AAuthConfig(this.activeAgent);
       }
 
-      const task = await a2aService.cancelTask(agentUrl, taskId, authConfig, options);
+      const task = await a2aService.cancelTask(
+        agentUrl,
+        taskId,
+        authConfig,
+        options,
+      );
       return task.status.state === 'canceled';
     } catch (error) {
       if (error instanceof A2AError) {
@@ -259,7 +296,12 @@ export class AgentManager {
       case 'OpenAI':
         return ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo', 'gpt-3.5-turbo-16k'];
       case 'Anthropic':
-        return ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku', 'claude-2'];
+        return [
+          'claude-3-opus',
+          'claude-3-sonnet',
+          'claude-3-haiku',
+          'claude-2',
+        ];
       case 'GitHub':
         return ['gpt-4', 'gpt-3.5-turbo'];
       case 'OpenRouter':
@@ -271,7 +313,7 @@ export class AgentManager {
           'anthropic/claude-3-sonnet',
           'anthropic/claude-3-haiku',
           'meta-llama/llama-2-70b-chat',
-          'mistralai/mistral-7b-instruct'
+          'mistralai/mistral-7b-instruct',
         ];
       default:
         return [];
@@ -306,12 +348,18 @@ export class AgentManager {
     errorType?: A2AErrorType;
   }> {
     if (agentSettings.agentType !== 'remote' || !agentSettings.url) {
-      return { connected: false, error: 'Invalid agent configuration for connectivity test' };
+      return {
+        connected: false,
+        error: 'Invalid agent configuration for connectivity test',
+      };
     }
 
     try {
       const authConfig = this.createA2AAuthConfig(agentSettings);
-      const connected = await a2aService.testConnection(agentSettings.url, authConfig);
+      const connected = await a2aService.testConnection(
+        agentSettings.url,
+        authConfig,
+      );
 
       if (connected) {
         return { connected: true };
@@ -319,7 +367,8 @@ export class AgentManager {
         return {
           connected: false,
           error: 'Connection test failed',
-          userMessage: 'Unable to connect to the agent. Please verify the URL and authentication settings.'
+          userMessage:
+            'Unable to connect to the agent. Please verify the URL and authentication settings.',
         };
       }
     } catch (error) {
@@ -328,14 +377,15 @@ export class AgentManager {
           connected: false,
           error: error.message,
           userMessage: error.getUserMessage(),
-          errorType: error.type
+          errorType: error.type,
         };
       }
 
       return {
         connected: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        userMessage: 'An unexpected error occurred while testing the connection. Please try again.'
+        userMessage:
+          'An unexpected error occurred while testing the connection. Please try again.',
       };
     }
   }
@@ -362,13 +412,14 @@ export class AgentManager {
   async getAgentStatus(agentSettings: AgentSettings): Promise<AgentStatus> {
     if (agentSettings.agentType === 'local') {
       // For local agents, check if provider is configured
-      const hasProvider = this.activeProvider !== null && this.activeProvider.apiKey !== '';
+      const hasProvider =
+        this.activeProvider !== null && this.activeProvider.apiKey !== '';
       return {
         id: agentSettings.id,
         name: agentSettings.name,
         type: agentSettings.agentType,
         status: hasProvider ? 'available' : 'offline',
-        capabilities: ['completion']
+        capabilities: ['completion'],
       };
     } else if (agentSettings.agentType === 'remote' && agentSettings.url) {
       // For remote agents, test connectivity and get capabilities
@@ -377,7 +428,10 @@ export class AgentManager {
         const health = a2aService.getConnectionHealth(agentSettings.url);
 
         // Get agent info and capabilities
-        const agentInfo = await a2aService.getAgentInfo(agentSettings.url, authConfig);
+        const agentInfo = await a2aService.getAgentInfo(
+          agentSettings.url,
+          authConfig,
+        );
 
         return {
           id: agentSettings.id,
@@ -387,7 +441,7 @@ export class AgentManager {
           url: agentSettings.url,
           capabilities: agentInfo?.capabilities || [],
           lastSuccess: health.lastSuccess,
-          failureCount: health.failureCount
+          failureCount: health.failureCount,
         };
       } catch (error) {
         return {
@@ -397,8 +451,12 @@ export class AgentManager {
           status: 'error',
           url: agentSettings.url,
           capabilities: [],
-          error: error instanceof A2AError ? error.getUserMessage() :
-                 (error instanceof Error ? error.message : 'Unknown error')
+          error:
+            error instanceof A2AError
+              ? error.getUserMessage()
+              : error instanceof Error
+                ? error.message
+                : 'Unknown error',
         };
       }
     }
@@ -408,7 +466,7 @@ export class AgentManager {
       name: agentSettings.name,
       type: agentSettings.agentType,
       status: 'offline',
-      capabilities: []
+      capabilities: [],
     };
   }
 }

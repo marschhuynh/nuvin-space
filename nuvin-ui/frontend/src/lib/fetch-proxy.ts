@@ -54,12 +54,12 @@ class ProxyResponse implements Response {
       start(controller) {
         controller.enqueue(new TextEncoder().encode(bodyText));
         controller.close();
-      }
+      },
     });
   }
-    bytes(): Promise<Uint8Array> {
-        throw new Error('Method not implemented.');
-    }
+  bytes(): Promise<Uint8Array> {
+    throw new Error('Method not implemented.');
+  }
 
   get bodyUsed(): boolean {
     return this._bodyUsed;
@@ -117,7 +117,7 @@ class ProxyResponse implements Response {
       status: this.status,
       statusText: this.statusText,
       headers: this.headers,
-      url: this.url
+      url: this.url,
     });
   }
 }
@@ -127,12 +127,15 @@ class ProxyResponse implements Response {
  */
 export async function fetchProxy(
   input: RequestInfo | URL,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<Response> {
   // Convert input to URL string
-  const url = typeof input === 'string' ? input :
-              input instanceof URL ? input.toString() :
-              input.url;
+  const url =
+    typeof input === 'string'
+      ? input
+      : input instanceof URL
+        ? input.toString()
+        : input.url;
 
   // Extract request details
   const method = init?.method || 'GET';
@@ -180,7 +183,7 @@ export async function fetchProxy(
     url,
     method: method.toUpperCase(),
     headers,
-    body
+    body,
   };
 
   LogInfo(`Fetch proxy: ${method.toUpperCase()} ${url}`);
@@ -200,12 +203,13 @@ export async function fetchProxy(
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
-      url
+      url,
     });
-
   } catch (error) {
     LogError(`Fetch proxy failed: ${error}`);
-    throw new Error(`Fetch failed: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `Fetch failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
@@ -232,9 +236,11 @@ export function disableGlobalFetchProxy(): void {
  * Check if we're running in a Wails environment
  */
 export function isWailsEnvironment(): boolean {
-  return typeof window !== 'undefined' &&
-         typeof (window as any).go !== 'undefined' &&
-         typeof (window as any).go.main !== 'undefined';
+  return (
+    typeof window !== 'undefined' &&
+    typeof (window as any).go !== 'undefined' &&
+    typeof (window as any).go.main !== 'undefined'
+  );
 }
 
 /**
@@ -242,7 +248,7 @@ export function isWailsEnvironment(): boolean {
  */
 export async function smartFetch(
   input: RequestInfo | URL,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<Response> {
   console.log('smartFetch', input, init);
   return fetch(input, init);

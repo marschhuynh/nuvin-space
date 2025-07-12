@@ -3,7 +3,13 @@ import { Plus, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useProviderStore } from '@/store/useProviderStore';
 import { fetchGithubCopilotKey } from '@/lib/github';
 
@@ -14,7 +20,8 @@ interface ProviderSettingsProps {
 }
 
 export function ProviderSettings({ onAddProvider }: ProviderSettingsProps) {
-  const { providers, updateProvider, deleteProvider, isNameUnique } = useProviderStore();
+  const { providers, updateProvider, deleteProvider, isNameUnique } =
+    useProviderStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editType, setEditType] = useState('');
@@ -65,9 +72,10 @@ export function ProviderSettings({ onAddProvider }: ProviderSettingsProps) {
   };
 
   const saveChanges = () => {
-    if (!editingId || !validateEditName(editName, editingId) || !editType) return;
+    if (!editingId || !validateEditName(editName, editingId) || !editType)
+      return;
 
-    const existing = providers.find(p => p.id === editingId);
+    const existing = providers.find((p) => p.id === editingId);
     updateProvider({
       id: editingId,
       name: editName.trim(),
@@ -78,8 +86,8 @@ export function ProviderSettings({ onAddProvider }: ProviderSettingsProps) {
         temperature: 0.7,
         maxTokens: 2048,
         topP: 1,
-        systemPrompt: ''
-      }
+        systemPrompt: '',
+      },
     });
     cancelEditing();
   };
@@ -88,10 +96,7 @@ export function ProviderSettings({ onAddProvider }: ProviderSettingsProps) {
     <div className="flex flex-1 flex-col gap-4 min-h-0">
       {/* Add Provider Button */}
       <div className="flex-shrink-0">
-        <Button
-          onClick={onAddProvider}
-          className="w-full"
-        >
+        <Button onClick={onAddProvider} className="w-full">
           <Plus className="h-4 w-4 mr-2" />
           Add New Provider
         </Button>
@@ -109,13 +114,19 @@ export function ProviderSettings({ onAddProvider }: ProviderSettingsProps) {
                 No providers added yet
               </div>
             ) : (
-              providers.map(provider => (
-                <div key={provider.id} className="rounded-md border p-3 space-y-2">
+              providers.map((provider) => (
+                <div
+                  key={provider.id}
+                  className="rounded-md border p-3 space-y-2"
+                >
                   <div className="flex justify-between items-center gap-3">
                     <div className="flex flex-col min-w-0">
-                      <span className="font-medium truncate">{provider.name}</span>
+                      <span className="font-medium truncate">
+                        {provider.name}
+                      </span>
                       <span className="text-sm text-muted-foreground">
-                        {provider.type || provider.name} • {provider.apiKey ? 'Key added' : 'No key'}
+                        {provider.type || provider.name} •{' '}
+                        {provider.apiKey ? 'Key added' : 'No key'}
                       </span>
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
@@ -153,8 +164,10 @@ export function ProviderSettings({ onAddProvider }: ProviderSettingsProps) {
                           <SelectValue placeholder="Select provider type" />
                         </SelectTrigger>
                         <SelectContent>
-                          {PROVIDER_OPTIONS.map(type => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          {PROVIDER_OPTIONS.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -165,7 +178,7 @@ export function ProviderSettings({ onAddProvider }: ProviderSettingsProps) {
                             type={showApiKey ? 'text' : 'password'}
                             className="pr-10"
                             value={editKey}
-                            onChange={e => setEditKey(e.target.value)}
+                            onChange={(e) => setEditKey(e.target.value)}
                             placeholder="Enter API key"
                           />
                           <Button
@@ -183,11 +196,16 @@ export function ProviderSettings({ onAddProvider }: ProviderSettingsProps) {
                           </Button>
                         </div>
                         {editType === 'GitHub' && (
-                          <Button type="button" variant="outline" size="sm" onClick={async () => {
-                            const key = await fetchGithubCopilotKey();
-                            if (!key || !editingId) return;
-                            setEditKey(key);
-                          }}>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              const key = await fetchGithubCopilotKey();
+                              if (!key || !editingId) return;
+                              setEditKey(key);
+                            }}
+                          >
                             Get Key
                           </Button>
                         )}

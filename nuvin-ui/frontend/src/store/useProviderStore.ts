@@ -1,6 +1,6 @@
-import { ProviderConfig } from "@/types";
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { ProviderConfig } from '@/types';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface ProviderState {
   providers: ProviderConfig[];
@@ -15,16 +15,16 @@ interface ProviderState {
 
 const defaultProviders: ProviderConfig[] = [
   {
-    id: "default",
-    name: "Default OpenAI",
-    type: "OpenAI",
-    apiKey: "",
+    id: 'default',
+    name: 'Default OpenAI',
+    type: 'OpenAI',
+    apiKey: '',
     modelConfig: {
-      model: "gpt-3.5-turbo",
+      model: 'gpt-3.5-turbo',
       temperature: 0.7,
       maxTokens: 2048,
       topP: 1,
-      systemPrompt: "",
+      systemPrompt: '',
     },
   },
 ];
@@ -33,13 +33,13 @@ export const useProviderStore = create<ProviderState>()(
   persist(
     (set, get) => ({
       providers: defaultProviders,
-      activeProviderId: "default",
+      activeProviderId: 'default',
       addProvider: (provider) =>
         set((state) => ({ providers: [...state.providers, provider] })),
       updateProvider: (provider) =>
         set((state) => ({
           providers: state.providers.map((p) =>
-            p.id === provider.id ? { ...p, ...provider } : p
+            p.id === provider.id ? { ...p, ...provider } : p,
           ),
         })),
       deleteProvider: (id) =>
@@ -49,7 +49,7 @@ export const useProviderStore = create<ProviderState>()(
             state.activeProviderId === id
               ? newProviders.length > 0
                 ? newProviders[0].id
-                : ""
+                : ''
               : state.activeProviderId;
           return {
             providers: newProviders,
@@ -62,10 +62,10 @@ export const useProviderStore = create<ProviderState>()(
         return !providers.some((p) => p.name === name && p.id !== excludeId);
       },
       reset: () =>
-        set({ providers: defaultProviders, activeProviderId: "default" }),
+        set({ providers: defaultProviders, activeProviderId: 'default' }),
     }),
     {
-      name: "provider-storage",
-    }
-  )
+      name: 'provider-storage',
+    },
+  ),
 );

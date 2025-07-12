@@ -20,12 +20,18 @@ export function MermaidDiagram({ chart }: MermaidProps) {
         cleanChart = cleanChart.replace(/<br\s*\/?>/g, '\n    ');
 
         // Handle multiline labels by ensuring proper quoting
-        cleanChart = cleanChart.replace(/\[([^\]]*)<br[^>]*>([^\]]*)\]/g, (match, before, after) => {
-          return `["${before.trim()}\n${after.trim()}"]`;
-        });
+        cleanChart = cleanChart.replace(
+          /\[([^\]]*)<br[^>]*>([^\]]*)\]/g,
+          (match, before, after) => {
+            return `["${before.trim()}\n${after.trim()}"]`;
+          },
+        );
 
         // Convert <br/> tags within brackets to newlines with proper indentation
-        cleanChart = cleanChart.replace(/\[([^[\]]*)<br\/?>([^[\]]*)\]/g, '["$1\n$2"]');
+        cleanChart = cleanChart.replace(
+          /\[([^[\]]*)<br\/?>([^[\]]*)\]/g,
+          '["$1\n$2"]',
+        );
 
         // Handle cases where labels might not be properly quoted for multiline
         cleanChart = cleanChart.replace(/\[([^[\]]*\n[^[\]]*)\]/g, '["$1"]');
@@ -88,12 +94,17 @@ export function MermaidDiagram({ chart }: MermaidProps) {
 
           // Try to render the cleaned version
           const fallbackId = `mermaid-fallback-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-          const { svg: fallbackSvg } = await mermaid.render(fallbackId, fallbackChart);
+          const { svg: fallbackSvg } = await mermaid.render(
+            fallbackId,
+            fallbackChart,
+          );
           setSvg(fallbackSvg);
           setError('');
         } catch (fallbackErr) {
           console.error('Mermaid fallback also failed:', fallbackErr);
-          setError(err instanceof Error ? err.message : 'Failed to render diagram');
+          setError(
+            err instanceof Error ? err.message : 'Failed to render diagram',
+          );
           setSvg('');
         }
       }
@@ -107,16 +118,23 @@ export function MermaidDiagram({ chart }: MermaidProps) {
   if (error) {
     return (
       <div className="border border-red-200 bg-red-50 p-4 rounded-md">
-        <div className="text-red-800 text-sm font-medium mb-2">Diagram Error</div>
-        <div className="text-red-600 text-xs font-mono whitespace-pre-wrap mb-2">{error}</div>
+        <div className="text-red-800 text-sm font-medium mb-2">
+          Diagram Error
+        </div>
+        <div className="text-red-600 text-xs font-mono whitespace-pre-wrap mb-2">
+          {error}
+        </div>
         <details className="text-red-600 text-xs">
-          <summary className="cursor-pointer hover:text-red-800">View diagram source</summary>
+          <summary className="cursor-pointer hover:text-red-800">
+            View diagram source
+          </summary>
           <pre className="mt-2 p-2 bg-red-100 rounded text-xs overflow-x-auto">
             {chart}
           </pre>
         </details>
         <div className="mt-2 text-red-700 text-xs">
-          <strong>Tip:</strong> Try using quoted labels for multiline text: <code>["Line 1\nLine 2"]</code>
+          <strong>Tip:</strong> Try using quoted labels for multiline text:{' '}
+          <code>["Line 1\nLine 2"]</code>
         </div>
       </div>
     );

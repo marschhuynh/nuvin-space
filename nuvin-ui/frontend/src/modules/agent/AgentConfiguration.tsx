@@ -1,19 +1,30 @@
 import { Button } from '@/components/ui/button';
-import { Label } from "@/components/ui/label";
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { A2AError, a2aService, agentManager } from '@/lib';
+} from '@/components/ui/select';
+import { A2AError, a2aService, agentManager, ProviderType } from '@/lib';
 import { useAgentStore } from '@/store/useAgentStore';
 import { useProviderStore } from '@/store/useProviderStore';
 import { AgentConfig, AgentSettings } from '@/types';
-import { AlertCircle, Bot, CheckCircle, Circle, Clock, Globe, Home, Loader2, RefreshCw, Settings } from 'lucide-react';
+import {
+  AlertCircle,
+  Bot,
+  CheckCircle,
+  Circle,
+  Clock,
+  Globe,
+  Home,
+  Loader2,
+  RefreshCw,
+  Settings,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { ModelSelector } from '@/components/ModelSelector';
+import { ModelSelector } from '@/modules/agent/components/ModelSelector';
 
 interface AgentConfigurationProps {
   onConfigChange?: (config: AgentConfig) => void;
@@ -31,29 +42,39 @@ interface AgentCardInfo {
 
 export function AgentConfiguration({
   onConfigChange,
-  }: AgentConfigurationProps) {
-    const { agents, activeAgentId, setActiveAgent } = useAgentStore();
-    const { providers, activeProviderId, setActiveProvider, updateProvider } = useProviderStore();
+}: AgentConfigurationProps) {
+  const { agents, activeAgentId, setActiveAgent } = useAgentStore();
+  const { providers, activeProviderId, setActiveProvider, updateProvider } =
+    useProviderStore();
 
-    // State for remote agent card information
-    const [agentCardInfo, setAgentCardInfo] = useState<AgentCardInfo | null>(null);
-    const [loadingAgentCard, setLoadingAgentCard] = useState(false);
-    const [agentCardError, setAgentCardError] = useState<string | null>(null);
+  // State for remote agent card information
+  const [agentCardInfo, setAgentCardInfo] = useState<AgentCardInfo | null>(
+    null,
+  );
+  const [loadingAgentCard, setLoadingAgentCard] = useState(false);
+  const [agentCardError, setAgentCardError] = useState<string | null>(null);
 
   // Notify parent when store changes
   useEffect(() => {
     if (onConfigChange) {
       const config: AgentConfig = {
         selectedAgent: activeAgentId,
-        agents
+        agents,
       };
       onConfigChange(config);
     }
-  }, [agents, activeAgentId, providers, activeProviderId, onConfigChange, agentCardInfo]);
+  }, [
+    agents,
+    activeAgentId,
+    providers,
+    activeProviderId,
+    onConfigChange,
+    agentCardInfo,
+  ]);
 
   // Fetch agent card info when a remote agent is selected
   useEffect(() => {
-    const selectedAgent = agents.find(agent => agent.id === activeAgentId);
+    const selectedAgent = agents.find((agent) => agent.id === activeAgentId);
 
     if (selectedAgent?.agentType === 'remote' && selectedAgent.url) {
       fetchAgentCardInfo(selectedAgent);
@@ -72,13 +93,16 @@ export function AgentConfiguration({
 
     try {
       // Create auth config
-      const authConfig = agent.auth && agent.auth.type !== 'none' ? {
-        type: agent.auth.type,
-        token: agent.auth.token,
-        username: agent.auth.username,
-        password: agent.auth.password,
-        headerName: agent.auth.headerName
-      } : undefined;
+      const authConfig =
+        agent.auth && agent.auth.type !== 'none'
+          ? {
+              type: agent.auth.type,
+              token: agent.auth.token,
+              username: agent.auth.username,
+              password: agent.auth.password,
+              headerName: agent.auth.headerName,
+            }
+          : undefined;
 
       // Fetch agent card information
       const agentInfo = await a2aService.getAgentInfo(agent.url, authConfig);
@@ -109,28 +133,28 @@ export function AgentConfiguration({
   };
 
   const handleModelChange = (modelName: string) => {
-    const activeProvider = providers.find(p => p.id === activeProviderId);
+    const activeProvider = providers.find((p) => p.id === activeProviderId);
     if (activeProvider) {
       const updatedProvider = {
         ...activeProvider,
         modelConfig: {
           ...activeProvider.modelConfig,
-          model: modelName
-        }
+          model: modelName,
+        },
       };
       updateProvider(updatedProvider);
     }
   };
 
   const handleRefreshAgentCard = () => {
-    const selectedAgent = agents.find(agent => agent.id === activeAgentId);
+    const selectedAgent = agents.find((agent) => agent.id === activeAgentId);
     if (selectedAgent?.agentType === 'remote') {
       fetchAgentCardInfo(selectedAgent);
     }
   };
 
-  const selectedAgent = agents.find(agent => agent.id === activeAgentId);
-  const activeProvider = providers.find(p => p.id === activeProviderId);
+  const selectedAgent = agents.find((agent) => agent.id === activeAgentId);
+  const activeProvider = providers.find((p) => p.id === activeProviderId);
 
   const getStatusIcon = (status?: AgentSettings['status']) => {
     switch (status) {
@@ -154,11 +178,16 @@ export function AgentConfiguration({
 
     // Generate description based on persona for local agents
     const personaDescriptions = {
-      helpful: 'A friendly and supportive assistant ready to help with various tasks.',
-      professional: 'A business-focused assistant providing professional guidance and analysis.',
-      creative: 'An imaginative assistant specializing in creative thinking and content generation.',
-      analytical: 'A detail-oriented assistant focused on data analysis and logical reasoning.',
-      casual: 'A relaxed and conversational assistant for everyday interactions.'
+      helpful:
+        'A friendly and supportive assistant ready to help with various tasks.',
+      professional:
+        'A business-focused assistant providing professional guidance and analysis.',
+      creative:
+        'An imaginative assistant specializing in creative thinking and content generation.',
+      analytical:
+        'A detail-oriented assistant focused on data analysis and logical reasoning.',
+      casual:
+        'A relaxed and conversational assistant for everyday interactions.',
     };
 
     return personaDescriptions[agent.persona] || 'A versatile AI assistant.';
@@ -170,7 +199,9 @@ export function AgentConfiguration({
     return [];
   };
 
-  const currentTools = selectedAgent ? getAgentTools(selectedAgent).filter(t=>t.enabled) : [];
+  const currentTools = selectedAgent
+    ? getAgentTools(selectedAgent).filter((t) => t.enabled)
+    : [];
 
   return (
     <div className="min-w-[200px] border-l border-border bg-card overflow-auto">
@@ -184,17 +215,20 @@ export function AgentConfiguration({
         <div className="space-y-4 sm:space-y-6">
           {/* Agent Selection */}
           <div className="space-y-2">
-            <Label htmlFor="agent" className="text-xs sm:text-sm">Select Agent</Label>
-            <Select
-              value={activeAgentId}
-              onValueChange={handleAgentChange}
-            >
+            <Label htmlFor="agent" className="text-xs sm:text-sm">
+              Select Agent
+            </Label>
+            <Select value={activeAgentId} onValueChange={handleAgentChange}>
               <SelectTrigger className="text-xs sm:text-sm">
                 <SelectValue placeholder="Select an agent" />
               </SelectTrigger>
               <SelectContent>
                 {agents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id} className="text-xs sm:text-sm">
+                  <SelectItem
+                    key={agent.id}
+                    value={agent.id}
+                    className="text-xs sm:text-sm"
+                  >
                     <div className="flex items-center gap-2">
                       {getStatusIcon(agent.status || 'active')}
                       {agent.agentType === 'remote' ? (
@@ -227,29 +261,40 @@ export function AgentConfiguration({
               )}
 
               {/* Tools/Skills - Only show for local agents or remote agents without agent card info */}
-              {(selectedAgent.agentType === 'local' && currentTools.length > 0) &&(
-                <div className="space-y-2">
-                  <Label className="text-xs sm:text-sm">Available Tools ({currentTools.length})</Label>
-                  <div className="space-y-1 sm:space-y-2 max-h-28 sm:max-h-100 overflow-y-auto">
-                    {getAgentTools(selectedAgent).map((tool, index) => (
-                      <div
-                        key={index}
-                        className={`flex items-start gap-2 p-1.5 sm:p-2 rounded-md text-xs ${
-                          tool.enabled ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'
-                        }`}
-                      >
-                        <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mt-1 sm:mt-1.5 ${
-                          tool.enabled ? 'bg-green-500' : 'bg-gray-400'
-                        }`} />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{tool.name}</div>
-                          <div className="text-muted-foreground line-clamp-2 sm:line-clamp-none">{tool.description}</div>
+              {selectedAgent.agentType === 'local' &&
+                currentTools.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-xs sm:text-sm">
+                      Available Tools ({currentTools.length})
+                    </Label>
+                    <div className="space-y-1 sm:space-y-2 max-h-28 sm:max-h-100 overflow-y-auto">
+                      {getAgentTools(selectedAgent).map((tool, index) => (
+                        <div
+                          key={index}
+                          className={`flex items-start gap-2 p-1.5 sm:p-2 rounded-md text-xs ${
+                            tool.enabled
+                              ? 'bg-green-50 border border-green-200'
+                              : 'bg-gray-50 border border-gray-200'
+                          }`}
+                        >
+                          <div
+                            className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mt-1 sm:mt-1.5 ${
+                              tool.enabled ? 'bg-green-500' : 'bg-gray-400'
+                            }`}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">
+                              {tool.name}
+                            </div>
+                            <div className="text-muted-foreground line-clamp-2 sm:line-clamp-none">
+                              {tool.description}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </>
           )}
 
@@ -263,7 +308,9 @@ export function AgentConfiguration({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="provider" className="text-xs sm:text-sm">Select Provider</Label>
+                <Label htmlFor="provider" className="text-xs sm:text-sm">
+                  Select Provider
+                </Label>
                 <Select
                   value={activeProviderId}
                   onValueChange={handleProviderChange}
@@ -273,12 +320,20 @@ export function AgentConfiguration({
                   </SelectTrigger>
                   <SelectContent>
                     {providers.map((provider) => (
-                      <SelectItem key={provider.id} value={provider.id} className="text-xs sm:text-sm">
+                      <SelectItem
+                        key={provider.id}
+                        value={provider.id}
+                        className="text-xs sm:text-sm"
+                      >
                         <div className="flex items-center gap-2">
                           <Settings className="h-3 w-3 text-blue-500" />
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="truncate font-medium">{provider.name}</span>
-                            <span className="text-xs text-muted-foreground">{provider.type}</span>
+                            <span className="truncate font-medium">
+                              {provider.name}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {provider.type}
+                            </span>
                           </div>
                         </div>
                       </SelectItem>
@@ -290,12 +345,14 @@ export function AgentConfiguration({
               {/* Model Selection */}
               {activeProvider && (
                 <div className="space-y-2">
-                  <Label htmlFor="model" className="text-xs sm:text-sm">Select Model</Label>
+                  <Label htmlFor="model" className="text-xs sm:text-sm">
+                    Select Model
+                  </Label>
                   <ModelSelector
                     providerConfig={{
-                      type: activeProvider.type,
+                      type: activeProvider.type as ProviderType,
                       apiKey: activeProvider.apiKey,
-                      name: activeProvider.name
+                      name: activeProvider.name,
                     }}
                     selectedModel={activeProvider.modelConfig?.model || ''}
                     onModelSelect={handleModelChange}
@@ -313,7 +370,9 @@ export function AgentConfiguration({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Globe className="h-4 w-4" />
-                  <span className="hidden sm:inline">Agent Card Information</span>
+                  <span className="hidden sm:inline">
+                    Agent Card Information
+                  </span>
                   <span className="sm:hidden">Agent Card</span>
                 </div>
 
@@ -362,7 +421,9 @@ export function AgentConfiguration({
                   {/* Agent Description - Only show if different from generic description */}
                   {agentCardInfo.description && (
                     <div className="space-y-2">
-                      <Label className="text-xs sm:text-sm">Agent Description</Label>
+                      <Label className="text-xs sm:text-sm">
+                        Agent Description
+                      </Label>
                       <p className="text-xs sm:text-sm text-muted-foreground p-2 sm:p-3 bg-muted rounded-md">
                         {agentCardInfo.description}
                       </p>
@@ -382,7 +443,9 @@ export function AgentConfiguration({
                             className="flex items-center gap-2 p-1.5 sm:p-2 rounded-md text-xs bg-blue-50 border border-blue-200"
                           >
                             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-500" />
-                            <span className="font-medium capitalize">{capability}</span>
+                            <span className="font-medium capitalize">
+                              {capability}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -403,7 +466,9 @@ export function AgentConfiguration({
                           >
                             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mt-1 sm:mt-1.5 bg-green-500 flex-shrink-0" />
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium truncate">{skill.name}</div>
+                              <div className="font-medium truncate">
+                                {skill.name}
+                              </div>
                               <div className="text-muted-foreground line-clamp-2 sm:line-clamp-none">
                                 {skill.description}
                               </div>

@@ -1,5 +1,5 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
@@ -31,12 +31,12 @@ export const useUserPreferenceStore = create<UserPreferenceState>()(
       preferences: defaultPreferences,
       updatePreferences: (updates) =>
         set((state) => ({
-          preferences: { ...state.preferences, ...updates }
+          preferences: { ...state.preferences, ...updates },
         })),
-      reset: () => set({ preferences: defaultPreferences })
+      reset: () => set({ preferences: defaultPreferences }),
     }),
     {
-      name: 'user-preferences-storage'
-    }
-  )
-)
+      name: 'user-preferences-storage',
+    },
+  ),
+);

@@ -3,13 +3,13 @@ import { Settings } from 'lucide-react';
 import { SettingsDialog } from '@/modules/setting/SettingsDialog';
 
 import { Button } from './ui/button';
-import appIcon from '../assets/appstore.png'
+import appIcon from '../assets/appstore.png';
 
 interface NavbarProps {
   userName?: string;
 }
 
-export function Navbar({ userName = "Guest" }: NavbarProps) {
+export function Navbar({ userName = 'Guest' }: NavbarProps) {
   const [showSettings, setShowSettings] = useState(false);
 
   return (
@@ -23,7 +23,9 @@ export function Navbar({ userName = "Guest" }: NavbarProps) {
                 alt="Nuvin Space"
                 className="h-9 w-9 transition-transform duration-200 active:animate-[wiggle_0.3s_ease-in-out]"
               />
-              <h1 className="text-xl font-semibold tracking-tight">Nuvin Space</h1>
+              <h1 className="text-xl font-semibold tracking-tight">
+                Nuvin Space
+              </h1>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -46,10 +48,7 @@ export function Navbar({ userName = "Guest" }: NavbarProps) {
         </div>
       </nav>
 
-      <SettingsDialog
-        open={showSettings}
-        onOpenChange={setShowSettings}
-      />
+      <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
     </>
   );
 }

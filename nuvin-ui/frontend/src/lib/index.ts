@@ -3,7 +3,7 @@ export { agentManager, AgentManager } from './agent-manager';
 export type {
   SendMessageOptions,
   MessageResponse,
-  AgentStatus
+  AgentStatus,
 } from './agent-manager';
 
 // A2A Service
@@ -12,7 +12,7 @@ export type {
   A2AAuthConfig,
   A2AMessageOptions,
   A2ATaskInfo,
-  A2AStreamEvent
+  A2AStreamEvent,
 } from './a2a';
 
 // Re-export A2A SDK types
@@ -24,7 +24,7 @@ export type {
   MessageSendParams,
   SendMessageResponse,
   GetTaskResponse,
-  CancelTaskResponse
+  CancelTaskResponse,
 } from './a2a';
 
 // Utils
@@ -33,8 +33,25 @@ export * from './utils';
 export { fetchGithubCopilotKey } from './github';
 
 // Providers
-export type { LLMProvider, CompletionParams, CompletionResult, ChatMessage, ModelInfo, ProviderType, LLMProviderConfig } from './providers';
-export { createProvider, OpenAIProvider, GithubCopilotProvider, AnthropicProvider, OpenRouterProvider, fetchProviderModels, formatModelCost, formatContextLength } from './providers';
+export type {
+  LLMProvider,
+  CompletionParams,
+  CompletionResult,
+  ChatMessage,
+  ModelInfo,
+  ProviderType,
+  LLMProviderConfig,
+} from './providers';
+export {
+  createProvider,
+  OpenAIProvider,
+  GithubCopilotProvider,
+  AnthropicProvider,
+  OpenRouterProvider,
+  fetchProviderModels,
+  formatModelCost,
+  formatContextLength,
+} from './providers';
 export { BaseAgent, LocalAgent, A2AAgent } from './agents';
 
 // Export fetch proxy utilities
@@ -43,5 +60,5 @@ export {
   enableGlobalFetchProxy,
   disableGlobalFetchProxy,
   smartFetch,
-  isWailsEnvironment
+  isWailsEnvironment,
 } from './fetch-proxy';

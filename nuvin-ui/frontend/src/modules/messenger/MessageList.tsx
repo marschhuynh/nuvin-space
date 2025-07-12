@@ -25,7 +25,9 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
           <div className="flex items-center justify-center h-full text-muted-foreground">
             <div className="text-center">
               <p className="text-lg mb-2">Welcome to Nuvin Space</p>
-              <p className="text-sm">Start a conversation by typing a message below.</p>
+              <p className="text-sm">
+                Start a conversation by typing a message below.
+              </p>
             </div>
           </div>
         ) : (
@@ -47,8 +49,14 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
                 <div className="max-w-[70%] p-4 rounded-lg bg-card/80 backdrop-blur-sm ml-4 shadow-sm border border-border/50">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    <div
+                      className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                      style={{ animationDelay: '0.1s' }}
+                    />
+                    <div
+                      className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                      style={{ animationDelay: '0.2s' }}
+                    />
                   </div>
                 </div>
               </div>

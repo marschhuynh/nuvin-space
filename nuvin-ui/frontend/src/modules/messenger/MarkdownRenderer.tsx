@@ -7,23 +7,31 @@ interface MarkdownRendererProps {
   className?: string;
 }
 
-export function MarkdownRenderer({ content, className = '' }: MarkdownRendererProps) {
+export function MarkdownRenderer({
+  content,
+  className = '',
+}: MarkdownRendererProps) {
   // Pre-process content to handle various nesting scenarios
   const processContent = (rawContent: string): string => {
     let processedContent = rawContent;
 
     // Case 1: If the entire content is wrapped in ```markdown...```
     // Extract the inner content
-    const fullMarkdownMatch = /^```markdown\s*\n([\s\S]*)\n```$/m.exec(processedContent.trim());
+    const fullMarkdownMatch = /^```markdown\s*\n([\s\S]*)\n```$/m.exec(
+      processedContent.trim(),
+    );
     if (fullMarkdownMatch) {
       processedContent = fullMarkdownMatch[1];
     }
 
     // Case 2: Look for any ```markdown blocks within the content and extract their inner content
     const markdownBlockRegex = /```markdown\s*\n([\s\S]*?)\n```/g;
-    processedContent = processedContent.replace(markdownBlockRegex, (match, innerContent) => {
-      return innerContent;
-    });
+    processedContent = processedContent.replace(
+      markdownBlockRegex,
+      (match, innerContent) => {
+        return innerContent;
+      },
+    );
 
     // Case 3: Handle plain mermaid syntax without code block wrapping
     // Look for lines that start with "mermaid" followed by diagram content
@@ -31,7 +39,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
       /^mermaid\s*\n((?:(?!```).)+?)(?=\n\n|\n\*\*|$)/gms,
       (match, diagramContent) => {
         return `\`\`\`mermaid\n${diagramContent.trim()}\n\`\`\``;
-      }
+      },
     );
 
     // Case 4: Look for any nested code blocks that might have been escaped
@@ -62,7 +70,9 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
             if (language === 'markdown') {
               return (
                 <div className="nested-markdown border border-blue-200 bg-blue-50 p-4 rounded-md">
-                  <div className="text-blue-800 text-sm font-medium mb-2">Markdown Content:</div>
+                  <div className="text-blue-800 text-sm font-medium mb-2">
+                    Markdown Content:
+                  </div>
                   <MarkdownRenderer content={String(children)} />
                 </div>
               );
@@ -71,7 +81,10 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
             // For inline code (no className means it's inline)
             if (!className) {
               return (
-                <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono" {...props}>
+                <code
+                  className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono"
+                  {...props}
+                >
                   {children}
                 </code>
               );
@@ -118,10 +131,14 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
 
           // Improved list styling with proper spacing and indentation
           ul: ({ children }) => (
-            <ul className="mb-4 space-y-2 pl-4 list-disc list-outside">{children}</ul>
+            <ul className="mb-4 space-y-2 pl-4 list-disc list-outside">
+              {children}
+            </ul>
           ),
           ol: ({ children }) => (
-            <ol className="mb-4 space-y-2 pl-4 list-decimal list-outside">{children}</ol>
+            <ol className="mb-4 space-y-2 pl-4 list-decimal list-outside">
+              {children}
+            </ol>
           ),
           li: ({ children }) => (
             <li className="text-sm leading-relaxed pl-1">{children}</li>
@@ -148,9 +165,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
           tbody: ({ children }) => (
             <tbody className="divide-y divide-gray-200">{children}</tbody>
           ),
-          tr: ({ children }) => (
-            <tr>{children}</tr>
-          ),
+          tr: ({ children }) => <tr>{children}</tr>,
           th: ({ children }) => (
             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
               {children}
@@ -175,9 +190,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
           ),
 
           // Style horizontal rules
-          hr: () => (
-            <hr className="my-8 border-gray-200" />
-          ),
+          hr: () => <hr className="my-8 border-gray-200" />,
         }}
       >
         {processedContent}

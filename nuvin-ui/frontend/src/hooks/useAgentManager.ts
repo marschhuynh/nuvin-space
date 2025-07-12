@@ -1,7 +1,13 @@
 import { useEffect, useCallback, useMemo } from 'react';
 import { useAgentStore } from '@/store/useAgentStore';
 import { useProviderStore } from '@/store/useProviderStore';
-import { agentManager, SendMessageOptions, MessageResponse, AgentStatus, A2AErrorType } from '@/lib';
+import {
+  agentManager,
+  SendMessageOptions,
+  MessageResponse,
+  AgentStatus,
+  A2AErrorType,
+} from '@/lib';
 import { AgentSettings } from '@/types';
 
 /**
@@ -10,18 +16,27 @@ import { AgentSettings } from '@/types';
  */
 export function useAgentManager() {
   // Get store states and actions
-  const { agents, activeAgentId, setActiveAgent: setStoreActiveAgent } = useAgentStore();
-  const { providers, activeProviderId, setActiveProvider: setStoreActiveProvider } = useProviderStore();
+  const {
+    agents,
+    activeAgentId,
+    setActiveAgent: setStoreActiveAgent,
+  } = useAgentStore();
+  const {
+    providers,
+    activeProviderId,
+    setActiveProvider: setStoreActiveProvider,
+  } = useProviderStore();
 
   // Get current active agent and provider
-  const activeAgent = useMemo(() =>
-    agents.find(agent => agent.id === activeAgentId) || null,
-    [agents, activeAgentId]
+  const activeAgent = useMemo(
+    () => agents.find((agent) => agent.id === activeAgentId) || null,
+    [agents, activeAgentId],
   );
 
-  const activeProvider = useMemo(() =>
-    providers.find(provider => provider.id === activeProviderId) || null,
-    [providers, activeProviderId]
+  const activeProvider = useMemo(
+    () =>
+      providers.find((provider) => provider.id === activeProviderId) || null,
+    [providers, activeProviderId],
   );
 
   // Sync AgentManager with store state
@@ -38,63 +53,81 @@ export function useAgentManager() {
   }, [activeProvider]);
 
   // Set active agent (updates both store and manager)
-  const setActiveAgent = useCallback((agentId: string) => {
-    const agent = agents.find(a => a.id === agentId);
-    if (agent) {
-      setStoreActiveAgent(agentId);
-      agentManager.setActiveAgent(agent);
-    } else {
-      console.warn(`Agent with id ${agentId} not found`);
-    }
-  }, [agents, setStoreActiveAgent]);
+  const setActiveAgent = useCallback(
+    (agentId: string) => {
+      const agent = agents.find((a) => a.id === agentId);
+      if (agent) {
+        setStoreActiveAgent(agentId);
+        agentManager.setActiveAgent(agent);
+      } else {
+        console.warn(`Agent with id ${agentId} not found`);
+      }
+    },
+    [agents, setStoreActiveAgent],
+  );
 
   // Set active provider (updates both store and manager)
-  const setActiveProvider = useCallback((providerId: string) => {
-    const provider = providers.find(p => p.id === providerId);
-    if (provider) {
-      setStoreActiveProvider(providerId);
-      agentManager.setActiveProvider(provider);
-    } else {
-      console.warn(`Provider with id ${providerId} not found`);
-    }
-  }, [providers, setStoreActiveProvider]);
+  const setActiveProvider = useCallback(
+    (providerId: string) => {
+      const provider = providers.find((p) => p.id === providerId);
+      if (provider) {
+        setStoreActiveProvider(providerId);
+        agentManager.setActiveProvider(provider);
+      } else {
+        console.warn(`Provider with id ${providerId} not found`);
+      }
+    },
+    [providers, setStoreActiveProvider],
+  );
 
   // Send message using the agent manager
-  const sendMessage = useCallback(async (
-    content: string,
-    options?: SendMessageOptions
-  ): Promise<MessageResponse> => {
-    if (!activeAgent) {
-      throw new Error('No active agent selected');
-    }
+  const sendMessage = useCallback(
+    async (
+      content: string,
+      options?: SendMessageOptions,
+    ): Promise<MessageResponse> => {
+      if (!activeAgent) {
+        throw new Error('No active agent selected');
+      }
 
-    if (!activeProvider && activeAgent.agentType === 'local') {
-      throw new Error('No active provider selected for local agent');
-    }
+      if (!activeProvider && activeAgent.agentType === 'local') {
+        throw new Error('No active provider selected for local agent');
+      }
 
-    return await agentManager.sendMessage(content, options);
-  }, [activeAgent, activeProvider]);
+      return await agentManager.sendMessage(content, options);
+    },
+    [activeAgent, activeProvider],
+  );
 
   // Get agent status
-  const getAgentStatus = useCallback(async (agent: AgentSettings): Promise<AgentStatus> => {
-    return await agentManager.getAgentStatus(agent);
-  }, []);
+  const getAgentStatus = useCallback(
+    async (agent: AgentSettings): Promise<AgentStatus> => {
+      return await agentManager.getAgentStatus(agent);
+    },
+    [],
+  );
 
   // Get status of active agent
-  const getActiveAgentStatus = useCallback(async (): Promise<AgentStatus | null> => {
-    if (!activeAgent) return null;
-    return await agentManager.getAgentStatus(activeAgent);
-  }, [activeAgent]);
+  const getActiveAgentStatus =
+    useCallback(async (): Promise<AgentStatus | null> => {
+      if (!activeAgent) return null;
+      return await agentManager.getAgentStatus(activeAgent);
+    }, [activeAgent]);
 
   // Test agent connectivity
-  const testAgentConnectivity = useCallback(async (agent: AgentSettings): Promise<{
-    connected: boolean;
-    error?: string;
-    userMessage?: string;
-    errorType?: A2AErrorType;
-  }> => {
-    return await agentManager.testAgentConnectivity(agent);
-  }, []);
+  const testAgentConnectivity = useCallback(
+    async (
+      agent: AgentSettings,
+    ): Promise<{
+      connected: boolean;
+      error?: string;
+      userMessage?: string;
+      errorType?: A2AErrorType;
+    }> => {
+      return await agentManager.testAgentConnectivity(agent);
+    },
+    [],
+  );
 
   // Test active agent connectivity
   const testActiveAgentConnectivity = useCallback(async (): Promise<{
@@ -129,9 +162,11 @@ export function useAgentManager() {
     if (!activeAgent) return false;
 
     if (activeAgent.agentType === 'local') {
-      return activeProvider !== null && 
-             activeProvider.apiKey !== '' && 
-             activeProvider.modelConfig !== undefined;
+      return (
+        activeProvider !== null &&
+        activeProvider.apiKey !== '' &&
+        activeProvider.modelConfig !== undefined
+      );
     }
 
     if (activeAgent.agentType === 'remote') {
@@ -142,7 +177,10 @@ export function useAgentManager() {
   }, [activeAgent, activeProvider]);
 
   // Get current agent type
-  const agentType = useMemo(() => activeAgent?.agentType || null, [activeAgent]);
+  const agentType = useMemo(
+    () => activeAgent?.agentType || null,
+    [activeAgent],
+  );
 
   // Check if current setup supports streaming
   const supportsStreaming = useMemo(() => {
@@ -208,7 +246,7 @@ export function useAgentManager() {
     getActiveAgentTasks,
 
     // Utilities
-    agentManager: agentManager // Direct access if needed
+    agentManager: agentManager, // Direct access if needed
   };
 }
 
@@ -221,15 +259,15 @@ export function useAgentStatuses(agents?: AgentSettings[]) {
   const agentsToCheck = agents || storeAgents;
 
   const getStatuses = useCallback(async (): Promise<AgentStatus[]> => {
-    const statusPromises = agentsToCheck.map(agent =>
-      agentManager.getAgentStatus(agent)
+    const statusPromises = agentsToCheck.map((agent) =>
+      agentManager.getAgentStatus(agent),
     );
 
     return await Promise.all(statusPromises);
   }, [agentsToCheck]);
 
   return {
-    getStatuses
+    getStatuses,
   };
 }
 
@@ -241,31 +279,42 @@ export function useAgentConnectivity(agents?: AgentSettings[]) {
   const { agents: storeAgents } = useAgentStore();
   const agentsToTest = agents || storeAgents;
 
-  const testConnectivity = useCallback(async (): Promise<Record<string, {
-    connected: boolean;
-    error?: string;
-    userMessage?: string;
-    errorType?: A2AErrorType;
-  }>> => {
-    const connectivityPromises = agentsToTest.map(async agent => ({
+  const testConnectivity = useCallback(async (): Promise<
+    Record<
+      string,
+      {
+        connected: boolean;
+        error?: string;
+        userMessage?: string;
+        errorType?: A2AErrorType;
+      }
+    >
+  > => {
+    const connectivityPromises = agentsToTest.map(async (agent) => ({
       id: agent.id,
-      result: await agentManager.testAgentConnectivity(agent)
+      result: await agentManager.testAgentConnectivity(agent),
     }));
 
     const results = await Promise.all(connectivityPromises);
 
-    return results.reduce((acc, { id, result }) => {
-      acc[id] = result;
-      return acc;
-    }, {} as Record<string, {
-      connected: boolean;
-      error?: string;
-      userMessage?: string;
-      errorType?: A2AErrorType;
-    }>);
+    return results.reduce(
+      (acc, { id, result }) => {
+        acc[id] = result;
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          connected: boolean;
+          error?: string;
+          userMessage?: string;
+          errorType?: A2AErrorType;
+        }
+      >,
+    );
   }, [agentsToTest]);
 
   return {
-    testConnectivity
+    testConnectivity,
   };
 }

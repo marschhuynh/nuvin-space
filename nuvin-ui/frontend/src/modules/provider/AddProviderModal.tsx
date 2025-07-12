@@ -10,11 +10,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Eye, EyeOff } from 'lucide-react';
 import { useProviderStore } from '@/store/useProviderStore';
 import { fetchGithubCopilotKey } from '@/lib/github';
-import { ModelSelector } from '@/components/ModelSelector';
+import { ModelSelector } from '@/modules/agent/components/ModelSelector';
 import { getDefaultModel } from '@/lib/providers/provider-utils';
 
 const PROVIDER_OPTIONS = ['OpenAI', 'Anthropic', 'OpenRouter', 'GitHub'];
@@ -24,7 +30,10 @@ interface AddProviderModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) {
+export function AddProviderModal({
+  open,
+  onOpenChange,
+}: AddProviderModalProps) {
   const { addProvider, isNameUnique } = useProviderStore();
   const [newProviderName, setNewProviderName] = useState('');
   const [newProviderType, setNewProviderType] = useState('');
@@ -62,7 +71,7 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
     setSelectedModel(getDefaultModel(value as any));
   };
 
-    const handleSubmit = () => {
+  const handleSubmit = () => {
     if (!validateName(newProviderName) || !newProviderType) return;
 
     addProvider({
@@ -75,8 +84,8 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
         temperature: 0.7,
         maxTokens: 2048,
         topP: 1,
-        systemPrompt: ''
-      }
+        systemPrompt: '',
+      },
     });
 
     setNewProviderName('');
@@ -111,8 +120,8 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
             temperature: 0.7,
             maxTokens: 2048,
             topP: 1,
-            systemPrompt: ''
-          }
+            systemPrompt: '',
+          },
         });
         setNewProviderName('');
         setNewProviderType('');
@@ -158,9 +167,7 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
               placeholder="Enter a unique name for this provider"
               className={nameError ? 'border-red-500' : ''}
             />
-            {nameError && (
-              <p className="text-sm text-red-500">{nameError}</p>
-            )}
+            {nameError && <p className="text-sm text-red-500">{nameError}</p>}
             <p className="text-xs text-muted-foreground">
               This name will help you identify this provider configuration
             </p>
@@ -175,8 +182,10 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
                 <SelectValue placeholder="Select provider type" />
               </SelectTrigger>
               <SelectContent>
-                {PROVIDER_OPTIONS.map(type => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                {PROVIDER_OPTIONS.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -190,7 +199,7 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
                   type={showApiKey ? 'text' : 'password'}
                   className="pr-10"
                   value={newProviderKey}
-                  onChange={e => setNewProviderKey(e.target.value)}
+                  onChange={(e) => setNewProviderKey(e.target.value)}
                   placeholder="Enter API key"
                 />
                 <Button
@@ -212,7 +221,9 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
                   type="button"
                   variant="outline"
                   onClick={handleGithubAuth}
-                  disabled={isAuthenticating || !newProviderName || nameError !== ''}
+                  disabled={
+                    isAuthenticating || !newProviderName || nameError !== ''
+                  }
                 >
                   {isAuthenticating ? 'Authenticating...' : 'Get Token'}
                 </Button>
@@ -220,12 +231,13 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
             </div>
             {newProviderType === 'GitHub' && (
               <p className="text-sm text-muted-foreground">
-                Click "Get Token" to authenticate with GitHub and get an access token.
-                This will be a GitHub API token, not a Copilot token, as the Copilot API is not publicly available.
+                Click "Get Token" to authenticate with GitHub and get an access
+                token. This will be a GitHub API token, not a Copilot token, as
+                the Copilot API is not publicly available.
               </p>
             )}
           </div>
-          
+
           {/* Model Selection */}
           {newProviderType && newProviderKey && (
             <div className="grid gap-2">
@@ -234,14 +246,15 @@ export function AddProviderModal({ open, onOpenChange }: AddProviderModalProps) 
                 providerConfig={{
                   type: newProviderType as any,
                   apiKey: newProviderKey,
-                  name: newProviderName || 'New Provider'
+                  name: newProviderName || 'New Provider',
                 }}
                 selectedModel={selectedModel}
                 onModelSelect={setSelectedModel}
                 showDetails={false}
               />
               <p className="text-sm text-muted-foreground">
-                Available models will be fetched from the provider when you enter a valid API key.
+                Available models will be fetched from the provider when you
+                enter a valid API key.
               </p>
             </div>
           )}

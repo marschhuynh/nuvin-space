@@ -12,18 +12,13 @@ export function AgentSettings({ onAddAgent, onEditAgent }: AgentSettingsProps) {
 
   return (
     <div className="flex flex-1 flex-col gap-4 min-h-0">
-      {/* Add Agent Button */}
       <div className="flex-shrink-0">
-        <Button
-          onClick={onAddAgent}
-          className="w-full"
-        >
+        <Button onClick={onAddAgent} className="w-full">
           <Plus className="h-4 w-4 mr-2" />
           Add New Agent
         </Button>
       </div>
 
-      {/* Existing Agents - Scrollable */}
       <div className="flex-1 flex flex-col min-h-0">
         <div className="font-medium text-sm mb-3 flex-shrink-0">
           Existing Agents ({agents.length})
@@ -35,7 +30,7 @@ export function AgentSettings({ onAddAgent, onEditAgent }: AgentSettingsProps) {
                 No agents added yet
               </div>
             ) : (
-              agents.map(agent => (
+              agents.map((agent) => (
                 <div key={agent.id} className="rounded-md border p-3 space-y-2">
                   <div className="flex justify-between items-center gap-3">
                     <div className="flex flex-col min-w-0">

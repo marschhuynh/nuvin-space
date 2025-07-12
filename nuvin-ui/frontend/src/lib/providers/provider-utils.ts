@@ -6,7 +6,6 @@ import { GithubCopilotProvider } from './github-provider';
 
 export type ProviderType = 'OpenAI' | 'Anthropic' | 'OpenRouter' | 'GitHub';
 
-// Re-export ModelInfo for convenience
 export type { ModelInfo } from './llm-provider';
 
 export interface LLMProviderConfig {
@@ -15,9 +14,6 @@ export interface LLMProviderConfig {
   name?: string;
 }
 
-/**
- * Creates a provider instance based on the configuration
- */
 export function createProvider(config: LLMProviderConfig): LLMProvider {
   switch (config.type) {
     case 'OpenAI':
@@ -33,10 +29,9 @@ export function createProvider(config: LLMProviderConfig): LLMProvider {
   }
 }
 
-/**
- * Fetches models from a provider with error handling
- */
-export async function fetchProviderModels(config: LLMProviderConfig): Promise<ModelInfo[]> {
+export async function fetchProviderModels(
+  config: LLMProviderConfig,
+): Promise<ModelInfo[]> {
   try {
     const provider = createProvider(config);
     return await provider.getModels();
@@ -46,10 +41,9 @@ export async function fetchProviderModels(config: LLMProviderConfig): Promise<Mo
   }
 }
 
-/**
- * Fetches models from multiple providers concurrently
- */
-export async function fetchAllProviderModels(configs: LLMProviderConfig[]): Promise<Record<string, ModelInfo[]>> {
+export async function fetchAllProviderModels(
+  configs: LLMProviderConfig[],
+): Promise<Record<string, ModelInfo[]>> {
   const results: Record<string, ModelInfo[]> = {};
 
   const promises = configs.map(async (config) => {
@@ -66,9 +60,6 @@ export async function fetchAllProviderModels(configs: LLMProviderConfig[]): Prom
   return results;
 }
 
-/**
- * Gets the default model for a provider type
- */
 export function getDefaultModel(providerType: ProviderType): string {
   switch (providerType) {
     case 'OpenAI':
@@ -84,10 +75,10 @@ export function getDefaultModel(providerType: ProviderType): string {
   }
 }
 
-/**
- * Formats model cost for display
- */
-export function formatModelCost(inputCost?: number, outputCost?: number): string {
+export function formatModelCost(
+  inputCost?: number,
+  outputCost?: number,
+): string {
   if (inputCost === undefined || outputCost === undefined) {
     return 'Pricing unavailable';
   }
@@ -99,9 +90,6 @@ export function formatModelCost(inputCost?: number, outputCost?: number): string
   return `$${inputCost.toFixed(2)}/$${outputCost.toFixed(2)} per 1M tokens`;
 }
 
-/**
- * Formats context length for display
- */
 export function formatContextLength(contextLength?: number): string {
   if (!contextLength) {
     return 'Unknown';

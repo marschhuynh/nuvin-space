@@ -1,27 +1,35 @@
-import { LLMProvider, CompletionParams, CompletionResult, ModelInfo } from './llm-provider';
+import {
+  LLMProvider,
+  CompletionParams,
+  CompletionResult,
+  ModelInfo,
+} from './llm-provider';
 
 export class OpenAIProvider implements LLMProvider {
   readonly type = 'OpenAI';
   private apiKey: string;
-  private apiUrl: string = "https://api.openai.com";
+  private apiUrl: string = 'https://api.openai.com';
+
   constructor(apiKey: string) {
     this.apiKey = apiKey;
   }
 
-  async generateCompletion(params: CompletionParams): Promise<CompletionResult> {
+  async generateCompletion(
+    params: CompletionParams,
+  ): Promise<CompletionResult> {
     const response = await fetch(`${this.apiUrl}/v1/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`
+        Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
         model: params.model,
         messages: params.messages,
         temperature: params.temperature,
         max_tokens: params.maxTokens,
-        top_p: params.topP
-      })
+        top_p: params.topP,
+      }),
     });
 
     if (!response.ok) {
@@ -34,12 +42,14 @@ export class OpenAIProvider implements LLMProvider {
     return { content };
   }
 
-  async *generateCompletionStream(params: CompletionParams): AsyncGenerator<string> {
+  async *generateCompletionStream(
+    params: CompletionParams,
+  ): AsyncGenerator<string> {
     const response = await fetch(`${this.apiUrl}/v1/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`
+        Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
         model: params.model,
@@ -47,8 +57,8 @@ export class OpenAIProvider implements LLMProvider {
         temperature: params.temperature,
         max_tokens: params.maxTokens,
         top_p: params.topP,
-        stream: true
-      })
+        stream: true,
+      }),
     });
 
     if (!response.ok || !response.body) {
@@ -84,62 +94,71 @@ export class OpenAIProvider implements LLMProvider {
   }
 
   async getModels(): Promise<ModelInfo[]> {
-    const response = await fetch(`${this.apiUrl}/v1/models`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${this.apiKey}`
+    try {
+      const response = await fetch(`${this.apiUrl}/v1/models`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.warn(
+          `OpenAI models API error: ${response.status}. Returning empty models list.`,
+        );
+        return [];
       }
-    });
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`OpenAI API error: ${response.status} - ${text}`);
+      const data = await response.json();
+      const models = data.data || [];
+
+      // Filter for chat models and add known pricing/context info
+      const chatModels = models
+        .filter(
+          (model: any) => model.id.includes('gpt') || model.id.includes('chat'),
+        )
+        .map((model: any): ModelInfo => {
+          const modelInfo: ModelInfo = {
+            id: model.id,
+            name: model.id,
+            description: `OpenAI ${model.id}`,
+          };
+
+          // Add known context lengths and pricing
+          switch (true) {
+            case model.id.includes('gpt-4o'):
+              modelInfo.contextLength = 128000;
+              modelInfo.inputCost = 2.5;
+              modelInfo.outputCost = 10;
+              break;
+            case model.id.includes('gpt-4-turbo'):
+              modelInfo.contextLength = 128000;
+              modelInfo.inputCost = 10;
+              modelInfo.outputCost = 30;
+              break;
+            case model.id.includes('gpt-4'):
+              modelInfo.contextLength = 8192;
+              modelInfo.inputCost = 30;
+              modelInfo.outputCost = 60;
+              break;
+            case model.id.includes('gpt-3.5-turbo'):
+              modelInfo.contextLength = 16385;
+              modelInfo.inputCost = 0.5;
+              modelInfo.outputCost = 1.5;
+              break;
+            default:
+              modelInfo.contextLength = 4096;
+              break;
+          }
+
+          return modelInfo;
+        })
+        .sort((a: ModelInfo, b: ModelInfo) => a.name.localeCompare(b.name));
+
+      return chatModels;
+    } catch (error) {
+      console.error('Failed to fetch OpenAI models:', error);
+      return [];
     }
-
-    const data = await response.json();
-    const models = data.data || [];
-
-    // Filter for chat models and add known pricing/context info
-    const chatModels = models
-      .filter((model: any) => model.id.includes('gpt') || model.id.includes('chat'))
-      .map((model: any): ModelInfo => {
-        const modelInfo: ModelInfo = {
-          id: model.id,
-          name: model.id,
-          description: `OpenAI ${model.id}`
-        };
-
-        // Add known context lengths and pricing
-        switch (true) {
-          case model.id.includes('gpt-4o'):
-            modelInfo.contextLength = 128000;
-            modelInfo.inputCost = 2.5;
-            modelInfo.outputCost = 10;
-            break;
-          case model.id.includes('gpt-4-turbo'):
-            modelInfo.contextLength = 128000;
-            modelInfo.inputCost = 10;
-            modelInfo.outputCost = 30;
-            break;
-          case model.id.includes('gpt-4'):
-            modelInfo.contextLength = 8192;
-            modelInfo.inputCost = 30;
-            modelInfo.outputCost = 60;
-            break;
-          case model.id.includes('gpt-3.5-turbo'):
-            modelInfo.contextLength = 16385;
-            modelInfo.inputCost = 0.5;
-            modelInfo.outputCost = 1.5;
-            break;
-          default:
-            modelInfo.contextLength = 4096;
-            break;
-        }
-
-        return modelInfo;
-      })
-      .sort((a: ModelInfo, b: ModelInfo) => a.name.localeCompare(b.name));
-
-    return chatModels;
   }
 }

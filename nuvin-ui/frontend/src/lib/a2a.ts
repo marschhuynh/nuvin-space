@@ -41,7 +41,7 @@ export type {
   DataPart,
   SendMessageResponse,
   GetTaskResponse,
-  CancelTaskResponse
+  CancelTaskResponse,
 };
 
 /**
@@ -103,7 +103,11 @@ export interface A2ATaskInfo extends Task {
 /**
  * Streaming event data from A2A agents
  */
-export type A2AStreamEvent = Message | Task | TaskStatusUpdateEvent | TaskArtifactUpdateEvent;
+export type A2AStreamEvent =
+  | Message
+  | Task
+  | TaskStatusUpdateEvent
+  | TaskArtifactUpdateEvent;
 
 /**
  * Error types for better error handling
@@ -114,7 +118,7 @@ export enum A2AErrorType {
   AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
   AGENT_ERROR = 'AGENT_ERROR',
   PROTOCOL_ERROR = 'PROTOCOL_ERROR',
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
 
 /**
@@ -127,7 +131,7 @@ export class A2AError extends Error {
     public code?: number,
     public agentUrl?: string,
     public taskId?: string,
-    public originalError?: Error
+    public originalError?: Error,
   ) {
     super(message);
     this.name = 'A2AError';
@@ -162,9 +166,11 @@ export class A2AError extends Error {
    * Check if error is retryable
    */
   isRetryable(): boolean {
-    return this.type === A2AErrorType.NETWORK_ERROR ||
-           this.type === A2AErrorType.TIMEOUT_ERROR ||
-           (this.type === A2AErrorType.AGENT_ERROR && this.code !== -32001); // Not retryable for parse errors
+    return (
+      this.type === A2AErrorType.NETWORK_ERROR ||
+      this.type === A2AErrorType.TIMEOUT_ERROR ||
+      (this.type === A2AErrorType.AGENT_ERROR && this.code !== -32001)
+    ); // Not retryable for parse errors
   }
 }
 
@@ -185,7 +191,7 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,
   initialDelay: 1000,
   maxDelay: 10000,
-  backoffFactor: 2
+  backoffFactor: 2,
 };
 
 /**
@@ -194,12 +200,14 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
  */
 
 export class A2AService {
-
   private static instance: A2AService;
   private clients: Map<string, A2AClient> = new Map();
   private authConfigs: Map<string, A2AAuthConfig> = new Map();
   private tasks: Map<string, A2ATaskInfo> = new Map();
-  private connectionHealth: Map<string, { lastSuccess: Date; failureCount: number }> = new Map();
+  private connectionHealth: Map<
+    string,
+    { lastSuccess: Date; failureCount: number }
+  > = new Map();
 
   private constructor() {}
 
@@ -214,14 +222,15 @@ export class A2AService {
    * Sleep utility for retry delays
    */
   private async sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
    * Calculate retry delay with exponential backoff
    */
   private calculateRetryDelay(attempt: number, config: RetryConfig): number {
-    const delay = config.initialDelay * Math.pow(config.backoffFactor, attempt - 1);
+    const delay =
+      config.initialDelay * Math.pow(config.backoffFactor, attempt - 1);
     return Math.min(delay, config.maxDelay);
   }
 
@@ -231,9 +240,12 @@ export class A2AService {
   private async withRetry<T>(
     operation: () => Promise<T>,
     agentUrl: string,
-    options?: { timeout?: number; enableRetry?: boolean; maxRetries?: number }
+    options?: { timeout?: number; enableRetry?: boolean; maxRetries?: number },
   ): Promise<T> {
-    const config = { ...DEFAULT_RETRY_CONFIG, maxRetries: options?.maxRetries || 3 };
+    const config = {
+      ...DEFAULT_RETRY_CONFIG,
+      maxRetries: options?.maxRetries || 3,
+    };
     const enableRetry = options?.enableRetry ?? true;
     const timeout = options?.timeout || 30000;
 
@@ -250,7 +262,7 @@ export class A2AService {
         // Success - update connection health
         this.connectionHealth.set(agentUrl, {
           lastSuccess: new Date(),
-          failureCount: 0
+          failureCount: 0,
         });
 
         return result;
@@ -259,7 +271,10 @@ export class A2AService {
         lastError = error as Error;
 
         // Update failure count
-        const health = this.connectionHealth.get(agentUrl) || { lastSuccess: new Date(0), failureCount: 0 };
+        const health = this.connectionHealth.get(agentUrl) || {
+          lastSuccess: new Date(0),
+          failureCount: 0,
+        };
         health.failureCount++;
         this.connectionHealth.set(agentUrl, health);
 
@@ -272,7 +287,10 @@ export class A2AService {
 
         // Calculate and wait for retry delay
         const delay = this.calculateRetryDelay(attempt, config);
-        console.warn(`A2A operation failed (attempt ${attempt}/${config.maxRetries + 1}), retrying in ${delay}ms:`, error);
+        console.warn(
+          `A2A operation failed (attempt ${attempt}/${config.maxRetries + 1}), retrying in ${delay}ms:`,
+          error,
+        );
         await this.sleep(delay);
       }
     }
@@ -286,24 +304,26 @@ export class A2AService {
   private async withTimeout<T>(
     operation: () => Promise<T>,
     timeoutMs: number,
-    agentUrl: string
+    agentUrl: string,
   ): Promise<T> {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
-        reject(new A2AError(
-          `Operation timed out after ${timeoutMs}ms`,
-          A2AErrorType.TIMEOUT_ERROR,
-          undefined,
-          agentUrl
-        ));
+        reject(
+          new A2AError(
+            `Operation timed out after ${timeoutMs}ms`,
+            A2AErrorType.TIMEOUT_ERROR,
+            undefined,
+            agentUrl,
+          ),
+        );
       }, timeoutMs);
 
       operation()
-        .then(result => {
+        .then((result) => {
           clearTimeout(timer);
           resolve(result);
         })
-        .catch(error => {
+        .catch((error) => {
           clearTimeout(timer);
           reject(error);
         });
@@ -313,20 +333,27 @@ export class A2AService {
   /**
    * Classify error type for better handling
    */
-  private classifyError(error: Error, agentUrl?: string, taskId?: string): A2AError {
+  private classifyError(
+    error: Error,
+    agentUrl?: string,
+    taskId?: string,
+  ): A2AError {
     if (error instanceof A2AError) {
       return error;
     }
 
     // Network errors
-    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+    if (
+      error instanceof TypeError &&
+      error.message.includes('Failed to fetch')
+    ) {
       return new A2AError(
         'Network connection failed',
         A2AErrorType.NETWORK_ERROR,
         undefined,
         agentUrl,
         taskId,
-        error
+        error,
       );
     }
 
@@ -337,29 +364,78 @@ export class A2AService {
 
       // Classify by A2A error codes
       if (code === -32001) {
-        return new A2AError(error.message, A2AErrorType.PROTOCOL_ERROR, code, agentUrl, taskId, error);
+        return new A2AError(
+          error.message,
+          A2AErrorType.PROTOCOL_ERROR,
+          code,
+          agentUrl,
+          taskId,
+          error,
+        );
       } else if (code === -32002) {
-        return new A2AError(error.message, A2AErrorType.AGENT_ERROR, code, agentUrl, taskId, error);
+        return new A2AError(
+          error.message,
+          A2AErrorType.AGENT_ERROR,
+          code,
+          agentUrl,
+          taskId,
+          error,
+        );
       } else if (code === -32003) {
-        return new A2AError(error.message, A2AErrorType.AUTHENTICATION_ERROR, code, agentUrl, taskId, error);
+        return new A2AError(
+          error.message,
+          A2AErrorType.AUTHENTICATION_ERROR,
+          code,
+          agentUrl,
+          taskId,
+          error,
+        );
       }
 
-      return new A2AError(error.message, A2AErrorType.AGENT_ERROR, code, agentUrl, taskId, error);
+      return new A2AError(
+        error.message,
+        A2AErrorType.AGENT_ERROR,
+        code,
+        agentUrl,
+        taskId,
+        error,
+      );
     }
 
     // Authentication errors
-    if (error.message.includes('authentication') || error.message.includes('401') || error.message.includes('403')) {
-      return new A2AError(error.message, A2AErrorType.AUTHENTICATION_ERROR, undefined, agentUrl, taskId, error);
+    if (
+      error.message.includes('authentication') ||
+      error.message.includes('401') ||
+      error.message.includes('403')
+    ) {
+      return new A2AError(
+        error.message,
+        A2AErrorType.AUTHENTICATION_ERROR,
+        undefined,
+        agentUrl,
+        taskId,
+        error,
+      );
     }
 
     // Default to unknown error
-    return new A2AError(error.message, A2AErrorType.UNKNOWN_ERROR, undefined, agentUrl, taskId, error);
+    return new A2AError(
+      error.message,
+      A2AErrorType.UNKNOWN_ERROR,
+      undefined,
+      agentUrl,
+      taskId,
+      error,
+    );
   }
 
   /**
    * Get or create A2A client for a base URL
    */
-  private getClient(agentBaseUrl: string, authConfig?: A2AAuthConfig): A2AClient {
+  private getClient(
+    agentBaseUrl: string,
+    authConfig?: A2AAuthConfig,
+  ): A2AClient {
     if (!this.clients.has(agentBaseUrl)) {
       LogInfo(`Creating A2A client for ${agentBaseUrl}`);
       const client = new A2AClient(agentBaseUrl);
@@ -394,7 +470,10 @@ export class A2AService {
    * Create authenticated fetch function
    */
   private createAuthenticatedFetch(authConfig: A2AAuthConfig): typeof fetch {
-    return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    return async (
+      input: RequestInfo | URL,
+      init?: RequestInit,
+    ): Promise<Response> => {
       const requestInit = { ...init };
       const headers = { ...requestInit.headers } as Record<string, string>;
 
@@ -415,7 +494,9 @@ export class A2AService {
 
         case 'basic':
           if (authConfig.username && authConfig.password) {
-            const credentials = btoa(`${authConfig.username}:${authConfig.password}`);
+            const credentials = btoa(
+              `${authConfig.username}:${authConfig.password}`,
+            );
             headers['Authorization'] = `Basic ${credentials}`;
           }
           break;
@@ -445,90 +526,114 @@ export class A2AService {
   /**
    * Get connection health for an agent
    */
-  getConnectionHealth(agentUrl: string): { isHealthy: boolean; lastSuccess: Date; failureCount: number } {
+  getConnectionHealth(agentUrl: string): {
+    isHealthy: boolean;
+    lastSuccess: Date;
+    failureCount: number;
+  } {
     const health = this.connectionHealth.get(agentUrl);
     if (!health) {
       return { isHealthy: true, lastSuccess: new Date(0), failureCount: 0 };
     }
 
-    const isHealthy = health.failureCount < 3 &&
-                     (Date.now() - health.lastSuccess.getTime()) < 300000; // 5 minutes
+    const isHealthy =
+      health.failureCount < 3 &&
+      Date.now() - health.lastSuccess.getTime() < 300000; // 5 minutes
 
     return {
       isHealthy,
       lastSuccess: health.lastSuccess,
-      failureCount: health.failureCount
+      failureCount: health.failureCount,
     };
   }
 
   /**
    * Discover an agent's capabilities by fetching its agent card
    */
-  async discoverAgent(agentBaseUrl: string, authConfig?: A2AAuthConfig): Promise<AgentCard> {
+  async discoverAgent(
+    agentBaseUrl: string,
+    authConfig?: A2AAuthConfig,
+  ): Promise<AgentCard> {
     // Validate URL format
     try {
       new URL(agentBaseUrl);
     } catch (urlError) {
-      LogInfo(`Invalid agent URL format: ${agentBaseUrl}. Please provide a valid HTTP/HTTPS URL.`);
+      LogInfo(
+        `Invalid agent URL format: ${agentBaseUrl}. Please provide a valid HTTP/HTTPS URL.`,
+      );
       throw new A2AError(
         `Invalid agent URL format: ${agentBaseUrl}. Please provide a valid HTTP/HTTPS URL.`,
         A2AErrorType.PROTOCOL_ERROR,
         undefined,
-        agentBaseUrl
+        agentBaseUrl,
       );
     }
 
-    return this.withRetry(async () => {
-      const client = this.getClient(agentBaseUrl, authConfig);
+    return this.withRetry(
+      async () => {
+        const client = this.getClient(agentBaseUrl, authConfig);
 
-      // Apply authentication if needed
-      let cleanup: (() => void) | undefined;
-      if (authConfig && authConfig.type !== 'none') {
-        cleanup = this.patchClientAuth(authConfig);
-      }
+        // Apply authentication if needed
+        let cleanup: (() => void) | undefined;
+        if (authConfig && authConfig.type !== 'none') {
+          cleanup = this.patchClientAuth(authConfig);
+        }
 
-      try {
-        LogInfo(`Fetching agent card from: ${agentBaseUrl}`);
-
-        // Try using the SDK client first
         try {
-          const agentCard = await client.getAgentCard();
-          LogInfo(`Agent card retrieved successfully: ${agentCard.name}`);
-          return agentCard;
-        } catch (sdkError) {
-          LogError(`SDK client failed: ${sdkError}, trying direct fetch...`);
+          LogInfo(`Fetching agent card from: ${agentBaseUrl}`);
 
-          // Fallback to direct fetch using smart fetch
-          const authFetch = authConfig && authConfig.type !== 'none'
-            ? this.createAuthenticatedFetch(authConfig)
-            : smartFetch;
+          // Try using the SDK client first
+          try {
+            const agentCard = await client.getAgentCard();
+            LogInfo(`Agent card retrieved successfully: ${agentCard.name}`);
+            return agentCard;
+          } catch (sdkError) {
+            LogError(`SDK client failed: ${sdkError}, trying direct fetch...`);
 
-          const response = await authFetch(`${agentBaseUrl}/.well-known/agent.json`);
+            // Fallback to direct fetch using smart fetch
+            const authFetch =
+              authConfig && authConfig.type !== 'none'
+                ? this.createAuthenticatedFetch(authConfig)
+                : smartFetch;
 
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const response = await authFetch(
+              `${agentBaseUrl}/.well-known/agent.json`,
+            );
+
+            if (!response.ok) {
+              throw new Error(
+                `HTTP ${response.status}: ${response.statusText}`,
+              );
+            }
+
+            const agentCard = (await response.json()) as AgentCard;
+            LogInfo(`Agent card retrieved via direct fetch: ${agentCard.name}`);
+            return agentCard;
           }
-
-          const agentCard = await response.json() as AgentCard;
-          LogInfo(`Agent card retrieved via direct fetch: ${agentCard.name}`);
-          return agentCard;
+        } catch (error) {
+          LogError(
+            `Failed to load agent card: ${error instanceof Error ? error.message : String(error)}`,
+          );
+          throw error;
+        } finally {
+          // Restore original fetch if it was patched
+          if (cleanup) {
+            cleanup();
+          }
         }
-      } catch (error) {
-        LogError(`Failed to load agent card: ${error instanceof Error ? error.message : String(error)}`);
-        throw error;
-      } finally {
-        // Restore original fetch if it was patched
-        if (cleanup) {
-          cleanup();
-        }
-      }
-    }, agentBaseUrl, { timeout: 10000 });
+      },
+      agentBaseUrl,
+      { timeout: 10000 },
+    );
   }
 
   /**
    * Test connectivity to an A2A agent
    */
-  async testConnection(agentBaseUrl: string, authConfig?: A2AAuthConfig): Promise<boolean> {
+  async testConnection(
+    agentBaseUrl: string,
+    authConfig?: A2AAuthConfig,
+  ): Promise<boolean> {
     LogInfo(`Testing connection to: ${agentBaseUrl}`);
     try {
       await this.discoverAgent(agentBaseUrl, authConfig);
@@ -545,7 +650,9 @@ export class A2AService {
   private createMessage(
     content: string | Part[],
     role: 'user' | 'agent' = 'user',
-    options?: Partial<Pick<Message, 'contextId' | 'taskId' | 'referenceTaskIds'>>
+    options?: Partial<
+      Pick<Message, 'contextId' | 'taskId' | 'referenceTaskIds'>
+    >,
   ): Message {
     const parts: Part[] = Array.isArray(content)
       ? content
@@ -558,7 +665,7 @@ export class A2AService {
       parts,
       contextId: options?.contextId,
       taskId: options?.taskId,
-      referenceTaskIds: options?.referenceTaskIds
+      referenceTaskIds: options?.referenceTaskIds,
     };
   }
 
@@ -569,91 +676,103 @@ export class A2AService {
     agentBaseUrl: string,
     content: string | Part[],
     authConfig?: A2AAuthConfig,
-    options?: A2AMessageOptions
+    options?: A2AMessageOptions,
   ): Promise<Task | Message> {
-
     const enableRetry = options?.enableRetry ?? true;
     const timeout = options?.timeout || 30000;
     const maxRetries = options?.maxRetries || 3;
 
-    return this.withRetry(async () => {
-      const client = this.getClient(agentBaseUrl, authConfig);
+    return this.withRetry(
+      async () => {
+        const client = this.getClient(agentBaseUrl, authConfig);
 
-      LogInfo(`Sending message to ${agentBaseUrl}: ${JSON.stringify(content, null, 2)}`);
+        LogInfo(
+          `Sending message to ${agentBaseUrl}: ${JSON.stringify(content, null, 2)}`,
+        );
 
-      // Apply authentication if needed
-      let cleanup: (() => void) | undefined;
-      if (authConfig && authConfig.type !== 'none') {
-        cleanup = this.patchClientAuth(authConfig);
-      }
-
-      try {
-        // Create the message
-        const message = this.createMessage(content, 'user', {
-          contextId: options?.contextId,
-          taskId: options?.taskId
-        });
-
-        // Prepare send parameters
-        const params: MessageSendParams = {
-          message,
-          configuration: {
-            acceptedOutputModes: options?.acceptedOutputModes || ['text'],
-            blocking: options?.blocking ?? true,
-            historyLength: options?.historyLength,
-            pushNotificationConfig: options?.pushNotificationConfig
-          }
-        };
-
-        console.log(`Sending A2A message to ${agentBaseUrl}:`, message.parts[0]);
-
-        // Send via SDK client
-        const response: SendMessageResponse = await client.sendMessage(params);
-
-        console.log('A2A params:', params);
-
-        // Handle the response
-        if (this.isErrorResponse(response)) {
-          const error = new A2AError(
-            `A2A request failed: ${response.error.message}`,
-            this.classifyA2AErrorCode(response.error.code),
-            response.error.code,
-            agentBaseUrl
-          );
-          throw error;
+        // Apply authentication if needed
+        let cleanup: (() => void) | undefined;
+        if (authConfig && authConfig.type !== 'none') {
+          cleanup = this.patchClientAuth(authConfig);
         }
 
-        const result = response.result;
+        try {
+          // Create the message
+          const message = this.createMessage(content, 'user', {
+            contextId: options?.contextId,
+            taskId: options?.taskId,
+          });
 
-        // Store task information if it's a task
-        if (result.kind === 'task') {
-          const taskInfo: A2ATaskInfo = {
-            ...result,
-            agentUrl: agentBaseUrl,
-            agentName: '', // Will be filled when we get agent card
-            createdAt: new Date(),
-            lastUpdated: new Date()
+          // Prepare send parameters
+          const params: MessageSendParams = {
+            message,
+            configuration: {
+              acceptedOutputModes: options?.acceptedOutputModes || ['text'],
+              blocking: options?.blocking ?? true,
+              historyLength: options?.historyLength,
+              pushNotificationConfig: options?.pushNotificationConfig,
+            },
           };
 
-          // Try to get agent name from cache or fetch it
-          try {
-            const agentCard = await this.discoverAgent(agentBaseUrl, authConfig);
-            taskInfo.agentName = agentCard.name;
-          } catch {
-            taskInfo.agentName = new URL(agentBaseUrl).hostname;
+          console.log(
+            `Sending A2A message to ${agentBaseUrl}:`,
+            message.parts[0],
+          );
+
+          // Send via SDK client
+          const response: SendMessageResponse =
+            await client.sendMessage(params);
+
+          console.log('A2A params:', params);
+
+          // Handle the response
+          if (this.isErrorResponse(response)) {
+            const error = new A2AError(
+              `A2A request failed: ${response.error.message}`,
+              this.classifyA2AErrorCode(response.error.code),
+              response.error.code,
+              agentBaseUrl,
+            );
+            throw error;
           }
 
-          this.tasks.set(result.id, taskInfo);
-        }
+          const result = response.result;
 
-        return result;
-      } finally {
-        // Restore original fetch if it was patched
-        if (cleanup) {
-          cleanup();
+          // Store task information if it's a task
+          if (result.kind === 'task') {
+            const taskInfo: A2ATaskInfo = {
+              ...result,
+              agentUrl: agentBaseUrl,
+              agentName: '', // Will be filled when we get agent card
+              createdAt: new Date(),
+              lastUpdated: new Date(),
+            };
+
+            // Try to get agent name from cache or fetch it
+            try {
+              const agentCard = await this.discoverAgent(
+                agentBaseUrl,
+                authConfig,
+              );
+              taskInfo.agentName = agentCard.name;
+            } catch {
+              taskInfo.agentName = new URL(agentBaseUrl).hostname;
+            }
+
+            this.tasks.set(result.id, taskInfo);
+          }
+
+          return result;
+        } finally {
+          // Restore original fetch if it was patched
+          if (cleanup) {
+            cleanup();
+          }
         }
-      }
-    }, agentBaseUrl, { timeout, enableRetry, maxRetries });
+      },
+      agentBaseUrl,
+      { timeout, enableRetry, maxRetries },
+    );
   }
 
   /**
@@ -663,7 +782,7 @@ export class A2AService {
     agentBaseUrl: string,
     content: string | Part[],
     authConfig?: A2AAuthConfig,
-    options?: A2AMessageOptions
+    options?: A2AMessageOptions,
   ): AsyncGenerator<A2AStreamEvent> {
     const timeout = options?.timeout || 60000; // Longer timeout for streaming
 
@@ -680,7 +799,7 @@ export class A2AService {
         // Create the message
         const message = this.createMessage(content, 'user', {
           contextId: options?.contextId,
-          taskId: options?.taskId
+          taskId: options?.taskId,
         });
 
         // Prepare send parameters
@@ -690,22 +809,27 @@ export class A2AService {
             acceptedOutputModes: options?.acceptedOutputModes || ['text'],
             blocking: false, // Streaming implies non-blocking
             historyLength: options?.historyLength,
-            pushNotificationConfig: options?.pushNotificationConfig
-          }
+            pushNotificationConfig: options?.pushNotificationConfig,
+          },
         };
 
-        console.log(`Starting A2A stream to ${agentBaseUrl}:`, message.parts[0]);
+        console.log(
+          `Starting A2A stream to ${agentBaseUrl}:`,
+          message.parts[0],
+        );
 
         // Start streaming with timeout
         const streamPromise = client.sendMessageStream(params);
         const timeoutPromise = new Promise<never>((_, reject) => {
           setTimeout(() => {
-            reject(new A2AError(
-              `Stream timed out after ${timeout}ms`,
-              A2AErrorType.TIMEOUT_ERROR,
-              undefined,
-              agentBaseUrl
-            ));
+            reject(
+              new A2AError(
+                `Stream timed out after ${timeout}ms`,
+                A2AErrorType.TIMEOUT_ERROR,
+                undefined,
+                agentBaseUrl,
+              ),
+            );
           }, timeout);
         });
 
@@ -719,15 +843,20 @@ export class A2AService {
               agentUrl: agentBaseUrl,
               agentName: '', // Will be filled when we get agent card
               createdAt: this.tasks.get(event.id)?.createdAt || new Date(),
-              lastUpdated: new Date()
+              lastUpdated: new Date(),
             };
 
             // Try to get agent name
             try {
-              const agentCard = await this.discoverAgent(agentBaseUrl, authConfig);
+              const agentCard = await this.discoverAgent(
+                agentBaseUrl,
+                authConfig,
+              );
               taskInfo.agentName = agentCard.name;
             } catch {
-              taskInfo.agentName = this.tasks.get(event.id)?.agentName || new URL(agentBaseUrl).hostname;
+              taskInfo.agentName =
+                this.tasks.get(event.id)?.agentName ||
+                new URL(agentBaseUrl).hostname;
             }
 
             this.tasks.set(event.id, taskInfo);
@@ -739,9 +868,8 @@ export class A2AService {
         // Update connection health on successful stream completion
         this.connectionHealth.set(agentBaseUrl, {
           lastSuccess: new Date(),
-          failureCount: 0
+          failureCount: 0,
         });
-
       } finally {
         // Restore original fetch if it was patched
         if (cleanup) {
@@ -752,7 +880,10 @@ export class A2AService {
       console.error('A2A sendMessageStream failed:', error);
 
       // Update failure count
-      const health = this.connectionHealth.get(agentBaseUrl) || { lastSuccess: new Date(0), failureCount: 0 };
+      const health = this.connectionHealth.get(agentBaseUrl) || {
+        lastSuccess: new Date(0),
+        failureCount: 0,
+      };
       health.failureCount++;
       this.connectionHealth.set(agentBaseUrl, health);
 
@@ -769,59 +900,63 @@ export class A2AService {
     taskId: string,
     authConfig?: A2AAuthConfig,
     historyLength?: number,
-    options?: { timeout?: number; enableRetry?: boolean; maxRetries?: number }
+    options?: { timeout?: number; enableRetry?: boolean; maxRetries?: number },
   ): Promise<Task> {
     const enableRetry = options?.enableRetry ?? true;
     const timeout = options?.timeout || 15000; // Shorter timeout for task queries
     const maxRetries = options?.maxRetries || 2;
 
-    return this.withRetry(async () => {
-      const client = this.getClient(agentBaseUrl, authConfig);
+    return this.withRetry(
+      async () => {
+        const client = this.getClient(agentBaseUrl, authConfig);
 
-      // Apply authentication if needed
-      let cleanup: (() => void) | undefined;
-      if (authConfig && authConfig.type !== 'none') {
-        cleanup = this.patchClientAuth(authConfig);
-      }
-
-      try {
-        const params: TaskQueryParams = {
-          id: taskId,
-          historyLength
-        };
-
-        const response: GetTaskResponse = await client.getTask(params);
-
-        if (this.isErrorResponse(response)) {
-          const error = new A2AError(
-            `Failed to get task: ${response.error.message}`,
-            this.classifyA2AErrorCode(response.error.code),
-            response.error.code,
-            agentBaseUrl,
-            taskId
-          );
-          throw error;
+        // Apply authentication if needed
+        let cleanup: (() => void) | undefined;
+        if (authConfig && authConfig.type !== 'none') {
+          cleanup = this.patchClientAuth(authConfig);
         }
 
-        const task = response.result;
+        try {
+          const params: TaskQueryParams = {
+            id: taskId,
+            historyLength,
+          };
 
-        // Update our local task info
-        if (this.tasks.has(taskId)) {
-          const taskInfo = this.tasks.get(taskId)!;
-          taskInfo.status = task.status;
-          taskInfo.artifacts = task.artifacts;
-          taskInfo.history = task.history;
-          taskInfo.lastUpdated = new Date();
-        }
+          const response: GetTaskResponse = await client.getTask(params);
 
-        return task;
-      } finally {
-        // Restore original fetch if it was patched
-        if (cleanup) {
-          cleanup();
+          if (this.isErrorResponse(response)) {
+            const error = new A2AError(
+              `Failed to get task: ${response.error.message}`,
+              this.classifyA2AErrorCode(response.error.code),
+              response.error.code,
+              agentBaseUrl,
+              taskId,
+            );
+            throw error;
+          }
+
+          const task = response.result;
+
+          // Update our local task info
+          if (this.tasks.has(taskId)) {
+            const taskInfo = this.tasks.get(taskId)!;
+            taskInfo.status = task.status;
+            taskInfo.artifacts = task.artifacts;
+            taskInfo.history = task.history;
+            taskInfo.lastUpdated = new Date();
+          }
+
+          return task;
+        } finally {
+          // Restore original fetch if it was patched
+          if (cleanup) {
+            cleanup();
+          }
         }
-      }
-    }, agentBaseUrl, { timeout, enableRetry, maxRetries });
+      },
+      agentBaseUrl,
+      { timeout, enableRetry, maxRetries },
+    );
   }
 
   /**
@@ -831,53 +966,57 @@ export class A2AService {
     agentBaseUrl: string,
     taskId: string,
     authConfig?: A2AAuthConfig,
-    options?: { timeout?: number; enableRetry?: boolean; maxRetries?: number }
+    options?: { timeout?: number; enableRetry?: boolean; maxRetries?: number },
   ): Promise<Task> {
     const enableRetry = options?.enableRetry ?? true;
     const timeout = options?.timeout || 15000;
     const maxRetries = options?.maxRetries || 2;
 
-    return this.withRetry(async () => {
-      const client = this.getClient(agentBaseUrl, authConfig);
+    return this.withRetry(
+      async () => {
+        const client = this.getClient(agentBaseUrl, authConfig);
 
-      // Apply authentication if needed
-      let cleanup: (() => void) | undefined;
-      if (authConfig && authConfig.type !== 'none') {
-        cleanup = this.patchClientAuth(authConfig);
-      }
-
-      try {
-        const params: TaskIdParams = { id: taskId };
-        const response: CancelTaskResponse = await client.cancelTask(params);
-
-        if (this.isErrorResponse(response)) {
-          const error = new A2AError(
-            `Failed to cancel task: ${response.error.message}`,
-            this.classifyA2AErrorCode(response.error.code),
-            response.error.code,
-            agentBaseUrl,
-            taskId
-          );
-          throw error;
+        // Apply authentication if needed
+        let cleanup: (() => void) | undefined;
+        if (authConfig && authConfig.type !== 'none') {
+          cleanup = this.patchClientAuth(authConfig);
         }
 
-        const task = response.result;
+        try {
+          const params: TaskIdParams = { id: taskId };
+          const response: CancelTaskResponse = await client.cancelTask(params);
 
-        // Update our local task info
-        if (this.tasks.has(taskId)) {
-          const taskInfo = this.tasks.get(taskId)!;
-          taskInfo.status = task.status;
-          taskInfo.lastUpdated = new Date();
-        }
+          if (this.isErrorResponse(response)) {
+            const error = new A2AError(
+              `Failed to cancel task: ${response.error.message}`,
+              this.classifyA2AErrorCode(response.error.code),
+              response.error.code,
+              agentBaseUrl,
+              taskId,
+            );
+            throw error;
+          }
 
-        return task;
-      } finally {
-        // Restore original fetch if it was patched
-        if (cleanup) {
-          cleanup();
+          const task = response.result;
+
+          // Update our local task info
+          if (this.tasks.has(taskId)) {
+            const taskInfo = this.tasks.get(taskId)!;
+            taskInfo.status = task.status;
+            taskInfo.lastUpdated = new Date();
+          }
+
+          return task;
+        } finally {
+          // Restore original fetch if it was patched
+          if (cleanup) {
+            cleanup();
+          }
         }
-      }
-    }, agentBaseUrl, { timeout, enableRetry, maxRetries });
+      },
+      agentBaseUrl,
+      { timeout, enableRetry, maxRetries },
+    );
   }
 
   /**
@@ -905,14 +1044,19 @@ export class A2AService {
   /**
    * Get agent capabilities
    */
-  async getCapabilities(agentBaseUrl: string, authConfig?: A2AAuthConfig): Promise<string[]> {
+  async getCapabilities(
+    agentBaseUrl: string,
+    authConfig?: A2AAuthConfig,
+  ): Promise<string[]> {
     try {
       const agentCard = await this.discoverAgent(agentBaseUrl, authConfig);
       const capabilities: string[] = [];
 
       if (agentCard.capabilities?.streaming) capabilities.push('streaming');
-      if (agentCard.capabilities?.pushNotifications) capabilities.push('pushNotifications');
-      if (agentCard.capabilities?.stateTransitionHistory) capabilities.push('stateTransitionHistory');
+      if (agentCard.capabilities?.pushNotifications)
+        capabilities.push('pushNotifications');
+      if (agentCard.capabilities?.stateTransitionHistory)
+        capabilities.push('stateTransitionHistory');
 
       return capabilities;
     } catch (error) {
@@ -924,7 +1068,10 @@ export class A2AService {
   /**
    * Get agent information
    */
-  async getAgentInfo(agentBaseUrl: string, authConfig?: A2AAuthConfig): Promise<{
+  async getAgentInfo(
+    agentBaseUrl: string,
+    authConfig?: A2AAuthConfig,
+  ): Promise<{
     name: string;
     description: string;
     capabilities: string[];
@@ -936,11 +1083,11 @@ export class A2AService {
         name: agentCard.name,
         description: agentCard.description,
         capabilities: await this.getCapabilities(agentBaseUrl, authConfig),
-        skills: agentCard.skills.map(skill => ({
+        skills: agentCard.skills.map((skill) => ({
           id: skill.id,
           name: skill.name,
-          description: skill.description
-        }))
+          description: skill.description,
+        })),
       };
     } catch (error) {
       console.error('Failed to get agent info:', error);
@@ -952,8 +1099,8 @@ export class A2AService {
    * Get all tracked tasks
    */
   getTasks(): A2ATaskInfo[] {
-    return Array.from(this.tasks.values()).sort((a, b) =>
-      b.lastUpdated.getTime() - a.lastUpdated.getTime()
+    return Array.from(this.tasks.values()).sort(
+      (a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime(),
     );
   }
 
@@ -961,13 +1108,15 @@ export class A2AService {
    * Get tasks for a specific agent
    */
   getTasksForAgent(agentBaseUrl: string): A2ATaskInfo[] {
-    return this.getTasks().filter(task => task.agentUrl === agentBaseUrl);
+    return this.getTasks().filter((task) => task.agentUrl === agentBaseUrl);
   }
 
   /**
    * Check if response is an error response
    */
-  private isErrorResponse(response: any): response is { error: { message: string; code: number } } {
+  private isErrorResponse(
+    response: any,
+  ): response is { error: { message: string; code: number } } {
     return response && typeof response === 'object' && 'error' in response;
   }
 
@@ -991,8 +1140,14 @@ export class A2AService {
   /**
    * Get all connection health statuses
    */
-  getAllConnectionHealth(): Record<string, { isHealthy: boolean; lastSuccess: Date; failureCount: number }> {
-    const result: Record<string, { isHealthy: boolean; lastSuccess: Date; failureCount: number }> = {};
+  getAllConnectionHealth(): Record<
+    string,
+    { isHealthy: boolean; lastSuccess: Date; failureCount: number }
+  > {
+    const result: Record<
+      string,
+      { isHealthy: boolean; lastSuccess: Date; failureCount: number }
+    > = {};
 
     for (const [url, health] of this.connectionHealth.entries()) {
       result[url] = this.getConnectionHealth(url);
@@ -1012,11 +1167,14 @@ export class A2AService {
    * Test multiple agents connectivity concurrently
    */
   async testMultipleConnections(
-    agents: Array<{ url: string; authConfig?: A2AAuthConfig }>
+    agents: Array<{ url: string; authConfig?: A2AAuthConfig }>,
   ): Promise<Array<{ url: string; connected: boolean; error?: A2AError }>> {
     const promises = agents.map(async (agent) => {
       try {
-        const connected = await this.testConnection(agent.url, agent.authConfig);
+        const connected = await this.testConnection(
+          agent.url,
+          agent.authConfig,
+        );
         return { url: agent.url, connected };
       } catch (error) {
         const a2aError = this.classifyError(error as Error, agent.url);
