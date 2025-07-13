@@ -91,9 +91,9 @@ export function ChatInput({
   const isLoading = disabled; // Loading state when disabled
 
   return (
-    <div className="border-t border-border p-6 bg-card">
+    <div className="border-t border-border p-6 bg-background">
       <div className="max-w-4xl mx-auto">
-        <div className="relative group">
+        <div className="relative">
           <Textarea
             ref={textareaRef}
             value={message}
@@ -101,7 +101,7 @@ export function ChatInput({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
-            className="resize-none focus-visible:ring-0 shadow-sm pr-16 py-4 px-4 bg-background border border-border hover:border-ring/50 focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/20 rounded-lg transition-all duration-200 chat-input-textarea overflow-auto text-base placeholder:text-muted-foreground/60 focus:placeholder:text-muted-foreground/80"
+            className="resize-none focus-visible:ring-0 shadow-sm pr-16 py-4 px-4 bg-background border focus-visible:border-gray-400 transition-all duration-200 chat-input-textarea overflow-auto text-base placeholder:text-gray-400/60 focus:placeholder:text-gray-300/50"
             rows={1}
           />
 
@@ -118,10 +118,10 @@ export function ChatInput({
                 size="sm"
                 variant="ghost"
                 onClick={handleStop}
-                className="h-9 w-9 p-0 rounded-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/25 stop-button-animate transition-all duration-300 hover:scale-105"
+                className="h-8 w-8 p-0 rounded-full bg-red-100 hover:bg-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/40 stop-button-animate transition-all duration-200"
               >
                 <Square
-                  className="h-3.5 w-3.5 text-white"
+                  className="h-3 w-3 text-red-600 dark:text-red-400"
                   fill="currentColor"
                 />
               </Button>
@@ -130,16 +130,16 @@ export function ChatInput({
                 size="sm"
                 disabled={!message.trim()}
                 onClick={handleSend}
-                className={`h-9 w-9 p-0 rounded-full transition-all duration-300 ${
+                className={`h-8 w-8 p-0 rounded-full transition-all duration-200 ${
                   message.trim()
-                    ? 'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25 send-button-ready hover:scale-105'
+                    ? 'bg-primary hover:bg-primary/90 send-button-ready'
                     : 'bg-muted send-button-disabled opacity-0'
                 }`}
               >
                 <Send
-                  className={`h-3.5 w-3.5 transition-transform duration-300 ${
+                  className={`h-3 w-3 transition-transform duration-200 ${
                     message.trim()
-                      ? 'scale-100 opacity-100 text-primary-foreground'
+                      ? 'scale-100 opacity-100'
                       : 'scale-75 opacity-30'
                   }`}
                 />
@@ -148,19 +148,19 @@ export function ChatInput({
           </div>
         </div>
 
-        <div className="flex justify-between text-xs text-muted-foreground/80 mt-3">
-          <span className="flex items-center gap-2">
+        <div className="flex justify-between text-xs text-muted-foreground mt-2">
+          <span>
             {isLoading ? (
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-1">
                 <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-primary to-primary/60 animate-pulse processing-dot"></div>
-                  <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-primary to-primary/60 animate-pulse processing-dot" style={{animationDelay: '0.2s'}}></div>
-                  <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-primary to-primary/60 animate-pulse processing-dot" style={{animationDelay: '0.4s'}}></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary processing-dot"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary processing-dot"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary processing-dot"></div>
                 </div>
-                <span className="font-medium">AI is thinking...</span>
+                <span className="ml-2">Processing...</span>
               </span>
             ) : (
-              <span className="font-medium">Press Shift + Enter for new line</span>
+              'Press Shift + Enter for new line'
             )}
           </span>
         </div>
