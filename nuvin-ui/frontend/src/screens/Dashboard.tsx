@@ -228,8 +228,8 @@ export default function Dashboard() {
               <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-muted/10 transition-all duration-200 hover:bg-muted/20">
                 <div
                   className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    isReady 
-                      ? 'bg-green-500 shadow-sm shadow-green-500/30' 
+                    isReady
+                      ? 'bg-green-500 shadow-sm shadow-green-500/30'
                       : 'bg-red-500 shadow-sm shadow-red-500/30'
                   }`}
                 />

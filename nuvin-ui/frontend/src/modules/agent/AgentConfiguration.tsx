@@ -207,42 +207,33 @@ export function AgentConfiguration({
     : [];
 
   return (
-    <div className="min-w-[200px] border-l border-border bg-card overflow-auto">
-      <div className="p-3 sm:p-4">
-        <div className="flex items-center gap-2 text-sm font-medium mb-3 sm:mb-4">
-          <Bot className="h-4 w-4" />
-          <span className="hidden sm:inline">Agent Configuration</span>
-          <span className="sm:hidden">Agent</span>
+    <div className="min-w-[280px] w-full max-w-[480px] border-l border-border bg-card overflow-auto">
+      <div className="p-3">
+        <div className="mb-6">
+          <h2 className="font-semibold text-lg flex items-center gap-2 border-b border-border pb-2">
+            <Bot className="h-5 w-5 text-muted-foreground" />
+            Agent Configuration
+          </h2>
         </div>
 
-        <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-6">
           {/* Agent Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="agent" className="text-xs sm:text-sm">
-              Select Agent
-            </Label>
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Select Agent</Label>
             <Select value={activeAgentId} onValueChange={handleAgentChange}>
-              <SelectTrigger className="text-xs sm:text-sm">
-                <SelectValue placeholder="Select an agent" />
+              <SelectTrigger>
+                <SelectValue placeholder="Choose your AI assistant" />
               </SelectTrigger>
               <SelectContent>
                 {agents.map((agent) => (
-                  <SelectItem
-                    key={agent.id}
-                    value={agent.id}
-                    className="text-xs sm:text-sm"
-                  >
+                  <SelectItem key={agent.id} value={agent.id}>
                     <div className="flex items-center gap-2">
-                      {getStatusIcon(agent.status || 'active')}
                       {agent.agentType === 'remote' ? (
-                        <Globe className="h-3 w-3 text-blue-500" />
+                        <Globe className="h-4 w-4 text-muted-foreground" />
                       ) : (
-                        <Home className="h-3 w-3 text-green-500" />
+                        <Home className="h-4 w-4 text-muted-foreground" />
                       )}
-                      <span className="truncate">{agent.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {agent.agentType === 'remote' ? '(A2A)' : '(Local)'}
-                      </span>
+                      <span>{agent.name}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -252,92 +243,83 @@ export function AgentConfiguration({
 
           {/* Active Agent Info */}
           {selectedAgent && (
-            <>
-              {/* Agent Description - Only show if no agent card info for remote agents */}
+            <div className="space-y-4">
+              {/* Agent Description Card */}
               {selectedAgent.agentType === 'local' && (
-                <div className="space-y-2">
-                  <Label className="text-xs sm:text-sm">Description</Label>
-                  <p className="text-xs sm:text-sm text-muted-foreground p-2 sm:p-3 bg-muted rounded-md">
+                <div className="p-4 rounded-lg border bg-muted/30">
+                  <Label className="text-sm font-medium mb-2 block">Description</Label>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {getAgentDescription(selectedAgent)}
                   </p>
                 </div>
               )}
 
-              {/* Tools/Skills - Only show for local agents or remote agents without agent card info */}
-              {selectedAgent.agentType === 'local' &&
-                currentTools.length > 0 && (
-                  <div className="space-y-2">
-                    <Label className="text-xs sm:text-sm">
-                      Available Tools ({currentTools.length})
-                    </Label>
-                    <div className="space-y-1 sm:space-y-2 max-h-28 sm:max-h-100 overflow-y-auto">
-                      {getAgentTools(selectedAgent).map((tool) => (
+              {/* Available Tools */}
+              {selectedAgent.agentType === 'local' && currentTools.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Settings className="h-4 w-4 text-muted-foreground" />
+                    <Label className="text-sm font-medium">Available Tools</Label>
+                    <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-600 font-medium">
+                      {currentTools.length} tools
+                    </span>
+                  </div>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {getAgentTools(selectedAgent).map((tool) => (
+                      <div
+                        key={`${tool.name}`}
+                        className={`flex items-start gap-3 p-4 rounded-lg border ${
+                          tool.enabled
+                            ? 'bg-muted/30'
+                            : 'opacity-60 bg-muted/20'
+                        }`}
+                      >
                         <div
-                          key={`${tool.name}`}
-                          className={`flex items-start gap-2 p-1.5 sm:p-2 rounded-md text-xs ${
-                            tool.enabled
-                              ? 'bg-green-50 border border-green-200'
-                              : 'bg-gray-50 border border-gray-200'
+                          className={`w-2 h-2 rounded-full mt-1 flex-shrink-0 ${
+                            tool.enabled ? 'bg-green-500' : 'bg-muted-foreground'
                           }`}
-                        >
-                          <div
-                            className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mt-1 sm:mt-1.5 ${
-                              tool.enabled ? 'bg-green-500' : 'bg-gray-400'
-                            }`}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium truncate">
-                              {tool.name}
-                            </div>
-                            <div className="text-muted-foreground line-clamp-2 sm:line-clamp-none">
-                              {tool.description}
-                            </div>
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm mb-1">
+                            {tool.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground leading-relaxed">
+                            {tool.description}
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                )}
-            </>
+                </div>
+              )}
+            </div>
           )}
 
-          {/* Provider Selection - Only show for local agents */}
+          {/* Model Configuration - Only show for local agents */}
           {selectedAgent?.agentType === 'local' && (
-            <>
-              <div className="flex items-center gap-2 text-sm font-medium mb-3 sm:mb-4">
-                <Bot className="h-4 w-4" />
-                <span className="hidden sm:inline">Model Configuration</span>
-                <span className="sm:hidden">Model</span>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between pb-3 border-b">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Settings className="h-4 w-4 text-muted-foreground" />
+                  Model Configuration
+                </h3>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="provider" className="text-xs sm:text-sm">
-                  Select Provider
-                </Label>
+              <div className="space-y-4">
+                <Label className="text-sm font-medium">Select Provider</Label>
                 <Select
                   value={activeProviderId}
                   onValueChange={handleProviderChange}
                 >
-                  <SelectTrigger className="text-xs sm:text-sm">
-                    <SelectValue placeholder="Select a provider" />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose AI provider" />
                   </SelectTrigger>
                   <SelectContent>
                     {providers.map((provider) => (
-                      <SelectItem
-                        key={provider.id}
-                        value={provider.id}
-                        className="text-xs sm:text-sm"
-                      >
+                      <SelectItem key={provider.id} value={provider.id}>
                         <div className="flex items-center gap-2">
-                          <Settings className="h-3 w-3 text-blue-500" />
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="truncate font-medium">
-                              {provider.name}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {provider.type}
-                            </span>
-                          </div>
+                          <Settings className="h-4 w-4 text-muted-foreground" />
+                          <span>{provider.name}</span>
                         </div>
                       </SelectItem>
                     ))}
@@ -347,10 +329,8 @@ export function AgentConfiguration({
 
               {/* Model Selection */}
               {activeProvider && (
-                <div className="space-y-2">
-                  <Label htmlFor="model" className="text-xs sm:text-sm">
-                    Select Model
-                  </Label>
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium">Select Model</Label>
                   <ModelSelector
                     providerConfig={{
                       type: activeProvider.type as ProviderType,
@@ -359,59 +339,52 @@ export function AgentConfiguration({
                     }}
                     selectedModel={activeProvider.activeModel?.model || ''}
                     onModelSelect={handleModelChange}
-                    className="text-xs sm:text-sm"
                   />
                 </div>
               )}
-            </>
+            </div>
           )}
 
           {/* Remote Agent Info - Show for remote agents */}
           {selectedAgent?.agentType === 'remote' && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Globe className="h-4 w-4" />
-                  <span className="hidden sm:inline">
-                    Agent Card Information
-                  </span>
-                  <span className="sm:hidden">Agent Card</span>
-                </div>
-
+              <div className="flex items-center justify-between pb-3 border-b">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  Remote Agent Info
+                </h3>
                 {selectedAgent.url && !loadingAgentCard && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleRefreshAgentCard}
-                    className="h-6 w-6 p-0"
+                    className="h-8 w-8 p-0"
                   >
-                    <RefreshCw className="h-3 w-3" />
+                    <RefreshCw className="h-4 w-4" />
                   </Button>
                 )}
               </div>
 
               {/* Loading State */}
               {loadingAgentCard && (
-                <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-md">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-xs sm:text-sm text-muted-foreground">
-                    Fetching agent information...
-                  </span>
+                <div className="p-4 rounded-lg border bg-muted/30">
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm">Connecting to agent...</span>
+                  </div>
                 </div>
               )}
 
               {/* Error State */}
               {agentCardError && !loadingAgentCard && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-md">
-                    <AlertCircle className="h-4 w-4 text-destructive" />
+                <div className="p-4 rounded-lg border border-destructive/20 bg-destructive/5">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-xs sm:text-sm text-destructive font-medium">
-                        Failed to load agent information
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <div className="font-medium text-sm">Connection Failed</div>
+                      <div className="text-xs text-muted-foreground mt-1">
                         {agentCardError}
-                      </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -420,13 +393,11 @@ export function AgentConfiguration({
               {/* Agent Card Information */}
               {agentCardInfo && !loadingAgentCard && (
                 <div className="space-y-4">
-                  {/* Agent Description - Only show if different from generic description */}
+                  {/* Agent Description */}
                   {agentCardInfo.description && (
-                    <div className="space-y-2">
-                      <Label className="text-xs sm:text-sm">
-                        Agent Description
-                      </Label>
-                      <p className="text-xs sm:text-sm text-muted-foreground p-2 sm:p-3 bg-muted rounded-md">
+                    <div className="p-4 rounded-lg border bg-muted/30">
+                      <Label className="text-sm font-medium mb-2 block">Description</Label>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
                         {agentCardInfo.description}
                       </p>
                     </div>
@@ -434,20 +405,22 @@ export function AgentConfiguration({
 
                   {/* Capabilities */}
                   {agentCardInfo.capabilities.length > 0 && (
-                    <div className="space-y-2">
-                      <Label className="text-xs sm:text-sm">
-                        Capabilities ({agentCardInfo.capabilities.length})
-                      </Label>
-                      <div className="space-y-1 max-h-24 overflow-y-auto">
-                        {agentCardInfo.capabilities.map((capability, index) => (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-muted-foreground" />
+                        <Label className="text-sm font-medium">Capabilities</Label>
+                        <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-600 font-medium">
+                          {agentCardInfo.capabilities.length} available
+                        </span>
+                      </div>
+                      <div className="space-y-2 max-h-32 overflow-y-auto">
+                        {agentCardInfo.capabilities.map((capability) => (
                           <div
                             key={capability}
-                            className="flex items-center gap-2 p-1.5 sm:p-2 rounded-md text-xs bg-blue-50 border border-blue-200"
+                            className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30"
                           >
-                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-500" />
-                            <span className="font-medium capitalize">
-                              {capability}
-                            </span>
+                            <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                            <span className="text-sm capitalize">{capability}</span>
                           </div>
                         ))}
                       </div>
@@ -456,22 +429,24 @@ export function AgentConfiguration({
 
                   {/* Skills */}
                   {agentCardInfo.skills.length > 0 && (
-                    <div className="space-y-2">
-                      <Label className="text-xs sm:text-sm">
-                        Available Skills ({agentCardInfo.skills.length})
-                      </Label>
-                      <div className="space-y-1 sm:space-y-2 overflow-y-auto">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Settings className="h-4 w-4 text-muted-foreground" />
+                        <Label className="text-sm font-medium">Available Skills</Label>
+                        <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-600 font-medium">
+                          {agentCardInfo.skills.length} skills
+                        </span>
+                      </div>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
                         {agentCardInfo.skills.map((skill) => (
                           <div
                             key={skill.id}
-                            className="flex items-start gap-2 p-1.5 sm:p-2 rounded-md text-xs bg-green-50 border border-green-200"
+                            className="flex items-start gap-3 p-4 rounded-lg border bg-muted/30"
                           >
-                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mt-1 sm:mt-1.5 bg-green-500 flex-shrink-0" />
+                            <div className="w-2 h-2 rounded-full mt-1 bg-green-500 flex-shrink-0" />
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium truncate">
-                                {skill.name}
-                              </div>
-                              <div className="text-muted-foreground line-clamp-2 sm:line-clamp-none">
+                              <div className="font-medium text-sm mb-1">{skill.name}</div>
+                              <div className="text-xs text-muted-foreground leading-relaxed">
                                 {skill.description}
                               </div>
                             </div>
@@ -481,28 +456,27 @@ export function AgentConfiguration({
                     </div>
                   )}
 
-                  {/* Provider Information */}
-                  {agentCardInfo.provider && (
-                    <div className="space-y-2">
-                      <Label className="text-xs sm:text-sm">Provider</Label>
-                      <p className="text-xs sm:text-sm text-muted-foreground p-2 sm:p-3 bg-muted rounded-md">
-                        {agentCardInfo.provider.name}
-                        {agentCardInfo.provider.url && (
-                          <span className="block text-xs font-mono mt-1 text-muted-foreground/80">
-                            {agentCardInfo.provider.url}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  )}
+                  {/* Provider & Version Info */}
+                  {(agentCardInfo.provider || agentCardInfo.version) && (
+                    <div className="space-y-4">
+                      {agentCardInfo.provider && (
+                        <div className="p-4 rounded-lg border bg-muted/30">
+                          <Label className="text-sm font-medium mb-2 block">Provider</Label>
+                          <div className="text-sm">{agentCardInfo.provider.name}</div>
+                          {agentCardInfo.provider.url && (
+                            <div className="text-xs font-mono text-muted-foreground mt-1">
+                              {agentCardInfo.provider.url}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
-                  {/* Version */}
-                  {agentCardInfo.version && (
-                    <div className="space-y-2">
-                      <Label className="text-xs sm:text-sm">Version</Label>
-                      <p className="text-xs sm:text-sm text-muted-foreground p-2 sm:p-3 bg-muted rounded-md font-mono">
-                        {agentCardInfo.version}
-                      </p>
+                      {agentCardInfo.version && (
+                        <div className="p-4 rounded-lg border bg-muted/30">
+                          <Label className="text-sm font-medium mb-2 block">Version</Label>
+                          <div className="text-sm font-mono">{agentCardInfo.version}</div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
