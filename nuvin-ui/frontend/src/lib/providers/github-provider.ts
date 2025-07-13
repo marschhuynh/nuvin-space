@@ -1,14 +1,16 @@
-import {
+import type {
   LLMProvider,
   CompletionParams,
   CompletionResult,
   ModelInfo,
 } from './llm-provider';
+import { smartFetch } from '../fetch-proxy';
 
 export class GithubCopilotProvider implements LLMProvider {
   readonly type = 'GitHub';
   private apiKey: string;
   private apiUrl: string = 'https://api.githubcopilot.com';
+  // private apiUrl: string = 'https://api.business.githubcopilot.com';
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
@@ -17,10 +19,15 @@ export class GithubCopilotProvider implements LLMProvider {
   async generateCompletion(
     params: CompletionParams,
   ): Promise<CompletionResult> {
-    const response = await fetch(`${this.apiUrl}/v1/chat/completions`, {
+    const response = await smartFetch(`${this.apiUrl}/chat/completions`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'accept': 'application/json',
+        'editor-version': 'vscode/1.100.3',
+        'editor-plugin-version': 'GitHub.copilot/1.330.0',
+        'content-type': 'application/json',
+        'user-agent': 'GithubCopilot/1.330.0',
+        'accept-encoding': 'gzip,deflate,br',
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
@@ -34,6 +41,9 @@ export class GithubCopilotProvider implements LLMProvider {
 
     if (!response.ok) {
       const text = await response.text();
+      if (response.status === 403) {
+        throw new Error(`GitHub Copilot API access denied. Please ensure you have a valid GitHub Copilot subscription and the correct authentication token. Status: ${response.status}`);
+      }
       throw new Error(`GitHub Copilot API error: ${response.status} - ${text}`);
     }
 
@@ -45,10 +55,15 @@ export class GithubCopilotProvider implements LLMProvider {
   async *generateCompletionStream(
     params: CompletionParams,
   ): AsyncGenerator<string> {
-    const response = await fetch(`${this.apiUrl}/v1/chat/completions`, {
+    const response = await smartFetch(`${this.apiUrl}/chat/completions`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'accept': 'application/json',
+        'editor-version': 'vscode/1.100.3',
+        'editor-plugin-version': 'GitHub.copilot/1.330.0',
+        'content-type': 'application/json',
+        'user-agent': 'GithubCopilot/1.330.0',
+        'accept-encoding': 'gzip,deflate,br',
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
@@ -63,6 +78,9 @@ export class GithubCopilotProvider implements LLMProvider {
 
     if (!response.ok || !response.body) {
       const text = await response.text();
+      if (response.status === 403) {
+        throw new Error(`GitHub Copilot API access denied. Please ensure you have a valid GitHub Copilot subscription and the correct authentication token. Status: ${response.status}`);
+      }
       throw new Error(`GitHub Copilot API error: ${response.status} - ${text}`);
     }
 
@@ -95,13 +113,32 @@ export class GithubCopilotProvider implements LLMProvider {
 
   async getModels(): Promise<ModelInfo[]> {
     try {
-      const response = await fetch(`${this.apiUrl}/v1/models`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${this.apiKey}`,
-          'X-GitHub-Api-Version': '2022-11-28',
-        },
-      });
+      // Try Copilot API first, fallback to public GitHub Models API
+      let response;
+      try {
+        response = await smartFetch(`${this.apiUrl}/models`, {
+          method: 'GET',
+          headers: {
+            'accept': 'application/json',
+            'editor-version': 'vscode/1.100.3',
+            'editor-plugin-version': 'GitHub.copilot/1.330.0',
+            'content-type': 'application/json',
+            'user-agent': 'GithubCopilot/1.330.0',
+            'accept-encoding': 'gzip,deflate,br',
+            Authorization: `Bearer ${this.apiKey}`,
+            'x-github-api-version': '2025-05-01'
+          },
+        });
+      } catch (error) {
+        console.warn('Copilot API failed, trying public GitHub Models API:', error);
+        response = await smartFetch(`https://models.github.ai/catalog/models`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'X-GitHub-Api-Version': '2022-11-28',
+          },
+        });
+      }
 
       if (!response.ok) {
         console.warn(
@@ -111,18 +148,16 @@ export class GithubCopilotProvider implements LLMProvider {
       }
 
       const data = await response.json();
-      const models = data.models || data.data || [];
+      const models = Array.isArray(data) ? data : (data.models || data.data || []);
 
       // Transform GitHub models to our ModelInfo format
       const transformedModels = models
         .map((model: any): ModelInfo => {
           return {
-            id: model.name || model.id,
-            name: this.getModelDisplayName(model.name || model.id),
-            description:
-              model.description ||
-              `${model.name || model.id} via GitHub Copilot`,
-            contextLength: this.getContextLength(model.name || model.id),
+            id: model.id,
+            name: model.name || this.getModelDisplayName(model.id),
+            description: model.summary || model.description || `${model.name || model.id} via GitHub Copilot`,
+            contextLength: this.getContextLength(model.id),
             inputCost: 0, // No additional cost through Copilot subscription
             outputCost: 0,
           };
@@ -138,42 +173,63 @@ export class GithubCopilotProvider implements LLMProvider {
 
   private getModelDisplayName(modelId: string): string {
     const nameMap: Record<string, string> = {
-      'claude-3.7-sonnet': 'Claude 3.7 Sonnet',
-      'claude-3.5-sonnet': 'Claude 3.5 Sonnet',
-      'o3-mini': 'OpenAI o3-mini',
-      'gemini-2.0-flash': 'Gemini 2.0 Flash',
-      'gpt-4o': 'GPT-4o',
-      'gpt-4o-mini': 'GPT-4o Mini',
-      'gpt-4': 'GPT-4',
-      'gpt-3.5-turbo': 'GPT-3.5 Turbo',
+      'openai/gpt-4.1': 'OpenAI GPT-4.1',
+      'openai/gpt-4.1-mini': 'OpenAI GPT-4.1 Mini',
+      'openai/gpt-4.1-nano': 'OpenAI GPT-4.1 Nano',
+      'openai/gpt-4o': 'OpenAI GPT-4o',
+      'openai/gpt-4o-mini': 'OpenAI GPT-4o Mini',
+      'openai/o1': 'OpenAI o1',
+      'openai/o1-mini': 'OpenAI o1-mini',
+      'openai/o1-preview': 'OpenAI o1-preview',
+      'openai/o3': 'OpenAI o3',
+      'openai/o3-mini': 'OpenAI o3-mini',
+      'openai/o4-mini': 'OpenAI o4-mini',
+      'ai21-labs/ai21-jamba-1.5-large': 'AI21 Jamba 1.5 Large',
+      'ai21-labs/ai21-jamba-1.5-mini': 'AI21 Jamba 1.5 Mini',
+      'cohere/cohere-command-a': 'Cohere Command A',
+      'cohere/cohere-command-r-08-2024': 'Cohere Command R',
     };
     return nameMap[modelId] || modelId;
   }
 
   private getContextLength(modelId: string): number {
     const contextMap: Record<string, number> = {
-      'claude-3.7-sonnet': 200000,
-      'claude-3.5-sonnet': 200000,
-      'o3-mini': 128000,
-      'gemini-2.0-flash': 128000,
-      'gpt-4o': 128000,
-      'gpt-4o-mini': 128000,
-      'gpt-4': 8192,
-      'gpt-3.5-turbo': 16385,
+      'openai/gpt-4.1': 200000,
+      'openai/gpt-4.1-mini': 200000,
+      'openai/gpt-4.1-nano': 200000,
+      'openai/gpt-4o': 128000,
+      'openai/gpt-4o-mini': 128000,
+      'openai/o1': 200000,
+      'openai/o1-mini': 128000,
+      'openai/o1-preview': 128000,
+      'openai/o3': 200000,
+      'openai/o3-mini': 128000,
+      'openai/o4-mini': 200000,
+      'ai21-labs/ai21-jamba-1.5-large': 256000,
+      'ai21-labs/ai21-jamba-1.5-mini': 256000,
+      'cohere/cohere-command-a': 128000,
+      'cohere/cohere-command-r-08-2024': 128000,
     };
     return contextMap[modelId] || 128000;
   }
 
   private sortModels(a: ModelInfo, b: ModelInfo): number {
-    // Sort by model priority (Claude 3.7 > Claude 3.5 > o3-mini > Gemini > GPT-4o > GPT-4 > GPT-3.5)
+    // Sort by model priority (GPT-4.1 > o4-mini > o3 > o1 > GPT-4o > Jamba > Cohere)
     const getModelPriority = (id: string): number => {
-      if (id.includes('claude-3.7')) return 100;
-      if (id.includes('claude-3.5')) return 90;
-      if (id.includes('o3-mini')) return 80;
-      if (id.includes('gemini-2.0')) return 70;
-      if (id.includes('gpt-4o')) return 60;
-      if (id.includes('gpt-4')) return 50;
-      if (id.includes('gpt-3.5')) return 40;
+      if (id.includes('gpt-4.1') && !id.includes('mini') && !id.includes('nano')) return 100;
+      if (id.includes('gpt-4.1-mini')) return 95;
+      if (id.includes('gpt-4.1-nano')) return 90;
+      if (id.includes('o4-mini')) return 85;
+      if (id.includes('o3') && !id.includes('mini')) return 80;
+      if (id.includes('o3-mini')) return 75;
+      if (id.includes('o1') && !id.includes('mini') && !id.includes('preview')) return 70;
+      if (id.includes('o1-preview')) return 65;
+      if (id.includes('o1-mini')) return 60;
+      if (id.includes('gpt-4o') && !id.includes('mini')) return 55;
+      if (id.includes('gpt-4o-mini')) return 50;
+      if (id.includes('jamba-1.5-large')) return 45;
+      if (id.includes('jamba-1.5-mini')) return 40;
+      if (id.includes('cohere')) return 35;
       return 0;
     };
 

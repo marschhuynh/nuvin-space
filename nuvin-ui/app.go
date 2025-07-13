@@ -87,9 +87,9 @@ func (a *App) FetchProxy(fetchReq FetchRequest) FetchResponse {
 	}
 
 	// Set default User-Agent if not provided
-	if req.Header.Get("User-Agent") == "" {
-		req.Header.Set("User-Agent", "Teaky-Agent/1.0")
-	}
+	// if req.Header.Get("User-Agent") == "" {
+	// 	req.Header.Set("User-Agent", "Teaky-Agent/1.0")
+	// }
 
 	// Execute request
 	resp, err := client.Do(req)
@@ -161,7 +161,8 @@ type CopilotTokenResponse struct {
 
 // FetchGithubCopilotKey handles GitHub authentication and returns access token
 func (a *App) FetchGithubCopilotKey() string {
-	const CLIENT_ID = "Iv23liAiMVpE28SJwyIn" // GitHub Copilot client id
+	// const CLIENT_ID = "Iv23liAiMVpE28SJwyIn" // GitHub Copilot client id
+	const CLIENT_ID = "Iv1.b507a08c87ecfe98" // GitHub Copilot client id
 
 	// Step 1: Request device code with proper headers
 	deviceBody := url.Values{
@@ -177,6 +178,9 @@ func (a *App) FetchGithubCopilotKey() string {
 
 	deviceReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	deviceReq.Header.Set("Accept", "application/json")
+	deviceReq.Header.Set("Editor-Version", "vscode/1.100.3")
+	deviceReq.Header.Set("Editor-Plugin-Version", "GitHub.copilot/1.330.0")
+	deviceReq.Header.Set("User-Agent", "GithubCopilot/1.330.0")
 
 	client := &http.Client{}
 	deviceResp, err := client.Do(deviceReq)
@@ -235,7 +239,10 @@ func (a *App) FetchGithubCopilotKey() string {
 		}
 
 		tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		tokenReq.Header.Set("Accept", "application/json")
+		tokenReq.Header.Set("accept", "application/json")
+		tokenReq.Header.Set("editor-version", "vscode/1.100.3")
+		tokenReq.Header.Set("editor-plugin-version", "GitHub.copilot/1.330.0")
+		tokenReq.Header.Set("user-agent", "GithubCopilot/1.330.0")
 
 		tokenResp, err := client.Do(tokenReq)
 		if err != nil {
@@ -290,14 +297,15 @@ func (a *App) FetchGithubCopilotKey() string {
 		runtime.LogInfo(a.ctx, "Attempting to get Copilot token...")
 
 		copilotReq, err := http.NewRequest("GET", "https://api.github.com/copilot_internal/v2/token", nil)
+		runtime.LogInfo(a.ctx, fmt.Sprintf("Copilot request: %v", copilotReq))
+
 		if err != nil {
 			runtime.LogWarning(a.ctx, fmt.Sprintf("Failed to create Copilot request: %v", err))
 			return a.handleCopilotFallback(tokenData.AccessToken)
 		}
 
 		copilotReq.Header.Set("Authorization", "Bearer "+tokenData.AccessToken)
-		copilotReq.Header.Set("Accept", "application/json")
-		copilotReq.Header.Set("User-Agent", "Nuvin-Space/1.0")
+		copilotReq.Header.Set("user-agent", "GithubCopilot/1.330.0")
 
 		copilotResp, err := client.Do(copilotReq)
 		if err != nil {
@@ -307,7 +315,7 @@ func (a *App) FetchGithubCopilotKey() string {
 		defer copilotResp.Body.Close()
 
 		if copilotResp.StatusCode != http.StatusOK {
-			runtime.LogWarning(a.ctx, fmt.Sprintf("Copilot token request failed: %d", copilotResp.StatusCode))
+			runtime.LogWarning(a.ctx, fmt.Sprintf("Copilot token request failed: %d - %s - %v", copilotResp.StatusCode, tokenData.AccessToken, copilotResp))
 			return a.handleCopilotFallback(tokenData.AccessToken)
 		}
 
@@ -317,7 +325,6 @@ func (a *App) FetchGithubCopilotKey() string {
 			return a.handleCopilotFallback(tokenData.AccessToken)
 		}
 
-		runtime.LogInfo(a.ctx, "Successfully obtained Copilot token")
 		return copilotData.Token
 	}
 }
