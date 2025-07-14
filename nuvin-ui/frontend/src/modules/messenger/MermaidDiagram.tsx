@@ -98,7 +98,7 @@ function FullscreenDiagram({ svg, resolvedTheme, onClose }: FullscreenDiagramPro
         ? 'bg-gradient-to-br from-gray-900 to-gray-800'
         : 'bg-gradient-to-br from-gray-50 to-gray-100'
         } rounded-xl shadow-2xl border border-border/20`}>
-        
+
         {/* Fullscreen Controls */}
         <div className="absolute top-6 right-6 z-10 flex flex-col gap-2 bg-background/60 backdrop-blur-sm p-2 rounded-lg border border-border/20 shadow-sm">
           <Button
