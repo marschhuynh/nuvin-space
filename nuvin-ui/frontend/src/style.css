@@ -4,12 +4,12 @@
 @custom-variant dark (&:is(.dark *));
 
 @font-face {
-  font-family: "RobotoFlex";
+  /* font-family: "RobotoFlex"; */
   font-style: normal;
   font-weight: 400;
-  src:
+  /* src:
     local(""),
-    url("assets/fonts/RobotoFlex.ttf") format("truetype");
+    url("assets/fonts/RobotoFlex.ttf") format("truetype"); */
 }
 
 @theme inline {

@@ -1,4 +1,4 @@
-import {
+import type {
   LLMProvider,
   CompletionParams,
   CompletionResult,
@@ -115,9 +115,10 @@ export class OpenAIProvider implements LLMProvider {
       // Filter for chat models and add known pricing/context info
       const chatModels = models
         .filter(
-          (model: any) => model.id.includes('gpt') || model.id.includes('chat'),
+          (model: { id: string }) =>
+            model.id.includes('gpt') || model.id.includes('chat'),
         )
-        .map((model: any): ModelInfo => {
+        .map((model: { id: string }): ModelInfo => {
           const modelInfo: ModelInfo = {
             id: model.id,
             name: model.id,

@@ -20,7 +20,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { useAgentStore } from '@/store/useAgentStore';
-import { ModelConfig, AgentSettings } from '@/types';
+import { AgentSettings } from '@/types';
 import { Check, X, Loader2, AlertTriangle, Wifi, WifiOff } from 'lucide-react';
 import { a2aService, A2AError, A2AErrorType } from '@/lib';
 import { LogInfo } from '@wails/runtime';

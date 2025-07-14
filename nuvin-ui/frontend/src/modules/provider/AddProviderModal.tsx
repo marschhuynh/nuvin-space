@@ -20,7 +20,6 @@ import {
 import { Eye, EyeOff } from 'lucide-react';
 import { useProviderStore } from '@/store/useProviderStore';
 import { fetchGithubCopilotKey } from '@/lib/github';
-import { ModelSelector } from '@/modules/agent/components/ModelSelector';
 import { getDefaultModel } from '@/lib/providers/provider-utils';
 
 const PROVIDER_OPTIONS = ['OpenAI', 'Anthropic', 'OpenRouter', 'GitHub'];
@@ -231,26 +230,6 @@ export function AddProviderModal({
               </p>
             )}
           </div>
-
-          {/* Model Selection */}
-          {newProviderType && newProviderKey && (
-            <div className="grid gap-2">
-              <Label htmlFor="model">Select Model</Label>
-              <ModelSelector
-                providerConfig={{
-                  type: newProviderType as any,
-                  apiKey: newProviderKey,
-                  name: newProviderName || 'New Provider',
-                }}
-                selectedModel={selectedModel}
-                onModelSelect={setSelectedModel}
-              />
-              <p className="text-sm text-muted-foreground">
-                Available models will be fetched from the provider when you
-                enter a valid API key.
-              </p>
-            </div>
-          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={handleCancel}>
