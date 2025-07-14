@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { startTransition, useCallback, useRef, useState } from 'react';
 import { ConversationHistory } from '@/components';
 import { useAgentManager } from '@/hooks';
 import { generateUUID } from '@/lib/utils';
@@ -188,15 +188,17 @@ export default function Dashboard() {
   };
 
   const handleConversationDelete = (conversationId: string) => {
-    // If deleting the active conversation, clear loading state
-    if (conversationId === activeConversationId) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
+    startTransition(() => {
+      // If deleting the active conversation, clear loading state
+      if (conversationId === activeConversationId) {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    }
-    deleteConversation(conversationId);
+      deleteConversation(conversationId);
+    })
   };
 
   const handleAgentConfigChange = useCallback((config: AgentConfig) => {

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import mermaid from 'mermaid';
 import { ZoomIn, ZoomOut, RotateCcw, Maximize2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,171 @@ import { useTheme } from '@/lib/theme';
 
 interface MermaidProps {
   chart: string;
+}
+
+interface FullscreenDiagramProps {
+  svg: string;
+  resolvedTheme: string;
+  onClose: () => void;
+}
+
+function FullscreenDiagram({ svg, resolvedTheme, onClose }: FullscreenDiagramProps) {
+  const fullscreenRef = useRef<HTMLDivElement>(null);
+  const [fullscreenZoom, setFullscreenZoom] = useState(1);
+  const [fullscreenPanX, setFullscreenPanX] = useState(0);
+  const [fullscreenPanY, setFullscreenPanY] = useState(0);
+  const [fullscreenIsDragging, setFullscreenIsDragging] = useState(false);
+  const [fullscreenDragStart, setFullscreenDragStart] = useState({ x: 0, y: 0 });
+
+  // Zoom and pan functionality for fullscreen
+  const handleZoomIn = useCallback(() => {
+    setFullscreenZoom(prev => Math.min(prev * 1.2, 3));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setFullscreenZoom(prev => Math.max(prev / 1.2, 0.3));
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setFullscreenZoom(1);
+    setFullscreenPanX(0);
+    setFullscreenPanY(0);
+  }, []);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 0) {
+      setFullscreenIsDragging(true);
+      setFullscreenDragStart({ x: e.clientX - fullscreenPanX, y: e.clientY - fullscreenPanY });
+    }
+  }, [fullscreenPanX, fullscreenPanY]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (fullscreenIsDragging) {
+      setFullscreenPanX(e.clientX - fullscreenDragStart.x);
+      setFullscreenPanY(e.clientY - fullscreenDragStart.y);
+    }
+  }, [fullscreenIsDragging, fullscreenDragStart]);
+
+  const handleMouseUp = useCallback(() => {
+    setFullscreenIsDragging(false);
+  }, []);
+
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    setFullscreenZoom(prev => Math.min(Math.max(prev * delta, 0.3), 3));
+  }, []);
+
+  // Escape key to close fullscreen
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [onClose]);
+
+  // Update fullscreen SVG transform
+  useEffect(() => {
+    if (fullscreenRef.current && svg) {
+      const svgElement = fullscreenRef.current.querySelector('svg');
+      if (svgElement) {
+        svgElement.style.transform = `translate(${fullscreenPanX}px, ${fullscreenPanY}px) scale(${fullscreenZoom})`;
+        svgElement.style.transformOrigin = 'center center';
+        svgElement.style.transition = fullscreenIsDragging ? 'none' : 'transform 0.1s ease-out';
+      }
+    }
+  }, [fullscreenZoom, fullscreenPanX, fullscreenPanY, svg, fullscreenIsDragging]);
+
+  return (
+    <div className={`fixed inset-0 z-50 backdrop-blur-sm ${resolvedTheme === 'dark' ? 'bg-gray-900/95' : 'bg-white/95'
+      } flex items-center justify-center`}>
+      <div className={`relative w-[90%] h-[90%] ${resolvedTheme === 'dark'
+        ? 'bg-gradient-to-br from-gray-900 to-gray-800'
+        : 'bg-gradient-to-br from-gray-50 to-gray-100'
+        } rounded-xl shadow-2xl border border-border/20`}>
+        
+        {/* Fullscreen Controls */}
+        <div className="absolute top-6 right-6 z-10 flex flex-col gap-2 bg-background/60 backdrop-blur-sm p-2 rounded-lg border border-border/20 shadow-sm">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleZoomIn}
+            className="h-8 w-8 p-0 hover:bg-primary/10"
+            title="Zoom In"
+          >
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleZoomOut}
+            className="h-8 w-8 p-0 hover:bg-primary/10"
+            title="Zoom Out"
+          >
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleReset}
+            className="h-8 w-8 p-0 hover:bg-primary/10"
+            title="Reset View"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="h-8 w-8 p-0 hover:bg-red-500/10 hover:text-red-600"
+            title="Exit Fullscreen"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <div className="text-xs text-muted-foreground text-center px-1 py-1 bg-muted/20 rounded">
+            {Math.round(fullscreenZoom * 100)}%
+          </div>
+        </div>
+
+        {/* Fullscreen Diagram Container */}
+        <div
+          ref={fullscreenRef}
+          className="w-full h-full overflow-hidden flex items-center justify-center select-none bg-background/90 rounded-lg border border-border/20"
+          style={{
+            cursor: fullscreenIsDragging ? 'grabbing' : 'grab',
+            background: resolvedTheme === 'dark'
+              ? 'linear-gradient(to bottom, #1a202c 0%, #2d3748 100%)'
+              : 'linear-gradient(to bottom, #ffffff 0%, #f7fafc 100%)',
+          }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
+
+        {/* Fullscreen Instructions */}
+        <div className="absolute bottom-6 left-6 text-sm text-foreground bg-background/90 backdrop-blur-sm px-4 py-3 rounded-lg border border-border/20 shadow-sm">
+          <div className="flex items-center gap-6">
+            <span>🖱️ Drag to pan</span>
+            <span>🔍 Scroll to zoom</span>
+            <span>⌨️ ESC to exit</span>
+            <span>📐 {Math.round(fullscreenZoom * 100)}% zoom</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function MermaidDiagram({ chart }: MermaidProps) {
@@ -19,15 +185,6 @@ export function MermaidDiagram({ chart }: MermaidProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // Separate state for fullscreen mode
-  const [fullscreenZoom, setFullscreenZoom] = useState(1);
-  const [fullscreenPanX, setFullscreenPanX] = useState(0);
-  const [fullscreenPanY, setFullscreenPanY] = useState(0);
-  const [fullscreenIsDragging, setFullscreenIsDragging] = useState(false);
-  const [fullscreenDragStart, setFullscreenDragStart] = useState({ x: 0, y: 0 });
-
-  const fullscreenRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const renderMermaid = async () => {
@@ -221,100 +378,50 @@ export function MermaidDiagram({ chart }: MermaidProps) {
 
   // Zoom and pan functionality
   const handleZoomIn = useCallback(() => {
-    if (isFullscreen) {
-      setFullscreenZoom(prev => Math.min(prev * 1.2, 3));
-    } else {
-      setZoom(prev => Math.min(prev * 1.2, 3));
-    }
-  }, [isFullscreen]);
+    setZoom(prev => Math.min(prev * 1.2, 3));
+  }, []);
 
   const handleZoomOut = useCallback(() => {
-    if (isFullscreen) {
-      setFullscreenZoom(prev => Math.max(prev / 1.2, 0.3));
-    } else {
-      setZoom(prev => Math.max(prev / 1.2, 0.3));
-    }
-  }, [isFullscreen]);
+    setZoom(prev => Math.max(prev / 1.2, 0.3));
+  }, []);
 
   const handleReset = useCallback(() => {
-    if (isFullscreen) {
-      setFullscreenZoom(1);
-      setFullscreenPanX(0);
-      setFullscreenPanY(0);
-    } else {
-      setZoom(1);
-      setPanX(0);
-      setPanY(0);
-    }
-  }, [isFullscreen]);
+    setZoom(1);
+    setPanX(0);
+    setPanY(0);
+  }, []);
 
   const handleFullscreen = useCallback(() => {
     setIsFullscreen(true);
-    // Reset fullscreen view when opening
-    setFullscreenZoom(1);
-    setFullscreenPanX(0);
-    setFullscreenPanY(0);
   }, []);
 
   const handleCloseFullscreen = useCallback(() => {
     setIsFullscreen(false);
   }, []);
 
-  // Escape key to close fullscreen
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isFullscreen) {
-        handleCloseFullscreen();
-      }
-    };
-
-    if (isFullscreen) {
-      document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isFullscreen, handleCloseFullscreen]);
-
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 0) { // Left mouse button
-      if (isFullscreen) {
-        setFullscreenIsDragging(true);
-        setFullscreenDragStart({ x: e.clientX - fullscreenPanX, y: e.clientY - fullscreenPanY });
-      } else {
-        setIsDragging(true);
-        setDragStart({ x: e.clientX - panX, y: e.clientY - panY });
-      }
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - panX, y: e.clientY - panY });
     }
-  }, [isFullscreen, panX, panY, fullscreenPanX, fullscreenPanY]);
+  }, [panX, panY]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isFullscreen && fullscreenIsDragging) {
-      setFullscreenPanX(e.clientX - fullscreenDragStart.x);
-      setFullscreenPanY(e.clientY - fullscreenDragStart.y);
-    } else if (isDragging) {
+    if (isDragging) {
       setPanX(e.clientX - dragStart.x);
       setPanY(e.clientY - dragStart.y);
     }
-  }, [isFullscreen, isDragging, fullscreenIsDragging, dragStart, fullscreenDragStart]);
+  }, [isDragging, dragStart]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
-    setFullscreenIsDragging(false);
   }, []);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    if (isFullscreen) {
-      setFullscreenZoom(prev => Math.min(Math.max(prev * delta, 0.3), 3));
-    } else {
-      setZoom(prev => Math.min(Math.max(prev * delta, 0.3), 3));
-    }
-  }, [isFullscreen]);
+    setZoom(prev => Math.min(Math.max(prev * delta, 0.3), 3));
+  }, []);
 
   // Update SVG transform when zoom or pan changes
   useEffect(() => {
@@ -327,18 +434,6 @@ export function MermaidDiagram({ chart }: MermaidProps) {
       }
     }
   }, [zoom, panX, panY, svg, isDragging]);
-
-  // Update fullscreen SVG transform
-  useEffect(() => {
-    if (fullscreenRef.current && svg && isFullscreen) {
-      const svgElement = fullscreenRef.current.querySelector('svg');
-      if (svgElement) {
-        svgElement.style.transform = `translate(${fullscreenPanX}px, ${fullscreenPanY}px) scale(${fullscreenZoom})`;
-        svgElement.style.transformOrigin = 'center center';
-        svgElement.style.transition = fullscreenIsDragging ? 'none' : 'transform 0.1s ease-out';
-      }
-    }
-  }, [fullscreenZoom, fullscreenPanX, fullscreenPanY, svg, fullscreenIsDragging, isFullscreen]);
 
   if (error) {
     return (
@@ -430,86 +525,14 @@ export function MermaidDiagram({ chart }: MermaidProps) {
         </div>
       </div>
 
-      {/* Fullscreen Modal */}
-      {isFullscreen && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm ${resolvedTheme === 'dark' ? 'bg-gray-900/95' : 'bg-white/95'
-          } flex items-center justify-center`}>
-          <div className={`relative w-[90%] h-[90%] ${resolvedTheme === 'dark'
-            ? 'bg-gradient-to-br from-gray-900 to-gray-800'
-            : 'bg-gradient-to-br from-gray-50 to-gray-100'
-            } rounded-xl shadow-2xl border border-border/20`}>
-            {/* Fullscreen Controls */}
-            <div className="absolute top-6 right-6 z-10 flex flex-col gap-2 bg-background/60 backdrop-blur-sm p-2 rounded-lg border border-border/20 shadow-sm">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleZoomIn}
-                className="h-8 w-8 p-0 hover:bg-primary/10"
-                title="Zoom In"
-              >
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleZoomOut}
-                className="h-8 w-8 p-0 hover:bg-primary/10"
-                title="Zoom Out"
-              >
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleReset}
-                className="h-8 w-8 p-0 hover:bg-primary/10"
-                title="Reset View"
-              >
-                <RotateCcw className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCloseFullscreen}
-                className="h-8 w-8 p-0 hover:bg-red-500/10 hover:text-red-600"
-                title="Exit Fullscreen"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-              <div className="text-xs text-muted-foreground text-center px-1 py-1 bg-muted/20 rounded">
-                {Math.round(fullscreenZoom * 100)}%
-              </div>
-            </div>
-
-            {/* Fullscreen Diagram Container */}
-            <div
-              ref={fullscreenRef}
-              className="w-full h-full overflow-hidden flex items-center justify-center select-none bg-background/90 rounded-lg border border-border/20"
-              style={{
-                cursor: fullscreenIsDragging ? 'grabbing' : 'grab',
-                background: resolvedTheme === 'dark'
-                  ? 'linear-gradient(to bottom, #1a202c 0%, #2d3748 100%)'
-                  : 'linear-gradient(to bottom, #ffffff 0%, #f7fafc 100%)',
-              }}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-              onWheel={handleWheel}
-              dangerouslySetInnerHTML={{ __html: svg }}
-            />
-
-            {/* Fullscreen Instructions */}
-            <div className="absolute bottom-6 left-6 text-sm text-foreground bg-background/90 backdrop-blur-sm px-4 py-3 rounded-lg border border-border/20 shadow-sm">
-              <div className="flex items-center gap-6">
-                <span>🖱️ Drag to pan</span>
-                <span>🔍 Scroll to zoom</span>
-                <span>⌨️ ESC to exit</span>
-                <span>📐 {Math.round(fullscreenZoom * 100)}% zoom</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Fullscreen Modal using Portal */}
+      {isFullscreen && createPortal(
+        <FullscreenDiagram
+          svg={svg}
+          resolvedTheme={resolvedTheme}
+          onClose={handleCloseFullscreen}
+        />,
+        document.body
       )}
     </>
   );
