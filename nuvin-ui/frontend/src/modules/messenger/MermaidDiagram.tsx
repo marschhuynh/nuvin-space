@@ -44,114 +44,114 @@ export function MermaidDiagram({ chart }: MermaidProps) {
         // Theme-aware configuration
         const isDark = resolvedTheme === 'dark';
 
-        // Initialize Mermaid with enhanced configuration for professional styling
+        // Initialize Mermaid with enhanced configuration for better readability
         mermaid.initialize({
           startOnLoad: false,
           theme: 'base',
           securityLevel: 'loose',
-          // fontFamily: 'Inter, system-ui, sans-serif',
-          fontSize: 14,
+          fontFamily: 'Inter, system-ui, sans-serif',
+          fontSize: 16,
           logLevel: 'fatal', // Suppress console warnings
           themeVariables: isDark ? {
-            // Dark theme variables
+            // Dark theme variables - Enhanced for better readability
             // Participant styling
-            actorBkg: '#1e293b',
-            actorBorder: '#475569',
-            actorTextColor: '#f1f5f9',
+            actorBkg: '#2d3748',
+            actorBorder: '#4a5568',
+            actorTextColor: '#f7fafc',
 
             // Note styling
-            noteBkgColor: '#92400e',
-            noteBorderColor: '#f59e0b',
-            noteTextColor: '#fef3c7',
+            noteBkgColor: '#2b6cb0',
+            noteBorderColor: '#3182ce',
+            noteTextColor: '#f7fafc',
 
             // Message lines
-            activationBkgColor: '#1e40af',
-            activationBorderColor: '#3b82f6',
+            activationBkgColor: '#2b6cb0',
+            activationBorderColor: '#3182ce',
 
             // Background
-            primaryColor: '#3b82f6',
-            primaryTextColor: '#ffffff',
-            primaryBorderColor: '#1d4ed8',
+            primaryColor: '#3182ce',
+            primaryTextColor: '#f7fafc',
+            primaryBorderColor: '#2b6cb0',
 
             // Sequence diagram specific
-            sequenceNumberColor: '#ffffff',
-            signalColor: '#d1d5db',
-            signalTextColor: '#f3f4f6',
-            labelBoxBkgColor: '#374151',
-            labelBoxBorderColor: '#6b7280',
-            labelTextColor: '#f3f4f6',
-            loopTextColor: '#f1f5f9',
+            sequenceNumberColor: '#f7fafc',
+            signalColor: '#e2e8f0',
+            signalTextColor: '#f7fafc',
+            labelBoxBkgColor: '#4a5568',
+            labelBoxBorderColor: '#718096',
+            labelTextColor: '#f7fafc',
+            loopTextColor: '#f7fafc',
 
             // Alt/loop box styling
-            altSectionBkgColor: '#111827',
+            altSectionBkgColor: '#2d3748',
 
             // Grid and background
-            background: '#111827',
-            secondaryColor: '#374151',
-            tertiaryColor: '#4b5563',
+            background: '#1a202c',
+            secondaryColor: '#4a5568',
+            tertiaryColor: '#718096',
           } : {
-            // Light theme variables (original)
+            // Light theme variables - Enhanced for better readability
             // Participant styling
-            actorBkg: '#f8fafc',
+            actorBkg: '#ffffff',
             actorBorder: '#e2e8f0',
-            actorTextColor: '#1e293b',
+            actorTextColor: '#1a202c',
 
             // Note styling
-            noteBkgColor: '#fef3c7',
-            noteBorderColor: '#f59e0b',
-            noteTextColor: '#92400e',
+            noteBkgColor: '#bee3f8',
+            noteBorderColor: '#3182ce',
+            noteTextColor: '#1a365d',
 
             // Message lines
-            activationBkgColor: '#dbeafe',
-            activationBorderColor: '#3b82f6',
+            activationBkgColor: '#bee3f8',
+            activationBorderColor: '#3182ce',
 
             // Background
-            primaryColor: '#3b82f6',
-            primaryTextColor: '#ffffff',
-            primaryBorderColor: '#1d4ed8',
+            primaryColor: '#3182ce',
+            primaryTextColor: '#1a202c',
+            primaryBorderColor: '#2b6cb0',
 
             // Sequence diagram specific
-            sequenceNumberColor: '#ffffff',
-            signalColor: '#374151',
-            signalTextColor: '#374151',
-            labelBoxBkgColor: '#f1f5f9',
-            labelBoxBorderColor: '#cbd5e1',
-            labelTextColor: '#475569',
-            loopTextColor: '#1e293b',
+            sequenceNumberColor: '#1a202c',
+            signalColor: '#4a5568',
+            signalTextColor: '#1a202c',
+            labelBoxBkgColor: '#f7fafc',
+            labelBoxBorderColor: '#e2e8f0',
+            labelTextColor: '#1a202c',
+            loopTextColor: '#1a202c',
 
             // Alt/loop box styling
-            altSectionBkgColor: '#f8fafc',
+            altSectionBkgColor: '#f7fafc',
 
             // Grid and background
             background: '#ffffff',
-            secondaryColor: '#e5e7eb',
-            tertiaryColor: '#f3f4f6',
+            secondaryColor: '#f7fafc',
+            tertiaryColor: '#edf2f7',
           },
           sequence: {
             useMaxWidth: true,
-            boxMargin: 15,
-            noteMargin: 15,
-            messageMargin: 50,
+            boxMargin: 20,
+            noteMargin: 20,
+            messageMargin: 60,
             mirrorActors: true,
             showSequenceNumbers: false,
-            diagramMarginX: 40,
-            diagramMarginY: 20,
-            actorMargin: 80,
-            width: 180,
-            height: 80,
-            boxTextMargin: 8,
+            diagramMarginX: 50,
+            diagramMarginY: 30,
+            actorMargin: 100,
+            width: 200,
+            height: 90,
+            boxTextMargin: 12,
             noteAlign: 'center',
             messageAlign: 'center',
             bottomMarginAdj: 1,
             rightAngles: false,
             messageFontFamily: 'Inter, system-ui, sans-serif',
-            messageFontSize: 14,
+            messageFontSize: 16,
             messageFontWeight: '500',
             actorFontFamily: 'Inter, system-ui, sans-serif',
-            actorFontSize: 14,
+            actorFontSize: 16,
             actorFontWeight: '600',
             noteFontFamily: 'Inter, system-ui, sans-serif',
-            noteFontSize: 12,
+            noteFontSize: 14,
             noteFontWeight: '500'
           },
           flowchart: {
@@ -188,7 +188,7 @@ export function MermaidDiagram({ chart }: MermaidProps) {
             originalError(msg);
           }
         };
-        console.warn = () => {};
+        console.warn = () => { };
 
         try {
           // Render the diagram with cleaned chart
@@ -401,24 +401,24 @@ export function MermaidDiagram({ chart }: MermaidProps) {
           </div>
         </div>
 
-      {/* Diagram Container */}
-      <div
-        ref={ref}
-        className="mermaid-diagram overflow-hidden border border-border/20 bg-background p-6 rounded-xl shadow-sm select-none"
-        style={{
-          minHeight: '500px',
-          background: resolvedTheme === 'dark'
-            ? 'linear-gradient(to bottom, #111827 0%, #1f2937 100%)'
-            : 'linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%)',
-          cursor: isDragging ? 'grabbing' : 'grab',
-        }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
-        dangerouslySetInnerHTML={{ __html: svg }}
-      />
+        {/* Diagram Container */}
+        <div
+          ref={ref}
+          className="mermaid-diagram overflow-hidden border border-border/30 bg-background p-8 rounded-xl shadow-sm select-none mb-4"
+          style={{
+            minHeight: '300px',
+            background: resolvedTheme === 'dark'
+              ? 'linear-gradient(to bottom, #1a202c 0%, #2d3748 100%)'
+              : 'linear-gradient(to bottom, #ffffff 0%, #f7fafc 100%)',
+            cursor: isDragging ? 'grabbing' : 'grab',
+          }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
 
         {/* Instructions */}
         <div className="absolute bottom-4 left-4 text-xs text-muted-foreground bg-background/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-border/20 shadow-sm">
@@ -432,16 +432,14 @@ export function MermaidDiagram({ chart }: MermaidProps) {
 
       {/* Fullscreen Modal */}
       {isFullscreen && (
-        <div className={`fixed inset-0 z-50 backdrop-blur-sm ${
-          resolvedTheme === 'dark' ? 'bg-gray-900/95' : 'bg-white/95'
-        }`}>
-          <div className={`relative w-full h-full ${
-            resolvedTheme === 'dark'
-              ? 'bg-gradient-to-br from-gray-900 to-gray-800'
-              : 'bg-gradient-to-br from-gray-50 to-gray-100'
-          }`}>
+        <div className={`fixed inset-0 z-50 backdrop-blur-sm ${resolvedTheme === 'dark' ? 'bg-gray-900/95' : 'bg-white/95'
+          } flex items-center justify-center`}>
+          <div className={`relative w-[90%] h-[90%] ${resolvedTheme === 'dark'
+            ? 'bg-gradient-to-br from-gray-900 to-gray-800'
+            : 'bg-gradient-to-br from-gray-50 to-gray-100'
+            } rounded-xl shadow-2xl border border-border/20`}>
             {/* Fullscreen Controls */}
-            <div className="absolute top-6 right-6 z-10 flex flex-col gap-2 bg-background/90 backdrop-blur-sm p-2 rounded-lg border border-border/20 shadow-sm">
+            <div className="absolute top-6 right-6 z-10 flex flex-col gap-2 bg-background/60 backdrop-blur-sm p-2 rounded-lg border border-border/20 shadow-sm">
               <Button
                 variant="ghost"
                 size="sm"
@@ -486,12 +484,12 @@ export function MermaidDiagram({ chart }: MermaidProps) {
             {/* Fullscreen Diagram Container */}
             <div
               ref={fullscreenRef}
-              className="w-full h-full overflow-hidden flex items-center justify-center select-none bg-background/80 rounded-lg m-6"
+              className="w-full h-full overflow-hidden flex items-center justify-center select-none bg-background/90 rounded-lg border border-border/20"
               style={{
                 cursor: fullscreenIsDragging ? 'grabbing' : 'grab',
                 background: resolvedTheme === 'dark'
-                  ? 'linear-gradient(to bottom, #111827 0%, #1f2937 100%)'
-                  : 'linear-gradient(to bottom, #ffffff 0%, #fafbfc 100%)',
+                  ? 'linear-gradient(to bottom, #1a202c 0%, #2d3748 100%)'
+                  : 'linear-gradient(to bottom, #ffffff 0%, #f7fafc 100%)',
               }}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}

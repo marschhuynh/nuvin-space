@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 interface MarkdownRendererProps {
   content: string;
   className?: string;
+  depth?: number;
 }
 
 interface CodeBlockProps {
@@ -15,9 +16,10 @@ interface CodeBlockProps {
   className?: string;
   language?: string;
   content: string;
+  depth?: number;
 }
 
-function CodeBlock({ children, className, language, content }: CodeBlockProps) {
+function CodeBlock({ children, className, language, content, depth = 0 }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -36,20 +38,31 @@ function CodeBlock({ children, className, language, content }: CodeBlockProps) {
   }
 
   if (language === 'markdown') {
+    // Prevent infinite recursion by limiting depth
+    if (depth >= 2) {
+      return (
+        <div className="nested-markdown border border-border bg-muted/20 p-4 rounded-lg overflow-hidden">
+          <pre className="text-sm font-mono text-foreground whitespace-pre-wrap">
+            <code>{content}</code>
+          </pre>
+        </div>
+      );
+    }
+
     return (
       <div className="nested-markdown border border-border bg-muted/20 p-4 rounded-lg overflow-hidden">
         <div className="text-foreground text-sm font-medium mb-2 flex items-center justify-between">
           <span>Markdown Content:</span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleCopy}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCopy}
             className="h-6 w-6 p-0 hover:bg-muted"
-        >
-          {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-        </Button>
+          >
+            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+          </Button>
         </div>
-        <MarkdownRenderer content={content} />
+        <MarkdownRenderer content={content} className="nested-markdown-content" depth={depth + 1} />
       </div>
     );
   }
@@ -80,11 +93,6 @@ function CodeBlock({ children, className, language, content }: CodeBlockProps) {
       >
         {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
       </Button>
-      {language && (
-        <div className="absolute top-0 left-1 text-xs text-muted-foreground bg-muted/50 px-0 py-1 rounded">
-          {language}
-        </div>
-      )}
     </div>
   );
 }
@@ -92,10 +100,67 @@ function CodeBlock({ children, className, language, content }: CodeBlockProps) {
 export function MarkdownRenderer({
   content,
   className = '',
+  depth = 0,
 }: MarkdownRendererProps) {
   // Memoize content processing for performance
   const processedContent = useMemo(() => {
     let processedContent = content.trim();
+
+    // Remove markdown code block wrappers if they exist
+    // Handle nested code blocks properly by using line-by-line parsing
+    function findAndReplaceMarkdownBlocks(text: string): string {
+      const lines = text.split('\n');
+      let inMarkdownBlock = false;
+      let markdownStartLine = -1;
+      let backtickCount = 0;
+      let blockContent: string[] = [];
+      const replacements: Array<{ fullMatch: string; content: string }> = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        if (!inMarkdownBlock) {
+          // Look for markdown block start
+          const match = line.match(/^(`{3,})\s*markdown\s*$/);
+          if (match) {
+            inMarkdownBlock = true;
+            markdownStartLine = i;
+            backtickCount = match[1].length;
+            blockContent = [];
+          }
+        } else {
+          // Look for matching closing backticks
+          const closeMatch = line.match(/^(`{3,})\s*$/);
+          if (closeMatch && closeMatch[1].length === backtickCount) {
+            // Found the closing backticks
+            const fullMatch = lines.slice(markdownStartLine, i + 1).join('\n');
+            const content = blockContent.join('\n');
+
+            replacements.push({
+              fullMatch,
+              content: content.trim()
+            });
+
+            inMarkdownBlock = false;
+            blockContent = [];
+          } else {
+            // Add line to block content
+            blockContent.push(line);
+          }
+        }
+      }
+
+      // Replace each block with its content (reverse order to avoid index issues)
+      let result = text;
+      for (const replacement of replacements.reverse()) {
+        result = result.replace(replacement.fullMatch, replacement.content);
+      }
+
+      return result;
+    }
+
+    processedContent = findAndReplaceMarkdownBlocks(processedContent);
+
     return processedContent;
   }, [content]);
 
@@ -113,6 +178,7 @@ export function MarkdownRenderer({
             className={className}
             language={language}
             content={content}
+            depth={depth}
             {...props}
           >
             {children}
@@ -218,7 +284,7 @@ export function MarkdownRenderer({
         <em className="italic text-foreground/90">{children}</em>
       ),
     }),
-    [],
+    [depth],
   );
 
   return (
