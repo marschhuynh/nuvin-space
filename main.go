@@ -14,9 +14,9 @@ func main() {
 
 func add() {
 	fmt.Println("--- Please press ctrl + shift + a to stop hook ---")
-	hook.Register(hook.KeyDown, []string{"space", "cmd"}, func(e hook.Event) {
-		fmt.Println("ctrl-shift-a")
-		// hook.End()
+	hook.Register(hook.KeyDown, []string{"alt", "space"}, func(e hook.Event) {
+		fmt.Println("alt-space")
+		hook.End()
 	})
 
 	fmt.Println("--- Please press w---")

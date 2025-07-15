@@ -7,7 +7,7 @@ import (
 )
 
 func (a *App) listenForGlobalShortcut() {
-	hook.Register(hook.KeyDown, []string{"space", "option"}, func(e hook.Event) {
+	hook.Register(hook.KeyDown, []string{"space", "alt"}, func(e hook.Event) {
 		runtime.WindowShow(a.ctx)
 	})
 
