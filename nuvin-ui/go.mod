@@ -4,6 +4,7 @@ go 1.23
 
 require (
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
+	github.com/robotn/gohook v0.42.2
 	github.com/wailsapp/wails/v2 v2.10.1
 )
 
@@ -27,6 +28,7 @@ require (
 	github.com/tkrajina/go-reflector v0.5.8 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
+	github.com/vcaesar/keycode v0.10.1 // indirect
 	github.com/wailsapp/go-webview2 v1.0.19 // indirect
 	github.com/wailsapp/mimetype v1.4.1 // indirect
 	golang.org/x/crypto v0.33.0 // indirect

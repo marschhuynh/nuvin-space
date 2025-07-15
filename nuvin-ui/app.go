@@ -46,6 +46,7 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	go a.listenForGlobalShortcut()
 	a.CheckForUpdates()
 }
 

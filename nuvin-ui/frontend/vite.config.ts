@@ -12,4 +12,31 @@ export default defineConfig({
       '@wails/runtime': path.resolve(__dirname, './wailsjs/runtime/runtime.js'),
     },
   },
+  build: {
+    rollupOptions: {
+      external: [
+        // Exclude Node.js modules that shouldn't be bundled for browser
+        'events',
+        'fs',
+        'path',
+        'http',
+        'https',
+        'url',
+        'querystring',
+        'buffer',
+        'stream',
+        'util',
+        'zlib',
+        'crypto',
+        'net',
+        'async_hooks'
+      ]
+    }
+  },
+  optimizeDeps: {
+    exclude: [
+      // Exclude server components from the A2A SDK
+      '@a2a-js/sdk/build/src/server'
+    ]
+  }
 });
