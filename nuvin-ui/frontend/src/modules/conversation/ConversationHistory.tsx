@@ -1,23 +1,23 @@
 import { Button } from '@/components/ui/button';
 import { Plus, History } from 'lucide-react';
-import { Conversation } from '@/types';
+import { useConversationStore } from '@/store';
 import { ConversationItem } from './ConversationItem';
 
 interface ConversationHistoryProps {
-  conversations: Conversation[];
   onNewConversation?: () => void;
   onConversationSelect?: (conversationId: string) => void;
   onConversationDelete?: (conversationId: string) => void;
 }
 
 export function ConversationHistory({
-  conversations,
   onNewConversation,
   onConversationSelect,
   onConversationDelete,
 }: ConversationHistoryProps) {
+  const { conversations } = useConversationStore();
+
   return (
-    <div className="w-80 border-r border-border bg-card">
+    <div className="w-70 border-r border-border bg-card">
       <div className="mx-2 mt-4">
         <Button
           className="w-full p-2 h-auto flex items-center justify-center gap-2"

@@ -1,32 +1,22 @@
-import { startTransition, useCallback, useRef, useState } from 'react';
-import { ConversationHistory } from '@/components';
+import { useCallback, useRef, useState } from 'react';
 import { useAgentManager } from '@/hooks';
 import { generateUUID } from '@/lib/utils';
-import { createTimestamp } from '@/lib/timestamp';
 import { useConversationStore } from '@/store';
-import type { AgentConfig, Conversation, Message } from '@/types';
+import type { Message } from '@/types';
 
-import { AgentConfiguration } from '../modules/agent/AgentConfiguration';
-import { ChatInput, MessageList } from '../modules/messenger';
+import { ChatInput, MessageList } from '../../modules/messenger';
 
-export default function Dashboard() {
+export default function Messenger() {
   const { activeAgent, activeProvider, isReady, agentType, sendMessage } =
     useAgentManager();
 
   // Use conversation store
   const {
-    conversations,
     activeConversationId,
-    addConversation,
-    setActiveConversation,
     addMessage,
     updateMessage,
     getActiveMessages,
-    deleteConversation,
   } = useConversationStore();
-
-  // Get current conversation messages
-  const messages = getActiveMessages();
 
   // State for loading status
   const [isLoading, setIsLoading] = useState(false);
@@ -34,10 +24,22 @@ export default function Dashboard() {
 
   // State for streaming message
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
-  const [, setStreamingContent] = useState<string>('');
+  const [streamingContent, setStreamingContent] = useState<string>('');
+
+  // Get current conversation messages
+  const storeMessages = getActiveMessages();
+
+  // Create combined messages with streaming content
+  const messages = streamingMessageId
+    ? storeMessages.map(msg =>
+      msg.id === streamingMessageId
+        ? { ...msg, content: streamingContent }
+        : msg
+    )
+    : storeMessages;
 
   // Handlers
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = useCallback(async (content: string) => {
     if (!isReady) {
       console.warn('Agent not ready. Please select an agent and provider.');
       return;
@@ -81,22 +83,8 @@ export default function Dashboard() {
         conversationId: conversationId,
         stream: true,
         onChunk: (chunk: string) => {
-          // Update streaming content as chunks arrive
-          setStreamingContent(prev => {
-            const newContent = prev + chunk;
-            // Update the message in the store with accumulated content
-            if (activeConversationId) {
-              const updatedMessage: Message = {
-                id: streamingId,
-                role: 'assistant',
-                content: newContent,
-                timestamp: new Date().toISOString(),
-              };
-              // Update existing message instead of adding new one
-              updateMessage(activeConversationId, updatedMessage);
-            }
-            return newContent;
-          });
+          // Update local streaming content as chunks arrive
+          setStreamingContent(prev => prev + chunk);
         },
         onComplete: (finalContent: string) => {
           // Final update when streaming is complete
@@ -166,9 +154,9 @@ export default function Dashboard() {
       setIsLoading(false);
       timeoutRef.current = null;
     }
-  };
+  }, [addMessage, activeConversationId, agentType, activeProvider, sendMessage]);
 
-  const handleStopGeneration = () => {
+  const handleStopGeneration = useCallback(() => {
     if (isLoading) {
       // Clear any timeout references
       if (timeoutRef.current) {
@@ -210,124 +198,50 @@ export default function Dashboard() {
         'Note: Underlying agent request may still be processing. Request cancellation will be implemented in a future update.',
       );
     }
-  };
-
-  const handleNewConversation = () => {
-    // Stop any ongoing generation and clear streaming state
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-      setIsLoading(false);
-    }
-    setStreamingMessageId(null);
-    setStreamingContent('');
-
-    const newConversation: Conversation = {
-      id: generateUUID(),
-      title: 'New Conversation',
-      timestamp: createTimestamp(),
-      active: true,
-    };
-
-    // Add new conversation (automatically becomes active)
-    addConversation(newConversation);
-  };
-
-  const handleConversationSelect = (conversationId: string) => {
-    // Stop any ongoing generation when switching conversations and clear streaming state
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-      setIsLoading(false);
-    }
-    setStreamingMessageId(null);
-    setStreamingContent('');
-
-    // Set the selected conversation as active
-    setActiveConversation(conversationId);
-  };
-
-  const handleConversationDelete = (conversationId: string) => {
-    startTransition(() => {
-      // If deleting the active conversation, clear loading and streaming state
-      if (conversationId === activeConversationId) {
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-          timeoutRef.current = null;
-        }
-        setIsLoading(false);
-        setStreamingMessageId(null);
-        setStreamingContent('');
-      }
-      deleteConversation(conversationId);
-    })
-  };
-
-  const handleAgentConfigChange = useCallback((config: AgentConfig) => {
-    console.log('Agent config updated:', config);
-    const selectedAgent = config.agents.find(
-      (agent) => agent.id === config.selectedAgent,
-    );
-    console.log('Selected agent:', selectedAgent?.name);
-  }, []);
+  }, [addMessage, activeConversationId, agentType, activeProvider, sendMessage]);
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="w-80 border-r border-border bg-card">
-        <ConversationHistory
-          conversations={conversations}
-          onNewConversation={handleNewConversation}
-          onConversationSelect={handleConversationSelect}
-          onConversationDelete={handleConversationDelete}
-        />
-      </div>
+    <div className="flex-1 flex flex-col bg-gray-100 min-w-[300px]">
+      <MessageList
+        messages={messages}
+        isLoading={isLoading}
+        streamingMessageId={streamingMessageId}
+      />
 
-      <div className="flex-1 flex flex-col bg-gray-100 min-w-[300px]">
-        <MessageList
-          messages={messages}
-          isLoading={isLoading}
-          streamingMessageId={streamingMessageId}
-        />
-
-        {/* Agent Status Bar */}
-        <div className="border-t border-border bg-card px-6 py-2">
-          <div className="max-w-4xl mx-auto flex items-center justify-between text-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-muted/10 transition-all duration-200 hover:bg-muted/20">
-                <div
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${isReady
-                    ? 'bg-green-500 shadow-sm shadow-green-500/30'
-                    : 'bg-red-500 shadow-sm shadow-red-500/30'
-                    }`}
-                />
-                <span className="text-xs font-medium text-muted-foreground transition-colors duration-200">
-                  Agent: {activeAgent?.name || 'None'}
+      {/* Agent Status Bar */}
+      <div className="border-t border-border bg-card px-6 py-2">
+        <div className="max-w-4xl mx-auto flex items-center justify-between text-sm">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-muted/10 transition-all duration-200 hover:bg-muted/20">
+              <div
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${isReady
+                  ? 'bg-green-500 shadow-sm shadow-green-500/30'
+                  : 'bg-red-500 shadow-sm shadow-red-500/30'
+                  }`}
+              />
+              <span className="text-xs font-medium text-muted-foreground transition-colors duration-200">
+                Agent: {activeAgent?.name || 'None'}
+              </span>
+              {isReady && (
+                <span className="text-xs px-1.5 py-0.5 bg-green-500/10 text-green-600 rounded-md transition-all duration-200">
+                  Ready
                 </span>
-                {isReady && (
-                  <span className="text-xs px-1.5 py-0.5 bg-green-500/10 text-green-600 rounded-md transition-all duration-200">
-                    Ready
-                  </span>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>
-
-        <ChatInput
-          onSendMessage={handleSendMessage}
-          onStop={handleStopGeneration}
-          disabled={isLoading || !isReady}
-          placeholder={
-            !isReady
-              ? 'Configure an agent and provider to start chatting...'
-              : 'Type your message here...'
-          }
-        />
       </div>
 
-      <div className="flex flex-0 min-w-[280px] border-l border-border bg-card">
-        <AgentConfiguration onConfigChange={handleAgentConfigChange} />
-      </div>
+      <ChatInput
+        onSendMessage={handleSendMessage}
+        onStop={handleStopGeneration}
+        disabled={isLoading || !isReady}
+        placeholder={
+          !isReady
+            ? 'Configure an agent and provider to start chatting...'
+            : 'Type your message here...'
+        }
+      />
     </div>
   );
 }

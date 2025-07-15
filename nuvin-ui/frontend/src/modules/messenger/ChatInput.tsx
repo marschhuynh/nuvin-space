@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
   useCallback,
+  memo,
 } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +17,7 @@ interface ChatInputProps {
   placeholder?: string;
 }
 
-export function ChatInput({
+const ChatInput = memo(function ChatInput({
   onSendMessage,
   onStop,
   disabled = false,
@@ -147,23 +148,12 @@ export function ChatInput({
 
         <div className="flex justify-between text-xs text-muted-foreground mt-2">
           <span>
-            {
-              // isLoading ? (
-              //   <span className="flex items-center gap-1">
-              //     <div className="flex gap-1">
-              //       <div className="w-1.5 h-1.5 rounded-full bg-primary processing-dot"></div>
-              //       <div className="w-1.5 h-1.5 rounded-full bg-primary processing-dot"></div>
-              //       <div className="w-1.5 h-1.5 rounded-full bg-primary processing-dot"></div>
-              //     </div>
-              //     <span className="ml-2">Processing...</span>
-              //   </span>
-              // ) :
-              (
-                'Press Shift + Enter for new line'
-              )}
+            Press Shift + Enter for new line
           </span>
         </div>
       </div>
     </div>
   );
-}
+});
+
+export { ChatInput };

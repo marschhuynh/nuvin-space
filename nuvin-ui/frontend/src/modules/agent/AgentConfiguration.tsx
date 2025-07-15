@@ -96,12 +96,12 @@ export function AgentConfiguration({
       const authConfig =
         agent.auth && agent.auth.type !== 'none'
           ? {
-              type: agent.auth.type,
-              token: agent.auth.token,
-              username: agent.auth.username,
-              password: agent.auth.password,
-              headerName: agent.auth.headerName,
-            }
+            type: agent.auth.type,
+            token: agent.auth.token,
+            username: agent.auth.username,
+            password: agent.auth.password,
+            headerName: agent.auth.headerName,
+          }
           : undefined;
 
       // Fetch agent card information
@@ -207,7 +207,7 @@ export function AgentConfiguration({
     : [];
 
   return (
-    <div className="min-w-[280px] w-full max-w-[480px] border-l border-border bg-card overflow-auto">
+    <div className="min-w-[200px] w-full max-w-[300px] border-l border-border bg-card overflow-auto">
       <div className="p-3">
         <div className="mb-6">
           <h2 className="font-semibold text-lg flex items-center gap-2 border-b border-border pb-2">
@@ -268,16 +268,14 @@ export function AgentConfiguration({
                     {getAgentTools(selectedAgent).map((tool) => (
                       <div
                         key={`${tool.name}`}
-                        className={`flex items-start gap-3 p-4 rounded-lg border ${
-                          tool.enabled
-                            ? 'bg-muted/30'
-                            : 'opacity-60 bg-muted/20'
-                        }`}
+                        className={`flex items-start gap-3 p-4 rounded-lg border ${tool.enabled
+                          ? 'bg-muted/30'
+                          : 'opacity-60 bg-muted/20'
+                          }`}
                       >
                         <div
-                          className={`w-2 h-2 rounded-full mt-1 flex-shrink-0 ${
-                            tool.enabled ? 'bg-green-500' : 'bg-muted-foreground'
-                          }`}
+                          className={`w-2 h-2 rounded-full mt-1 flex-shrink-0 ${tool.enabled ? 'bg-green-500' : 'bg-muted-foreground'
+                            }`}
                         />
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm mb-1">
