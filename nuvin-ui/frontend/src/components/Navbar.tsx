@@ -1,5 +1,5 @@
 import { SettingsDialog } from '@/modules/setting/SettingsDialog';
-import { Home, Settings, Sun, Moon } from 'lucide-react';
+import { Home, Settings, Sun, Moon, Monitor } from 'lucide-react';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useTheme } from '@/lib/theme';
@@ -59,28 +59,32 @@ export function Navbar({ userName = 'Guest' }: NavbarProps) {
                 <span>Settings</span>
               </Button>
             </div>
-            
+
             {/* Theme Toggle Button */}
             <Button
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/40"
               onClick={() => {
-                if (resolvedTheme === 'dark') {
-                  setTheme('light');
-                } else {
+                if (theme === 'light') {
                   setTheme('dark');
+                } else if (theme === 'dark') {
+                  setTheme('system');
+                } else {
+                  setTheme('light');
                 }
               }}
-              title={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
+              title={`Current: ${theme}${theme === 'system' ? ` (${resolvedTheme})` : ''}`}
             >
-              {resolvedTheme === 'dark' ? (
+              {theme === 'system' ? (
+                <Monitor className="h-4 w-4" />
+              ) : resolvedTheme === 'dark' ? (
                 <Sun className="h-4 w-4 opacity-60" />
               ) : (
                 <Moon className="h-4 w-4" />
               )}
             </Button>
-            
+
             {/* <div className="flex items-center gap-2">
               <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
                 <User className="h-4 w-4 text-primary-foreground" />

@@ -35,7 +35,7 @@ func main() {
 			app,
 		},
 		Mac: &mac.Options{
-			Appearance:           mac.NSAppearanceNameVibrantLight,
+			Appearance:           mac.DefaultAppearance,
 			WebviewIsTransparent: true,
 			WindowIsTranslucent:  true,
 			About: &mac.AboutInfo{

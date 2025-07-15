@@ -25,7 +25,7 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const { preferences, updatePreferences } = useUserPreferenceStore();
+  const { preferences, updatePreferences, hasHydrated } = useUserPreferenceStore();
   const theme = preferences.theme;
 
   const setTheme = (newTheme: Theme) => {
@@ -42,40 +42,34 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const resolvedTheme: ThemeName =
     theme === 'system' ? getSystemTheme() : (theme as ThemeName);
 
-  // Apply initial theme on mount
+  // Apply theme changes (including initial load) - only after hydration
   useEffect(() => {
-    const root = window.document.documentElement;
-    const initialTheme = theme === 'system' ? getSystemTheme() : (theme as ThemeName);
+    if (!hasHydrated) return;
 
-    root.classList.remove(...themeNames);
-    root.classList.add(initialTheme);
-
-    const vars = themes[initialTheme];
-    Object.entries(vars).forEach(([key, value]) => {
-      root.style.setProperty(`--${key}`, value);
-    });
-  }, []); // Run only on mount
-
-  useEffect(() => {
     const root = window.document.documentElement;
 
+    // Remove all theme classes
     root.classList.remove(...themeNames);
+
+    // Add the resolved theme class
     root.classList.add(resolvedTheme);
 
+    // Apply CSS custom properties
     const vars = themes[resolvedTheme];
     Object.entries(vars).forEach(([key, value]) => {
       root.style.setProperty(`--${key}`, value);
     });
-  }, [resolvedTheme]);
+  }, [resolvedTheme, hasHydrated]);
 
   // Listen for system theme changes when using 'system' theme
   useEffect(() => {
-    if (theme !== 'system') return;
+    if (!hasHydrated || theme !== 'system') return;
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = () => {
-      const root = window.document.documentElement;
       const systemTheme = mediaQuery.matches ? 'dark' : 'light';
+
+      const root = window.document.documentElement;
 
       root.classList.remove(...themeNames);
       root.classList.add(systemTheme);
@@ -88,7 +82,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme]);
+  }, [theme, hasHydrated]);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>

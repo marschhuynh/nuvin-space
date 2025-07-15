@@ -12,6 +12,9 @@ interface UserPreferenceState {
   preferences: UserPreferences;
   updatePreferences: (preferences: Partial<UserPreferences>) => void;
   reset: () => void;
+  // Track hydration state
+  hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
 }
 
 const defaultPreferences: UserPreferences = {
@@ -30,9 +33,14 @@ export const useUserPreferenceStore = create<UserPreferenceState>()(
           preferences: { ...state.preferences, ...updates },
         })),
       reset: () => set({ preferences: defaultPreferences }),
+      hasHydrated: false,
+      setHasHydrated: (state) => set({ hasHydrated: state }),
     }),
     {
       name: 'user-preferences-storage',
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     },
   ),
 );
