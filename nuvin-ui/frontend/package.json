@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "format": "pnpm exec biome format --write",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:markdown-utils": "node ../../testing/test-markdown-utils.js"
   },
   "dependencies": {
     "@a2a-js/sdk": "^0.2.2",

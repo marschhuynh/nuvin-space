@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { Copy, Check } from 'lucide-react';
 import { MermaidDiagram } from './MermaidDiagram';
 import { Button } from '@/components/ui/button';
+import { unwrapMarkdownBlocks } from './utils';
 
 interface MarkdownRendererProps {
   content: string;
@@ -108,58 +109,8 @@ export function MarkdownRenderer({
 
     // Remove markdown code block wrappers if they exist
     // Handle nested code blocks properly by using line-by-line parsing
-    function findAndReplaceMarkdownBlocks(text: string): string {
-      const lines = text.split('\n');
-      let inMarkdownBlock = false;
-      let markdownStartLine = -1;
-      let backtickCount = 0;
-      let blockContent: string[] = [];
-      const replacements: Array<{ fullMatch: string; content: string }> = [];
 
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-
-        if (!inMarkdownBlock) {
-          // Look for markdown block start
-          const match = line.match(/^(`{3,})\s*markdown\s*$/);
-          if (match) {
-            inMarkdownBlock = true;
-            markdownStartLine = i;
-            backtickCount = match[1].length;
-            blockContent = [];
-          }
-        } else {
-          // Look for matching closing backticks
-          const closeMatch = line.match(/^(`{3,})\s*$/);
-          if (closeMatch && closeMatch[1].length === backtickCount) {
-            // Found the closing backticks
-            const fullMatch = lines.slice(markdownStartLine, i + 1).join('\n');
-            const content = blockContent.join('\n');
-
-            replacements.push({
-              fullMatch,
-              content: content.trim()
-            });
-
-            inMarkdownBlock = false;
-            blockContent = [];
-          } else {
-            // Add line to block content
-            blockContent.push(line);
-          }
-        }
-      }
-
-      // Replace each block with its content (reverse order to avoid index issues)
-      let result = text;
-      for (const replacement of replacements.reverse()) {
-        result = result.replace(replacement.fullMatch, replacement.content);
-      }
-
-      return result;
-    }
-
-    processedContent = findAndReplaceMarkdownBlocks(processedContent);
+    processedContent = unwrapMarkdownBlocks(processedContent);
 
     return processedContent;
   }, [content]);

@@ -134,12 +134,12 @@ export function AgentModal({
       const authConfig =
         agentData.auth.type !== 'none'
           ? {
-              type: agentData.auth.type,
-              token: agentData.auth.token,
-              username: agentData.auth.username,
-              password: agentData.auth.password,
-              headerName: agentData.auth.headerName,
-            }
+            type: agentData.auth.type,
+            token: agentData.auth.token,
+            username: agentData.auth.username,
+            password: agentData.auth.password,
+            headerName: agentData.auth.headerName,
+          }
           : undefined;
 
       // Test the connection using the enhanced A2A service
@@ -366,7 +366,7 @@ export function AgentModal({
               : 'Configure a new AI agent for your conversations.'}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1">
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="agentName">Agent Name</Label>
@@ -388,11 +388,10 @@ export function AgentModal({
                   onClick={() =>
                     setAgentData((prev) => ({ ...prev, agentType: 'local' }))
                   }
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    agentData.agentType === 'local'
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${agentData.agentType === 'local'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}
+                    }`}
                 >
                   Local Agent
                 </button>
@@ -401,11 +400,10 @@ export function AgentModal({
                   onClick={() =>
                     setAgentData((prev) => ({ ...prev, agentType: 'remote' }))
                   }
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    agentData.agentType === 'remote'
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${agentData.agentType === 'remote'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}
+                    }`}
                 >
                   Remote (A2A)
                 </button>
@@ -498,58 +496,58 @@ export function AgentModal({
                 {/* Bearer Token / API Key Fields */}
                 {(agentData.auth.type === 'bearer' ||
                   agentData.auth.type === 'apikey') && (
-                  <>
-                    <div className="grid gap-2">
-                      <Label htmlFor="authToken">
-                        {agentData.auth.type === 'bearer'
-                          ? 'Bearer Token'
-                          : 'API Key'}
-                      </Label>
-                      <Input
-                        id="authToken"
-                        type="password"
-                        value={agentData.auth.token || ''}
-                        onChange={(e) =>
-                          setAgentData((prev) => ({
-                            ...prev,
-                            auth: { ...prev.auth, token: e.target.value },
-                          }))
-                        }
-                        placeholder={
-                          agentData.auth.type === 'bearer'
-                            ? 'Enter bearer token'
-                            : 'Enter API key'
-                        }
-                      />
-                    </div>
-
-                    {agentData.auth.type === 'apikey' && (
+                    <>
                       <div className="grid gap-2">
-                        <Label htmlFor="headerName">
-                          Header Name (Optional)
+                        <Label htmlFor="authToken">
+                          {agentData.auth.type === 'bearer'
+                            ? 'Bearer Token'
+                            : 'API Key'}
                         </Label>
                         <Input
-                          id="headerName"
-                          value={agentData.auth.headerName || ''}
+                          id="authToken"
+                          type="password"
+                          value={agentData.auth.token || ''}
                           onChange={(e) =>
                             setAgentData((prev) => ({
                               ...prev,
-                              auth: {
-                                ...prev.auth,
-                                headerName: e.target.value,
-                              },
+                              auth: { ...prev.auth, token: e.target.value },
                             }))
                           }
-                          placeholder="Authorization (default)"
+                          placeholder={
+                            agentData.auth.type === 'bearer'
+                              ? 'Enter bearer token'
+                              : 'Enter API key'
+                          }
                         />
-                        <p className="text-xs text-muted-foreground">
-                          Custom header name for API key (defaults to
-                          'Authorization')
-                        </p>
                       </div>
-                    )}
-                  </>
-                )}
+
+                      {agentData.auth.type === 'apikey' && (
+                        <div className="grid gap-2">
+                          <Label htmlFor="headerName">
+                            Header Name (Optional)
+                          </Label>
+                          <Input
+                            id="headerName"
+                            value={agentData.auth.headerName || ''}
+                            onChange={(e) =>
+                              setAgentData((prev) => ({
+                                ...prev,
+                                auth: {
+                                  ...prev.auth,
+                                  headerName: e.target.value,
+                                },
+                              }))
+                            }
+                            placeholder="Authorization (default)"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Custom header name for API key (defaults to
+                            'Authorization')
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
 
                 {/* Basic Auth Fields */}
                 {agentData.auth.type === 'basic' && (

@@ -8,9 +8,10 @@ interface MessageProps {
   role: 'user' | 'assistant';
   content: string;
   timestamp?: string;
+  isStreaming?: boolean;
 }
 
-export function Message({ role, content }: MessageProps) {
+export function Message({ role, content, isStreaming = false }: MessageProps) {
   const [copied, setCopied] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
 
@@ -33,56 +34,24 @@ export function Message({ role, content }: MessageProps) {
 
   return (
     <div
-      className={`flex gap-4 chat-message ${
-        role === 'user' ? 'justify-end' : 'justify-start'
-      }`}
+      className={`flex gap-4 chat-message animate-in fade-in slide-in-from-bottom-2 duration-300 group ${role === 'user' ? 'justify-end' : 'justify-start'
+        }`}
     >
       {role === 'assistant' && (
-        <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-          <Cpu className="h-4 w-4 text-primary-foreground" />
+        <div className={`h-8 w-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 relative overflow-hidden ${isStreaming ? 'animate-pulse' : ''}`}>
+          {isStreaming && (
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/30 to-transparent animate-ping" />
+          )}
+          <Cpu className={`h-4 w-4 text-primary-foreground relative z-10 ${isStreaming ? 'animate-bounce' : ''}`} />
         </div>
       )}
-      {trimmedContent.length > 0 && <div
-        className={`max-w-[70%] p-4 rounded-lg shadow-sm border relative group overflow-auto ${
-          role === 'user'
-            ? 'bg-primary text-primary-foreground border-primary/20'
-            : 'bg-card border-border'
-        }`}
-      >
-        {role === 'user' || showRaw ? (
-          // For user messages or raw view, show plain text
-          <pre className="text-sm whitespace-pre-wrap font-sans">
-            {trimmedContent}
-          </pre>
-        ) : (
-          // For assistant messages in rendered view, show markdown
-          <div className="text-sm">
-            <MarkdownRenderer
-              content={trimmedContent}
-              className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
-            />
-          </div>
-        )}
 
-        <div className="absolute top-2 right-2 flex gap-1">
-          {role === 'assistant' && (
-            <button
-              onClick={toggleRawView}
-              className={`p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted text-muted-foreground ${
-                showRaw ? 'bg-muted/50' : ''
-              }`}
-              title={showRaw ? 'Show rendered content' : 'Show raw content'}
-            >
-              <FileText className="h-4 w-4" />
-            </button>
-          )}
+      {/* Controls for user messages - positioned before message bubble */}
+      {role === 'user' && trimmedContent.length > 0 && (
+        <div className="flex flex-col gap-1 self-end sticky top-2 z-10 opacity-0 group-hover:opacity-100 transition-all duration-200">
           <button
             onClick={handleCopy}
-            className={`p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity ${
-              role === 'user'
-                ? 'hover:bg-primary-foreground/10 text-primary-foreground'
-                : 'hover:bg-muted text-muted-foreground'
-            }`}
+            className={`p-1.5 rounded-md transition-all duration-200 hover:bg-muted text-muted-foreground backdrop-blur-sm border border-border/50 shadow-sm bg-background/80 ${copied ? 'scale-110 bg-green-100/80 text-green-600' : ''}`}
             title="Copy message"
           >
             {copied ? (
@@ -92,9 +61,63 @@ export function Message({ role, content }: MessageProps) {
             )}
           </button>
         </div>
+      )}
+
+      {trimmedContent.length > 0 && <div
+        className={`max-w-[70%] p-4 rounded-lg shadow-lg border overflow-auto transition-all duration-300 ${role === 'user'
+          ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-primary/20 shadow-primary/20'
+          : isStreaming
+            ? 'bg-gradient-to-br from-card to-card/80 border-border/50 shadow-md animate-pulse'
+            : 'bg-card border-border hover:shadow-xl hover:border-border/80'
+          }`}
+      >
+        {role === 'user' || showRaw ? (
+          // For user messages or raw view, show plain text
+          <pre className="text-sm whitespace-pre-wrap font-sans">
+            {trimmedContent}
+          </pre>
+        ) : (
+          // For assistant messages in rendered view, show markdown
+          <div className="text-sm relative">
+            <MarkdownRenderer
+              content={trimmedContent}
+              className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+            />
+            {isStreaming && (
+              <span className="inline-block w-2 h-4 bg-primary/60 animate-pulse ml-1 rounded-sm"
+                style={{ animationDuration: '1s' }} />
+            )}
+          </div>
+        )}
       </div>}
+
+      {/* Controls for assistant messages - positioned on the right of message */}
+      {role === 'assistant' && trimmedContent.length > 0 && (
+        <div className="flex flex-col gap-1 self-end sticky top-2 z-10 opacity-0 group-hover:opacity-100 transition-all duration-200">
+          <button
+            onClick={toggleRawView}
+            className={`p-1.5 rounded-md transition-all duration-200 hover:bg-muted text-muted-foreground backdrop-blur-sm border border-border/50 shadow-sm ${showRaw ? 'bg-muted/80' : 'bg-background/80'
+              }`}
+            title={showRaw ? 'Show rendered content' : 'Show raw content'}
+          >
+            <FileText className="h-4 w-4" />
+          </button>
+          <button
+            onClick={handleCopy}
+            className={`p-1.5 rounded-md transition-all duration-200 hover:bg-muted text-muted-foreground backdrop-blur-sm border border-border/50 shadow-sm bg-background/80 ${copied ? 'scale-110 bg-green-100/80 text-green-600' : ''}`}
+            title="Copy message"
+          >
+            {copied ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+      )}
+
       {role === 'user' && (
-        <div className="h-8 w-8 bg-secondary rounded-full flex items-center justify-center flex-shrink-0">
+        <div className="h-8 w-8 bg-gradient-to-br from-secondary to-secondary/80 rounded-full flex items-center justify-center flex-shrink-0 shadow-md hover:shadow-lg transition-shadow">
           <User className="h-4 w-4 text-secondary-foreground" />
         </div>
       )}
