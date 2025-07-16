@@ -286,3 +286,8 @@
 .group {
   animation: configCardSlideIn 0.3s ease-out;
 }
+
+body {
+  max-height: 100vh;
+  overflow: hidden;
+}

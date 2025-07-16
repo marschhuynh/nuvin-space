@@ -137,9 +137,9 @@ function FullscreenDiagram({ svg, resolvedTheme, onClose }: FullscreenDiagramPro
           >
             <X className="h-4 w-4" />
           </Button>
-          <div className="text-xs text-muted-foreground text-center px-1 py-1 bg-muted/20 rounded">
+          {/* <div className="text-xs text-muted-foreground text-center px-1 py-1 bg-muted/20 rounded">
             {Math.round(fullscreenZoom * 100)}%
-          </div>
+          </div> */}
         </div>
 
         {/* Fullscreen Diagram Container */}
@@ -375,21 +375,6 @@ export function MermaidDiagram({ chart }: MermaidProps) {
     }
   }, [chart, resolvedTheme]);
 
-  // Zoom and pan functionality
-  const handleZoomIn = useCallback(() => {
-    setZoom(prev => Math.min(prev * 1.2, 3));
-  }, []);
-
-  const handleZoomOut = useCallback(() => {
-    setZoom(prev => Math.max(prev / 1.2, 0.3));
-  }, []);
-
-  const handleReset = useCallback(() => {
-    setZoom(1);
-    setPanX(0);
-    setPanY(0);
-  }, []);
-
   const handleFullscreen = useCallback(() => {
     setIsFullscreen(true);
   }, []);
@@ -398,29 +383,29 @@ export function MermaidDiagram({ chart }: MermaidProps) {
     setIsFullscreen(false);
   }, []);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button === 0) { // Left mouse button
-      setIsDragging(true);
-      setDragStart({ x: e.clientX - panX, y: e.clientY - panY });
-    }
-  }, [panX, panY]);
+  // const handleMouseDown = useCallback((e: React.MouseEvent) => {
+  //   if (e.button === 0) { // Left mouse button
+  //     setIsDragging(true);
+  //     setDragStart({ x: e.clientX - panX, y: e.clientY - panY });
+  //   }
+  // }, [panX, panY]);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isDragging) {
-      setPanX(e.clientX - dragStart.x);
-      setPanY(e.clientY - dragStart.y);
-    }
-  }, [isDragging, dragStart]);
+  // const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  //   if (isDragging) {
+  //     setPanX(e.clientX - dragStart.x);
+  //     setPanY(e.clientY - dragStart.y);
+  //   }
+  // }, [isDragging, dragStart]);
 
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+  // const handleMouseUp = useCallback(() => {
+  //   setIsDragging(false);
+  // }, []);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    setZoom(prev => Math.min(Math.max(prev * delta, 0.3), 3));
-  }, []);
+  // const handleWheel = useCallback((e: React.WheelEvent) => {
+  //   e.preventDefault();
+  //   const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  //   setZoom(prev => Math.min(Math.max(prev * delta, 0.3), 3));
+  // }, []);
 
   // Update SVG transform when zoom or pan changes
   useEffect(() => {
@@ -437,7 +422,7 @@ export function MermaidDiagram({ chart }: MermaidProps) {
   if (error) {
     return (
       <div className="relative group">
-        <div className="bg-muted/30 border border-border rounded-lg p-4 overflow-x-auto">
+        <div className="bg-muted/30 border border-border rounded-lg p-4 overflow-x-auto mb-3">
           <div className="absolute top-2 left-2 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded">
             mermaid
           </div>
@@ -452,47 +437,17 @@ export function MermaidDiagram({ chart }: MermaidProps) {
   return (
     <>
       <div className="relative">
-        {/* Zoom Controls */}
-        <div className="absolute top-4 right-4 z-10 flex flex-col gap-2 bg-background/10 backdrop-blur-sm p-2 rounded-lg border border-border/20 shadow-sm">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleZoomIn}
-            className="h-8 w-8 p-0 hover:bg-primary/10"
-            title="Zoom In"
-          >
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleZoomOut}
-            className="h-8 w-8 p-0 hover:bg-primary/10"
-            title="Zoom Out"
-          >
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleReset}
-            className="h-8 w-8 p-0 hover:bg-primary/10"
-            title="Reset View"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
+        {/* Controls - Only show fullscreen button in normal mode */}
+        <div className="absolute top-4 right-4 z-10 flex flex-col gap-2 bg-background/10 backdrop-blur-sm p-0 rounded-lg border border-border/20 shadow-sm">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleFullscreen}
-            className="h-8 w-8 p-0 hover:bg-primary/10"
+            className="h-8 w-8 hover:bg-primary/10"
             title="Fullscreen"
           >
-            <Maximize2 className="h-4 w-4" />
+            <Maximize2 className="h-4 w-4 m-2" />
           </Button>
-          <div className="text-xs text-muted-foreground text-center px-1 py-1 bg-muted/20 rounded">
-            {Math.round(zoom * 100)}%
-          </div>
         </div>
 
         {/* Diagram Container */}
@@ -500,28 +455,25 @@ export function MermaidDiagram({ chart }: MermaidProps) {
           ref={ref}
           className="mermaid-diagram overflow-hidden border border-border/30 bg-background p-8 rounded-xl shadow-sm select-none mb-4"
           style={{
-            minHeight: '300px',
+            minHeight: '250px',
             background: resolvedTheme === 'dark'
               ? 'linear-gradient(to bottom, #1a202c 0%, #2d3748 100%)'
               : 'linear-gradient(to bottom, #ffffff 0%, #f7fafc 100%)',
             cursor: isDragging ? 'grabbing' : 'grab',
           }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onWheel={handleWheel}
           dangerouslySetInnerHTML={{ __html: svg }}
         />
 
-        {/* Instructions */}
-        <div className="absolute bottom-4 left-4 text-xs text-muted-foreground bg-background/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-border/20 shadow-sm">
-          <div className="flex items-center gap-4">
-            <span>🖱️ Drag to pan</span>
-            <span>🔍 Scroll to zoom</span>
-            <span>📐 {Math.round(zoom * 100)}% zoom</span>
+        {/* Instructions - Only show in fullscreen mode */}
+        {isFullscreen && (
+          <div className="absolute bottom-4 left-4 text-xs text-muted-foreground bg-background/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-border/20 shadow-sm">
+            <div className="flex items-center gap-4">
+              <span>🖱️ Drag to pan</span>
+              <span>🔍 Scroll to zoom</span>
+              <span>📐 {Math.round(zoom * 100)}% zoom</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Fullscreen Modal using Portal */}

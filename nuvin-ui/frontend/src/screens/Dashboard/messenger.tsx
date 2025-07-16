@@ -5,6 +5,7 @@ import { useConversationStore } from '@/store';
 import type { Message } from '@/types';
 
 import { ChatInput, MessageList } from '../../modules/messenger';
+import { SUMMARY_TRIGGER_COUNT } from '@/const';
 
 export default function Messenger() {
   const { activeAgent, activeProvider, isReady, agentType, sendMessage } =
@@ -36,7 +37,9 @@ export default function Messenger() {
   const summarizeConversation = useCallback(
     async (conversationId: string) => {
       const messages = getConversationMessages(conversationId);
-      if (messages.length < 5 || messages.length % 5 !== 0) return;
+      if (messages.length < SUMMARY_TRIGGER_COUNT || messages.length % SUMMARY_TRIGGER_COUNT !== 0) return;
+
+      console.log('Summarizing conversation:', conversationId);
 
       const conversation = getActiveConversation();
       if (!conversation) return;
@@ -47,9 +50,10 @@ export default function Messenger() {
 
       try {
         const resp = await sendMessage(
-          `Summarize the following conversation in one sentence:\n${convoText}`,
+          `Provide a very brief 7-10 word summary of this conversation:\n${convoText}`,
           { conversationId: `summary-${conversationId}` },
         );
+        console.log('Summary response:', resp.content.trim());
         updateConversation({ ...conversation, summary: resp.content.trim() });
       } catch (err) {
         console.error('Failed to summarize conversation:', err);
@@ -125,7 +129,7 @@ export default function Messenger() {
           if (activeConversationId) {
             // Use finalContent if it's not empty, otherwise use accumulated streamingContent
             const contentToUse = finalContent || streamingContent;
-            
+
             // Only update if we have content to show
             if (contentToUse) {
               const finalMessage: Message = {

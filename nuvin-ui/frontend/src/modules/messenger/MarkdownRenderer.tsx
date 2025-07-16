@@ -68,7 +68,7 @@ function CodeBlock({ children, className, language, content, depth = 0 }: CodeBl
   // For code blocks with copy functionality
   return (
     <div className="relative group">
-      <pre className="bg-muted/30 border border-border rounded-lg p-4 overflow-x-auto">
+      <pre className="bg-muted/30 border border-border rounded-lg p-4 overflow-x-auto mb-3">
         <code className={`text-sm font-mono ${className || ''}`}>
           {children}
         </code>
