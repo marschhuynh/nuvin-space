@@ -3,10 +3,9 @@ import { createRoot } from 'react-dom/client';
 
 import App from './App';
 import './style.css';
-import { disableGlobalFetchProxy } from './lib';
+import { disableGlobalFetchProxy, enableGlobalFetchProxy } from './lib';
 
 // enableGlobalFetchProxy();
-disableGlobalFetchProxy()
 
 const container = document.getElementById('root');
 

@@ -4,7 +4,7 @@
  */
 
 import { FetchProxy } from '../../wailsjs/go/main/App';
-import { LogInfo, LogError } from '@wails/runtime';
+import { LogInfo, LogError, EventsOn, EventsOff } from '@wails/runtime';
 
 // Types for the Go backend
 interface FetchRequest {
@@ -12,6 +12,7 @@ interface FetchRequest {
   method: string;
   headers: Record<string, string>;
   body?: string;
+  stream?: boolean;
 }
 
 interface FetchResponse {
@@ -20,6 +21,14 @@ interface FetchResponse {
   headers: Record<string, string>;
   body: string;
   ok: boolean;
+  error?: string;
+  streamId?: string;
+}
+
+interface StreamChunk {
+  streamId: string;
+  data: string;
+  done: boolean;
   error?: string;
 }
 
@@ -39,7 +48,11 @@ class ProxyResponse implements Response {
   private _bodyText: string;
   private _bodyUsed: boolean = false;
 
-  constructor(bodyText: string, init: ResponseInit & { url: string }) {
+  constructor(
+    bodyText: string,
+    init: ResponseInit & { url: string },
+    streamId?: string
+  ) {
     this._bodyText = bodyText;
     this.status = init.status || 200;
     this.statusText = init.statusText || 'OK';
@@ -49,12 +62,64 @@ class ProxyResponse implements Response {
     // Convert headers object to Headers instance
     this.headers = new Headers(init.headers);
 
-    // Create a ReadableStream from the body text
-    this.body = new ReadableStream({
+    // Create a ReadableStream - streaming or immediate
+    if (streamId) {
+      this.body = this.createStreamingBody(streamId);
+    } else {
+      this.body = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(bodyText));
+          controller.close();
+        },
+      });
+    }
+  }
+
+  private createStreamingBody(streamId: string): ReadableStream<Uint8Array> {
+    console.log(`[${streamId.substring(0, 8)}] Creating streaming body`);
+    return new ReadableStream({
       start(controller) {
-        controller.enqueue(new TextEncoder().encode(bodyText));
-        controller.close();
+        let buffer = '';
+        console.log(`[${streamId.substring(0, 8)}] Stream started, listening for chunks`);
+
+        const handleChunk = (chunk: StreamChunk) => {
+          if (chunk.streamId !== streamId) return;
+          
+          console.log(`[${streamId.substring(0, 8)}] Received chunk:`, {
+            size: chunk.data?.length || 0,
+            done: chunk.done,
+            error: chunk.error,
+            data: chunk.data?.substring(0, 100) + (chunk.data && chunk.data.length > 100 ? '...' : '')
+          });
+
+          if (chunk.error) {
+            console.error(`[${streamId.substring(0, 8)}] Stream error:`, chunk.error);
+            controller.error(new Error(chunk.error));
+            EventsOff('fetch-stream-chunk');
+            return;
+          }
+
+          if (chunk.data) {
+            buffer += chunk.data;
+            controller.enqueue(new TextEncoder().encode(chunk.data));
+            console.log(`[${streamId.substring(0, 8)}] Enqueued ${chunk.data.length} bytes, total buffer: ${buffer.length} bytes`);
+          }
+
+          if (chunk.done) {
+            console.log(`[${streamId.substring(0, 8)}] Stream completed, total: ${buffer.length} bytes`);
+            controller.close();
+            EventsOff('fetch-stream-chunk');
+          }
+        };
+
+        EventsOn('fetch-stream-chunk', handleChunk);
+        console.log(`[${streamId.substring(0, 8)}] Event listener registered for 'fetch-stream-chunk'`);
       },
+
+      cancel() {
+        console.log(`[${streamId.substring(0, 8)}] Cancelling stream, removing event listener`);
+        EventsOff('fetch-stream-chunk');
+      }
     });
   }
   bytes(): Promise<Uint8Array> {
@@ -127,8 +192,9 @@ class ProxyResponse implements Response {
  */
 export async function fetchProxy(
   input: RequestInfo | URL,
-  init?: RequestInit,
+  init?: RequestInit & { stream?: boolean },
 ): Promise<Response> {
+  console.log('fetchProxy', input, init?.stream);
   // Convert input to URL string
   const url =
     typeof input === 'string'
@@ -146,7 +212,7 @@ export async function fetchProxy(
     if (init.headers instanceof Headers) {
       init.headers.forEach((value, key) => {
         headers[key] = value;
-      });
+      }); 
     } else if (Array.isArray(init.headers)) {
       init.headers.forEach(([key, value]) => {
         headers[key] = value;
@@ -184,6 +250,7 @@ export async function fetchProxy(
     method: method.toUpperCase(),
     headers,
     body,
+    stream: init?.stream || false,
   };
 
   LogInfo(`Fetch proxy: ${method.toUpperCase()} ${url}`);
@@ -198,13 +265,20 @@ export async function fetchProxy(
       throw new Error(`Network error: ${response.error}`);
     }
 
-    // Create Response object
+    // Create Response object  
+    console.log('FetchProxy response:', {
+      status: response.status,
+      hasStreamId: !!response.streamId,
+      streamId: response.streamId?.substring(0, 8),
+      bodyLength: response.body?.length || 0
+    });
+    
     return new ProxyResponse(response.body, {
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
       url,
-    });
+    }, response.streamId);
   } catch (error) {
     LogError(`Fetch proxy failed: ${error}`);
     throw new Error(
@@ -248,7 +322,7 @@ export function isWailsEnvironment(): boolean {
  */
 export async function smartFetch(
   input: RequestInfo | URL,
-  init?: RequestInit,
+  init?: RequestInit & { stream?: boolean },
 ): Promise<Response> {
   console.log('smartFetch', input, init);
   if (isWailsEnvironment()) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pkg/browser"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -25,6 +27,7 @@ type FetchRequest struct {
 	Method  string            `json:"method"`
 	Headers map[string]string `json:"headers"`
 	Body    string            `json:"body,omitempty"`
+	Stream  bool              `json:"stream,omitempty"`
 }
 
 // FetchResponse represents the response to send back to JavaScript
@@ -35,6 +38,15 @@ type FetchResponse struct {
 	Body       string            `json:"body"`
 	OK         bool              `json:"ok"`
 	Error      string            `json:"error,omitempty"`
+	StreamID   string            `json:"streamId,omitempty"`
+}
+
+// StreamChunk represents a chunk of streamed data
+type StreamChunk struct {
+	StreamID string `json:"streamId"`
+	Data     string `json:"data"`
+	Done     bool   `json:"done"`
+	Error    string `json:"error,omitempty"`
 }
 
 // NewApp creates a new App application struct
@@ -52,16 +64,39 @@ func (a *App) startup(ctx context.Context) {
 
 // FetchProxy handles HTTP requests from JavaScript, bypassing CORS and browser restrictions
 func (a *App) FetchProxy(fetchReq FetchRequest) FetchResponse {
-	runtime.LogInfo(a.ctx, fmt.Sprintf("FetchProxy: %s %s", fetchReq.Method, fetchReq.URL))
+	runtime.LogInfo(a.ctx, fmt.Sprintf("FetchProxy: %s %s %v", fetchReq.Method, fetchReq.URL, fetchReq.Stream))
 
 	// Default method to GET if not specified
 	if fetchReq.Method == "" {
 		fetchReq.Method = "GET"
 	}
 
-	// Create HTTP client with reasonable timeout
+	// Create HTTP client with appropriate timeout
+	timeout := 30 * time.Second
+
+	// Check if this might be a streaming request (SSE, etc.)
+	acceptHeader := fetchReq.Headers["accept"]
+	hasStreamInBody := strings.Contains(fetchReq.Body, `"stream":true`) || strings.Contains(fetchReq.Body, `"stream": true`)
+	isStreamingRequest := fetchReq.Stream ||
+		acceptHeader == "text/event-stream" ||
+		strings.Contains(strings.ToLower(acceptHeader), "event-stream") ||
+		hasStreamInBody
+
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Accept header: %s, Stream flag: %v, Has stream in body: %v, Is streaming: %v", acceptHeader, fetchReq.Stream, hasStreamInBody, isStreamingRequest))
+
+	if isStreamingRequest {
+		timeout = 0 // No timeout for streaming requests
+		runtime.LogInfo(a.ctx, "Using no timeout for streaming request")
+	}
+
 	client := &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: timeout,
+		Transport: &http.Transport{
+			DisableKeepAlives:     true,
+			ResponseHeaderTimeout: 30 * time.Second,
+			IdleConnTimeout:       90 * time.Second,
+			ForceAttemptHTTP2:     false, // Force HTTP/1.1 to avoid HTTP/2 stream issues
+		},
 	}
 
 	// Prepare request body
@@ -100,9 +135,42 @@ func (a *App) FetchProxy(fetchReq FetchRequest) FetchResponse {
 			Headers:    make(map[string]string),
 		}
 	}
-	defer resp.Body.Close()
+	// Note: Don't defer resp.Body.Close() here - we'll handle it based on streaming vs non-streaming
 
-	// Read response body
+	// Convert response headers to map
+	headers := make(map[string]string)
+	for key, values := range resp.Header {
+		if len(values) > 0 {
+			headers[key] = values[0] // Take first value for simplicity
+		}
+	}
+
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Response: %d %s", resp.StatusCode, resp.Status))
+
+	// Check if streaming is requested (explicit flag or stream in body)
+	if fetchReq.Stream || hasStreamInBody {
+		// Generate unique stream ID
+		streamID := uuid.New().String()
+		streamType := "explicit"
+		if hasStreamInBody && !fetchReq.Stream {
+			streamType = "auto-detected"
+		}
+		runtime.LogInfo(a.ctx, fmt.Sprintf("Starting %s stream [%s] for %s", streamType, streamID[:8], fetchReq.URL))
+
+		// Start streaming in a goroutine
+		go a.streamResponse(streamID, resp.Body)
+
+		return FetchResponse{
+			Status:     resp.StatusCode,
+			StatusText: resp.Status,
+			Headers:    headers,
+			OK:         resp.StatusCode >= 200 && resp.StatusCode < 300,
+			StreamID:   streamID,
+		}
+	}
+
+	// Read response body for non-streaming requests
+	defer resp.Body.Close() // Close body for non-streaming requests
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		runtime.LogError(a.ctx, fmt.Sprintf("Failed to read response body: %v", err))
@@ -114,16 +182,6 @@ func (a *App) FetchProxy(fetchReq FetchRequest) FetchResponse {
 			Headers:    make(map[string]string),
 		}
 	}
-
-	// Convert response headers to map
-	headers := make(map[string]string)
-	for key, values := range resp.Header {
-		if len(values) > 0 {
-			headers[key] = values[0] // Take first value for simplicity
-		}
-	}
-
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Response: %d %s", resp.StatusCode, resp.Status))
 
 	return FetchResponse{
 		Status:     resp.StatusCode,
@@ -340,4 +398,53 @@ func (a *App) handleCopilotFallback(accessToken string) string {
 	}
 
 	return accessToken
+}
+
+// streamResponse handles streaming response data via Wails events
+func (a *App) streamResponse(streamID string, body io.ReadCloser) {
+	defer body.Close()
+
+	// Small delay to ensure frontend event listener is set up
+	time.Sleep(100 * time.Millisecond)
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Stream [%s] starting to read data", streamID[:8]))
+
+	reader := bufio.NewReader(body)
+	buffer := make([]byte, 1024) // 1KB chunks
+
+	for {
+		n, err := reader.Read(buffer)
+		if n > 0 {
+			// Send chunk via event
+			chunkData := string(buffer[:n])
+			chunk := StreamChunk{
+				StreamID: streamID,
+				Data:     chunkData,
+				Done:     false,
+			}
+			runtime.LogInfo(a.ctx, fmt.Sprintf("Streaming chunk [%s] (%d bytes): %s", streamID[:8], n, chunkData))
+			runtime.EventsEmit(a.ctx, "fetch-stream-chunk", chunk)
+		}
+
+		if err != nil {
+			if err == io.EOF {
+				// Send completion signal
+				chunk := StreamChunk{
+					StreamID: streamID,
+					Data:     "",
+					Done:     true,
+				}
+				runtime.EventsEmit(a.ctx, "fetch-stream-chunk", chunk)
+			} else {
+				// Send error
+				chunk := StreamChunk{
+					StreamID: streamID,
+					Data:     "",
+					Done:     true,
+					Error:    err.Error(),
+				}
+				runtime.EventsEmit(a.ctx, "fetch-stream-chunk", chunk)
+			}
+			break
+		}
+	}
 }

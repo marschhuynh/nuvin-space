@@ -5,6 +5,7 @@ export namespace main {
 	    method: string;
 	    headers: Record<string, string>;
 	    body?: string;
+	    stream?: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new FetchRequest(source);
@@ -16,6 +17,7 @@ export namespace main {
 	        this.method = source["method"];
 	        this.headers = source["headers"];
 	        this.body = source["body"];
+	        this.stream = source["stream"];
 	    }
 	}
 	export class FetchResponse {
@@ -25,6 +27,7 @@ export namespace main {
 	    body: string;
 	    ok: boolean;
 	    error?: string;
+	    streamId?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new FetchResponse(source);
@@ -38,6 +41,7 @@ export namespace main {
 	        this.body = source["body"];
 	        this.ok = source["ok"];
 	        this.error = source["error"];
+	        this.streamId = source["streamId"];
 	    }
 	}
 
