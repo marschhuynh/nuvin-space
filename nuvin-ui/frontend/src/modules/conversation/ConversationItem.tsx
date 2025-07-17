@@ -39,10 +39,10 @@ export function ConversationItem({
               conversation.active ? 'text-foreground' : 'text-foreground'
             }`}
           >
-            {conversation.title}
+            {conversation.summary || conversation.title}
           </div>
           <div
-            className={`text-xs mt-1 transition-colors duration-200 ${
+            className={`text-xs transition-colors duration-200 ${
               conversation.active ? 'text-muted-foreground/80' : 'text-muted-foreground'
             }`}
           >

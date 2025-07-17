@@ -5,6 +5,7 @@ import { useConversationStore } from '@/store';
 import type { Message } from '@/types';
 
 import { ChatInput, MessageList } from '../../modules/messenger';
+import { SUMMARY_TRIGGER_COUNT } from '@/const';
 
 export default function Messenger() {
   const { activeAgent, activeProvider, isReady, agentType, sendMessage } =
@@ -16,6 +17,9 @@ export default function Messenger() {
     addMessage,
     updateMessage,
     getActiveMessages,
+    updateConversation,
+    getConversationMessages,
+    getActiveConversation,
   } = useConversationStore();
 
   // State for loading status
@@ -28,6 +32,40 @@ export default function Messenger() {
 
   // Get current conversation messages
   const storeMessages = getActiveMessages();
+
+  // Helper to summarize conversation using the active agent
+  const summarizeConversation = useCallback(
+    async (conversationId: string) => {
+      const messages = getConversationMessages(conversationId);
+      if (messages.length < SUMMARY_TRIGGER_COUNT || messages.length % SUMMARY_TRIGGER_COUNT !== 0) return;
+
+      console.log('Summarizing conversation:', conversationId);
+
+      const conversation = getActiveConversation();
+      if (!conversation) return;
+
+      const convoText = messages
+        .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+        .join('\n');
+
+      try {
+        const resp = await sendMessage(
+          `Provide a very brief 7-10 word summary of this conversation:\n${convoText}`,
+          { conversationId: `summary-${conversationId}` },
+        );
+        console.log('Summary response:', resp.content.trim());
+        updateConversation({ ...conversation, summary: resp.content.trim() });
+      } catch (err) {
+        console.error('Failed to summarize conversation:', err);
+      }
+    },
+    [
+      getConversationMessages,
+      getActiveConversation,
+      sendMessage,
+      updateConversation,
+    ],
+  );
 
   // Create combined messages with streaming content
   const messages = streamingMessageId
@@ -91,7 +129,7 @@ export default function Messenger() {
           if (activeConversationId) {
             // Use finalContent if it's not empty, otherwise use accumulated streamingContent
             const contentToUse = finalContent || streamingContent;
-            
+
             // Only update if we have content to show
             if (contentToUse) {
               const finalMessage: Message = {
@@ -101,12 +139,15 @@ export default function Messenger() {
                 timestamp: new Date().toISOString(),
               };
               updateMessage(activeConversationId, finalMessage);
-              
+
               // Clear streaming state after updating the message
               setTimeout(() => {
                 setStreamingMessageId(null);
                 setStreamingContent('');
               }, 50);
+
+              // Trigger background summarization
+              summarizeConversation(activeConversationId);
             } else {
               // If no content, keep the streaming state to preserve what was shown
               console.warn('No content to finalize, keeping streaming state');

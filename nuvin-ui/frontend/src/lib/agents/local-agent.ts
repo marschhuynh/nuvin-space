@@ -41,6 +41,7 @@ export class LocalAgent extends BaseAgent {
 
     if (options.stream && provider.generateCompletionStream) {
       let accumulated = '';
+      console.log('Streaming message', content, messages);
       const stream = provider.generateCompletionStream({
         messages,
         model: this.providerConfig.activeModel.model,

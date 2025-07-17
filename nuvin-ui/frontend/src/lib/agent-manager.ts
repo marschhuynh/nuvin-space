@@ -151,9 +151,9 @@ export class AgentManager {
       throw new Error('No active agent selected');
     }
 
-    const startTime = Date.now();
-    const messageId = this.generateMessageId();
-    const timestamp = new Date().toISOString();
+    // const startTime = Date.now();
+    // const messageId = this.generateMessageId();
+    // const timestamp = new Date().toISOString();
 
     try {
       if (!this.agentInstance) {

@@ -82,15 +82,35 @@ export const useConversationStore = create<ConversationState>()(
 
       // Message actions
       addMessage: (conversationId, message) =>
-        set((state) => ({
-          messages: {
+        set((state) => {
+          const newMessages = {
             ...state.messages,
             [conversationId]: [
               ...(state.messages[conversationId] || []),
               message,
             ],
-          },
-        })),
+          };
+
+          let updatedConversations = state.conversations;
+          if (message.role === 'user') {
+            updatedConversations = state.conversations.map((c) =>
+              c.id === conversationId && !c.summary
+                ? { 
+                    ...c, 
+                    title: message.content.length > 50 
+                      ? message.content.substring(0, 50) + '...' 
+                      : message.content,
+                    summary: message.content 
+                  }
+                : c,
+            );
+          }
+
+          return {
+            messages: newMessages,
+            conversations: updatedConversations,
+          };
+        }),
 
       updateMessage: (conversationId, message) =>
         set((state) => ({
