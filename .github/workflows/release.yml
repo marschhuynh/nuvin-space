@@ -64,7 +64,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Needed for semantic-release
           submodules: recursive
 
       - name: Set up Go
@@ -100,37 +99,42 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Setup Go cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
       - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
       - name: Install frontend dependencies
-        working-directory: ./nuvin-ui/frontend
         run: pnpm install --frozen-lockfile
+        working-directory: ./nuvin-ui/frontend
 
       - name: Download Go modules
+        working-directory: ./nuvin-ui
         run: go mod download
 
+      - name: Prepare build folder and icon
+        working-directory: ./nuvin-ui
+        run: |
+          mkdir -p build
+          cp icons/appicon.png build/
+
       - name: Build application
-        uses: dAppServer/wails-build-action@main
+        uses: ./.github/actions/dAppServer
         with:
           app-working-directory: ./nuvin-ui
           build-name: ${{ matrix.build.name }}
           build-platform: ${{ matrix.build.platform }}
 
+      - name: Sanitize artifact name
+        id: sanitize
+        shell: bash
+        run: |
+          SANITIZED_NAME="${{ matrix.build.name }}-${{ matrix.build.platform }}-${{ github.run_number }}"
+          SANITIZED_NAME="${SANITIZED_NAME//\//-}"
+          echo "artifact_name=$SANITIZED_NAME" >> $GITHUB_OUTPUT
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.build.name }}-${{ matrix.build.platform }}-${{ github.run_number }}
+          name: ${{ steps.sanitize.outputs.artifact_name }}
           path: |
             nuvin-ui/build/bin/
           retention-days: 90
