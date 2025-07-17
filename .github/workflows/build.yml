@@ -120,6 +120,12 @@ jobs:
         working-directory: ./nuvin-ui
         run: go mod download
 
+      - name: Prepare build folder and icon
+        working-directory: ./nuvin-ui
+        run: |
+          mkdir -p build
+          cp icons/appicon.png build/
+
       - name: Build application
         uses: ./.github/actions/dAppServer
         with:

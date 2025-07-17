@@ -35,6 +35,7 @@ func main() {
 			app,
 		},
 		Mac: &mac.Options{
+			TitleBar:             mac.TitleBarHiddenInset(),
 			Appearance:           mac.DefaultAppearance,
 			WebviewIsTransparent: true,
 			WindowIsTranslucent:  true,
