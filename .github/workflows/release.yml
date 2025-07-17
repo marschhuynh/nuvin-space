@@ -35,19 +35,19 @@ jobs:
           case "${{ github.event.inputs.build_platform || 'all' }}" in
             "all")
               echo 'matrix=[
-                {"name": "nuvin-space", "platform": "linux/amd64", "os": "ubuntu-latest"},
-                {"name": "nuvin-space", "platform": "windows/amd64", "os": "windows-latest"},
-                {"name": "nuvin-space", "platform": "darwin/universal", "os": "macos-latest"}
+                {"name": "Nuvin Space", "platform": "linux/amd64", "os": "ubuntu-latest"},
+                {"name": "Nuvin Space", "platform": "windows/amd64", "os": "windows-latest"},
+                {"name": "Nuvin Space", "platform": "darwin/universal", "os": "macos-latest"}
               ]' >> $GITHUB_OUTPUT
               ;;
             "linux/amd64")
-              echo 'matrix=[{"name": "nuvin-space", "platform": "linux/amd64", "os": "ubuntu-latest"}]' >> $GITHUB_OUTPUT
+              echo 'matrix=[{"name": "Nuvin Space", "platform": "linux/amd64", "os": "ubuntu-latest"}]' >> $GITHUB_OUTPUT
               ;;
             "windows/amd64")
-              echo 'matrix=[{"name": "nuvin-space", "platform": "windows/amd64", "os": "windows-latest"}]' >> $GITHUB_OUTPUT
+              echo 'matrix=[{"name": "Nuvin Space", "platform": "windows/amd64", "os": "windows-latest"}]' >> $GITHUB_OUTPUT
               ;;
             "darwin/universal")
-              echo 'matrix=[{"name": "nuvin-space", "platform": "darwin/universal", "os": "macos-latest"}]' >> $GITHUB_OUTPUT
+              echo 'matrix=[{"name": "Nuvin Space", "platform": "darwin/universal", "os": "macos-latest"}]' >> $GITHUB_OUTPUT
               ;;
           esac
 
