@@ -108,14 +108,15 @@ export default function Messenger() {
       timestamp: new Date().toISOString(),
     };
 
+    // Capture current conversation ID so callbacks continue updating
+    // the correct conversation even if the user switches views
+    const conversationId = activeConversationId?.toString() || 'default';
+
     if (activeConversationId) {
       addMessage(activeConversationId, initialAssistantMessage);
     }
 
     try {
-      // Capture current conversation ID so callbacks continue updating
-      // the correct conversation even if the user switches views
-      const conversationId = activeConversationId?.toString() || 'default';
 
       // Send message using AgentManager with streaming
       const response = await sendMessage(content, {
