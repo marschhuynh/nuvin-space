@@ -1,2 +1,3 @@
-export { GeneralSettings } from './GeneralSettings';
-export { SettingsDialog } from './SettingsDialog';
+export { GeneralSettings } from "./GeneralSettings";
+export { MCPSettings } from "./MCPSettings";
+export { SettingsDialog } from "./SettingsDialog";

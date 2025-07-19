@@ -1,11 +1,22 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+export interface MCPConfig {
+  id: string;
+  name: string;
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+  enabled: boolean;
+  description?: string;
+}
+
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'ocean' | 'system';
   notifications: boolean;
   autoSave: boolean;
   fontSize: 'small' | 'medium' | 'large';
+  mcpServers: MCPConfig[];
 }
 
 interface UserPreferenceState {
@@ -22,6 +33,7 @@ const defaultPreferences: UserPreferences = {
   notifications: true,
   autoSave: true,
   fontSize: 'medium',
+  mcpServers: [],
 };
 
 export const useUserPreferenceStore = create<UserPreferenceState>()(
