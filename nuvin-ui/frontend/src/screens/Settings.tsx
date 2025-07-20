@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { useAgentStore } from '@/store/useAgentStore';
 import { useProviderStore } from '@/store/useProviderStore';
@@ -10,8 +11,17 @@ import { AgentSettings } from '@/modules/agent/components';
 type TabType = 'general' | 'providers' | 'agent' | 'mcp';
 
 export default function Settings() {
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabType>('general');
   const [showAddProviderModal, setShowAddProviderModal] = useState(false);
+
+  // Handle tab query parameter
+  useEffect(() => {
+    const tabParam = searchParams.get('tab') as TabType;
+    if (tabParam && ['general', 'providers', 'agent', 'mcp'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   const { reset: resetAgents } = useAgentStore();
   const { reset: resetProviders } = useProviderStore();
