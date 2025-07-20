@@ -44,6 +44,46 @@ export namespace main {
 	        this.streamId = source["streamId"];
 	    }
 	}
-
+  
+	export class MCPMessage {
+	    jsonrpc: string;
+	    id?: any;
+	    method?: string;
+	    params?: any;
+	    result?: any;
+	    error?: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new MCPMessage(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.jsonrpc = source["jsonrpc"];
+	        this.id = source["id"];
+	        this.method = source["method"];
+	        this.params = source["params"];
+	        this.result = source["result"];
+	        this.error = source["error"];
+	    }
+	}
+	export class MCPRequest {
+	    id: string;
+	    command: string;
+	    args: string[];
+	    env: Record<string, string>;
+	
+	    static createFrom(source: any = {}) {
+	        return new MCPRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.command = source["command"];
+	        this.args = source["args"];
+	        this.env = source["env"];
+	    }
+	}
 }
 

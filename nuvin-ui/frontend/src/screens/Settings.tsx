@@ -7,8 +7,9 @@ import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
 import { GeneralSettings, MCPSettings } from '@/modules/setting';
 import { AddProviderModal, ProviderSettings } from '@/modules/provider';
 import { AgentSettings } from '@/modules/agent/components';
+import { ToolDebugger } from '@/components/debug/ToolDebugger';
 
-type TabType = 'general' | 'providers' | 'agent' | 'mcp';
+type TabType = 'general' | 'providers' | 'agent' | 'mcp' | 'debug';
 
 export default function Settings() {
   const [searchParams] = useSearchParams();
@@ -53,6 +54,7 @@ export default function Settings() {
     { id: 'providers' as const, label: 'Providers' },
     { id: 'agent' as const, label: 'Agent' },
     { id: 'mcp' as const, label: 'MCP' },
+    { id: 'debug' as const, label: 'Debug' },
   ];
 
   return (
@@ -101,6 +103,10 @@ export default function Settings() {
               settings={preferences}
               onSettingsChange={updatePreferences}
             />
+          )}
+
+          {activeTab === 'debug' && (
+            <ToolDebugger />
           )}
         </div>
 

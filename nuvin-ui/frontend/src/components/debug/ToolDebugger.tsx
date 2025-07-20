@@ -1,0 +1,159 @@
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { toolRegistry } from '@/lib/tools/tool-registry';
+import { toolIntegrationService } from '@/lib/tools/tool-integration-service';
+import { useAgentStore } from '@/store/useAgentStore';
+import { RefreshCw, Bug } from 'lucide-react';
+
+export function ToolDebugger() {
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const { activeAgentId, agents } = useAgentStore();
+
+  const refreshDebugInfo = () => {
+    const selectedAgent = agents.find(a => a.id === activeAgentId);
+    
+    const info = {
+      timestamp: new Date().toISOString(),
+      selectedAgent: selectedAgent?.name || 'None',
+      toolRegistry: {
+        totalTools: toolRegistry.getToolCount(),
+        builtInTools: toolRegistry.getBuiltInTools().map(t => t.definition.name),
+        mcpTools: toolRegistry.getAllMCPTools().map(t => ({
+          name: t.definition.name,
+          serverId: t.getServerId(),
+          available: t.isAvailable(),
+        })),
+        mcpServers: toolRegistry.getMCPServerIds(),
+      },
+      agentTools: {
+        configuredTools: selectedAgent?.toolConfig?.enabledTools || [],
+        availableToAgent: toolIntegrationService.getAvailableToolsForAgent(selectedAgent?.toolConfig).map(t => t.function.name),
+      }
+    };
+
+    setDebugInfo(info);
+  };
+
+  useEffect(() => {
+    refreshDebugInfo();
+  }, [activeAgentId, agents]);
+
+  if (!debugInfo) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <Button onClick={refreshDebugInfo} variant="outline">
+            <Bug className="w-4 h-4 mr-2" />
+            Load Tool Debug Info
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span className="flex items-center">
+            <Bug className="w-5 h-5 mr-2" />
+            Tool Debug Information
+          </span>
+          <Button onClick={refreshDebugInfo} size="sm" variant="outline">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Selected Agent */}
+        <div>
+          <h4 className="font-medium text-sm mb-2">Selected Agent</h4>
+          <Badge variant="outline">{debugInfo.selectedAgent}</Badge>
+        </div>
+
+        {/* Tool Registry Info */}
+        <div>
+          <h4 className="font-medium text-sm mb-2">Tool Registry</h4>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div>Total Tools: <Badge>{debugInfo.toolRegistry.totalTools}</Badge></div>
+            <div>MCP Servers: <Badge>{debugInfo.toolRegistry.mcpServers.length}</Badge></div>
+          </div>
+        </div>
+
+        {/* Built-in Tools */}
+        <div>
+          <h4 className="font-medium text-sm mb-2">Built-in Tools ({debugInfo.toolRegistry.builtInTools.length})</h4>
+          <div className="flex flex-wrap gap-1">
+            {debugInfo.toolRegistry.builtInTools.map((tool: string) => (
+              <Badge key={tool} variant="secondary" className="text-xs">
+                {tool}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {/* MCP Tools */}
+        <div>
+          <h4 className="font-medium text-sm mb-2">MCP Tools ({debugInfo.toolRegistry.mcpTools.length})</h4>
+          <div className="space-y-1">
+            {debugInfo.toolRegistry.mcpTools.map((tool: any) => (
+              <div key={tool.name} className="flex items-center space-x-2">
+                <Badge 
+                  variant={tool.available ? "default" : "secondary"}
+                  className="text-xs"
+                >
+                  {tool.name}
+                </Badge>
+                <span className="text-xs text-gray-500">({tool.serverId})</span>
+                {tool.available && <Badge variant="outline" className="text-xs">Available</Badge>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Agent Tool Configuration */}
+        <div>
+          <h4 className="font-medium text-sm mb-2">Agent Tool Configuration</h4>
+          <div className="space-y-2">
+            <div>
+              <span className="text-xs font-medium">Manually Configured Tools:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {debugInfo.agentTools.configuredTools.length > 0 ? (
+                  debugInfo.agentTools.configuredTools.map((tool: string) => (
+                    <Badge key={tool} variant="outline" className="text-xs">
+                      {tool}
+                    </Badge>
+                  ))
+                ) : (
+                  <span className="text-xs text-gray-500">None configured</span>
+                )}
+              </div>
+            </div>
+            
+            <div>
+              <span className="text-xs font-medium">Actually Available to Agent:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {debugInfo.agentTools.availableToAgent.map((tool: string) => (
+                  <Badge key={tool} variant="default" className="text-xs">
+                    {tool}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Raw Debug Data */}
+        <details className="text-xs">
+          <summary className="cursor-pointer font-medium mb-2">Raw Debug Data</summary>
+          <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-48">
+            {JSON.stringify(debugInfo, null, 2)}
+          </pre>
+        </details>
+      </CardContent>
+    </Card>
+  );
+}

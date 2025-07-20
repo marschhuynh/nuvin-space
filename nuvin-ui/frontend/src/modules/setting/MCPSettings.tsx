@@ -44,7 +44,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
     description: "",
   });
 
-  const selectedMCP = preferences.mcpServers.find(
+  const selectedMCP = (preferences?.mcpServers || []).find(
     (mcp) => mcp.id === selectedMCPId
   );
 
@@ -76,7 +76,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
   };
 
   const handleDeleteMCP = (mcpId: string) => {
-    const updatedServers = preferences.mcpServers.filter(
+    const updatedServers = (preferences?.mcpServers || []).filter(
       (server) => server.id !== mcpId
     );
     updatePreferences({ mcpServers: updatedServers });
@@ -128,7 +128,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
         id: editingMCP.id,
       } as MCPConfig;
 
-      const updatedServers = preferences.mcpServers.map((server) =>
+      const updatedServers = (preferences?.mcpServers || []).map((server) =>
         server.id === editingMCP.id ? updatedMCP : server
       );
       updatePreferences({ mcpServers: updatedServers });
@@ -139,7 +139,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
         id: crypto.randomUUID(),
       } as MCPConfig;
 
-      const updatedServers = [...preferences.mcpServers, newMCP];
+      const updatedServers = [...(preferences?.mcpServers || []), newMCP];
       updatePreferences({ mcpServers: updatedServers });
       setSelectedMCPId(newMCP.id);
     }
@@ -149,7 +149,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
   };
 
   const handleToggleMCP = (mcpId: string) => {
-    const updatedServers = preferences.mcpServers.map((server) =>
+    const updatedServers = (preferences?.mcpServers || []).map((server) =>
       server.id === mcpId ? { ...server, enabled: !server.enabled } : server
     );
     updatePreferences({ mcpServers: updatedServers });
@@ -170,11 +170,11 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
 
     let updatedServers;
     if (editingMCP) {
-      updatedServers = preferences.mcpServers.map((server) =>
+      updatedServers = (preferences?.mcpServers || []).map((server) =>
         server.id === editingMCP.id ? newMCP : server
       );
     } else {
-      updatedServers = [...preferences.mcpServers, newMCP];
+      updatedServers = [...(preferences?.mcpServers || []), newMCP];
     }
 
     updatePreferences({ mcpServers: updatedServers });
@@ -232,7 +232,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
               <Settings className="h-5 w-5 text-muted-foreground" />
               <h2 className="text-lg font-semibold">MCP Servers</h2>
               <span className="px-2 py-1 rounded text-xs bg-muted text-muted-foreground">
-                {preferences.mcpServers.length}
+                {(preferences?.mcpServers || []).length}
               </span>
             </div>
             <Button size="sm" onClick={handleCreateMCP}>
@@ -243,7 +243,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
 
           {/* MCP Server List */}
           <div className="flex-1 overflow-auto p-4">
-            {preferences.mcpServers.length === 0 ? (
+            {(preferences?.mcpServers || []).length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Settings className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="font-medium text-muted-foreground mb-2">
@@ -259,7 +259,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
               </div>
             ) : (
               <div className="space-y-2">
-                {preferences.mcpServers.map((mcp) => (
+                {(preferences?.mcpServers || []).map((mcp) => (
                   <div
                     key={mcp.id}
                     className={`p-2 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
