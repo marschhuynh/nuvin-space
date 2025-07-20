@@ -8,6 +8,8 @@ import {
 import { generateUUID } from '../utils';
 import { BaseAgent } from './base-agent';
 import type { SendMessageOptions, MessageResponse } from '../agent-manager';
+import { toolIntegrationService } from '../tools';
+import type { ToolContext } from '@/types/tools';
 
 // Convert from existing ProviderConfig to our LLMProviderConfig
 function convertToLLMProviderConfig(config: ProviderConfig): LLMProviderConfig {
@@ -39,16 +41,43 @@ export class LocalAgent extends BaseAgent {
     const convoId = options.conversationId || 'default';
     const messages: ChatMessage[] = this.buildContext(convoId, content);
 
+    // Create tool context for tool execution
+    const toolContext: ToolContext = {
+      userId: options.userId,
+      sessionId: convoId,
+      metadata: {
+        agentId: this.settings.id,
+        provider: this.providerConfig.type,
+        model: this.providerConfig.activeModel.model,
+      },
+    };
+
+    // Prepare base completion parameters
+    const baseParams = {
+      messages,
+      model: this.providerConfig.activeModel.model,
+      temperature: this.settings.temperature,
+      maxTokens: this.providerConfig.activeModel.maxTokens,
+      topP: this.settings.topP,
+    };
+
+    // Enhance with tools if configured
+    const enhancedParams = toolIntegrationService.enhanceCompletionParams(
+      baseParams,
+      this.settings.toolConfig
+    );
+
     if (options.stream && provider.generateCompletionStream) {
+      // Note: Tool calling with streaming is complex and typically not supported
+      // Fall back to non-streaming if tools are enabled
+      if (this.settings.toolConfig?.enabledTools?.length) {
+        console.warn('Tool calling detected - falling back to non-streaming mode');
+        return this.sendMessage(content, { ...options, stream: false });
+      }
+
       let accumulated = '';
       console.log('Streaming message', content, messages);
-      const stream = provider.generateCompletionStream({
-        messages,
-        model: this.providerConfig.activeModel.model,
-        temperature: this.settings.temperature,
-        maxTokens: this.providerConfig.activeModel.maxTokens,
-        topP: this.settings.topP,
-      });
+      const stream = provider.generateCompletionStream(enhancedParams);
 
       for await (const chunk of stream) {
         accumulated += chunk;
@@ -84,18 +113,34 @@ export class LocalAgent extends BaseAgent {
       return response;
     }
 
-    const result = await provider.generateCompletion({
-      messages,
-      model: this.providerConfig.activeModel.model,
-      temperature: this.settings.temperature,
-      maxTokens: this.providerConfig.activeModel.maxTokens,
-      topP: this.settings.topP,
-    });
+    // Get initial completion (potentially with tool calls)
+    const result = await provider.generateCompletion(enhancedParams);
+
+    // Process any tool calls
+    const processed = await toolIntegrationService.processCompletionResult(
+      result,
+      toolContext,
+      this.settings.toolConfig
+    );
+
+    let finalResult = result;
+
+    // If tools were called, get the final response
+    if (processed.requiresFollowUp && processed.toolCalls) {
+      finalResult = await toolIntegrationService.completeToolCallingFlow(
+        enhancedParams,
+        result,
+        processed.toolCalls,
+        provider,
+        toolContext,
+        this.settings.toolConfig
+      );
+    }
 
     const timestamp = new Date().toISOString();
     const response: MessageResponse = {
       id: messageId,
-      content: result.content,
+      content: finalResult.content,
       role: 'assistant',
       timestamp,
       metadata: {
@@ -104,6 +149,7 @@ export class LocalAgent extends BaseAgent {
         provider: this.providerConfig.type,
         model: this.providerConfig.activeModel.model,
         responseTime: Date.now() - startTime,
+        toolCalls: processed.toolCalls?.length || 0,
       },
     };
 
@@ -112,12 +158,12 @@ export class LocalAgent extends BaseAgent {
       {
         id: generateUUID(),
         role: 'assistant',
-        content: result.content,
+        content: finalResult.content,
         timestamp,
       },
     ]);
 
-    options.onComplete?.(result.content);
+    options.onComplete?.(finalResult.content);
     return response;
   }
 }

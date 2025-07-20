@@ -29,10 +29,17 @@ export class AnthropicProvider implements LLMProvider {
         messages: params.messages.map((m) => ({
           role: m.role,
           content: m.content,
+          ...(m.tool_calls && { tool_calls: m.tool_calls }),
+          ...(m.tool_call_id && { tool_call_id: m.tool_call_id }),
+          ...(m.name && { name: m.name }),
         })),
         temperature: params.temperature,
         max_tokens: params.maxTokens,
         top_p: params.topP,
+        ...(params.tools && { 
+          tools: params.tools.map(tool => tool.function)
+        }),
+        ...(params.tool_choice && { tool_choice: params.tool_choice }),
       }),
     });
 
@@ -43,7 +50,12 @@ export class AnthropicProvider implements LLMProvider {
 
     const data = await response.json();
     const content: string = data.content?.[0]?.text ?? "";
-    return { content };
+    const tool_calls = data.tool_calls;
+    
+    return { 
+      content,
+      ...(tool_calls && { tool_calls })
+    };
   }
 
   async *generateCompletionStream(
@@ -61,11 +73,18 @@ export class AnthropicProvider implements LLMProvider {
         messages: params.messages.map((m) => ({
           role: m.role,
           content: m.content,
+          ...(m.tool_calls && { tool_calls: m.tool_calls }),
+          ...(m.tool_call_id && { tool_call_id: m.tool_call_id }),
+          ...(m.name && { name: m.name }),
         })),
         temperature: params.temperature,
         max_tokens: params.maxTokens,
         top_p: params.topP,
         stream: true,
+        ...(params.tools && { 
+          tools: params.tools.map(tool => tool.function)
+        }),
+        ...(params.tool_choice && { tool_choice: params.tool_choice }),
       }),
     });
 

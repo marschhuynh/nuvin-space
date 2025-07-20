@@ -21,13 +21,18 @@ export interface FunctionDefinition {
   parameters: any; // JSON Schema
 }
 
+export interface ToolDefinition {
+  type: "function";
+  function: FunctionDefinition;
+}
+
 export interface CompletionParams {
   messages: ChatMessage[];
   model: string;
   temperature: number;
   maxTokens: number;
   topP: number;
-  tools?: FunctionDefinition[];
+  tools?: ToolDefinition[];
   tool_choice?:
     | "auto"
     | "none"

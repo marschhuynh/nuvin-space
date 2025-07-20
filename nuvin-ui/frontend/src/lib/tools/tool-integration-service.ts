@@ -2,7 +2,7 @@ import {
   CompletionParams,
   CompletionResult,
   ChatMessage,
-  FunctionDefinition,
+  ToolDefinition,
   ToolCall as LLMToolCall,
 } from "@/lib/providers/llm-provider";
 import {
@@ -31,10 +31,13 @@ export class ToolIntegrationService {
     );
 
     // Convert to LLM provider format
-    const tools: FunctionDefinition[] = toolDefinitions.map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-      parameters: tool.parameters,
+    const tools: ToolDefinition[] = toolDefinitions.map((tool) => ({
+      type: "function",
+      function: {
+        name: tool.name,
+        description: tool.description,
+        parameters: tool.parameters,
+      },
     }));
 
     return {
@@ -175,7 +178,7 @@ export class ToolIntegrationService {
    */
   getAvailableToolsForAgent(
     agentToolConfig?: AgentToolConfig
-  ): FunctionDefinition[] {
+  ): ToolDefinition[] {
     if (!agentToolConfig || !agentToolConfig.enabledTools.length) {
       return [];
     }
@@ -183,9 +186,12 @@ export class ToolIntegrationService {
     return toolRegistry
       .getToolDefinitions(agentToolConfig.enabledTools)
       .map((tool) => ({
-        name: tool.name,
-        description: tool.description,
-        parameters: tool.parameters,
+        type: "function" as const,
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.parameters,
+        },
       }));
   }
 

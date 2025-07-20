@@ -1,4 +1,4 @@
-import { Plus, Bot, Globe, Home, Clock, CheckCircle, Circle, Edit, Trash2, Save, X, Loader2, AlertTriangle, Wifi, WifiOff, Check } from 'lucide-react';
+import { Plus, Bot, Globe, Home, Clock, CheckCircle, Circle, Edit, Trash2, Save, X, Loader2, AlertTriangle, Wifi, WifiOff, Check, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAgentStore } from '@/store/useAgentStore';
 import { useState, useEffect } from 'react';
 import type { AgentSettings as AgentSettingsType } from '@/types';
+import type { AgentToolConfig } from '@/types/tools';
 import { a2aService, A2AError } from '@/lib';
+import { toolRegistry } from '@/lib/tools';
 import { LogInfo } from '@wails/runtime';
 
 type AgentPersona = 'helpful' | 'professional' | 'creative' | 'analytical' | 'casual';
@@ -41,6 +43,7 @@ export function AgentSettings() {
       password?: string;
       headerName?: string;
     };
+    toolConfig: AgentToolConfig;
   }>({
     name: '',
     persona: 'helpful',
@@ -52,6 +55,11 @@ export function AgentSettings() {
     agentType: 'local',
     url: '',
     auth: { type: 'none' },
+    toolConfig: {
+      enabledTools: [],
+      maxConcurrentCalls: 3,
+      timeoutMs: 30000,
+    },
   });
 
   const selectedAgent = agents.find(agent => agent.id === selectedAgentId);
@@ -77,6 +85,11 @@ export function AgentSettings() {
         agentType: selectedAgent.agentType,
         url: selectedAgent.url || '',
         auth: selectedAgent.auth || { type: 'none' },
+        toolConfig: selectedAgent.toolConfig || {
+          enabledTools: [],
+          maxConcurrentCalls: 3,
+          timeoutMs: 30000,
+        },
       });
       setConnectionStatus('idle');
     }
@@ -118,6 +131,11 @@ export function AgentSettings() {
       agentType: 'local',
       url: '',
       auth: { type: 'none' },
+      toolConfig: {
+        enabledTools: [],
+        maxConcurrentCalls: 3,
+        timeoutMs: 30000,
+      },
     });
     setConnectionStatus('idle');
   };
@@ -143,6 +161,11 @@ export function AgentSettings() {
         agentType: selectedAgent.agentType,
         url: selectedAgent.url || '',
         auth: selectedAgent.auth || { type: 'none' },
+        toolConfig: selectedAgent.toolConfig || {
+          enabledTools: [],
+          maxConcurrentCalls: 3,
+          timeoutMs: 30000,
+        },
       });
     }
     setConnectionStatus('idle');
@@ -158,6 +181,7 @@ export function AgentSettings() {
         ...agentData,
         id: Date.now().toString(),
         auth: agentData.agentType === 'remote' ? agentData.auth : undefined,
+        toolConfig: agentData.toolConfig,
       };
       addAgent(newAgent);
       setSelectedAgentId(newAgent.id);
@@ -167,6 +191,7 @@ export function AgentSettings() {
         ...agentData,
         id: selectedAgent.id,
         auth: agentData.agentType === 'remote' ? agentData.auth : undefined,
+        toolConfig: agentData.toolConfig,
       };
       updateAgent(updatedAgent);
     }
@@ -719,6 +744,134 @@ export function AgentSettings() {
                         </>
                       )}
                     </div>
+                  </div>
+                )}
+
+                {/* Tools Configuration - Only for Local Agents */}
+                {agentData.agentType === 'local' && (
+                  <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Wrench className="h-5 w-5 text-muted-foreground" />
+                      <h3 className="text-base font-medium">Function Tools</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Available Tools */}
+                      <div className="space-y-2">
+                        <Label>Available Tools</Label>
+                        <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2 bg-background">
+                          {toolRegistry.getAllTools().map((tool) => (
+                            <div key={tool.definition.name} className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                id={`tool-${tool.definition.name}`}
+                                checked={agentData.toolConfig.enabledTools.includes(tool.definition.name)}
+                                onChange={(e) => {
+                                  if (!isEditing) return;
+                                  const enabled = e.target.checked;
+                                  setAgentData(prev => ({
+                                    ...prev,
+                                    toolConfig: {
+                                      ...prev.toolConfig,
+                                      enabledTools: enabled
+                                        ? [...prev.toolConfig.enabledTools, tool.definition.name]
+                                        : prev.toolConfig.enabledTools.filter((name: string) => name !== tool.definition.name)
+                                    }
+                                  }));
+                                }}
+                                disabled={!isEditing}
+                                className="h-4 w-4"
+                              />
+                              <label 
+                                htmlFor={`tool-${tool.definition.name}`}
+                                className="text-sm font-medium cursor-pointer flex-1"
+                              >
+                                {tool.definition.name}
+                              </label>
+                              <span className="text-xs text-muted-foreground px-2 py-1 bg-muted rounded">
+                                {tool.category || 'utility'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Enable tools that this agent can use during conversations
+                        </p>
+                      </div>
+
+                      {/* Tool Settings */}
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="maxConcurrentCalls">Max Concurrent Tool Calls</Label>
+                          {isEditing ? (
+                            <Input
+                              id="maxConcurrentCalls"
+                              type="number"
+                              min="1"
+                              max="10"
+                              value={agentData.toolConfig.maxConcurrentCalls || 3}
+                              onChange={(e) =>
+                                setAgentData(prev => ({
+                                  ...prev,
+                                  toolConfig: {
+                                    ...prev.toolConfig,
+                                    maxConcurrentCalls: parseInt(e.target.value) || 3
+                                  }
+                                }))
+                              }
+                              className="h-9"
+                            />
+                          ) : (
+                            <div className="px-3 py-2 border rounded-md bg-background text-sm h-9 flex items-center">
+                              {agentData.toolConfig.maxConcurrentCalls || 3}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="timeoutMs">Tool Timeout (ms)</Label>
+                          {isEditing ? (
+                            <Input
+                              id="timeoutMs"
+                              type="number"
+                              min="1000"
+                              max="300000"
+                              step="1000"
+                              value={agentData.toolConfig.timeoutMs || 30000}
+                              onChange={(e) =>
+                                setAgentData(prev => ({
+                                  ...prev,
+                                  toolConfig: {
+                                    ...prev.toolConfig,
+                                    timeoutMs: parseInt(e.target.value) || 30000
+                                  }
+                                }))
+                              }
+                              className="h-9"
+                            />
+                          ) : (
+                            <div className="px-3 py-2 border rounded-md bg-background text-sm h-9 flex items-center">
+                              {(agentData.toolConfig.timeoutMs || 30000).toLocaleString()}ms
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="text-xs text-muted-foreground space-y-1">
+                          <p>• Max Concurrent: How many tools can run simultaneously</p>
+                          <p>• Timeout: Maximum time to wait for tool execution</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Enabled Tools Summary */}
+                    {agentData.toolConfig.enabledTools.length > 0 && (
+                      <div className="mt-4 p-3 bg-green-50 dark:bg-green-950/30 rounded-md">
+                        <p className="text-sm text-green-700 dark:text-green-300">
+                          <strong>{agentData.toolConfig.enabledTools.length} tools enabled:</strong>{' '}
+                          {agentData.toolConfig.enabledTools.join(', ')}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 

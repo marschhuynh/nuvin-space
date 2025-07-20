@@ -36,6 +36,8 @@ export class GithubCopilotProvider implements LLMProvider {
         temperature: params.temperature,
         max_tokens: params.maxTokens,
         top_p: params.topP,
+        ...(params.tools && { tools: params.tools }),
+        ...(params.tool_choice && { tool_choice: params.tool_choice }),
       }),
     });
 
@@ -50,8 +52,14 @@ export class GithubCopilotProvider implements LLMProvider {
     }
 
     const data = await response.json();
-    const content: string = data.choices?.[0]?.message?.content ?? "";
-    return { content };
+    const message = data.choices?.[0]?.message;
+    const content: string = message?.content ?? "";
+    const tool_calls = message?.tool_calls;
+    
+    return { 
+      content,
+      ...(tool_calls && { tool_calls })
+    };
   }
 
   async *generateCompletionStream(
@@ -75,6 +83,8 @@ export class GithubCopilotProvider implements LLMProvider {
         max_tokens: params.maxTokens,
         top_p: params.topP,
         stream: true,
+        ...(params.tools && { tools: params.tools }),
+        ...(params.tool_choice && { tool_choice: params.tool_choice }),
       }),
     });
 
