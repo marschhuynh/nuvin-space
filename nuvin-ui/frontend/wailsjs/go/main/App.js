@@ -14,6 +14,22 @@ export function FetchProxy(arg1) {
   return window['go']['main']['App']['FetchProxy'](arg1);
 }
 
+export function GetMCPServerStatus() {
+  return window['go']['main']['App']['GetMCPServerStatus']();
+}
+
 export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
+}
+
+export function SendMCPMessage(arg1, arg2) {
+  return window['go']['main']['App']['SendMCPMessage'](arg1, arg2);
+}
+
+export function StartMCPServer(arg1) {
+  return window['go']['main']['App']['StartMCPServer'](arg1);
+}
+
+export function StopMCPServer(arg1) {
+  return window['go']['main']['App']['StopMCPServer'](arg1);
 }

@@ -24,6 +24,10 @@ declare global {
         App: {
           FetchGithubCopilotKey: () => Promise<string>;
           Greet: (name: string) => Promise<string>;
+          StartMCPServer: (request: any) => Promise<any>;
+          StopMCPServer: (serverId: string) => Promise<any>;
+          SendMCPMessage: (serverId: string, message: any) => Promise<any>;
+          GetMCPServerStatus: () => Promise<Record<string, string>>;
         };
       };
     };

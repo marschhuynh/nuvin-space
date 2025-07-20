@@ -21,13 +21,30 @@ export class ToolIntegrationService {
     params: CompletionParams,
     agentToolConfig?: AgentToolConfig,
   ): CompletionParams {
-    if (!agentToolConfig || !agentToolConfig.enabledTools.length) {
+    // Always include MCP tools + any explicitly enabled tools
+    const enabledToolNames = new Set(agentToolConfig?.enabledTools || []);
+    
+    // Get all MCP tools (they should always be available)
+    const mcpTools = toolRegistry.getAllMCPTools();
+    console.log(`[MCP] Found ${mcpTools.length} MCP tools, adding available ones to agent`);
+    
+    for (const mcpTool of mcpTools) {
+      if (mcpTool.isAvailable()) {
+        enabledToolNames.add(mcpTool.definition.name);
+        console.log(`[MCP] Added tool '${mcpTool.definition.name}' from server '${mcpTool.getServerId()}'`);
+      } else {
+        console.log(`[MCP] Skipped unavailable tool '${mcpTool.definition.name}' from server '${mcpTool.getServerId()}'`);
+      }
+    }
+
+    // If no tools are enabled (including MCP), return params as-is
+    if (enabledToolNames.size === 0) {
       return params;
     }
 
-    // Get tool definitions for enabled tools
+    // Get tool definitions for all enabled tools
     const toolDefinitions = toolRegistry.getToolDefinitions(
-      agentToolConfig.enabledTools,
+      Array.from(enabledToolNames),
     );
 
     // Convert to LLM provider format
@@ -67,32 +84,58 @@ export class ToolIntegrationService {
       };
     }
 
-    // Check if tools are enabled for this agent
-    if (!agentToolConfig || !agentToolConfig.enabledTools.length) {
+    // Check if tools are enabled for this agent (including MCP tools)
+    const enabledToolNames = new Set(agentToolConfig?.enabledTools || []);
+    
+    // Add available MCP tools to the enabled set
+    const mcpTools = toolRegistry.getAllMCPTools();
+    for (const mcpTool of mcpTools) {
+      if (mcpTool.isAvailable()) {
+        enabledToolNames.add(mcpTool.definition.name);
+      }
+    }
+    
+    if (enabledToolNames.size === 0) {
       return {
         result: {
           content:
             result.content ||
-            'The assistant attempted to use tools, but tools are not enabled for this agent.',
+            'The assistant attempted to use tools, but no tools are available.',
         },
         requiresFollowUp: false,
       };
     }
 
     // Convert LLM tool calls to our format
-    const toolCalls: ToolCall[] = result.tool_calls.map((call) => ({
-      id: call.id,
-      name: call.function.name,
-      parameters: JSON.parse(call.function.arguments),
-    }));
+    const toolCalls: ToolCall[] = result.tool_calls.map((call) => {
+      try {
+        return {
+          id: call.id,
+          name: call.function.name,
+          parameters: JSON.parse(call.function.arguments),
+        };
+      } catch (error) {
+        console.error(`[MCP] Failed to parse tool call arguments for ${call.function.name}:`, error);
+        console.error(`[MCP] Raw arguments:`, call.function.arguments);
+        return {
+          id: call.id,
+          name: call.function.name,
+          parameters: {},
+        };
+      }
+    });
+
+    console.log(`[MCP] Processing ${toolCalls.length} tool calls:`, toolCalls.map(c => c.name));
 
     // Execute tool calls
-    const maxConcurrent = agentToolConfig.maxConcurrentCalls || 3;
+    const maxConcurrent = agentToolConfig?.maxConcurrentCalls || 3;
     const toolResults = await toolRegistry.executeToolCalls(
       toolCalls,
       context,
       maxConcurrent,
     );
+
+    console.log(`[MCP] Tool execution results:`, toolResults);
 
     return {
       result,
@@ -179,12 +222,23 @@ export class ToolIntegrationService {
   getAvailableToolsForAgent(
     agentToolConfig?: AgentToolConfig,
   ): ToolDefinition[] {
-    if (!agentToolConfig || !agentToolConfig.enabledTools.length) {
+    // Include both explicitly enabled tools and available MCP tools
+    const enabledToolNames = new Set(agentToolConfig?.enabledTools || []);
+    
+    // Always include available MCP tools
+    const mcpTools = toolRegistry.getAllMCPTools();
+    for (const mcpTool of mcpTools) {
+      if (mcpTool.isAvailable()) {
+        enabledToolNames.add(mcpTool.definition.name);
+      }
+    }
+
+    if (enabledToolNames.size === 0) {
       return [];
     }
 
     return toolRegistry
-      .getToolDefinitions(agentToolConfig.enabledTools)
+      .getToolDefinitions(Array.from(enabledToolNames))
       .map((tool) => ({
         type: 'function' as const,
         function: {
