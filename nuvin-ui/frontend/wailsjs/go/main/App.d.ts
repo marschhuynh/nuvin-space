@@ -8,6 +8,8 @@ export function FetchGithubCopilotKey():Promise<string>;
 
 export function FetchProxy(arg1:main.FetchRequest):Promise<main.FetchResponse>;
 
+export function Greet(arg1:string):Promise<string>;
+
 export function GetMCPServerStatus():Promise<Record<string, string>>;
 
 export function Greet(arg1:string):Promise<string>;
