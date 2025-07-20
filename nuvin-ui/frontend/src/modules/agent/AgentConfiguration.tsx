@@ -7,9 +7,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { A2AError, a2aService, type ProviderType } from '@/lib';
+import { Combobox } from '@/components/ui/combobox';
+import { A2AError, a2aService } from '@/lib';
 import { useAgentStore } from '@/store/useAgentStore';
 import { useProviderStore } from '@/store/useProviderStore';
+import { useModelsStore } from '@/store/useModelsStore';
 import type { AgentConfig, AgentSettings } from '@/types';
 import {
   AlertCircle,
@@ -22,9 +24,15 @@ import {
   Loader2,
   RefreshCw,
   Settings,
+  Type,
+  Eye,
+  Mic,
+  Image,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { ModelSelector } from '@/modules/agent/components/ModelSelector';
+import { useCallback, useEffect, useState, useMemo } from 'react';
+import {
+  formatContextLength
+} from '@/lib/providers/provider-utils';
 
 interface AgentConfigurationProps {
   onConfigChange?: (config: AgentConfig) => void;
@@ -46,6 +54,8 @@ export function AgentConfiguration({
   const { agents, activeAgentId, setActiveAgent } = useAgentStore();
   const { providers, activeProviderId, setActiveProvider, updateProvider } =
     useProviderStore();
+  const { getEnabledModels, loading, errors, setModels, setError, setLoading } =
+    useModelsStore();
 
   // State for remote agent card information
   const [agentCardInfo, setAgentCardInfo] = useState<AgentCardInfo | null>(
@@ -146,7 +156,7 @@ export function AgentConfiguration({
         updateProvider(updatedProvider);
       }
     },
-    [activeProviderId],
+    [activeProviderId, providers, updateProvider],
   );
 
   const handleRefreshAgentCard = () => {
@@ -158,6 +168,63 @@ export function AgentConfiguration({
 
   const selectedAgent = agents.find((agent) => agent.id === activeAgentId);
   const activeProvider = providers.find((p) => p.id === activeProviderId);
+
+  // Get available models for the active provider from store
+  const enabledModels = getEnabledModels(activeProviderId || '');
+  const isLoadingModels = loading[activeProviderId || ''] || false;
+  const modelsError = errors[activeProviderId || ''] || null;
+
+  // Helper function to get modality icons
+  const getModalityIcons = (model: any) => {
+    const icons = [];
+    const modalities = model.inputModalities || [];
+
+    if (modalities.includes('text') || modalities.length === 0) {
+      icons.push(<Type key="text" className="h-1.5 w-1.5 text-blue-500" />);
+    }
+    if (modalities.includes('image') || model.modality === 'multimodal') {
+      icons.push(<Image size={5} key="image" className="h-1.5 w-1.5 text-green-500" />);
+    }
+    if (modalities.includes('audio')) {
+      icons.push(<Mic key="audio" className="h-1.5 w-1.5 text-purple-500" />);
+    }
+    if (modalities.includes('video')) {
+      icons.push(<Eye key="video" className="h-1.5 w-1.5 text-orange-500" />);
+    }
+
+    return icons.length > 0 ? icons : [<Type key="text" className="h-1.5 w-1.5 text-blue-500" />];
+  };
+
+  // Convert models to combobox options
+  const modelOptions = useMemo(() => {
+    return enabledModels.map(model => {
+      const [provider, modelName] = model.name.split(': ');
+      const contextInfo = formatContextLength(model.contextLength);
+      const costInfo = `$${model?.inputCost?.toFixed(2)}/$${model?.outputCost?.toFixed(2)} / 1M`;
+      const modalityIcons = getModalityIcons(model);
+
+      return {
+        value: model.id,
+        label: model.name,
+        searchContent: `${model.name} ${provider} ${modelName} ${contextInfo} ${costInfo}`,
+        data: model,
+        content: (
+          <div className="flex flex-col gap-1 py-1">
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-sm">{model.id}</span>
+              <span className="text-xs text-muted-foreground">{contextInfo}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                {modalityIcons}
+              </div>
+              <span className="text-xs font-mono text-green-600">{costInfo}</span>
+            </div>
+          </div>
+        )
+      };
+    });
+  }, [enabledModels]);
 
   const getStatusIcon = (status?: AgentSettings['status']) => {
     switch (status) {
@@ -329,15 +396,61 @@ export function AgentConfiguration({
               {activeProvider && (
                 <div className="space-y-4">
                   <Label className="text-sm font-medium">Select Model</Label>
-                  <ModelSelector
-                    providerConfig={{
-                      type: activeProvider.type as ProviderType,
-                      apiKey: activeProvider.apiKey,
-                      name: activeProvider.name,
-                    }}
-                    selectedModel={activeProvider.activeModel?.model || ''}
-                    onModelSelect={handleModelChange}
-                  />
+
+                  {isLoadingModels ? (
+                    <div className="flex items-center gap-2 p-4 border rounded-lg bg-muted/50">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm text-muted-foreground">Loading models...</span>
+                    </div>
+                  ) : modelsError ? (
+                    <div className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm text-destructive">
+                            Error loading models: {modelsError}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : modelOptions.length === 0 ? (
+                    <div className="p-4 border rounded-lg bg-muted/50">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          {!activeProvider?.apiKey
+                            ? 'Configure provider to see available models'
+                            : 'No models available for this provider'}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <Combobox
+                      options={modelOptions}
+                      value={activeProvider.activeModel?.model || ''}
+                      onValueChange={handleModelChange}
+                      placeholder="Select model..."
+                      searchPlaceholder="Search models..."
+                      emptyMessage="No models found"
+                      className="w-full"
+                      renderValue={(option) => {
+                        const model = option.data;
+                        const modalityIcons = getModalityIcons(model);
+                        const costInfo = `$${model?.inputCost?.toFixed(2)}/$${model?.outputCost?.toFixed(2)} / 1M`;
+                        return (
+                          <div className="flex flex-col gap-0.5 text-left py-0 w-full">
+                            <div className="font-medium text-sm truncate">{option.value}</div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1">
+                                {modalityIcons}
+                              </div>
+                              <div className="text-xs font-mono text-green-600 ml-auto">{costInfo}</div>
+                            </div>
+                          </div>
+                        );
+                      }}
+                    />
+                  )}
                 </div>
               )}
             </div>

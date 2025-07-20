@@ -124,7 +124,7 @@ export function ModelStateManager() {
           </Button>
         </div>
         <span className="text-xs text-muted-foreground flex-shrink-1 ml-2">
-          {searchQuery
+          {searchQuery || modalityFilter
             ? `${filteredEnabledCount}/${filteredTotalCount}`
             : `${enabledCount}/${totalCount}`}
         </span>

@@ -5,17 +5,15 @@ import { useProviderStore } from '@/store/useProviderStore';
 import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
 import { GeneralSettings, MCPSettings } from '@/modules/setting';
 import { AddProviderModal, ProviderSettings } from '@/modules/provider';
-import { AgentModal, AgentSettings } from '@/modules/agent/components';
+import { AgentSettings } from '@/modules/agent/components';
 
 type TabType = 'general' | 'providers' | 'agent' | 'mcp';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState<TabType>('general');
   const [showAddProviderModal, setShowAddProviderModal] = useState(false);
-  const [showAgentModal, setShowAgentModal] = useState(false);
-  const [editingAgent, setEditingAgent] = useState<any | null>(null);
 
-  const { agents, reset: resetAgents } = useAgentStore();
+  const { reset: resetAgents } = useAgentStore();
   const { reset: resetProviders } = useProviderStore();
   const {
     preferences,
@@ -38,22 +36,6 @@ export default function Settings() {
         resetPreferences();
         break;
     }
-  };
-
-  const handleAddAgent = () => {
-    setEditingAgent(null);
-    setShowAgentModal(true);
-  };
-
-  const handleEditAgent = (agentId: string) => {
-    const agent = agents.find((a) => a.id === agentId);
-    setEditingAgent(agent || null);
-    setShowAgentModal(true);
-  };
-
-  const handleCloseAgentModal = () => {
-    setShowAgentModal(false);
-    setEditingAgent(null);
   };
 
   const tabs = [
@@ -101,10 +83,7 @@ export default function Settings() {
           )}
 
           {activeTab === 'agent' && (
-            <AgentSettings
-              onAddAgent={handleAddAgent}
-              onEditAgent={handleEditAgent}
-            />
+            <AgentSettings/>
           )}
 
           {activeTab === 'mcp' && (
@@ -127,11 +106,6 @@ export default function Settings() {
       <AddProviderModal
         open={showAddProviderModal}
         onOpenChange={setShowAddProviderModal}
-      />
-      <AgentModal
-        open={showAgentModal}
-        onOpenChange={handleCloseAgentModal}
-        agent={editingAgent}
       />
     </div>
   );

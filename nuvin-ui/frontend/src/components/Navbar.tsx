@@ -1,4 +1,3 @@
-import { SettingsDialog } from '@/modules/setting/SettingsDialog';
 import { Home, Settings, Sun, Moon, Monitor } from 'lucide-react';
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
@@ -94,8 +93,6 @@ export function Navbar({ userName = 'Guest' }: NavbarProps) {
           </div>
         </div>
       </nav>
-
-      <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
     </>
   );
 }

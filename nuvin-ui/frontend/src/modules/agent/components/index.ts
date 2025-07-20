@@ -1,2 +1,1 @@
-export { AgentSettings } from './AgentSettings';
-export { AgentModal } from './AgentModal';
+export { AgentSettings } from "./AgentSettings";
