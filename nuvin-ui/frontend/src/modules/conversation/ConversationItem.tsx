@@ -43,7 +43,9 @@ export function ConversationItem({
           </div>
           <div
             className={`text-xs transition-colors duration-200 ${
-              conversation.active ? 'text-muted-foreground/80' : 'text-muted-foreground'
+              conversation.active
+                ? 'text-muted-foreground/80'
+                : 'text-muted-foreground'
             }`}
           >
             {formatRelativeTime(conversation.timestamp)}

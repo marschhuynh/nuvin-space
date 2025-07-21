@@ -20,7 +20,11 @@ import {
 import { Eye, EyeOff } from 'lucide-react';
 import { useProviderStore } from '@/store/useProviderStore';
 import { fetchGithubCopilotKey } from '@/lib/github';
-import { getDefaultModel, fetchProviderModels, type ProviderType } from '@/lib/providers/provider-utils';
+import {
+  getDefaultModel,
+  fetchProviderModels,
+  type ProviderType,
+} from '@/lib/providers/provider-utils';
 import { useModelsStore } from '@/store/useModelsStore';
 
 const PROVIDER_OPTIONS = ['OpenAI', 'Anthropic', 'OpenRouter', 'GitHub'];
@@ -89,10 +93,10 @@ export function AddProviderModal({
 
     // Add the provider
     addProvider(newProvider);
-    
+
     // Set it as the active provider
     setActiveProvider(newProviderId);
-    
+
     // Auto-fetch models for the new provider
     if (newProviderKey) {
       try {
@@ -140,13 +144,13 @@ export function AddProviderModal({
             maxTokens: 2048,
           },
         };
-        
+
         // Add the provider
         addProvider(newProvider);
-        
+
         // Set it as the active provider
         setActiveProvider(newProviderId);
-        
+
         // Auto-fetch models for the new provider
         try {
           const fetchedModels = await fetchProviderModels({
@@ -156,9 +160,12 @@ export function AddProviderModal({
           });
           setModels(newProviderId, fetchedModels);
         } catch (error) {
-          console.error('Failed to fetch models for new GitHub provider:', error);
+          console.error(
+            'Failed to fetch models for new GitHub provider:',
+            error,
+          );
         }
-        
+
         setNewProviderName('');
         setNewProviderType('');
         setNewProviderKey('');
@@ -195,85 +202,85 @@ export function AddProviderModal({
         </DialogHeader>
         <div className="flex-1 overflow-y-auto">
           <div className="grid gap-4 py-4 px-1">
-          <div className="grid gap-2">
-            <Label htmlFor="providerName">Provider Name</Label>
-            <Input
-              id="providerName"
-              value={newProviderName}
-              onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="Enter a unique name for this provider"
-              className={nameError ? 'border-red-500' : ''}
-            />
-            {nameError && <p className="text-sm text-red-500">{nameError}</p>}
-            <p className="text-xs text-muted-foreground">
-              This name will help you identify this provider configuration
-            </p>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="providerType">Provider Type</Label>
-            <Select
-              value={newProviderType}
-              onValueChange={handleProviderTypeChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select provider type" />
-              </SelectTrigger>
-              <SelectContent>
-                {PROVIDER_OPTIONS.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="apiKey">API Key</Label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Input
-                  id="apiKey"
-                  type={showApiKey ? 'text' : 'password'}
-                  className="pr-10"
-                  value={newProviderKey}
-                  onChange={(e) => setNewProviderKey(e.target.value)}
-                  placeholder="Enter API key"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowApiKey(!showApiKey)}
-                >
-                  {showApiKey ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
+            <div className="grid gap-2">
+              <Label htmlFor="providerName">Provider Name</Label>
+              <Input
+                id="providerName"
+                value={newProviderName}
+                onChange={(e) => handleNameChange(e.target.value)}
+                placeholder="Enter a unique name for this provider"
+                className={nameError ? 'border-red-500' : ''}
+              />
+              {nameError && <p className="text-sm text-red-500">{nameError}</p>}
+              <p className="text-xs text-muted-foreground">
+                This name will help you identify this provider configuration
+              </p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="providerType">Provider Type</Label>
+              <Select
+                value={newProviderType}
+                onValueChange={handleProviderTypeChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select provider type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROVIDER_OPTIONS.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="apiKey">API Key</Label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    id="apiKey"
+                    type={showApiKey ? 'text' : 'password'}
+                    className="pr-10"
+                    value={newProviderKey}
+                    onChange={(e) => setNewProviderKey(e.target.value)}
+                    placeholder="Enter API key"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                  >
+                    {showApiKey ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                {newProviderType === 'GitHub' && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleGithubAuth}
+                    disabled={
+                      isAuthenticating || !newProviderName || nameError !== ''
+                    }
+                  >
+                    {isAuthenticating ? 'Authenticating...' : 'Get Token'}
+                  </Button>
+                )}
               </div>
               {newProviderType === 'GitHub' && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleGithubAuth}
-                  disabled={
-                    isAuthenticating || !newProviderName || nameError !== ''
-                  }
-                >
-                  {isAuthenticating ? 'Authenticating...' : 'Get Token'}
-                </Button>
+                <p className="text-sm text-muted-foreground">
+                  Click "Get Token" to authenticate with GitHub and get an
+                  access token. This will be a GitHub API token, not a Copilot
+                  token, as the Copilot API is not publicly available.
+                </p>
               )}
             </div>
-            {newProviderType === 'GitHub' && (
-              <p className="text-sm text-muted-foreground">
-                Click "Get Token" to authenticate with GitHub and get an access
-                token. This will be a GitHub API token, not a Copilot token, as
-                the Copilot API is not publicly available.
-              </p>
-            )}
-          </div>
           </div>
         </div>
         <DialogFooter className="flex-shrink-0 border-t pt-4">

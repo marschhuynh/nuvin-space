@@ -15,21 +15,28 @@ interface FullscreenDiagramProps {
   onClose: () => void;
 }
 
-function FullscreenDiagram({ svg, resolvedTheme, onClose }: FullscreenDiagramProps) {
+function FullscreenDiagram({
+  svg,
+  resolvedTheme,
+  onClose,
+}: FullscreenDiagramProps) {
   const fullscreenRef = useRef<HTMLDivElement>(null);
   const [fullscreenZoom, setFullscreenZoom] = useState(1);
   const [fullscreenPanX, setFullscreenPanX] = useState(0);
   const [fullscreenPanY, setFullscreenPanY] = useState(0);
   const [fullscreenIsDragging, setFullscreenIsDragging] = useState(false);
-  const [fullscreenDragStart, setFullscreenDragStart] = useState({ x: 0, y: 0 });
+  const [fullscreenDragStart, setFullscreenDragStart] = useState({
+    x: 0,
+    y: 0,
+  });
 
   // Zoom and pan functionality for fullscreen
   const handleZoomIn = useCallback(() => {
-    setFullscreenZoom(prev => Math.min(prev * 1.2, 3));
+    setFullscreenZoom((prev) => Math.min(prev * 1.2, 3));
   }, []);
 
   const handleZoomOut = useCallback(() => {
-    setFullscreenZoom(prev => Math.max(prev / 1.2, 0.3));
+    setFullscreenZoom((prev) => Math.max(prev / 1.2, 0.3));
   }, []);
 
   const handleReset = useCallback(() => {
@@ -38,19 +45,28 @@ function FullscreenDiagram({ svg, resolvedTheme, onClose }: FullscreenDiagramPro
     setFullscreenPanY(0);
   }, []);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button === 0) {
-      setFullscreenIsDragging(true);
-      setFullscreenDragStart({ x: e.clientX - fullscreenPanX, y: e.clientY - fullscreenPanY });
-    }
-  }, [fullscreenPanX, fullscreenPanY]);
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.button === 0) {
+        setFullscreenIsDragging(true);
+        setFullscreenDragStart({
+          x: e.clientX - fullscreenPanX,
+          y: e.clientY - fullscreenPanY,
+        });
+      }
+    },
+    [fullscreenPanX, fullscreenPanY],
+  );
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (fullscreenIsDragging) {
-      setFullscreenPanX(e.clientX - fullscreenDragStart.x);
-      setFullscreenPanY(e.clientY - fullscreenDragStart.y);
-    }
-  }, [fullscreenIsDragging, fullscreenDragStart]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (fullscreenIsDragging) {
+        setFullscreenPanX(e.clientX - fullscreenDragStart.x);
+        setFullscreenPanY(e.clientY - fullscreenDragStart.y);
+      }
+    },
+    [fullscreenIsDragging, fullscreenDragStart],
+  );
 
   const handleMouseUp = useCallback(() => {
     setFullscreenIsDragging(false);
@@ -59,7 +75,7 @@ function FullscreenDiagram({ svg, resolvedTheme, onClose }: FullscreenDiagramPro
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    setFullscreenZoom(prev => Math.min(Math.max(prev * delta, 0.3), 3));
+    setFullscreenZoom((prev) => Math.min(Math.max(prev * delta, 0.3), 3));
   }, []);
 
   // Escape key to close fullscreen
@@ -86,19 +102,32 @@ function FullscreenDiagram({ svg, resolvedTheme, onClose }: FullscreenDiagramPro
       if (svgElement) {
         svgElement.style.transform = `translate(${fullscreenPanX}px, ${fullscreenPanY}px) scale(${fullscreenZoom})`;
         svgElement.style.transformOrigin = 'center center';
-        svgElement.style.transition = fullscreenIsDragging ? 'none' : 'transform 0.1s ease-out';
+        svgElement.style.transition = fullscreenIsDragging
+          ? 'none'
+          : 'transform 0.1s ease-out';
       }
     }
-  }, [fullscreenZoom, fullscreenPanX, fullscreenPanY, svg, fullscreenIsDragging]);
+  }, [
+    fullscreenZoom,
+    fullscreenPanX,
+    fullscreenPanY,
+    svg,
+    fullscreenIsDragging,
+  ]);
 
   return (
-    <div className={`fixed inset-0 z-50 backdrop-blur-sm ${resolvedTheme === 'dark' ? 'bg-gray-900/95' : 'bg-white/95'
-      } flex items-center justify-center`}>
-      <div className={`relative w-[90%] h-[90%] ${resolvedTheme === 'dark'
-        ? 'bg-gradient-to-br from-gray-900 to-gray-800'
-        : 'bg-gradient-to-br from-gray-50 to-gray-100'
-        } rounded-xl shadow-2xl border border-border/20`}>
-
+    <div
+      className={`fixed inset-0 z-50 backdrop-blur-sm ${
+        resolvedTheme === 'dark' ? 'bg-gray-900/95' : 'bg-white/95'
+      } flex items-center justify-center`}
+    >
+      <div
+        className={`relative w-[90%] h-[90%] ${
+          resolvedTheme === 'dark'
+            ? 'bg-gradient-to-br from-gray-900 to-gray-800'
+            : 'bg-gradient-to-br from-gray-50 to-gray-100'
+        } rounded-xl shadow-2xl border border-border/20`}
+      >
         {/* Fullscreen Controls */}
         <div className="absolute top-6 right-6 z-10 flex flex-col gap-2 bg-background/60 backdrop-blur-sm p-2 rounded-lg border border-border/20 shadow-sm">
           <Button
@@ -148,9 +177,10 @@ function FullscreenDiagram({ svg, resolvedTheme, onClose }: FullscreenDiagramPro
           className="w-full h-full overflow-hidden flex items-center justify-center select-none bg-background/90 rounded-lg border border-border/20"
           style={{
             cursor: fullscreenIsDragging ? 'grabbing' : 'grab',
-            background: resolvedTheme === 'dark'
-              ? 'linear-gradient(to bottom, #1a202c 0%, #2d3748 100%)'
-              : 'linear-gradient(to bottom, #ffffff 0%, #f7fafc 100%)',
+            background:
+              resolvedTheme === 'dark'
+                ? 'linear-gradient(to bottom, #1a202c 0%, #2d3748 100%)'
+                : 'linear-gradient(to bottom, #ffffff 0%, #f7fafc 100%)',
           }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -209,81 +239,83 @@ export function MermaidDiagram({ chart }: MermaidProps) {
           fontFamily: 'Inter, system-ui, sans-serif',
           fontSize: 16,
           logLevel: 'fatal', // Suppress console warnings
-          themeVariables: isDark ? {
-            // Dark theme variables - Enhanced for better readability
-            // Participant styling
-            actorBkg: '#2d3748',
-            actorBorder: '#4a5568',
-            actorTextColor: '#f7fafc',
+          themeVariables: isDark
+            ? {
+                // Dark theme variables - Enhanced for better readability
+                // Participant styling
+                actorBkg: '#2d3748',
+                actorBorder: '#4a5568',
+                actorTextColor: '#f7fafc',
 
-            // Note styling
-            noteBkgColor: '#2b6cb0',
-            noteBorderColor: '#3182ce',
-            noteTextColor: '#f7fafc',
+                // Note styling
+                noteBkgColor: '#2b6cb0',
+                noteBorderColor: '#3182ce',
+                noteTextColor: '#f7fafc',
 
-            // Message lines
-            activationBkgColor: '#2b6cb0',
-            activationBorderColor: '#3182ce',
+                // Message lines
+                activationBkgColor: '#2b6cb0',
+                activationBorderColor: '#3182ce',
 
-            // Background
-            primaryColor: '#3182ce',
-            primaryTextColor: '#f7fafc',
-            primaryBorderColor: '#2b6cb0',
+                // Background
+                primaryColor: '#3182ce',
+                primaryTextColor: '#f7fafc',
+                primaryBorderColor: '#2b6cb0',
 
-            // Sequence diagram specific
-            sequenceNumberColor: '#f7fafc',
-            signalColor: '#e2e8f0',
-            signalTextColor: '#f7fafc',
-            labelBoxBkgColor: '#4a5568',
-            labelBoxBorderColor: '#718096',
-            labelTextColor: '#f7fafc',
-            loopTextColor: '#f7fafc',
+                // Sequence diagram specific
+                sequenceNumberColor: '#f7fafc',
+                signalColor: '#e2e8f0',
+                signalTextColor: '#f7fafc',
+                labelBoxBkgColor: '#4a5568',
+                labelBoxBorderColor: '#718096',
+                labelTextColor: '#f7fafc',
+                loopTextColor: '#f7fafc',
 
-            // Alt/loop box styling
-            altSectionBkgColor: '#2d3748',
+                // Alt/loop box styling
+                altSectionBkgColor: '#2d3748',
 
-            // Grid and background
-            background: '#1a202c',
-            secondaryColor: '#4a5568',
-            tertiaryColor: '#718096',
-          } : {
-            // Light theme variables - Enhanced for better readability
-            // Participant styling
-            actorBkg: '#ffffff',
-            actorBorder: '#e2e8f0',
-            actorTextColor: '#1a202c',
+                // Grid and background
+                background: '#1a202c',
+                secondaryColor: '#4a5568',
+                tertiaryColor: '#718096',
+              }
+            : {
+                // Light theme variables - Enhanced for better readability
+                // Participant styling
+                actorBkg: '#ffffff',
+                actorBorder: '#e2e8f0',
+                actorTextColor: '#1a202c',
 
-            // Note styling
-            noteBkgColor: '#bee3f8',
-            noteBorderColor: '#3182ce',
-            noteTextColor: '#1a365d',
+                // Note styling
+                noteBkgColor: '#bee3f8',
+                noteBorderColor: '#3182ce',
+                noteTextColor: '#1a365d',
 
-            // Message lines
-            activationBkgColor: '#bee3f8',
-            activationBorderColor: '#3182ce',
+                // Message lines
+                activationBkgColor: '#bee3f8',
+                activationBorderColor: '#3182ce',
 
-            // Background
-            primaryColor: '#3182ce',
-            primaryTextColor: '#1a202c',
-            primaryBorderColor: '#2b6cb0',
+                // Background
+                primaryColor: '#3182ce',
+                primaryTextColor: '#1a202c',
+                primaryBorderColor: '#2b6cb0',
 
-            // Sequence diagram specific
-            sequenceNumberColor: '#1a202c',
-            signalColor: '#4a5568',
-            signalTextColor: '#1a202c',
-            labelBoxBkgColor: '#f7fafc',
-            labelBoxBorderColor: '#e2e8f0',
-            labelTextColor: '#1a202c',
-            loopTextColor: '#1a202c',
+                // Sequence diagram specific
+                sequenceNumberColor: '#1a202c',
+                signalColor: '#4a5568',
+                signalTextColor: '#1a202c',
+                labelBoxBkgColor: '#f7fafc',
+                labelBoxBorderColor: '#e2e8f0',
+                labelTextColor: '#1a202c',
+                loopTextColor: '#1a202c',
 
-            // Alt/loop box styling
-            altSectionBkgColor: '#f7fafc',
+                // Alt/loop box styling
+                altSectionBkgColor: '#f7fafc',
 
-            // Grid and background
-            background: '#ffffff',
-            secondaryColor: '#f7fafc',
-            tertiaryColor: '#edf2f7',
-          },
+                // Grid and background
+                background: '#ffffff',
+                secondaryColor: '#f7fafc',
+                tertiaryColor: '#edf2f7',
+              },
           sequence: {
             useMaxWidth: true,
             boxMargin: 20,
@@ -309,7 +341,7 @@ export function MermaidDiagram({ chart }: MermaidProps) {
             actorFontWeight: '600',
             noteFontFamily: 'Inter, system-ui, sans-serif',
             noteFontSize: 14,
-            noteFontWeight: '500'
+            noteFontWeight: '500',
           },
           flowchart: {
             useMaxWidth: true,
@@ -345,11 +377,13 @@ export function MermaidDiagram({ chart }: MermaidProps) {
             originalError(msg);
           }
         };
-        console.warn = () => { };
+        console.warn = () => {};
 
         try {
           // Render the diagram with cleaned chart
-          const isValid = await mermaid.parse(cleanChart, { suppressErrors: true });
+          const isValid = await mermaid.parse(cleanChart, {
+            suppressErrors: true,
+          });
           if (!isValid) {
             setError('Invalid Mermaid chart syntax');
             return;
@@ -414,7 +448,9 @@ export function MermaidDiagram({ chart }: MermaidProps) {
       if (svgElement) {
         svgElement.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
         svgElement.style.transformOrigin = 'center center';
-        svgElement.style.transition = isDragging ? 'none' : 'transform 0.1s ease-out';
+        svgElement.style.transition = isDragging
+          ? 'none'
+          : 'transform 0.1s ease-out';
       }
     }
   }, [zoom, panX, panY, svg, isDragging]);
@@ -456,9 +492,10 @@ export function MermaidDiagram({ chart }: MermaidProps) {
           className="mermaid-diagram overflow-hidden border border-border/30 bg-background p-8 rounded-xl shadow-sm select-none mb-4"
           style={{
             minHeight: '250px',
-            background: resolvedTheme === 'dark'
-              ? 'linear-gradient(to bottom, #1a202c 0%, #2d3748 100%)'
-              : 'linear-gradient(to bottom, #ffffff 0%, #f7fafc 100%)',
+            background:
+              resolvedTheme === 'dark'
+                ? 'linear-gradient(to bottom, #1a202c 0%, #2d3748 100%)'
+                : 'linear-gradient(to bottom, #ffffff 0%, #f7fafc 100%)',
             cursor: isDragging ? 'grabbing' : 'grab',
           }}
           dangerouslySetInnerHTML={{ __html: svg }}
@@ -477,14 +514,15 @@ export function MermaidDiagram({ chart }: MermaidProps) {
       </div>
 
       {/* Fullscreen Modal using Portal */}
-      {isFullscreen && createPortal(
-        <FullscreenDiagram
-          svg={svg}
-          resolvedTheme={resolvedTheme}
-          onClose={handleCloseFullscreen}
-        />,
-        document.body
-      )}
+      {isFullscreen &&
+        createPortal(
+          <FullscreenDiagram
+            svg={svg}
+            resolvedTheme={resolvedTheme}
+            onClose={handleCloseFullscreen}
+          />,
+          document.body,
+        )}
     </>
   );
 }

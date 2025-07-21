@@ -9,7 +9,6 @@ import { AgentConfiguration } from '../../modules/agent/AgentConfiguration';
 import Messenger from './messenger';
 
 export default function Dashboard() {
-
   // Use conversation store
   const {
     activeConversationId,
@@ -41,7 +40,7 @@ export default function Dashboard() {
         setActiveConversation('');
       }
       deleteConversation(conversationId);
-    })
+    });
   }, []);
 
   return (

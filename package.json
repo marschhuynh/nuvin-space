@@ -2,6 +2,12 @@
   "name": "nuvin-space",
   "private": true,
   "version": "0.0.0",
+  "scripts": {
+    "dev": "pnpm --filter frontend dev",
+    "build": "pnpm --filter frontend build",
+    "format": "pnpm --filter frontend format",
+    "preview": "pnpm --filter frontend preview"
+  },
   "devDependencies": {
     "semantic-release": "^23.0.0",
     "@semantic-release/changelog": "^6.0.2",

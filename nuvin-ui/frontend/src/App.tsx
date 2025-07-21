@@ -11,7 +11,7 @@ function App() {
   // Initialize tools on app startup
   useEffect(() => {
     initializeTools();
-    
+
     // Initialize MCP tools asynchronously
     initializeMCPTools().catch(console.error);
   }, []);

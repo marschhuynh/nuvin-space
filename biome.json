@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["nuvin-ui/frontend/**/*.ts"]
+    "includes": ["nuvin-ui/frontend/**/*.{ts,tsx,js,jsx}"]
   },
   "formatter": {
     "enabled": true,

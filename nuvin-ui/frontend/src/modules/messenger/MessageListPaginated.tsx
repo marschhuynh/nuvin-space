@@ -1,8 +1,8 @@
-import { useRef, useEffect, useState, useCallback } from "react";
-import { Message as MessageType } from "@/types";
-import { Message } from "./Message";
-import { LoadingMessage } from "./components/LoadingMessage";
-import { Loader2 } from "lucide-react";
+import { useRef, useEffect, useState, useCallback } from 'react';
+import { Message as MessageType } from '@/types';
+import { Message } from './Message';
+import { LoadingMessage } from './components/LoadingMessage';
+import { Loader2 } from 'lucide-react';
 
 interface MessageListPaginatedProps {
   messages: MessageType[];
@@ -34,8 +34,8 @@ export function MessageListPaginated({
   const scrollToBottom = (smooth = false) => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({
-        behavior: smooth ? "smooth" : "auto",
-        block: "end",
+        behavior: smooth ? 'smooth' : 'auto',
+        block: 'end',
       });
     }
   };
@@ -55,7 +55,7 @@ export function MessageListPaginated({
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     setDisplayedCount((prev) =>
-      Math.min(prev + loadMoreCount, messages.length)
+      Math.min(prev + loadMoreCount, messages.length),
     );
 
     // Restore scroll position after DOM update
@@ -90,21 +90,21 @@ export function MessageListPaginated({
     const scrollElement = parentRef.current;
     if (!scrollElement) return;
 
-    scrollElement.addEventListener("scroll", handleScroll);
-    return () => scrollElement.removeEventListener("scroll", handleScroll);
+    scrollElement.addEventListener('scroll', handleScroll);
+    return () => scrollElement.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
   useEffect(() => {
     // Initial scroll to bottom or new message is user message
     const lastMessage = messages[messages.length - 1];
-    if (lastMessage && lastMessage.role === "user") {
+    if (lastMessage && lastMessage.role === 'user') {
       scrollToBottom();
     }
   }, [messages]);
 
   useEffect(() => {
     if (conversationId) {
-      console.log("conversationId", conversationId);
+      console.log('conversationId', conversationId);
       scrollToBottom();
     }
   }, [conversationId]);
@@ -143,8 +143,8 @@ export function MessageListPaginated({
             ) : (
               <div className="text-center">
                 <p className="text-sm text-muted-foreground mb-2">
-                  Scroll up to load{" "}
-                  {Math.min(loadMoreCount, messages.length - displayedCount)}{" "}
+                  Scroll up to load{' '}
+                  {Math.min(loadMoreCount, messages.length - displayedCount)}{' '}
                   more messages
                 </p>
                 <div className="text-xs text-muted-foreground">
@@ -179,7 +179,7 @@ export function MessageListPaginated({
         <div className="p-6">
           <div className="max-w-4xl mx-auto">
             {renderMessages()}
-            <div ref={messagesEndRef} className='h-2 w-2 mt-4' />
+            <div ref={messagesEndRef} className="h-2 w-2 mt-4" />
           </div>
         </div>
       </div>

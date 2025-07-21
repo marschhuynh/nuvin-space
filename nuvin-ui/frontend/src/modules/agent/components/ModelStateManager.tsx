@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useModelsStore } from "@/store/useModelsStore";
-import { useProviderStore } from "@/store/useProviderStore";
+import { useState, useMemo } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useModelsStore } from '@/store/useModelsStore';
+import { useProviderStore } from '@/store/useProviderStore';
 import {
   Eye,
   EyeOff,
@@ -13,13 +13,13 @@ import {
   Mic,
   FileText,
   Filter,
-} from "lucide-react";
+} from 'lucide-react';
 import {
   fetchProviderModels,
   type ProviderType,
-} from "@/lib/providers/provider-utils";
-import { useActiveModel, useActiveModelActions } from "../hooks/useActiveModel";
-import { ModelsList } from "./ModelsList";
+} from '@/lib/providers/provider-utils';
+import { useActiveModel, useActiveModelActions } from '../hooks/useActiveModel';
+import { ModelsList } from './ModelsList';
 
 export function ModelStateManager() {
   const { availableModels, isLoading, error } = useActiveModel();
@@ -27,7 +27,7 @@ export function ModelStateManager() {
     useActiveModelActions();
   const { enableAllModels, disableAllModels } = useModelsStore();
   const { activeProviderId, providers } = useProviderStore();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [modalityFilter, setModalityFilter] = useState<string | null>(null);
 
   // Get the active provider configuration
@@ -44,7 +44,7 @@ export function ModelStateManager() {
         (model) =>
           model.id.toLowerCase().includes(query) ||
           model.modality?.toLowerCase().includes(query) ||
-          model.name.toLowerCase().includes(query)
+          model.name.toLowerCase().includes(query),
       );
     }
 
@@ -75,11 +75,11 @@ export function ModelStateManager() {
         apiKey: activeProvider.apiKey,
         name: activeProvider.name,
       });
-      console.log("Fetched models:", fetchedModels);
+      console.log('Fetched models:', fetchedModels);
       setProviderModels(fetchedModels);
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to reload models";
+        err instanceof Error ? err.message : 'Failed to reload models';
       setProviderError(errorMessage);
     }
   };
@@ -98,7 +98,7 @@ export function ModelStateManager() {
             title="Reload models"
           >
             <RefreshCw
-              className={`w-3 h-3 ${isLoading ? "animate-spin" : ""}`}
+              className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`}
             />
           </Button>
         </div>
@@ -112,7 +112,7 @@ export function ModelStateManager() {
   const enabledCount = availableModels.filter((model) => model.enabled).length;
   const totalCount = availableModels.length;
   const filteredEnabledCount = filteredModels.filter(
-    (model) => model.enabled
+    (model) => model.enabled,
   ).length;
   const filteredTotalCount = filteredModels.length;
 
@@ -138,7 +138,7 @@ export function ModelStateManager() {
             title="Reload models"
           >
             <RefreshCw
-              className={`w-3 h-3 ${isLoading ? "animate-spin" : ""}`}
+              className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`}
             />
           </Button>
         </div>
@@ -179,7 +179,7 @@ export function ModelStateManager() {
             <Filter className="w-3 h-3 text-muted-foreground" />
             <div className="flex gap-1">
               <Button
-                variant={modalityFilter === null ? "default" : "outline"}
+                variant={modalityFilter === null ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setModalityFilter(null)}
                 className="h-6 text-[10px] px-2"
@@ -187,10 +187,10 @@ export function ModelStateManager() {
                 All
               </Button>
               <Button
-                variant={modalityFilter === "text" ? "default" : "outline"}
+                variant={modalityFilter === 'text' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() =>
-                  setModalityFilter(modalityFilter === "text" ? null : "text")
+                  setModalityFilter(modalityFilter === 'text' ? null : 'text')
                 }
                 className="h-6 text-[10px] px-2"
               >
@@ -198,10 +198,10 @@ export function ModelStateManager() {
                 Text
               </Button>
               <Button
-                variant={modalityFilter === "image" ? "default" : "outline"}
+                variant={modalityFilter === 'image' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() =>
-                  setModalityFilter(modalityFilter === "image" ? null : "image")
+                  setModalityFilter(modalityFilter === 'image' ? null : 'image')
                 }
                 className="h-6 text-[10px] px-2"
               >
@@ -209,10 +209,10 @@ export function ModelStateManager() {
                 Image
               </Button>
               <Button
-                variant={modalityFilter === "audio" ? "default" : "outline"}
+                variant={modalityFilter === 'audio' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() =>
-                  setModalityFilter(modalityFilter === "audio" ? null : "audio")
+                  setModalityFilter(modalityFilter === 'audio' ? null : 'audio')
                 }
                 className="h-6 text-[10px] px-2"
               >
@@ -220,10 +220,10 @@ export function ModelStateManager() {
                 Audio
               </Button>
               <Button
-                variant={modalityFilter === "file" ? "default" : "outline"}
+                variant={modalityFilter === 'file' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() =>
-                  setModalityFilter(modalityFilter === "file" ? null : "file")
+                  setModalityFilter(modalityFilter === 'file' ? null : 'file')
                 }
                 className="h-6 text-[10px] px-2"
               >

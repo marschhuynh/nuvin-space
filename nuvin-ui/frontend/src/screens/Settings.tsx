@@ -6,7 +6,7 @@ import { useProviderStore } from '@/store/useProviderStore';
 import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
 import { GeneralSettings, MCPSettings } from '@/modules/setting';
 import { AddProviderModal, ProviderSettings } from '@/modules/provider';
-import { AgentSettings } from '@/modules/agent/components';
+import { AgentSettings } from '@/modules/agent/AgentSettings';
 import { ToolDebugger } from '@/components/debug/ToolDebugger';
 
 type TabType = 'general' | 'providers' | 'agent' | 'mcp' | 'debug';
@@ -19,7 +19,10 @@ export default function Settings() {
   // Handle tab query parameter
   useEffect(() => {
     const tabParam = searchParams.get('tab') as TabType;
-    if (tabParam && ['general', 'providers', 'agent', 'mcp'].includes(tabParam)) {
+    if (
+      tabParam &&
+      ['general', 'providers', 'agent', 'mcp'].includes(tabParam)
+    ) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -94,9 +97,7 @@ export default function Settings() {
             />
           )}
 
-          {activeTab === 'agent' && (
-            <AgentSettings/>
-          )}
+          {activeTab === 'agent' && <AgentSettings />}
 
           {activeTab === 'mcp' && (
             <MCPSettings
@@ -105,9 +106,7 @@ export default function Settings() {
             />
           )}
 
-          {activeTab === 'debug' && (
-            <ToolDebugger />
-          )}
+          {activeTab === 'debug' && <ToolDebugger />}
         </div>
 
         {/* Footer */}

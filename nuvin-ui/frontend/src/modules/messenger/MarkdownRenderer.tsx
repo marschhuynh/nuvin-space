@@ -19,7 +19,13 @@ interface CodeBlockProps {
   depth?: number;
 }
 
-function CodeBlock({ children, className, language, content, depth = 0 }: CodeBlockProps) {
+function CodeBlock({
+  children,
+  className,
+  language,
+  content,
+  depth = 0,
+}: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -48,10 +54,17 @@ function CodeBlock({ children, className, language, content, depth = 0 }: CodeBl
             onClick={handleCopy}
             className="h-6 w-6 p-0 hover:bg-muted"
           >
-            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+            {copied ? (
+              <Check className="h-3 w-3" />
+            ) : (
+              <Copy className="h-3 w-3" />
+            )}
           </Button>
         </div>
-        <MarkdownRenderer content={content} className="nested-markdown-content" />
+        <MarkdownRenderer
+          content={content}
+          className="nested-markdown-content"
+        />
       </div>
     );
   }
@@ -128,16 +141,24 @@ export function MarkdownRenderer({
         </h2>
       ),
       h3: ({ children }: any) => (
-        <h3 className="text-lg font-semibold mb-2 text-foreground whitespace-break-spaces">{children}</h3>
+        <h3 className="text-lg font-semibold mb-2 text-foreground whitespace-break-spaces">
+          {children}
+        </h3>
       ),
       h4: ({ children }: any) => (
-        <h4 className="text-base font-semibold mb-2 text-foreground whitespace-break-spaces">{children}</h4>
+        <h4 className="text-base font-semibold mb-2 text-foreground whitespace-break-spaces">
+          {children}
+        </h4>
       ),
       h5: ({ children }: any) => (
-        <h5 className="text-sm font-semibold mb-2 text-foreground whitespace-break-spaces">{children}</h5>
+        <h5 className="text-sm font-semibold mb-2 text-foreground whitespace-break-spaces">
+          {children}
+        </h5>
       ),
       h6: ({ children }: any) => (
-        <h6 className="text-xs font-semibold mb-2 text-muted-foreground whitespace-break-spaces">{children}</h6>
+        <h6 className="text-xs font-semibold mb-2 text-muted-foreground whitespace-break-spaces">
+          {children}
+        </h6>
       ),
 
       // Enhanced paragraphs
@@ -219,10 +240,7 @@ export function MarkdownRenderer({
 
   return (
     <div className={`markdown-content prose prose-sm max-w-none ${className}`}>
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={components}
-      >
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {processedContent}
       </ReactMarkdown>
     </div>

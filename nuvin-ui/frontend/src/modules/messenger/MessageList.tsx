@@ -1,8 +1,8 @@
-import { useRef, useEffect } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { Message as MessageType } from "@/types";
-import { Message } from "./Message";
-import { LoadingMessage } from "./components/LoadingMessage";
+import { useRef, useEffect } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { Message as MessageType } from '@/types';
+import { Message } from './Message';
+import { LoadingMessage } from './components/LoadingMessage';
 
 interface MessageListProps {
   messages: MessageType[];
@@ -81,7 +81,7 @@ export function MessageList({
       <div
         style={{
           height: virtualizer.getTotalSize(),
-          position: "relative",
+          position: 'relative',
         }}
       >
         {virtualizer.getVirtualItems().map((virtualItem) => {
@@ -94,10 +94,10 @@ export function MessageList({
               data-index={virtualItem.index}
               ref={virtualizer.measureElement}
               style={{
-                position: "absolute",
+                position: 'absolute',
                 top: 0,
                 left: 0,
-                width: "100%",
+                width: '100%',
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >

@@ -1,18 +1,18 @@
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Combobox } from "@/components/ui/combobox";
-import { A2AError, a2aService } from "@/lib";
-import { useAgentStore } from "@/store/useAgentStore";
-import { useProviderStore } from "@/store/useProviderStore";
-import { useModelsStore } from "@/store/useModelsStore";
-import type { AgentConfig, AgentSettings } from "@/types";
+} from '@/components/ui/select';
+import { Combobox } from '@/components/ui/combobox';
+import { A2AError, a2aService } from '@/lib';
+import { useAgentStore } from '@/store/useAgentStore';
+import { useProviderStore } from '@/store/useProviderStore';
+import { useModelsStore } from '@/store/useModelsStore';
+import type { AgentConfig, AgentSettings } from '@/types';
 import {
   AlertCircle,
   Bot,
@@ -28,10 +28,10 @@ import {
   Eye,
   Mic,
   Image,
-} from "lucide-react";
-import { useCallback, useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router";
-import { formatContextLength } from "@/lib/providers/provider-utils";
+} from 'lucide-react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router';
+import { formatContextLength } from '@/lib/providers/provider-utils';
 
 interface AgentConfigurationProps {
   onConfigChange?: (config: AgentConfig) => void;
@@ -59,7 +59,7 @@ export function AgentConfiguration({
 
   // State for remote agent card information
   const [agentCardInfo, setAgentCardInfo] = useState<AgentCardInfo | null>(
-    null
+    null,
   );
   const [loadingAgentCard, setLoadingAgentCard] = useState(false);
   const [agentCardError, setAgentCardError] = useState<string | null>(null);
@@ -86,7 +86,7 @@ export function AgentConfiguration({
   useEffect(() => {
     const selectedAgent = agents.find((agent) => agent.id === activeAgentId);
 
-    if (selectedAgent?.agentType === "remote" && selectedAgent.url) {
+    if (selectedAgent?.agentType === 'remote' && selectedAgent.url) {
       fetchAgentCardInfo(selectedAgent);
     } else {
       // Clear agent card info for non-remote agents
@@ -104,7 +104,7 @@ export function AgentConfiguration({
     try {
       // Create auth config
       const authConfig =
-        agent.auth && agent.auth.type !== "none"
+        agent.auth && agent.auth.type !== 'none'
           ? {
               type: agent.auth.type,
               token: agent.auth.token,
@@ -120,14 +120,14 @@ export function AgentConfiguration({
       if (agentInfo) {
         setAgentCardInfo(agentInfo);
       } else {
-        setAgentCardError("Unable to fetch agent information");
+        setAgentCardError('Unable to fetch agent information');
       }
     } catch (error) {
-      console.error("Failed to fetch agent card:", error);
+      console.error('Failed to fetch agent card:', error);
       if (error instanceof A2AError) {
         setAgentCardError(error.getUserMessage());
       } else {
-        setAgentCardError("Failed to connect to agent");
+        setAgentCardError('Failed to connect to agent');
       }
     } finally {
       setLoadingAgentCard(false);
@@ -156,45 +156,45 @@ export function AgentConfiguration({
         updateProvider(updatedProvider);
       }
     },
-    [activeProviderId, providers, updateProvider]
+    [activeProviderId, providers, updateProvider],
   );
 
   const handleRefreshAgentCard = () => {
     const selectedAgent = agents.find((agent) => agent.id === activeAgentId);
-    if (selectedAgent?.agentType === "remote") {
+    if (selectedAgent?.agentType === 'remote') {
       fetchAgentCardInfo(selectedAgent);
     }
   };
 
   const handleNavigateToProviderSettings = () => {
-    navigate("/settings?tab=providers");
+    navigate('/settings?tab=providers');
   };
 
   const selectedAgent = agents.find((agent) => agent.id === activeAgentId);
   const activeProvider = providers.find((p) => p.id === activeProviderId);
 
   // Get available models for the active provider from store
-  const enabledModels = getEnabledModels(activeProviderId || "");
-  const isLoadingModels = loading[activeProviderId || ""] || false;
-  const modelsError = errors[activeProviderId || ""] || null;
+  const enabledModels = getEnabledModels(activeProviderId || '');
+  const isLoadingModels = loading[activeProviderId || ''] || false;
+  const modelsError = errors[activeProviderId || ''] || null;
 
   // Helper function to get modality icons
   const getModalityIcons = (model: any) => {
     const icons = [];
     const modalities = model.inputModalities || [];
 
-    if (modalities.includes("text") || modalities.length === 0) {
+    if (modalities.includes('text') || modalities.length === 0) {
       icons.push(<Type key="text" className="h-1.5 w-1.5 text-blue-500" />);
     }
-    if (modalities.includes("image") || model.modality === "multimodal") {
+    if (modalities.includes('image') || model.modality === 'multimodal') {
       icons.push(
-        <Image size={5} key="image" className="h-1.5 w-1.5 text-green-500" />
+        <Image size={5} key="image" className="h-1.5 w-1.5 text-green-500" />,
       );
     }
-    if (modalities.includes("audio")) {
+    if (modalities.includes('audio')) {
       icons.push(<Mic key="audio" className="h-1.5 w-1.5 text-purple-500" />);
     }
-    if (modalities.includes("video")) {
+    if (modalities.includes('video')) {
       icons.push(<Eye key="video" className="h-1.5 w-1.5 text-orange-500" />);
     }
 
@@ -206,10 +206,10 @@ export function AgentConfiguration({
   // Convert models to combobox options
   const modelOptions = useMemo(() => {
     return enabledModels.map((model) => {
-      const [provider, modelName] = model.name.split(": ");
+      const [provider, modelName] = model.name.split(': ');
       const contextInfo = formatContextLength(model.contextLength);
       const costInfo = `$${model?.inputCost?.toFixed(
-        2
+        2,
       )}/$${model?.outputCost?.toFixed(2)} / 1M`;
       const modalityIcons = getModalityIcons(model);
 
@@ -240,11 +240,11 @@ export function AgentConfiguration({
     });
   }, [enabledModels]);
 
-  const getStatusIcon = (status?: AgentSettings["status"]) => {
+  const getStatusIcon = (status?: AgentSettings['status']) => {
     switch (status) {
-      case "active":
+      case 'active':
         return <CheckCircle className="h-3 w-3 text-green-500" />;
-      case "busy":
+      case 'busy':
         return <Clock className="h-3 w-3 text-yellow-500" />;
       default:
         return <Circle className="h-3 w-3 text-gray-400" />;
@@ -256,27 +256,27 @@ export function AgentConfiguration({
     if (agent.description) return agent.description;
 
     // For remote agents, provide a generic description since detailed info is shown in agent card
-    if (agent.agentType === "remote") {
+    if (agent.agentType === 'remote') {
       return `Remote A2A agent${
-        agent.url ? ` connected to ${agent.url}` : ""
+        agent.url ? ` connected to ${agent.url}` : ''
       }. This agent is hosted externally and follows the Agent2Agent protocol.`;
     }
 
     // Generate description based on persona for local agents
     const personaDescriptions = {
       helpful:
-        "A friendly and supportive assistant ready to help with various tasks.",
+        'A friendly and supportive assistant ready to help with various tasks.',
       professional:
-        "A business-focused assistant providing professional guidance and analysis.",
+        'A business-focused assistant providing professional guidance and analysis.',
       creative:
-        "An imaginative assistant specializing in creative thinking and content generation.",
+        'An imaginative assistant specializing in creative thinking and content generation.',
       analytical:
-        "A detail-oriented assistant focused on data analysis and logical reasoning.",
+        'A detail-oriented assistant focused on data analysis and logical reasoning.',
       casual:
-        "A relaxed and conversational assistant for everyday interactions.",
+        'A relaxed and conversational assistant for everyday interactions.',
     };
 
-    return personaDescriptions[agent.persona] || "A versatile AI assistant.";
+    return personaDescriptions[agent.persona] || 'A versatile AI assistant.';
   };
 
   // Helper function to get default tools based on persona
@@ -307,7 +307,7 @@ export function AgentConfiguration({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate("/settings?tab=agent")}
+                onClick={() => navigate('/settings?tab=agent')}
                 className="h-4 w-4 p-0 hover:bg-muted/50"
                 title="Go to Agent Settings"
               >
@@ -322,7 +322,7 @@ export function AgentConfiguration({
                 {agents.map((agent) => (
                   <SelectItem key={agent.id} value={agent.id}>
                     <div className="flex items-center gap-2">
-                      {agent.agentType === "remote" ? (
+                      {agent.agentType === 'remote' ? (
                         <Globe className="h-4 w-4 text-muted-foreground" />
                       ) : (
                         <Home className="h-4 w-4 text-muted-foreground" />
@@ -339,7 +339,7 @@ export function AgentConfiguration({
           {selectedAgent && (
             <div className="space-y-4">
               {/* Available Tools */}
-              {selectedAgent.agentType === "local" &&
+              {selectedAgent.agentType === 'local' &&
                 currentTools.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
@@ -357,15 +357,15 @@ export function AgentConfiguration({
                           key={`${tool.name}`}
                           className={`flex items-start gap-3 p-4 rounded-lg border ${
                             tool.enabled
-                              ? "bg-muted/30"
-                              : "opacity-60 bg-muted/20"
+                              ? 'bg-muted/30'
+                              : 'opacity-60 bg-muted/20'
                           }`}
                         >
                           <div
                             className={`w-2 h-2 rounded-full mt-1 flex-shrink-0 ${
                               tool.enabled
-                                ? "bg-green-500"
-                                : "bg-muted-foreground"
+                                ? 'bg-green-500'
+                                : 'bg-muted-foreground'
                             }`}
                           />
                           <div className="flex-1 min-w-0">
@@ -385,7 +385,7 @@ export function AgentConfiguration({
           )}
 
           {/* Model Configuration - Only show for local agents */}
-          {selectedAgent?.agentType === "local" && (
+          {selectedAgent?.agentType === 'local' && (
             <div className="space-y-6">
               <div className="flex items-center justify-between pb-3 border-b">
                 <h3 className="font-semibold flex items-center gap-2">
@@ -467,15 +467,15 @@ export function AgentConfiguration({
                         <AlertCircle className="w-4 h-4 text-muted-foreground" />
                         <p className="text-sm text-muted-foreground">
                           {!activeProvider?.apiKey
-                            ? "Configure provider to see available models"
-                            : "No models available for this provider"}
+                            ? 'Configure provider to see available models'
+                            : 'No models available for this provider'}
                         </p>
                       </div>
                     </div>
                   ) : (
                     <Combobox
                       options={modelOptions}
-                      value={activeProvider.activeModel?.model || ""}
+                      value={activeProvider.activeModel?.model || ''}
                       onValueChange={handleModelChange}
                       placeholder="Select model..."
                       searchPlaceholder="Search models..."
@@ -485,7 +485,7 @@ export function AgentConfiguration({
                         const model = option.data;
                         const modalityIcons = getModalityIcons(model);
                         const costInfo = `$${model?.inputCost?.toFixed(
-                          2
+                          2,
                         )}/$${model?.outputCost?.toFixed(2)} / 1M`;
                         return (
                           <div className="flex flex-col gap-0.5 text-left py-0 w-full min-w-0">
@@ -511,7 +511,7 @@ export function AgentConfiguration({
           )}
 
           {/* Remote Agent Info - Show for remote agents */}
-          {selectedAgent?.agentType === "remote" && (
+          {selectedAgent?.agentType === 'remote' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b">
                 <h3 className="font-semibold flex items-center gap-2">

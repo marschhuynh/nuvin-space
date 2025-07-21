@@ -25,7 +25,8 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const { preferences, updatePreferences, hasHydrated } = useUserPreferenceStore();
+  const { preferences, updatePreferences, hasHydrated } =
+    useUserPreferenceStore();
   const theme = preferences.theme;
 
   const setTheme = (newTheme: Theme) => {
@@ -34,14 +35,19 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   const getSystemTheme = (): 'light' | 'dark' => {
     if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
     }
     return 'light';
   };
 
   const resolvedTheme: ThemeName =
-    theme === 'system' ? getSystemTheme() : 
-    (theme && theme in themes ? theme as ThemeName : 'light');
+    theme === 'system'
+      ? getSystemTheme()
+      : theme && theme in themes
+        ? (theme as ThemeName)
+        : 'light';
 
   // Apply theme changes (including initial load) - only after hydration
   useEffect(() => {

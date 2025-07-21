@@ -116,9 +116,7 @@ const ChatInput = memo(function ChatInput({
         </div>
 
         <div className="flex justify-between text-xs text-muted-foreground mt-2">
-          <span>
-            Press Shift + Enter for new line
-          </span>
+          <span>Press Shift + Enter for new line</span>
         </div>
       </div>
     </div>

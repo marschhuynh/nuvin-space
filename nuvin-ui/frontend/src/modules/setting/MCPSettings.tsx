@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Plus,
   Edit,
@@ -13,16 +13,16 @@ import {
   Settings,
   X,
   Save,
-} from "lucide-react";
-import { useUserPreferenceStore } from "@/store/useUserPreferenceStore";
-import { MCPConfig } from "@/store/useUserPreferenceStore";
+} from 'lucide-react';
+import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
+import { MCPConfig } from '@/store/useUserPreferenceStore';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 
 interface MCPSettingsProps {
   settings: any;
@@ -36,27 +36,27 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
   const [selectedMCPId, setSelectedMCPId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [mcpForm, setMcpForm] = useState<Partial<MCPConfig>>({
-    name: "",
-    command: "",
+    name: '',
+    command: '',
     args: [],
     env: {},
     enabled: true,
-    description: "",
+    description: '',
   });
 
   const selectedMCP = (preferences?.mcpServers || []).find(
-    (mcp) => mcp.id === selectedMCPId
+    (mcp) => mcp.id === selectedMCPId,
   );
 
   const handleAddMCP = () => {
     setEditingMCP(null);
     setMcpForm({
-      name: "",
-      command: "",
+      name: '',
+      command: '',
       args: [],
       env: {},
       enabled: true,
-      description: "",
+      description: '',
     });
     setShowAddMCPModal(true);
   };
@@ -70,20 +70,20 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
       args: mcp.args || [],
       env: mcp.env || {},
       enabled: mcp.enabled,
-      description: mcp.description || "",
+      description: mcp.description || '',
     });
     setIsEditing(true);
   };
 
   const handleDeleteMCP = (mcpId: string) => {
     const updatedServers = (preferences?.mcpServers || []).filter(
-      (server) => server.id !== mcpId
+      (server) => server.id !== mcpId,
     );
     updatePreferences({ mcpServers: updatedServers });
     if (selectedMCPId === mcpId) {
       const remainingServers = updatedServers;
       setSelectedMCPId(
-        remainingServers.length > 0 ? remainingServers[0].id : null
+        remainingServers.length > 0 ? remainingServers[0].id : null,
       );
     }
   };
@@ -92,12 +92,12 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
     setEditingMCP(null);
     setSelectedMCPId(null);
     setMcpForm({
-      name: "",
-      command: "",
+      name: '',
+      command: '',
       args: [],
       env: {},
       enabled: true,
-      description: "",
+      description: '',
     });
     setIsEditing(true);
   };
@@ -113,7 +113,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
         args: selectedMCP.args || [],
         env: selectedMCP.env || {},
         enabled: selectedMCP.enabled,
-        description: selectedMCP.description || "",
+        description: selectedMCP.description || '',
       });
     }
   };
@@ -129,7 +129,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
       } as MCPConfig;
 
       const updatedServers = (preferences?.mcpServers || []).map((server) =>
-        server.id === editingMCP.id ? updatedMCP : server
+        server.id === editingMCP.id ? updatedMCP : server,
       );
       updatePreferences({ mcpServers: updatedServers });
     } else {
@@ -150,7 +150,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
 
   const handleToggleMCP = (mcpId: string) => {
     const updatedServers = (preferences?.mcpServers || []).map((server) =>
-      server.id === mcpId ? { ...server, enabled: !server.enabled } : server
+      server.id === mcpId ? { ...server, enabled: !server.enabled } : server,
     );
     updatePreferences({ mcpServers: updatedServers });
   };
@@ -165,13 +165,13 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
       args: mcpForm.args || [],
       env: mcpForm.env || {},
       enabled: mcpForm.enabled!,
-      description: mcpForm.description || "",
+      description: mcpForm.description || '',
     };
 
     let updatedServers;
     if (editingMCP) {
       updatedServers = (preferences?.mcpServers || []).map((server) =>
-        server.id === editingMCP.id ? newMCP : server
+        server.id === editingMCP.id ? newMCP : server,
       );
     } else {
       updatedServers = [...(preferences?.mcpServers || []), newMCP];
@@ -196,7 +196,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
   };
 
   const addArg = () => {
-    setMcpForm((prev) => ({ ...prev, args: [...(prev.args || []), ""] }));
+    setMcpForm((prev) => ({ ...prev, args: [...(prev.args || []), ''] }));
   };
 
   const removeArg = (index: number) => {
@@ -209,7 +209,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
   const addEnvVar = () => {
     setMcpForm((prev) => ({
       ...prev,
-      env: { ...prev.env, "": "" },
+      env: { ...prev.env, '': '' },
     }));
   };
 
@@ -264,8 +264,8 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
                     key={mcp.id}
                     className={`p-2 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
                       selectedMCPId === mcp.id
-                        ? "border-primary bg-primary/5 shadow-sm"
-                        : "border-border hover:border-primary/50"
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-border hover:border-primary/50'
                     }`}
                     onClick={() => {
                       if (!isEditing) {
@@ -284,17 +284,19 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
                         <span
                           className={`px-1.5 py-0.5 rounded text-xs ${
                             mcp.enabled
-                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                              : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
                           }`}
                         >
-                          {mcp.enabled ? "Enabled" : "Disabled"}
+                          {mcp.enabled ? 'Enabled' : 'Disabled'}
                         </span>
                       </div>
                     </div>
                     <div className="text-xs text-muted-foreground font-mono truncate">
                       {mcp.command}
-                      {mcp.args && mcp.args.length > 0 && ` ${mcp.args.join(' ')}`}
+                      {mcp.args &&
+                        mcp.args.length > 0 &&
+                        ` ${mcp.args.join(' ')}`}
                     </div>
                   </div>
                 ))}
@@ -319,8 +321,8 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
                         {editingMCP
                           ? `Edit ${editingMCP.name}`
                           : !selectedMCP
-                          ? "Create New MCP Server"
-                          : selectedMCP.name}
+                            ? 'Create New MCP Server'
+                            : selectedMCP.name}
                       </h1>
                     </div>
                   </div>
@@ -341,7 +343,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
                           disabled={!mcpForm.name || !mcpForm.command}
                         >
                           <Save className="h-4 w-4 mr-1" />
-                          {editingMCP ? "Update" : "Create"}
+                          {editingMCP ? 'Update' : 'Create'}
                         </Button>
                       </>
                     ) : selectedMCP ? (
@@ -435,8 +437,8 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
                             <span
                               className={`inline-flex items-center gap-2 ${
                                 selectedMCP.enabled
-                                  ? "text-green-600"
-                                  : "text-gray-500"
+                                  ? 'text-green-600'
+                                  : 'text-gray-500'
                               }`}
                             >
                               {selectedMCP.enabled ? (
@@ -444,7 +446,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
                               ) : (
                                 <Pause className="h-3 w-3" />
                               )}
-                              {selectedMCP.enabled ? "Enabled" : "Disabled"}
+                              {selectedMCP.enabled ? 'Enabled' : 'Disabled'}
                             </span>
                           </div>
                         ) : null}
@@ -506,7 +508,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
                           </div>
                         ) : selectedMCP?.args && selectedMCP.args.length > 0 ? (
                           <div className="px-3 py-2 border rounded-md bg-background text-sm font-mono select-all min-h-[36px] flex items-center">
-                            {selectedMCP.args.join(" ")}
+                            {selectedMCP.args.join(' ')}
                           </div>
                         ) : (
                           <div className="px-3 py-2 border rounded-md bg-background text-sm text-muted-foreground h-9 flex items-center">
@@ -534,7 +536,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
                       />
                     ) : (
                       <div className="px-3 py-2 border rounded-md bg-background text-sm leading-relaxed min-h-[60px] select-all">
-                        {selectedMCP?.description || "No description provided"}
+                        {selectedMCP?.description || 'No description provided'}
                       </div>
                     )}
                   </div>
@@ -581,7 +583,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
                                 <Trash2 className="w-4 h-4" />
                               </Button>
                             </div>
-                          )
+                          ),
                         )}
                         <Button
                           variant="outline"
@@ -613,7 +615,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
                                     {value}
                                   </span>
                                 </div>
-                              )
+                              ),
                             )}
                           </div>
                         </div>
@@ -633,11 +635,11 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
                       {isEditing &&
                         mcpForm.args &&
                         mcpForm.args.length > 0 &&
-                        ` ${mcpForm.args.join(" ")}`}
+                        ` ${mcpForm.args.join(' ')}`}
                       {!isEditing &&
                         selectedMCP?.args &&
                         selectedMCP.args.length > 0 &&
-                        ` ${selectedMCP.args.join(" ")}`}
+                        ` ${selectedMCP.args.join(' ')}`}
                     </div>
                   </div>
                 </div>
@@ -667,7 +669,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
         <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>
-              {editingMCP ? "Edit MCP Server" : "Add MCP Server"}
+              {editingMCP ? 'Edit MCP Server' : 'Add MCP Server'}
             </DialogTitle>
             <DialogDescription>
               Configure a Model Context Protocol server to extend AI
@@ -802,7 +804,7 @@ export function MCPSettings({ settings, onSettingsChange }: MCPSettingsProps) {
               Cancel
             </Button>
             <Button onClick={handleSaveMCP}>
-              {editingMCP ? "Update" : "Add"} MCP Server
+              {editingMCP ? 'Update' : 'Add'} MCP Server
             </Button>
           </div>
         </DialogContent>
