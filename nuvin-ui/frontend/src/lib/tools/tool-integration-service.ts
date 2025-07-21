@@ -23,17 +23,23 @@ export class ToolIntegrationService {
   ): CompletionParams {
     // Always include MCP tools + any explicitly enabled tools
     const enabledToolNames = new Set(agentToolConfig?.enabledTools || []);
-    
+
     // Get all MCP tools (they should always be available)
     const mcpTools = toolRegistry.getAllMCPTools();
-    console.log(`[MCP] Found ${mcpTools.length} MCP tools, adding available ones to agent`);
-    
+    console.log(
+      `[MCP] Found ${mcpTools.length} MCP tools, adding available ones to agent`,
+    );
+
     for (const mcpTool of mcpTools) {
       if (mcpTool.isAvailable()) {
         enabledToolNames.add(mcpTool.definition.name);
-        console.log(`[MCP] Added tool '${mcpTool.definition.name}' from server '${mcpTool.getServerId()}'`);
+        console.log(
+          `[MCP] Added tool '${mcpTool.definition.name}' from server '${mcpTool.getServerId()}'`,
+        );
       } else {
-        console.log(`[MCP] Skipped unavailable tool '${mcpTool.definition.name}' from server '${mcpTool.getServerId()}'`);
+        console.log(
+          `[MCP] Skipped unavailable tool '${mcpTool.definition.name}' from server '${mcpTool.getServerId()}'`,
+        );
       }
     }
 
@@ -86,7 +92,7 @@ export class ToolIntegrationService {
 
     // Check if tools are enabled for this agent (including MCP tools)
     const enabledToolNames = new Set(agentToolConfig?.enabledTools || []);
-    
+
     // Add available MCP tools to the enabled set
     const mcpTools = toolRegistry.getAllMCPTools();
     for (const mcpTool of mcpTools) {
@@ -94,7 +100,7 @@ export class ToolIntegrationService {
         enabledToolNames.add(mcpTool.definition.name);
       }
     }
-    
+
     if (enabledToolNames.size === 0) {
       return {
         result: {
@@ -115,7 +121,10 @@ export class ToolIntegrationService {
           parameters: JSON.parse(call.function.arguments),
         };
       } catch (error) {
-        console.error(`[MCP] Failed to parse tool call arguments for ${call.function.name}:`, error);
+        console.error(
+          `[MCP] Failed to parse tool call arguments for ${call.function.name}:`,
+          error,
+        );
         console.error(`[MCP] Raw arguments:`, call.function.arguments);
         return {
           id: call.id,
@@ -125,7 +134,10 @@ export class ToolIntegrationService {
       }
     });
 
-    console.log(`[MCP] Processing ${toolCalls.length} tool calls:`, toolCalls.map(c => c.name));
+    console.log(
+      `[MCP] Processing ${toolCalls.length} tool calls:`,
+      toolCalls.map((c) => c.name),
+    );
 
     // Execute tool calls
     const maxConcurrent = agentToolConfig?.maxConcurrentCalls || 3;
@@ -224,7 +236,7 @@ export class ToolIntegrationService {
   ): ToolDefinition[] {
     // Include both explicitly enabled tools and available MCP tools
     const enabledToolNames = new Set(agentToolConfig?.enabledTools || []);
-    
+
     // Always include available MCP tools
     const mcpTools = toolRegistry.getAllMCPTools();
     for (const mcpTool of mcpTools) {
