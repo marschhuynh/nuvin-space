@@ -160,6 +160,16 @@ export class MCPManager {
    * Stop all MCP servers
    */
   async stopAllServers(): Promise<void> {
+    try {
+      // Stop all backend processes first
+      if (window.go?.main?.App?.StopAllMCPServers) {
+        await window.go.main.App.StopAllMCPServers();
+      }
+    } catch (error) {
+      console.warn('Failed to stop backend MCP servers:', error);
+    }
+
+    // Clean up frontend state
     const serverIds = Array.from(this.clients.keys());
     await Promise.all(serverIds.map(serverId => this.stopServer(serverId)));
   }

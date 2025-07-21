@@ -26,6 +26,7 @@ declare global {
           Greet: (name: string) => Promise<string>;
           StartMCPServer: (request: any) => Promise<any>;
           StopMCPServer: (serverId: string) => Promise<any>;
+          StopAllMCPServers: () => Promise<any>;
           SendMCPMessage: (serverId: string, message: any) => Promise<any>;
           GetMCPServerStatus: () => Promise<Record<string, string>>;
         };

@@ -619,6 +619,29 @@ func (a *App) StopMCPServer(serverID string) error {
 	return nil
 }
 
+// StopAllMCPServers stops all running MCP server processes
+func (a *App) StopAllMCPServers() error {
+	runtime.LogInfo(a.ctx, "Stopping all MCP servers")
+
+	a.mcpMutex.Lock()
+	serverIDs := make([]string, 0, len(a.mcpProcesses))
+	for serverID := range a.mcpProcesses {
+		serverIDs = append(serverIDs, serverID)
+	}
+	a.mcpMutex.Unlock()
+
+	var lastError error
+	for _, serverID := range serverIDs {
+		if err := a.StopMCPServer(serverID); err != nil {
+			runtime.LogError(a.ctx, fmt.Sprintf("Failed to stop MCP server %s: %v", serverID, err))
+			lastError = err
+		}
+	}
+
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Stopped %d MCP servers", len(serverIDs)))
+	return lastError
+}
+
 // SendMCPMessage sends a JSON-RPC message to an MCP server
 func (a *App) SendMCPMessage(serverID string, message MCPMessage) error {
 	a.mcpMutex.RLock()

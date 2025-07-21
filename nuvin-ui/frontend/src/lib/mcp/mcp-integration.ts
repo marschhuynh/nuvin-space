@@ -28,6 +28,9 @@ export class MCPIntegrationService {
 
     // Initialize MCP servers
     try {
+      // Stop any existing servers first to prevent "already running" conflicts
+      await mcpManager.stopAllServers();
+      
       await mcpManager.initializeServers(mcpConfigs);
       console.log('MCP servers initialized successfully');
     } catch (error) {

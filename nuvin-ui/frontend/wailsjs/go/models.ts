@@ -44,7 +44,6 @@ export namespace main {
 	        this.streamId = source["streamId"];
 	    }
 	}
-  
 	export class MCPMessage {
 	    jsonrpc: string;
 	    id?: any;
@@ -85,5 +84,6 @@ export namespace main {
 	        this.env = source["env"];
 	    }
 	}
+
 }
 

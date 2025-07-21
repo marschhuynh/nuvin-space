@@ -67,7 +67,7 @@ export function ToolDebugger() {
           </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">
         {/* Selected Agent */}
         <div>
           <h4 className="font-medium text-sm mb-2">Selected Agent</h4>
@@ -86,7 +86,7 @@ export function ToolDebugger() {
         {/* Built-in Tools */}
         <div>
           <h4 className="font-medium text-sm mb-2">Built-in Tools ({debugInfo.toolRegistry.builtInTools.length})</h4>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto pr-2">
             {debugInfo.toolRegistry.builtInTools.map((tool: string) => (
               <Badge key={tool} variant="secondary" className="text-xs">
                 {tool}
@@ -98,7 +98,7 @@ export function ToolDebugger() {
         {/* MCP Tools */}
         <div>
           <h4 className="font-medium text-sm mb-2">MCP Tools ({debugInfo.toolRegistry.mcpTools.length})</h4>
-          <div className="space-y-1">
+          <div className="space-y-1 max-h-40 overflow-y-auto pr-2">
             {debugInfo.toolRegistry.mcpTools.map((tool: any) => (
               <div key={tool.name} className="flex items-center space-x-2">
                 <Badge 
@@ -120,7 +120,7 @@ export function ToolDebugger() {
           <div className="space-y-2">
             <div>
               <span className="text-xs font-medium">Manually Configured Tools:</span>
-              <div className="flex flex-wrap gap-1 mt-1">
+              <div className="flex flex-wrap gap-1 mt-1 max-h-24 overflow-y-auto pr-2">
                 {debugInfo.agentTools.configuredTools.length > 0 ? (
                   debugInfo.agentTools.configuredTools.map((tool: string) => (
                     <Badge key={tool} variant="outline" className="text-xs">
@@ -135,7 +135,7 @@ export function ToolDebugger() {
             
             <div>
               <span className="text-xs font-medium">Actually Available to Agent:</span>
-              <div className="flex flex-wrap gap-1 mt-1">
+              <div className="flex flex-wrap gap-1 mt-1 max-h-24 overflow-y-auto pr-2">
                 {debugInfo.agentTools.availableToAgent.map((tool: string) => (
                   <Badge key={tool} variant="default" className="text-xs">
                     {tool}
@@ -149,7 +149,7 @@ export function ToolDebugger() {
         {/* Raw Debug Data */}
         <details className="text-xs">
           <summary className="cursor-pointer font-medium mb-2">Raw Debug Data</summary>
-          <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-48">
+          <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-96 border border-gray-200">
             {JSON.stringify(debugInfo, null, 2)}
           </pre>
         </details>

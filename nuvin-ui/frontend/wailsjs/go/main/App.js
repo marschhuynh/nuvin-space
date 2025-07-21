@@ -30,6 +30,10 @@ export function StartMCPServer(arg1) {
   return window['go']['main']['App']['StartMCPServer'](arg1);
 }
 
+export function StopAllMCPServers() {
+  return window['go']['main']['App']['StopAllMCPServers']();
+}
+
 export function StopMCPServer(arg1) {
   return window['go']['main']['App']['StopMCPServer'](arg1);
 }
