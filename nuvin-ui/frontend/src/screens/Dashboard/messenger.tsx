@@ -81,10 +81,10 @@ export default function Messenger() {
   // Create combined messages with streaming content
   const messages = streamingMessageId
     ? storeMessages.map((msg) =>
-        msg.id === streamingMessageId
-          ? { ...msg, content: streamingContent }
-          : msg
-      )
+      msg.id === streamingMessageId
+        ? { ...msg, content: streamingContent }
+        : msg
+    )
     : storeMessages;
 
   // Handlers
@@ -206,17 +206,15 @@ export default function Messenger() {
           const errorMessage: Message = {
             id: streamingId,
             role: "assistant",
-            content: `❌ Failed to send message: ${
-              error instanceof Error ? error.message : "Unknown error"
-            }. ${
-              !activeAgent
+            content: `❌ Failed to send message: ${error instanceof Error ? error.message : "Unknown error"
+              }. ${!activeAgent
                 ? "No agent selected."
                 : !activeProvider && agentType === "local"
-                ? "No provider configured for local agent."
-                : activeAgent.agentType === "remote" && !activeAgent.url
-                ? "No URL configured for remote agent."
-                : "Please check your configuration and try again."
-            }`,
+                  ? "No provider configured for local agent."
+                  : activeAgent.agentType === "remote" && !activeAgent.url
+                    ? "No URL configured for remote agent."
+                    : "Please check your configuration and try again."
+              }`,
             timestamp: new Date().toISOString(),
           };
           updateMessage(conversationId, errorMessage);
@@ -382,8 +380,9 @@ export default function Messenger() {
             messages={messages}
             isLoading={isLoading}
             streamingMessageId={streamingMessageId}
-            initialLoadCount={10}
-            loadMoreCount={10}
+            initialLoadCount={15}
+            loadMoreCount={15}
+            conversationId={activeConversationId}
           />
 
           {/* Agent Status Bar */}
@@ -392,11 +391,10 @@ export default function Messenger() {
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-muted/10 transition-all duration-200 hover:bg-muted/20">
                   <div
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      isReady
-                        ? "bg-green-500 shadow-sm shadow-green-500/30"
-                        : "bg-red-500 shadow-sm shadow-red-500/30"
-                    }`}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${isReady
+                      ? "bg-green-500 shadow-sm shadow-green-500/30"
+                      : "bg-red-500 shadow-sm shadow-red-500/30"
+                      }`}
                   />
                   <span className="text-xs font-medium text-muted-foreground transition-colors duration-200">
                     Agent: {activeAgent?.name || "None"}

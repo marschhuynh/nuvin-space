@@ -10,29 +10,32 @@ interface MessageListPaginatedProps {
   streamingMessageId?: string | null;
   initialLoadCount?: number;
   loadMoreCount?: number;
+  conversationId?: string;
 }
 
 export function MessageListPaginated({
   messages,
   isLoading = false,
   streamingMessageId,
-  initialLoadCount = 5,
-  loadMoreCount = 10,
+  initialLoadCount = 15,
+  loadMoreCount = 15,
+  conversationId,
 }: MessageListPaginatedProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [displayedCount, setDisplayedCount] = useState(initialLoadCount);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const lastScrollTop = useRef(10);
 
   // Get the messages to display (from the end, newest first)
   const displayedMessages = messages.slice(-displayedCount);
   const hasMoreMessages = messages.length > displayedCount;
 
-  const scrollToBottom = () => {
-    if (parentRef.current) {
-      parentRef.current.scrollTo({
-        top: parentRef.current.scrollHeight,
-        behavior: "smooth",
+  const scrollToBottom = (smooth = false) => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: smooth ? "smooth" : "auto",
+        block: "end",
       });
     }
   };
@@ -66,16 +69,20 @@ export function MessageListPaginated({
     }, 0);
   }, [isLoadingMore, hasMoreMessages, loadMoreCount, messages.length]);
 
-  // Handle scroll to detect when user reaches the top
+  // Handle scroll to detect when user scrolls up and reaches the top
   const handleScroll = useCallback(() => {
     if (!parentRef.current || isLoadingMore || !hasMoreMessages) return;
 
     const { scrollTop } = parentRef.current;
+    const isScrollingUp = scrollTop < lastScrollTop.current;
 
-    // If user scrolled to within 100px of the top, load more messages
-    if (scrollTop <= 100) {
+    // Only load more messages if user is scrolling UP and near the top
+    if (isScrollingUp && scrollTop <= 200) {
       loadMoreMessages();
     }
+
+    // Update last scroll position after checking
+    lastScrollTop.current = scrollTop;
   }, [isLoadingMore, hasMoreMessages, loadMoreMessages]);
 
   // Attach scroll listener
@@ -87,25 +94,20 @@ export function MessageListPaginated({
     return () => scrollElement.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-  // Scroll to bottom only when new messages arrive (not when loading more)
   useEffect(() => {
-    if (displayedMessages.length > 0 && !isLoadingMore) {
-      // Only auto-scroll if we're showing all messages or if it's a new message
-      const isShowingAllMessages = displayedCount >= messages.length;
-      if (isShowingAllMessages) {
-        setTimeout(() => {
-          scrollToBottom();
-        }, 100);
-      }
-    }
-  }, [displayedMessages.length, isLoadingMore, displayedCount, messages.length]);
-
-  // Initial scroll to bottom
-  useEffect(() => {
-    setTimeout(() => {
+    // Initial scroll to bottom or new message is user message
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage.role === "user") {
       scrollToBottom();
-    }, 300);
-  }, []);
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (conversationId) {
+      console.log("conversationId", conversationId);
+      scrollToBottom();
+    }
+  }, [conversationId]);
 
   // Reset displayed count when messages change significantly
   useEffect(() => {
@@ -173,11 +175,11 @@ export function MessageListPaginated({
 
   return (
     <div className="flex-1 overflow-hidden bg-message-list-background">
-      <div className="h-full p-6">
-        <div className="max-w-4xl mx-auto h-full">
-          <div ref={parentRef} className="h-full overflow-auto">
+      <div ref={parentRef} className="h-full overflow-auto">
+        <div className="p-6">
+          <div className="max-w-4xl mx-auto">
             {renderMessages()}
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} className='h-2 w-2 bg-amber-300 mt-4' />
           </div>
         </div>
       </div>
