@@ -50,12 +50,10 @@ export function ModelStateManager() {
 
   const listRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
-    useAnimationFrameWithResizeObserver: true,
     count: filteredModels.length,
     getScrollElement: () => listRef.current,
     estimateSize: () => 140,
-    overscan: 7,
-    measureElement: (el) => el?.getBoundingClientRect().height ?? 140,
+    overscan: 5,
   });
 
   const handleReloadModels = async () => {
@@ -243,7 +241,7 @@ export function ModelStateManager() {
         </div>
 
         {/* Individual Model Controls */}
-        <div className="space-y-2 flex-1 overflow-y-auto" ref={listRef}>
+        <div className="space-y-2 flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="text-center text-muted-foreground py-4">
               <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-2" />
@@ -256,22 +254,20 @@ export function ModelStateManager() {
                 : 'No models available'}
             </div>
           ) : (
-            <div
-              style={{ height: virtualizer.getTotalSize(), position: 'relative' }}
-            >
-              {virtualizer.getVirtualItems().map((virtualItem) => {
-                const model = filteredModels[virtualItem.index];
+            <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }} ref={listRef}>
+              {virtualizer.getVirtualItems().map((virtualRow) => {
+                const model = filteredModels[virtualRow.index];
                 return (
                   <div
                     key={model.id}
-                    data-index={virtualItem.index}
+                    data-index={virtualRow.index}
                     ref={virtualizer.measureElement}
                     style={{
                       position: 'absolute',
                       top: 0,
                       left: 0,
                       width: '100%',
-                      transform: `translateY(${virtualItem.start}px)`,
+                      transform: `translateY(${virtualRow.start}px)`,
                     }}
                     className="pb-2"
                   >
@@ -283,9 +279,9 @@ export function ModelStateManager() {
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1 space-y-3">
-                    {/* Model ID, Modality Icons, and Toggle */}
-                    <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0 flex-1 space-y-3">
+                          {/* Model ID, Modality Icons, and Toggle */}
+                          <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <button
                           type="button"
@@ -394,7 +390,9 @@ export function ModelStateManager() {
                     )}
                   </div>
                 </div>
-              );
+              </div>
+            </div>
+                );
               })}
             </div>
           )}
