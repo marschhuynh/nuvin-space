@@ -38,7 +38,9 @@ type AgentType = 'local' | 'remote';
 
 export function AgentSettings() {
   const { agents, deleteAgent, addAgent, updateAgent } = useAgentStore();
-  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(
+    agents[0]?.id || null,
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
