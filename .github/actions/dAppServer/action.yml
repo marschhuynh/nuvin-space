@@ -120,6 +120,10 @@ runs:
       run: |
         sudo apt-get -yq update
         DISTRO=$(lsb_release -rs) # Get the distribution version (e.g., "22.04", "24.04")
+        
+        # Install X11 development libraries needed for gohook
+        sudo apt-get -yq install libx11-dev libxcb1-dev libxcb-xlib0-dev libxkbcommon-dev libxkbcommon-x11-dev libxrandr-dev libxtst-dev libxinerama-dev
+        
         if [[ "$DISTRO" == "20.04" ]]; then
           sudo apt-get -yq install libgtk-3-0 libwebkit2gtk-4.0-dev gcc-aarch64-linux-gnu
         elif [[ "$DISTRO" == "22.04" ]]; then
