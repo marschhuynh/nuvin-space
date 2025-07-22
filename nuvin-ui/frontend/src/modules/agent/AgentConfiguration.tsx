@@ -16,9 +16,6 @@ import type { AgentConfig, AgentSettings } from '@/types';
 import {
   AlertCircle,
   Bot,
-  CheckCircle,
-  Circle,
-  Clock,
   Globe,
   Home,
   Loader2,
@@ -73,29 +70,9 @@ export function AgentConfiguration({
       };
       onConfigChange(config);
     }
-  }, [
-    agents,
-    activeAgentId,
-    providers,
-    activeProviderId,
-    onConfigChange,
-    agentCardInfo,
-  ]);
+  }, [agents, activeAgentId, onConfigChange]);
 
-  // Fetch agent card info when a remote agent is selected
-  useEffect(() => {
-    const selectedAgent = agents.find((agent) => agent.id === activeAgentId);
-
-    if (selectedAgent?.agentType === 'remote' && selectedAgent.url) {
-      fetchAgentCardInfo(selectedAgent);
-    } else {
-      // Clear agent card info for non-remote agents
-      setAgentCardInfo(null);
-      setAgentCardError(null);
-    }
-  }, [activeAgentId, agents]);
-
-  const fetchAgentCardInfo = async (agent: AgentSettings) => {
+  const fetchAgentCardInfo = useCallback(async (agent: AgentSettings) => {
     if (!agent.url) return;
 
     setLoadingAgentCard(true);
@@ -132,7 +109,20 @@ export function AgentConfiguration({
     } finally {
       setLoadingAgentCard(false);
     }
-  };
+  }, []);
+
+  // Fetch agent card info when a remote agent is selected
+  useEffect(() => {
+    const selectedAgent = agents.find((agent) => agent.id === activeAgentId);
+
+    if (selectedAgent?.agentType === 'remote' && selectedAgent.url) {
+      fetchAgentCardInfo(selectedAgent);
+    } else {
+      // Clear agent card info for non-remote agents
+      setAgentCardInfo(null);
+      setAgentCardError(null);
+    }
+  }, [activeAgentId, agents, fetchAgentCardInfo]);
 
   const handleAgentChange = (agentId: string) => {
     setActiveAgent(agentId);
@@ -239,45 +229,6 @@ export function AgentConfiguration({
       };
     });
   }, [enabledModels]);
-
-  const getStatusIcon = (status?: AgentSettings['status']) => {
-    switch (status) {
-      case 'active':
-        return <CheckCircle className="h-3 w-3 text-green-500" />;
-      case 'busy':
-        return <Clock className="h-3 w-3 text-yellow-500" />;
-      default:
-        return <Circle className="h-3 w-3 text-gray-400" />;
-    }
-  };
-
-  // Helper function to get agent description based on persona
-  const getAgentDescription = (agent: AgentSettings): string => {
-    if (agent.description) return agent.description;
-
-    // For remote agents, provide a generic description since detailed info is shown in agent card
-    if (agent.agentType === 'remote') {
-      return `Remote A2A agent${
-        agent.url ? ` connected to ${agent.url}` : ''
-      }. This agent is hosted externally and follows the Agent2Agent protocol.`;
-    }
-
-    // Generate description based on persona for local agents
-    const personaDescriptions = {
-      helpful:
-        'A friendly and supportive assistant ready to help with various tasks.',
-      professional:
-        'A business-focused assistant providing professional guidance and analysis.',
-      creative:
-        'An imaginative assistant specializing in creative thinking and content generation.',
-      analytical:
-        'A detail-oriented assistant focused on data analysis and logical reasoning.',
-      casual:
-        'A relaxed and conversational assistant for everyday interactions.',
-    };
-
-    return personaDescriptions[agent.persona] || 'A versatile AI assistant.';
-  };
 
   // Helper function to get default tools based on persona
   const getAgentTools = (agent: AgentSettings) => {
@@ -392,39 +343,6 @@ export function AgentConfiguration({
                   <Settings className="h-4 w-4 text-muted-foreground" />
                   Model Configuration
                 </h3>
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">Select Provider</Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleNavigateToProviderSettings}
-                    className="h-4 w-4 p-0 hover:bg-muted/50 cursor-pointer"
-                    title="Go to Provider Settings"
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                </div>
-                <Select
-                  value={activeProviderId}
-                  onValueChange={handleProviderChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose AI provider" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {providers.map((provider) => (
-                      <SelectItem key={provider.id} value={provider.id}>
-                        <div className="flex items-center gap-2">
-                          <Settings className="h-4 w-4 text-muted-foreground" />
-                          <span>{provider.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
 
               {/* Model Selection */}
