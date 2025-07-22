@@ -282,7 +282,7 @@ export function AgentSettings() {
   return (
     <div className="flex h-full">
       {/* Left Panel - Agent List */}
-      <div className="w-80 flex-shrink-0 border-r bg-card">
+      <div className="flex flex-col w-80 border-r bg-card">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b">
           <div className="flex items-center gap-2">
@@ -369,15 +369,15 @@ export function AgentSettings() {
       </div>
 
       {/* Right Panel - Agent Form */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {(selectedAgent && !isCreating) || isEditing ? (
           <>
             {/* Form Header */}
-            <div className="p-4 bg-card">
+            <div className="p-4 bg-card border-b">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`p-2 rounded-lg ${
+                    className={`p-1.5 rounded-lg ${
                       agentData.agentType === 'remote'
                         ? 'bg-blue-50 dark:bg-blue-950/30'
                         : 'bg-green-50 dark:bg-green-950/30'
@@ -393,7 +393,7 @@ export function AgentSettings() {
                     <h1 className="text-lg font-semibold">
                       {isCreating
                         ? 'Create New Agent'
-                        : `Edit ${selectedAgent?.name}`}
+                        : `${isEditing ? 'Edit' : ''} ${selectedAgent?.name}`}
                     </h1>
                   </div>
                 </div>
@@ -443,96 +443,88 @@ export function AgentSettings() {
             </div>
 
             {/* Agent Form - 2 Column Layout */}
-            <div className="flex-1 flex flex-col p-6 min-h-0">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-                {/* Left Column - Agent Configuration */}
-                <div className="space-y-6">
-                  {/* Basic Settings */}
-                  <div className="space-y-4">
-                    <BasicAgentSettings
-                      name={agentData.name}
-                      agentType={agentData.agentType}
-                      isEditing={isEditing}
-                      onNameChange={(name) =>
-                        setAgentData({ ...agentData, name })
-                      }
-                      onAgentTypeChange={(agentType) =>
-                        setAgentData({ ...agentData, agentType })
-                      }
-                    />
-                  </div>
+            <div className="flex-1 flex p-6 gap-6 min-h-0 overflow-hidden">
+              {/* Left Column - Agent Configuration */}
+              <div className="flex flex-col w-1/3 space-y-6">
+                {/* Basic Settings */}
+                <BasicAgentSettings
+                  name={agentData.name}
+                  agentType={agentData.agentType}
+                  isEditing={isEditing}
+                  onNameChange={(name) => setAgentData({ ...agentData, name })}
+                  onAgentTypeChange={(agentType) =>
+                    setAgentData({ ...agentData, agentType })
+                  }
+                />
 
-                  {/* Local Agent Settings */}
-                  {agentData.agentType === 'local' && (
-                    <LocalAgentSettings
-                      persona={agentData.persona}
-                      responseLength={agentData.responseLength}
-                      temperature={agentData.temperature}
-                      topP={agentData.topP}
-                      maxTokens={agentData.maxTokens}
-                      isEditing={isEditing}
-                      onPersonaChange={(persona) =>
-                        setAgentData({ ...agentData, persona })
-                      }
-                      onResponseLengthChange={(responseLength) =>
-                        setAgentData({ ...agentData, responseLength })
-                      }
-                      onTemperatureChange={(temperature) =>
-                        setAgentData({ ...agentData, temperature })
-                      }
-                      onTopPChange={(topP) =>
-                        setAgentData({ ...agentData, topP })
-                      }
-                      onMaxTokensChange={(maxTokens) =>
-                        setAgentData({ ...agentData, maxTokens })
-                      }
-                    />
-                  )}
+                {/* Local Agent Settings */}
+                {agentData.agentType === 'local' && (
+                  <LocalAgentSettings
+                    persona={agentData.persona}
+                    responseLength={agentData.responseLength}
+                    temperature={agentData.temperature}
+                    topP={agentData.topP}
+                    maxTokens={agentData.maxTokens}
+                    isEditing={isEditing}
+                    onPersonaChange={(persona) =>
+                      setAgentData({ ...agentData, persona })
+                    }
+                    onResponseLengthChange={(responseLength) =>
+                      setAgentData({ ...agentData, responseLength })
+                    }
+                    onTemperatureChange={(temperature) =>
+                      setAgentData({ ...agentData, temperature })
+                    }
+                    onTopPChange={(topP) =>
+                      setAgentData({ ...agentData, topP })
+                    }
+                    onMaxTokensChange={(maxTokens) =>
+                      setAgentData({ ...agentData, maxTokens })
+                    }
+                  />
+                )}
 
-                  {/* Remote Agent Settings */}
-                  {agentData.agentType === 'remote' && (
-                    <RemoteAgentSettings
-                      url={agentData.url}
-                      isEditing={isEditing}
-                      isTestingConnection={testingConnection}
-                      connectionStatus={connectionStatus}
-                      onUrlChange={(url) => {
-                        setAgentData({ ...agentData, url });
-                        setConnectionStatus('idle');
-                      }}
-                      onTestConnection={testConnection}
-                    />
-                  )}
+                {/* Remote Agent Settings */}
+                {agentData.agentType === 'remote' && (
+                  <RemoteAgentSettings
+                    url={agentData.url}
+                    isEditing={isEditing}
+                    isTestingConnection={testingConnection}
+                    connectionStatus={connectionStatus}
+                    onUrlChange={(url) => {
+                      setAgentData({ ...agentData, url });
+                      setConnectionStatus('idle');
+                    }}
+                    onTestConnection={testConnection}
+                  />
+                )}
 
-                  {/* Authentication Settings for Remote Agents */}
-                  {agentData.agentType === 'remote' && (
-                    <div className="bg-card rounded-lg border p-6">
-                      <h3 className="text-lg font-semibold mb-4">
-                        Authentication
-                      </h3>
-                      <AuthenticationSettings
-                        auth={agentData.auth}
-                        isEditing={isEditing}
-                        onAuthChange={(auth) =>
-                          setAgentData({ ...agentData, auth })
-                        }
-                      />
-                    </div>
-                  )}
+                {/* Authentication Settings for Remote Agents */}
+                {agentData.agentType === 'remote' && (
+                  <AuthenticationSettings
+                    auth={agentData.auth}
+                    isEditing={isEditing}
+                    onAuthChange={(auth) =>
+                      setAgentData({ ...agentData, auth })
+                    }
+                  />
+                )}
 
-                  {/* Tool Settings for Local Agents */}
-                  {agentData.agentType === 'local' && (
-                    <ToolSettings
-                      toolConfig={agentData.toolConfig}
-                      isEditing={isEditing}
-                      onToolConfigChange={(toolConfig) =>
-                        setAgentData({ ...agentData, toolConfig })
-                      }
-                    />
-                  )}
-                </div>
+                {/* Tool Settings for Local Agents */}
 
-                {/* Right Column - System Prompt */}
+                {agentData.agentType === 'local' && (
+                  <ToolSettings
+                    toolConfig={agentData.toolConfig}
+                    isEditing={isEditing}
+                    onToolConfigChange={(toolConfig) =>
+                      setAgentData({ ...agentData, toolConfig })
+                    }
+                  />
+                )}
+              </div>
+
+              {/* Right Column - System Prompt */}
+              <div className="w-2/3 h-full">
                 <SystemPromptSettings
                   systemPrompt={agentData.systemPrompt}
                   agentType={agentData.agentType}

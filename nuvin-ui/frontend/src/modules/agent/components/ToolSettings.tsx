@@ -39,17 +39,14 @@ export function ToolSettings({
     .filter(
       (tool) =>
         tool.definition.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (tool.definition.description &&
-          tool.definition.description
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())) ||
-        (tool.category &&
-          tool.category.toLowerCase().includes(searchTerm.toLowerCase())),
+        tool.definition?.description
+          ?.toLowerCase?.()
+          ?.includes(searchTerm.toLowerCase()) ||
+        tool.category?.toLowerCase?.().includes(searchTerm.toLowerCase()),
     );
 
   return (
-    // <div className="space-y-4 flex flex-col h-[calc(100vh-12rem)]">
-    <div className="space-y-4 flex flex-col">
+    <div className="space-y-4 flex flex-col h-full min-h-0">
       {/* Tool Settings */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -98,7 +95,14 @@ export function ToolSettings({
 
       {/* Available Tools */}
       <div className="space-y-2 flex-1 flex flex-col min-h-0">
-        <Label>Available Tools</Label>
+        <div className="flex items-center justify-between">
+          <Label>Available Tools</Label>
+          <p className="text-xs text-muted-foreground">
+            {filteredTools.length} tools available •{' '}
+            {toolConfig.enabledTools.length} enabled
+          </p>
+        </div>
+
         <div className="space-y-2 flex-1 flex flex-col min-h-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -152,8 +156,8 @@ export function ToolSettings({
                         </span>
                       </div>
                       {tool.definition.description && (
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                          {tool.definition.description}
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {tool.definition.description.substring(0, 100)}
                         </p>
                       )}
                     </div>
@@ -163,10 +167,6 @@ export function ToolSettings({
             )}
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">
-          {filteredTools.length} tools available •{' '}
-          {toolConfig.enabledTools.length} enabled
-        </p>
       </div>
     </div>
   );

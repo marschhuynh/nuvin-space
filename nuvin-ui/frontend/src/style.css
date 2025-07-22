@@ -87,7 +87,8 @@
   --sidebar-ring: oklch(0.708 0 0);
   --message-list-background: oklch(0.97 0 0);
 
-  --header-height: calc(62px + 85px);
+  --nav-height: 62px;
+  --header-height: calc(var(--nav-height) + 85px);
 }
 
 .dark {

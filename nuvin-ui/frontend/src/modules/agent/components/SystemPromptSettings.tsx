@@ -15,7 +15,7 @@ export function SystemPromptSettings({
   onSystemPromptChange,
 }: SystemPromptSettingsProps) {
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex flex-col min-h-0 h-full">
       <div className="grid gap-2 mb-2">
         <Label htmlFor="systemPrompt">
           {agentType === 'remote' ? 'Instructions' : 'System Prompt'}
@@ -31,10 +31,10 @@ export function SystemPromptSettings({
               ? 'Enter instructions for the remote agent...'
               : 'Enter system prompt...'
           }
-          className="flex-1 resize-none w-full min-h-[200px]"
+          className="flex-1 resize-none w-full"
         />
       ) : (
-        <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm leading-relaxed whitespace-pre-wrap min-h-[200px] overflow-auto select-all">
+        <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm leading-relaxed whitespace-pre-wrap overflow-auto select-all">
           {systemPrompt || 'No system prompt configured'}
         </div>
       )}

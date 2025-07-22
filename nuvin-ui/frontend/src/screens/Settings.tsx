@@ -83,7 +83,7 @@ export default function Settings() {
 
       {/* Content Area */}
       <div className="flex-1 flex flex-col bg-background">
-        <div className="flex-1">
+        <div className="flex-1 h-[calc(100vh-var(--nav-height)-68px)]">
           {activeTab === 'general' && (
             <GeneralSettings
               settings={preferences}
@@ -107,13 +107,6 @@ export default function Settings() {
           )}
 
           {activeTab === 'debug' && <ToolDebugger />}
-        </div>
-
-        {/* Footer */}
-        <div className="border-t px-6 py-4">
-          <Button variant="outline" onClick={handleReset}>
-            Reset to Defaults
-          </Button>
         </div>
       </div>
 

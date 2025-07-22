@@ -112,17 +112,15 @@ export function ProviderSettings({ onAddProvider }: ProviderSettingsProps) {
           {/* Right Side - Model Management */}
           <div className="w-2/3 flex flex-col min-h-0">
             <div className="font-medium text-sm mb-3 flex-shrink-1">Models</div>
-            <div className="flex-1 min-h-0">
-              {activeProviderId ? (
-                <ModelStateManager />
-              ) : (
-                <div className="border rounded-lg bg-muted/20 h-full flex items-center justify-center">
-                  <div className="text-center text-muted-foreground">
-                    Select a provider to view available models
-                  </div>
+            {activeProviderId ? (
+              <ModelStateManager />
+            ) : (
+              <div className="border rounded-lg bg-muted/20 h-full flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  Select a provider to view available models
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 

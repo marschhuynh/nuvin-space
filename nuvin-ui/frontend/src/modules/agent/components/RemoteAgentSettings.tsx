@@ -41,8 +41,20 @@ export function RemoteAgentSettings({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-2">
-        <Label htmlFor="agentUrl">Agent URL</Label>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="agentUrl">Agent URL</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={onTestConnection}
+            disabled={!url.trim() || isTestingConnection}
+            className="h-6 w-6"
+          >
+            {getConnectionIcon()}
+          </Button>
+        </div>
         {isEditing ? (
           <>
             <Input
@@ -64,39 +76,6 @@ export function RemoteAgentSettings({
           </div>
         )}
       </div>
-
-      {/* Test Connection */}
-      {isEditing && (
-        <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onTestConnection}
-            disabled={!url.trim() || isTestingConnection}
-            className="flex items-center gap-2 h-8.5"
-          >
-            {getConnectionIcon()}
-            Test Connection
-          </Button>
-
-          {connectionStatus !== 'idle' && (
-            <span
-              className={`text-sm font-medium ${
-                connectionStatus === 'success'
-                  ? 'text-green-600'
-                  : connectionStatus === 'error'
-                    ? 'text-red-600'
-                    : 'text-yellow-600'
-              }`}
-            >
-              {connectionStatus === 'success' && '✅ Connected'}
-              {connectionStatus === 'error' && '❌ Failed'}
-              {connectionStatus === 'warning' && '⚠️ Issues'}
-            </span>
-          )}
-        </div>
-      )}
 
       {/* Placeholder for remote agent alignment */}
       <div className="grid gap-2">
