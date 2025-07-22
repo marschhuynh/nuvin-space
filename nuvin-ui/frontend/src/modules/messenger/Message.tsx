@@ -1,9 +1,10 @@
 import { User, Cpu, Copy, Check, FileText } from 'lucide-react';
 import { useState, useCallback, useMemo } from 'react';
+import { parseToolCalls, stripToolCalls } from '@/lib/utils/tool-call-parser';
 import { ClipboardSetText } from '../../../wailsjs/runtime/runtime';
 import { MarkdownRenderer } from './MarkdownRenderer';
-import { parseToolCalls, stripToolCalls } from '@/lib/utils/tool-call-parser';
 import { ToolCall } from './components/ToolCall';
+import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
 
 interface MessageProps {
   id: string;
@@ -16,6 +17,7 @@ interface MessageProps {
 export function Message({ role, content, isStreaming = false }: MessageProps) {
   const [copied, setCopied] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
+  const { preferences } = useUserPreferenceStore();
 
   const trimmedContent = content.trim();
 
@@ -76,6 +78,7 @@ export function Message({ role, content, isStreaming = false }: MessageProps) {
       {role === 'user' && trimmedContent.length > 0 && (
         <div className="flex flex-col gap-1 self-end sticky top-2 z-10 opacity-0 group-hover:opacity-100 transition-all duration-200">
           <button
+            type="button"
             onClick={handleCopy}
             className={`p-1.5 rounded-md transition-all duration-200 hover:bg-muted text-muted-foreground backdrop-blur-sm border border-border/50 shadow-sm bg-background/80 ${copied ? 'scale-110 bg-green-100/80 text-green-600' : ''}`}
             title="Copy message"
@@ -91,12 +94,14 @@ export function Message({ role, content, isStreaming = false }: MessageProps) {
 
       {trimmedContent.length > 0 && (
         <div
-          className={`max-w-[70%] p-4 rounded-lg shadow-lg border overflow-auto transition-all duration-300 ${
-            role === 'user'
-              ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-primary/20 shadow-primary/20'
-              : isStreaming
-                ? 'bg-gradient-to-br from-card to-card/80 border-border/50 shadow-md'
-                : 'bg-card border-border hover:shadow-xl hover:border-border/80'
+          className={`max-w-[70%] rounded-lg overflow-auto transition-all duration-300 ${
+            preferences.messageMode === 'transparent'
+              ? 'text-foreground'
+              : role === 'user'
+                ? 'p-4 bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-primary/20 shadow-primary/20 shadow-lg border'
+                : isStreaming
+                  ? 'p-4 bg-gradient-to-br from-card to-card/80 border-border/50 shadow-md border'
+                  : 'p-4 bg-card border-border hover:shadow-xl hover:border-border/80 shadow-lg border'
           }`}
         >
           {role === 'user' || showRaw ? (
@@ -140,6 +145,7 @@ export function Message({ role, content, isStreaming = false }: MessageProps) {
       {role === 'assistant' && trimmedContent.length > 0 && (
         <div className="flex flex-col self-end gap-1 z-10 opacity-1 group-hover:opacity-100 transition-all duration-200">
           <button
+            type="button"
             onClick={toggleRawView}
             className={`p-1.5 rounded-md transition-all duration-200 hover:bg-muted text-muted-foreground backdrop-blur-sm border border-border/50 shadow-sm ${
               showRaw ? 'bg-muted/80' : 'bg-background/80'
@@ -149,6 +155,7 @@ export function Message({ role, content, isStreaming = false }: MessageProps) {
             <FileText className="h-4 w-4" />
           </button>
           <button
+            type="button"
             onClick={handleCopy}
             className={`p-1.5 rounded-md transition-all duration-200 hover:bg-muted text-muted-foreground backdrop-blur-sm border border-border/50 shadow-sm bg-background/80 ${copied ? 'scale-110 bg-green-100/80 text-green-600' : ''}`}
             title="Copy message"

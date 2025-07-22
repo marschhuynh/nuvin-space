@@ -338,13 +338,6 @@ export function AgentConfiguration({
           {/* Model Configuration - Only show for local agents */}
           {selectedAgent?.agentType === 'local' && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between pb-3 border-b">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Settings className="h-4 w-4 text-muted-foreground" />
-                  Model Configuration
-                </h3>
-              </div>
-
               {/* Model Selection */}
               {activeProvider && (
                 <div className="space-y-1">

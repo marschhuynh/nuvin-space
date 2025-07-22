@@ -16,6 +16,7 @@ export interface UserPreferences {
   notifications: boolean;
   autoSave: boolean;
   fontSize: 'small' | 'medium' | 'large';
+  messageMode: 'normal' | 'transparent';
   mcpServers: MCPConfig[];
 }
 
@@ -33,6 +34,7 @@ const defaultPreferences: UserPreferences = {
   notifications: true,
   autoSave: true,
   fontSize: 'medium',
+  messageMode: 'normal',
   mcpServers: [],
 };
 

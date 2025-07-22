@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Sun, Moon, Monitor, Droplet, GlassWater } from 'lucide-react';
+import { Sun, Moon, Monitor, Droplet, GlassWater, MessageSquare, Eye } from 'lucide-react';
 import type { UserPreferences } from '@/store/useUserPreferenceStore';
 import { useTheme } from '@/lib/theme';
 import { CheckForUpdates } from '../../../wailsjs/go/main/App';
@@ -90,6 +90,44 @@ export function GeneralSettings({
                 <div className="flex items-center gap-2">
                   <Monitor className="h-4 w-4" />
                   <span>System</span>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {/* Message Mode Setting */}
+        <div className="grid gap-2">
+          <Label htmlFor="messageMode">Message Mode</Label>
+          <Select
+            value={settings.messageMode}
+            onValueChange={(value: 'normal' | 'transparent') =>
+              onSettingsChange({ messageMode: value })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select message mode">
+                <div className="flex items-center gap-2">
+                  {settings.messageMode === 'normal' && (
+                    <MessageSquare className="h-4 w-4" />
+                  )}
+                  {settings.messageMode === 'transparent' && (
+                    <Eye className="h-4 w-4" />
+                  )}
+                  <span className="capitalize">{settings.messageMode}</span>
+                </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="normal">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  <span>Normal</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="transparent">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  <span>Transparent</span>
                 </div>
               </SelectItem>
             </SelectContent>

@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Message as MessageType } from '@/types';
+import type { Message as MessageType } from '@/types';
 import { Message } from './Message';
 import { LoadingMessage } from './components/LoadingMessage';
 

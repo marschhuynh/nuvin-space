@@ -1,5 +1,11 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
-import { Message as MessageType } from '@/types';
+import {
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useCallback,
+} from 'react';
+import type { Message as MessageType } from '@/types';
 import { Message } from './Message';
 import { LoadingMessage } from './components/LoadingMessage';
 import { Loader2 } from 'lucide-react';
@@ -31,14 +37,14 @@ export function MessageListPaginated({
   const displayedMessages = messages.slice(-displayedCount);
   const hasMoreMessages = messages.length > displayedCount;
 
-  const scrollToBottom = (smooth = false) => {
+  const scrollToBottom = useCallback((smooth = false) => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({
         behavior: smooth ? 'smooth' : 'auto',
         block: 'end',
       });
     }
-  };
+  }, []);
 
   // Load more messages
   const loadMoreMessages = useCallback(async () => {
@@ -94,23 +100,27 @@ export function MessageListPaginated({
     return () => scrollElement.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     // Initial scroll to bottom or new message is user message
     const lastMessage = messages[messages.length - 1];
     if (lastMessage && lastMessage.role === 'user') {
-      scrollToBottom();
+      setTimeout(() => {
+        scrollToBottom(true);
+      }, 100); // Delay to ensure DOM updates
     }
   }, [messages]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (conversationId) {
       console.log('conversationId', conversationId);
-      scrollToBottom();
+      setTimeout(() => {
+        scrollToBottom(true);
+      }, 100); // Delay to ensure DOM updates
     }
-  }, [conversationId]);
+  }, [scrollToBottom, conversationId]);
 
   // Reset displayed count when messages change significantly
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (messages.length < displayedCount) {
       setDisplayedCount(Math.max(initialLoadCount, messages.length));
     }
