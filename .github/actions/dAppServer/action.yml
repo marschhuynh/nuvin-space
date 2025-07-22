@@ -127,8 +127,10 @@ runs:
         elif [[ "$DISTRO" == "24.04" ]]; then
           sudo apt-get -yq install libgtk-3-0 libwebkit2gtk-4.1-dev gcc-aarch64-linux-gnu
         else
-          echo "Unsupported Linux distribution: $DISTRO"
-          exit 1 # Fail the workflow if the distribution is not supported
+          echo "Unsupported Linux distribution: $DISTRO, attempting to install required packages anyway"
+          # Try to install packages that are likely to work on newer Ubuntu versions
+          sudo apt-get -yq install libgtk-3-0 libwebkit2gtk-4.1-dev gcc-aarch64-linux-gnu || \
+          sudo apt-get -yq install libgtk-3-0 libwebkit2gtk-4.0-dev gcc-aarch64-linux-gnu
         fi
         echo "DISTRO=$DISTRO" >> "$GITHUB_OUTPUT"
       shell: bash

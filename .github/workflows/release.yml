@@ -174,10 +174,12 @@ jobs:
           echo "Release type: $RELEASE_TYPE"
           if [ "$RELEASE_TYPE" != "auto" ]; then
             echo "Manual release type specified: $RELEASE_TYPE"
-            # For manual release types, you may need to configure semantic-release accordingly
-            # or use a different release strategy
+            # Configure semantic-release to use the specified release type
+            npx semantic-release --no-ci --release-type $RELEASE_TYPE
+          else
+            # Use semantic-release's default behavior for auto
+            npx semantic-release
           fi
-          npx semantic-release
 
       - name: Upload release artifacts (on failure)
         if: failure()
