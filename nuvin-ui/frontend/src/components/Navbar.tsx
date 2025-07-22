@@ -6,6 +6,7 @@ import { useTheme } from '@/lib/theme';
 import appIcon from '../assets/appstore.png';
 import { Button } from './ui/button';
 
+
 interface NavbarProps {
   userName?: string;
 }
@@ -68,6 +69,8 @@ export function Navbar({ userName = 'Guest' }: NavbarProps) {
                 if (theme === 'light') {
                   setTheme('dark');
                 } else if (theme === 'dark') {
+                  setTheme('all-hands');
+                } else if (theme === 'all-hands') {
                   setTheme('system');
                 } else {
                   setTheme('light');
@@ -77,6 +80,8 @@ export function Navbar({ userName = 'Guest' }: NavbarProps) {
             >
               {theme === 'system' ? (
                 <Monitor className="h-4 w-4" />
+              ) : theme === 'all-hands' ? (
+                <div className="h-4 w-4 flex items-center justify-center text-xs font-bold">AH</div>
               ) : resolvedTheme === 'dark' ? (
                 <Sun className="h-4 w-4 opacity-60" />
               ) : (

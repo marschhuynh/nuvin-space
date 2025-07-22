@@ -1,0 +1,186 @@
+/* All Hands Theme - Clean, professional documentation-style theme */
+
+.all-hands {
+  /* Enhanced typography for better readability */
+  --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  
+  /* Subtle shadows for depth */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  /* Enhanced border radius for modern look */
+  --radius: 0.5rem;
+}
+
+/* Enhanced card styling for All Hands theme */
+.all-hands .card {
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.all-hands .card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Navigation styling to match All Hands docs */
+.all-hands nav {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Button styling for cleaner look */
+.all-hands .btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease-in-out;
+}
+
+.all-hands .btn-primary:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Sidebar styling to match documentation layout */
+.all-hands .sidebar {
+  background: var(--sidebar);
+  border-right: 1px solid var(--sidebar-border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Input styling for cleaner forms */
+.all-hands input,
+.all-hands textarea,
+.all-hands select {
+  border: 1px solid var(--border);
+  background: var(--input);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.all-hands input:focus,
+.all-hands textarea:focus,
+.all-hands select:focus {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Typography enhancements */
+.all-hands h1,
+.all-hands h2,
+.all-hands h3,
+.all-hands h4,
+.all-hands h5,
+.all-hands h6 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--foreground);
+}
+
+.all-hands p {
+  line-height: 1.7;
+  color: var(--foreground);
+}
+
+/* Code blocks and inline code styling */
+.all-hands code {
+  background: var(--muted);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.all-hands pre {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  overflow-x: auto;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Table styling for data presentation */
+.all-hands table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.all-hands th,
+.all-hands td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.all-hands th {
+  background: var(--muted);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.all-hands tr:hover {
+  background: var(--accent);
+}
+
+/* Enhanced scrollbar for All Hands theme */
+.all-hands *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.all-hands *::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+.all-hands *::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.all-hands *::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground);
+}
+
+/* Loading states and animations */
+.all-hands .loading {
+  background: linear-gradient(90deg, var(--muted) 25%, var(--accent) 50%, var(--muted) 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Status indicators */
+.all-hands .status-success {
+  color: var(--chart-3);
+}
+
+.all-hands .status-warning {
+  color: var(--chart-4);
+}
+
+.all-hands .status-error {
+  color: var(--destructive);
+}
+
+.all-hands .status-info {
+  color: var(--primary);
+}

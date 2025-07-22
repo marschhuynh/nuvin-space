@@ -6,6 +6,16 @@ import { defineConfig } from 'vite';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    host: '0.0.0.0',
+    port: 12000,
+    strictPort: true,
+    cors: true,
+    allowedHosts: ['work-1-mjybvfixjquhywug.prod-runtime.all-hands.dev', 'localhost', '127.0.0.1'],
+    hmr: {
+      clientPort: 12000,
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

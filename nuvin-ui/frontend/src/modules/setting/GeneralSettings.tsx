@@ -15,6 +15,7 @@ import {
   GlassWater,
   MessageSquare,
   Eye,
+  Hand,
 } from 'lucide-react';
 import type { UserPreferences } from '@/store/useUserPreferenceStore';
 import { useTheme } from '@/lib/theme';
@@ -47,7 +48,7 @@ export function GeneralSettings({
               <Select
                 value={settings.theme}
                 onValueChange={(
-                  value: 'light' | 'dark' | 'ocean' | 'liquid-glass' | 'system',
+                  value: 'light' | 'dark' | 'ocean' | 'liquid-glass' | 'all-hands' | 'system',
                 ) => onSettingsChange({ theme: value })}
               >
                 <SelectTrigger>
@@ -60,6 +61,9 @@ export function GeneralSettings({
                       )}
                       {settings.theme === 'liquid-glass' && (
                         <GlassWater className="h-4 w-4" />
+                      )}
+                      {settings.theme === 'all-hands' && (
+                        <Hand className="h-4 w-4" />
                       )}
                       {settings.theme === 'system' && (
                         <Monitor className="h-4 w-4" />
@@ -96,6 +100,12 @@ export function GeneralSettings({
                     <div className="flex items-center gap-2">
                       <GlassWater className="h-4 w-4" />
                       <span>Liquid Glass</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="all-hands">
+                    <div className="flex items-center gap-2">
+                      <Hand className="h-4 w-4" />
+                      <span>All Hands</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="system">

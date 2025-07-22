@@ -1,4 +1,4 @@
-export type ThemeName = 'light' | 'dark' | 'ocean' | 'liquid-glass';
+export type ThemeName = 'light' | 'dark' | 'ocean' | 'liquid-glass' | 'all-hands';
 
 export type ThemeVariables = Record<string, string>;
 
@@ -138,6 +138,59 @@ export const themes: Record<ThemeName, ThemeVariables> = {
     'sidebar-border': 'rgba(255, 255, 255, 0.15)',
     'sidebar-ring': 'rgba(99, 102, 241, 0.8)',
     'message-list-background': 'rgba(12, 12, 22, 0.4)',
+  },
+  'all-hands': {
+    // Main background - very light gray/off-white like All Hands docs
+    background: '#f8f9fa',
+    foreground: '#1a1a1a',
+    
+    // Cards and surfaces - clean white with subtle borders
+    card: '#ffffff',
+    'card-foreground': '#1a1a1a',
+    popover: '#ffffff',
+    'popover-foreground': '#1a1a1a',
+    
+    // Primary colors - using a professional blue-gray
+    primary: '#2563eb',
+    'primary-foreground': '#ffffff',
+    
+    // Secondary colors - light gray backgrounds
+    secondary: '#f1f5f9',
+    'secondary-foreground': '#334155',
+    
+    // Muted colors for less prominent elements
+    muted: '#f1f5f9',
+    'muted-foreground': '#64748b',
+    
+    // Accent colors - subtle blue
+    accent: '#e2e8f0',
+    'accent-foreground': '#1e293b',
+    
+    // Destructive - standard red
+    destructive: '#dc2626',
+    
+    // Borders and inputs - light gray
+    border: '#e2e8f0',
+    input: '#ffffff',
+    ring: '#2563eb',
+    
+    // Chart colors - professional palette
+    'chart-1': '#2563eb',
+    'chart-2': '#7c3aed',
+    'chart-3': '#059669',
+    'chart-4': '#d97706',
+    'chart-5': '#dc2626',
+    
+    // Sidebar colors - matching the clean aesthetic
+    sidebar: '#ffffff',
+    'sidebar-foreground': '#1a1a1a',
+    'sidebar-primary': '#2563eb',
+    'sidebar-primary-foreground': '#ffffff',
+    'sidebar-accent': '#f1f5f9',
+    'sidebar-accent-foreground': '#334155',
+    'sidebar-border': '#e2e8f0',
+    'sidebar-ring': '#2563eb',
+    'message-list-background': '#f8f9fa',
   },
 };
 
