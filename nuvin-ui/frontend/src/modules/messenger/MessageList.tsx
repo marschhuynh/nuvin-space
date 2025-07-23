@@ -70,6 +70,7 @@ export function MessageList({
               content={message.content}
               timestamp={message.timestamp}
               isStreaming={streamingMessageId === message.id}
+              metadata={message.metadata}
             />
           ))}
           {isLoading && <LoadingMessage />}
@@ -111,6 +112,7 @@ export function MessageList({
                     content={message.content}
                     timestamp={message.timestamp}
                     isStreaming={streamingMessageId === message.id}
+                    metadata={message.metadata}
                   />
                 )}
               </div>

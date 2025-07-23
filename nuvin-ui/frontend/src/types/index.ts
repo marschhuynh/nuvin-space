@@ -2,11 +2,35 @@
 import type { PROVIDER_TYPES } from '@/lib/providers/provider-utils';
 import type { AgentToolConfig } from './tools';
 
+export interface MessageMetadata {
+  model?: string;
+  provider?: string;
+  agentType?: 'local' | 'remote';
+  agentId?: string;
+  // Token usage
+  tokensUsed?: number;
+  promptTokens?: number;
+  completionTokens?: number;
+  totalTokens?: number;
+  // Cost and performance
+  estimatedCost?: number;
+  responseTime?: number;
+  // Task and tool tracking
+  taskId?: string;
+  toolCalls?: number;
+  // OpenRouter specific metadata
+  generationId?: string;
+  moderationResults?: any;
+  // Provider specific data
+  providerMetadata?: Record<string, any>;
+}
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp?: string;
+  metadata?: MessageMetadata;
 }
 
 export interface Conversation {

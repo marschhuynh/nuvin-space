@@ -21,6 +21,7 @@ export class OpenRouterProvider extends BaseLLMProvider {
     params: CompletionParams,
     signal?: AbortSignal,
   ): Promise<CompletionResult> {
+    const startTime = Date.now();
     const response = await this.makeRequest('/api/v1/chat/completions', {
       body: {
         model: params.model,
@@ -35,7 +36,7 @@ export class OpenRouterProvider extends BaseLLMProvider {
     });
 
     const data = await response.json();
-    return this.createCompletionResult(data);
+    return this.createCompletionResult(data, startTime);
   }
 
   async *generateCompletionStream(
@@ -60,13 +61,19 @@ export class OpenRouterProvider extends BaseLLMProvider {
     params: CompletionParams,
     signal?: AbortSignal,
   ): AsyncGenerator<StreamChunk> {
+    const startTime = Date.now();
     const reader = await this.makeStreamingRequest(
       '/api/v1/chat/completions',
       params,
       signal,
     );
 
-    for await (const chunk of this.parseStreamWithTools(reader, {}, signal)) {
+    for await (const chunk of this.parseStreamWithTools(
+      reader,
+      {},
+      signal,
+      startTime,
+    )) {
       yield chunk;
     }
   }
@@ -131,5 +138,23 @@ export class OpenRouterProvider extends BaseLLMProvider {
       modalities.push('audio');
     }
     return modalities;
+  }
+
+  protected calculateCost(usage: any, model?: string): number | undefined {
+    if (!usage || !model) return undefined;
+
+    // For OpenRouter, we need to get model pricing from cache or fetch it
+    // For now, return a basic calculation - this could be enhanced to fetch live pricing
+    const promptTokens = usage.prompt_tokens || usage.input_tokens || 0;
+    const completionTokens =
+      usage.completion_tokens || usage.output_tokens || 0;
+
+    // Default rough pricing (per million tokens) - should be replaced with actual model pricing
+    const avgInputCost = 0.5; // $0.50 per 1M tokens
+    const avgOutputCost = 1.5; // $1.50 per 1M tokens
+
+    return (
+      (promptTokens * avgInputCost + completionTokens * avgOutputCost) / 1000000
+    );
   }
 }

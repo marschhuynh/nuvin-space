@@ -45,7 +45,7 @@ export function EditProviderModal({
   provider,
 }: EditProviderModalProps) {
   const { updateProvider, isNameUnique } = useProviderStore();
-  const [editName, setEditName] = useState(PROVIDER_TYPES.OpenAI);
+  const [editName, setEditName] = useState<string>(PROVIDER_TYPES.OpenAI);
   const [editType, setEditType] = useState(PROVIDER_TYPES.OpenAI);
   const [editKey, setEditKey] = useState('');
   const [nameError, setNameError] = useState('');
@@ -85,7 +85,7 @@ export function EditProviderModal({
 
   const handleClose = () => {
     onOpenChange(false);
-    setEditName('');
+    setEditName(PROVIDER_TYPES.OpenAI);
     setEditType(PROVIDER_TYPES.OpenAI);
     setEditKey('');
     setNameError('');

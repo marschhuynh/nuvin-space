@@ -5,10 +5,10 @@ import { useConversationStore } from '@/store';
 import type { Message } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Plus, MessageCircle } from 'lucide-react';
-
-import { ChatInput } from '../../modules/messenger';
 import { SUMMARY_TRIGGER_COUNT } from '@/const';
 import { MessageListPaginated } from '@/modules/messenger/MessageListPaginated';
+
+import { ChatInput } from '../../modules/messenger';
 
 export default function Messenger() {
   const {
@@ -144,7 +144,7 @@ export default function Messenger() {
             setStreamingContent((prev) => prev + chunk);
           },
           onComplete: (finalContent: string) => {
-            // Final update when streaming is complete
+            // Final update when streaming is complete - metadata will be added after sendMessage resolves
             if (conversationId) {
               // Use finalContent if it's not empty, otherwise use accumulated streamingContent
               const contentToUse = finalContent || streamingContent;
@@ -156,6 +156,7 @@ export default function Messenger() {
                   role: 'assistant',
                   content: contentToUse,
                   timestamp: new Date().toISOString(),
+                  // Metadata will be updated when sendMessage Promise resolves
                 };
                 updateMessage(conversationId, finalMessage);
 
@@ -205,6 +206,37 @@ export default function Messenger() {
             totalTokens: response.metadata.totalTokens,
             estimatedCost: response.metadata.estimatedCost,
           });
+
+          // Update the message with metadata after streaming is complete
+          if (conversationId && streamingId) {
+            // Get the current message to preserve content
+            const currentMessages = getConversationMessages(conversationId);
+            const currentMessage = currentMessages.find(
+              (m) => m.id === streamingId,
+            );
+
+            if (currentMessage) {
+              const messageWithMetadata: Message = {
+                ...currentMessage,
+                metadata: {
+                  model: response.metadata.model,
+                  provider: response.metadata.provider,
+                  agentType: response.metadata.agentType,
+                  agentId: response.metadata.agentId,
+                  tokensUsed: response.metadata.totalTokens,
+                  promptTokens: response.metadata.promptTokens,
+                  completionTokens: response.metadata.completionTokens,
+                  totalTokens: response.metadata.totalTokens,
+                  estimatedCost: response.metadata.estimatedCost,
+                  responseTime: response.metadata.responseTime,
+                  taskId: response.metadata.taskId,
+                  toolCalls: response.metadata.toolCalls,
+                  providerMetadata: response.metadata,
+                },
+              };
+              updateMessage(conversationId, messageWithMetadata);
+            }
+          }
 
           // Update agent metrics if we have an active agent
           if (activeAgent) {

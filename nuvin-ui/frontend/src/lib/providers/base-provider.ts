@@ -151,6 +151,11 @@ export abstract class BaseLLMProvider implements LLMProvider {
         const trimmed = line.trim();
         if (!trimmed) continue;
 
+        // Handle OpenRouter processing indicators
+        if (trimmed.startsWith(': OPENROUTER PROCESSING')) {
+          continue;
+        }
+
         if (trimmed === `data: ${doneMarker}`) {
           return;
         }
@@ -158,10 +163,18 @@ export abstract class BaseLLMProvider implements LLMProvider {
         if (!trimmed.startsWith('data:')) continue;
 
         try {
-          const data = JSON.parse(trimmed.slice('data:'.length));
-          yield data;
+          const jsonStr = trimmed.slice('data:'.length).trim();
+          if (jsonStr) {
+            const data = JSON.parse(jsonStr);
+            yield data;
+          }
         } catch (error) {
-          console.warn('Failed to parse streaming data:', error);
+          console.warn(
+            'Failed to parse streaming data:',
+            error,
+            'Line:',
+            trimmed,
+          );
         }
       }
     }
@@ -209,7 +222,10 @@ export abstract class BaseLLMProvider implements LLMProvider {
     }
   }
 
-  protected createCompletionResult(data: any): CompletionResult {
+  protected createCompletionResult(
+    data: any,
+    startTime?: number,
+  ): CompletionResult {
     const content =
       this.extractValue(data, 'choices.0.message.content') ||
       this.extractValue(data, 'content.0.text') ||
@@ -220,6 +236,25 @@ export abstract class BaseLLMProvider implements LLMProvider {
       this.extractValue(data, 'tool_calls');
 
     const usage = this.extractValue(data, 'usage');
+    const model = this.extractValue(data, 'model');
+    const generationId = this.extractValue(data, 'id');
+    const moderationResults = this.extractValue(data, 'moderation_results');
+
+    // Calculate response time if start time provided
+    const responseTime = startTime ? Date.now() - startTime : undefined;
+
+    // Extract cost information if available (OpenRouter specific)
+    const estimatedCost = usage ? this.calculateCost(usage, model) : undefined;
+
+    const metadata = {
+      model,
+      provider: this.type,
+      generationId,
+      moderationResults,
+      responseTime,
+      estimatedCost,
+      raw: data,
+    };
 
     return {
       content,
@@ -232,23 +267,39 @@ export abstract class BaseLLMProvider implements LLMProvider {
             usage.total_tokens || usage.input_tokens + usage.output_tokens,
         },
       }),
+      metadata,
     };
+  }
+
+  protected calculateCost(usage: any, model?: string): number | undefined {
+    // This is a basic cost calculation - providers can override this
+    // For now, return undefined as costs are provider-specific
+    return undefined;
   }
 
   protected async *parseStreamWithTools(
     reader: ReadableStreamDefaultReader<Uint8Array>,
     options: StreamParseOptions = {},
     signal?: AbortSignal,
+    startTime?: number,
   ): AsyncGenerator<StreamChunk> {
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let accumulatedToolCalls: any[] = [];
+    const accumulatedToolCalls: any[] = [];
     let usage: any = null;
+    let lastData: any = null;
+    let hasFinished = false;
 
     for await (const data of this.parseStream(reader, options, signal)) {
-      // Handle usage data
-      if (options.usagePath && this.extractValue(data, options.usagePath)) {
-        usage = this.extractValue(data, options.usagePath);
+      lastData = data;
+
+      // Handle usage data - OpenRouter sends this in a separate chunk
+      const currentUsage = this.extractValue(
+        data,
+        options.usagePath || 'usage',
+      );
+      if (currentUsage) {
+        usage = currentUsage;
+        // Don't yield content for usage-only chunks, just store the usage
+        continue;
       }
 
       // Handle text content
@@ -298,27 +349,58 @@ export abstract class BaseLLMProvider implements LLMProvider {
         options.finishReasonPath || 'choices.0.finish_reason',
       );
       if (finishReason === 'tool_calls' || finishReason === 'stop') {
-        yield {
-          tool_calls:
-            accumulatedToolCalls.length > 0 ? accumulatedToolCalls : undefined,
-          finished: true,
-          usage: usage
-            ? {
-                prompt_tokens: usage.prompt_tokens || usage.input_tokens,
-                completion_tokens:
-                  usage.completion_tokens || usage.output_tokens,
-                total_tokens:
-                  usage.total_tokens ||
-                  usage.input_tokens + usage.output_tokens,
-              }
-            : undefined,
-        };
+        hasFinished = true;
       }
     }
 
-    if (accumulatedToolCalls.length > 0) {
-      yield { tool_calls: accumulatedToolCalls, finished: true };
+    // After stream ends, yield final chunk with all accumulated data
+    if (hasFinished || accumulatedToolCalls.length > 0 || usage) {
+      const metadata = this.createStreamMetadata(lastData, startTime, usage);
+
+      yield {
+        tool_calls:
+          accumulatedToolCalls.length > 0 ? accumulatedToolCalls : undefined,
+        finished: true,
+        usage: usage
+          ? {
+              prompt_tokens: usage.prompt_tokens || usage.input_tokens || 0,
+              completion_tokens:
+                usage.completion_tokens || usage.output_tokens || 0,
+              total_tokens:
+                usage.total_tokens ||
+                usage.prompt_tokens + usage.completion_tokens ||
+                0,
+            }
+          : undefined,
+        metadata,
+      };
     }
+  }
+
+  protected createStreamMetadata(data: any, startTime?: number, usage?: any) {
+    if (!data) return undefined;
+
+    const model = this.extractValue(data, 'model');
+    const generationId = this.extractValue(data, 'id');
+    const moderationResults = this.extractValue(data, 'moderation_results');
+    const responseTime = startTime ? Date.now() - startTime : undefined;
+    const estimatedCost = usage ? this.calculateCost(usage, model) : undefined;
+
+    return {
+      model,
+      provider: this.type,
+      generationId,
+      moderationResults,
+      responseTime,
+      estimatedCost,
+      promptTokens: usage?.prompt_tokens || usage?.input_tokens || 0,
+      completionTokens: usage?.completion_tokens || usage?.output_tokens || 0,
+      totalTokens:
+        usage?.total_tokens ||
+        (usage ? usage.prompt_tokens + usage.completion_tokens : 0) ||
+        0,
+      raw: data,
+    };
   }
 
   abstract generateCompletion(

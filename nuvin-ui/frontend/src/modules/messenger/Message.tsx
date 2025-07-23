@@ -1,6 +1,7 @@
 import { UserMessage } from './UserMessage';
 import { AssistantMessage } from './AssistantMessage';
 import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
+import type { MessageMetadata } from '@/types';
 
 interface MessageProps {
   id: string;
@@ -8,9 +9,15 @@ interface MessageProps {
   content: string;
   timestamp?: string;
   isStreaming?: boolean;
+  metadata?: MessageMetadata;
 }
 
-export function Message({ role, content, isStreaming = false }: MessageProps) {
+export function Message({
+  role,
+  content,
+  isStreaming = false,
+  metadata,
+}: MessageProps) {
   const { preferences } = useUserPreferenceStore();
   const trimmedContent = content.trim();
 
@@ -33,6 +40,7 @@ export function Message({ role, content, isStreaming = false }: MessageProps) {
           content={content}
           isStreaming={isStreaming}
           messageMode={preferences.messageMode}
+          metadata={metadata}
         />
       )}
     </div>

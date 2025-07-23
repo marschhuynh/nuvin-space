@@ -39,6 +39,17 @@ export interface CompletionParams {
     | { type: 'function'; function: { name: string } };
 }
 
+export interface ProviderMetadata {
+  model?: string;
+  provider?: string;
+  generationId?: string;
+  moderationResults?: any;
+  responseTime?: number;
+  estimatedCost?: number;
+  // Provider specific data
+  raw?: Record<string, any>;
+}
+
 export interface CompletionResult {
   content: string;
   tool_calls?: ToolCall[];
@@ -47,6 +58,7 @@ export interface CompletionResult {
     completion_tokens?: number;
     total_tokens?: number;
   };
+  metadata?: ProviderMetadata;
 }
 
 export interface StreamChunk {
@@ -58,6 +70,7 @@ export interface StreamChunk {
     completion_tokens?: number;
     total_tokens?: number;
   };
+  metadata?: ProviderMetadata;
 }
 
 export interface ModelInfo {

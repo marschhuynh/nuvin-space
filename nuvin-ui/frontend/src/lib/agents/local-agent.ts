@@ -62,11 +62,8 @@ export class LocalAgent extends BaseAgent {
     );
 
     if (options.stream) {
-      // Use streaming with tools if tools are enabled and provider supports it
-      if (
-        this.agentSettings.toolConfig?.enabledTools?.length &&
-        provider.generateCompletionStreamWithTools
-      ) {
+      // Use streaming with tools for all streaming requests to get token counts and metadata
+      if (provider.generateCompletionStreamWithTools) {
         return this.handleStreamingWithTools(
           enhancedParams,
           signal,
@@ -78,7 +75,7 @@ export class LocalAgent extends BaseAgent {
         );
       }
 
-      // Regular streaming for text-only responses
+      // Fallback to regular streaming for providers that don't support tools streaming
       if (provider.generateCompletionStream) {
         let accumulated = '';
         const stream = provider.generateCompletionStream(
@@ -262,6 +259,7 @@ export class LocalAgent extends BaseAgent {
     let accumulated = '';
     let currentToolCalls: any[] = [];
     let usage: any = null;
+    let finalMetadata: any = null;
     const stream = provider.generateCompletionStreamWithTools(
       enhancedParams,
       signal,
@@ -280,9 +278,13 @@ export class LocalAgent extends BaseAgent {
           options.onChunk?.(chunk.content);
         }
 
-        // Handle usage data
+        // Handle usage data and metadata from final chunk
         if (chunk.usage) {
           usage = chunk.usage;
+        }
+
+        if (chunk.metadata) {
+          finalMetadata = chunk.metadata;
         }
 
         // Handle tool calls
@@ -336,10 +338,16 @@ export class LocalAgent extends BaseAgent {
 
     const timestamp = new Date().toISOString();
     const model = this.providerConfig.activeModel.model;
-    const promptTokens = usage?.prompt_tokens || 0;
-    const completionTokens = usage?.completion_tokens || 0;
-    const totalTokens = usage?.total_tokens || 0;
-    const estimatedCost = calculateCost(model, promptTokens, completionTokens);
+
+    // Use metadata from final chunk if available, otherwise fallback to usage data
+    const promptTokens =
+      finalMetadata?.promptTokens || usage?.prompt_tokens || 0;
+    const completionTokens =
+      finalMetadata?.completionTokens || usage?.completion_tokens || 0;
+    const totalTokens = finalMetadata?.totalTokens || usage?.total_tokens || 0;
+    const estimatedCost =
+      finalMetadata?.estimatedCost ||
+      calculateCost(model, promptTokens, completionTokens);
 
     const response: MessageResponse = {
       id: messageId,
