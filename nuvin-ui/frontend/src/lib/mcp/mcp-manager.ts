@@ -44,10 +44,12 @@ export class MCPManager {
   async startServer(config: MCPConfig): Promise<void> {
     const serverId = config.id;
 
-    // Check if server is already running
+    // Check if server is already running and stop it first
     if (this.clients.has(serverId)) {
-      console.warn(`MCP server '${serverId}' is already running`);
-      return;
+      console.warn(
+        `MCP server '${serverId}' is already running, stopping first`,
+      );
+      await this.stopServer(serverId);
     }
 
     // Create extended config with starting status

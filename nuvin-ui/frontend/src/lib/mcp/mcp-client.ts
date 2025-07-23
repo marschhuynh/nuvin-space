@@ -1,4 +1,4 @@
-import {
+import type {
   MCPConnection,
   MCPTransportOptions,
   JSONRPCRequest,
@@ -14,7 +14,6 @@ import {
   MCPResourceContents,
   MCPClientEvent,
   MCPClientEventHandler,
-  MCPErrorCode,
   MCPCapabilities,
   MCPClientInfo,
 } from '@/types/mcp';
@@ -107,12 +106,9 @@ export class MCPClient {
         serverId: this.serverId,
       });
     } catch (error) {
-      this.emitEvent({
-        type: 'error',
-        serverId: this.serverId,
-        error: error instanceof Error ? error : new Error(String(error)),
-      });
-      throw error;
+      // Log connection close errors but don't emit as error events or throw
+      // since disconnection is often intentional
+      console.debug(`Disconnect error for server ${this.serverId}:`, error);
     }
   }
 
@@ -334,7 +330,7 @@ export class MCPClient {
    */
   private async discoverTools(): Promise<void> {
     try {
-      const response = await this.sendRequest('tools/list', {});
+      const response = await this.sendRequest('tools/list');
       const tools = response.tools || [];
 
       this.tools.clear();
@@ -371,8 +367,7 @@ export class MCPClient {
       if (this.serverInfo?.capabilities?.resources?.templates) {
         try {
           const templatesResponse = await this.sendRequest(
-            'resources/templates/list',
-            {},
+            'resources/templates/list'
           );
           const templates = templatesResponse.resourceTemplates || [];
 
@@ -404,7 +399,7 @@ export class MCPClient {
 
       // Get resources
       try {
-        const resourcesResponse = await this.sendRequest('resources/list', {});
+        const resourcesResponse = await this.sendRequest('resources/list');
         const resources = resourcesResponse.resources || [];
 
         this.resources.clear();
