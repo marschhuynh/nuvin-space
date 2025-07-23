@@ -17,6 +17,8 @@ export abstract class BaseAgent {
     options?: SendMessageOptions,
   ): Promise<MessageResponse>;
 
+  abstract cancel(): void;
+
   async streamMessage(
     content: string,
     options?: SendMessageOptions,

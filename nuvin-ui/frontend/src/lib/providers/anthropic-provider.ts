@@ -16,6 +16,7 @@ export class AnthropicProvider implements LLMProvider {
 
   async generateCompletion(
     params: CompletionParams,
+    signal?: AbortSignal,
   ): Promise<CompletionResult> {
     const response = await fetch(`${this.apiUrl}/v1/messages`, {
       method: 'POST',
@@ -41,6 +42,7 @@ export class AnthropicProvider implements LLMProvider {
         }),
         ...(params.tool_choice && { tool_choice: params.tool_choice }),
       }),
+      signal,
     });
 
     if (!response.ok) {
@@ -60,6 +62,7 @@ export class AnthropicProvider implements LLMProvider {
 
   async *generateCompletionStream(
     params: CompletionParams,
+    signal?: AbortSignal,
   ): AsyncGenerator<string> {
     const response = await fetch(`${this.apiUrl}/v1/messages`, {
       method: 'POST',
@@ -86,6 +89,7 @@ export class AnthropicProvider implements LLMProvider {
         }),
         ...(params.tool_choice && { tool_choice: params.tool_choice }),
       }),
+      signal,
     });
 
     if (!response.ok || !response.body) {
@@ -101,6 +105,12 @@ export class AnthropicProvider implements LLMProvider {
     while (!done) {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
+      
+      // Check for cancellation
+      if (signal?.aborted) {
+        throw new Error('Request cancelled by user');
+      }
+      
       if (value) {
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');

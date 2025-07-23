@@ -21,6 +21,8 @@ function convertToLLMProviderConfig(config: ProviderConfig): LLMProviderConfig {
 }
 
 export class LocalAgent extends BaseAgent {
+  private abortController: AbortController | null = null;
+  
   constructor(
     agentSettings: AgentSettings,
     private providerConfig: ProviderConfig,
@@ -33,6 +35,10 @@ export class LocalAgent extends BaseAgent {
     content: string,
     options: SendMessageOptions = {},
   ): Promise<MessageResponse> {
+    // Create new abort controller for this request
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+    
     const startTime = Date.now();
     const messageId = generateUUID();
     const provider = createProvider(
@@ -75,11 +81,22 @@ export class LocalAgent extends BaseAgent {
       }
 
       let accumulated = '';
-      const stream = provider.generateCompletionStream(enhancedParams);
+      const stream = provider.generateCompletionStream(enhancedParams, signal);
 
-      for await (const chunk of stream) {
-        accumulated += chunk;
-        options.onChunk?.(chunk);
+      try {
+        for await (const chunk of stream) {
+          // Check for cancellation
+          if (signal.aborted) {
+            throw new Error('Request cancelled');
+          }
+          accumulated += chunk;
+          options.onChunk?.(chunk);
+        }
+      } catch (error) {
+        if (signal.aborted) {
+          throw new Error('Request cancelled by user');
+        }
+        throw error;
       }
 
       const timestamp = new Date().toISOString();
@@ -112,7 +129,7 @@ export class LocalAgent extends BaseAgent {
     }
 
     // Get initial completion (potentially with tool calls)
-    const result = await provider.generateCompletion(enhancedParams);
+    const result = await provider.generateCompletion(enhancedParams, signal);
 
     // Process any tool calls
     console.log(
@@ -188,5 +205,14 @@ export class LocalAgent extends BaseAgent {
 
     options.onComplete?.(finalResult.content);
     return response;
+  }
+
+  /**
+   * Cancel the current request
+   */
+  cancel(): void {
+    if (this.abortController) {
+      this.abortController.abort();
+    }
   }
 }

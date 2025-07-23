@@ -11,8 +11,14 @@ import { SUMMARY_TRIGGER_COUNT } from '@/const';
 import { MessageListPaginated } from '@/modules/messenger/MessageListPaginated';
 
 export default function Messenger() {
-  const { activeAgent, activeProvider, isReady, agentType, sendMessage } =
-    useAgentManager();
+  const {
+    activeAgent,
+    activeProvider,
+    isReady,
+    agentType,
+    sendMessage,
+    cancelCurrentRequest,
+  } = useAgentManager();
 
   // Use conversation store
   const {
@@ -206,16 +212,18 @@ export default function Messenger() {
           const errorMessage: Message = {
             id: streamingId,
             role: 'assistant',
-            content: `❌ Failed to send message: ${
-              error instanceof Error ? error.message : 'Unknown error'
-            }. ${
-              !activeAgent
-                ? 'No agent selected.'
-                : !activeProvider && agentType === 'local'
-                  ? 'No provider configured for local agent.'
-                  : activeAgent.agentType === 'remote' && !activeAgent.url
-                    ? 'No URL configured for remote agent.'
-                    : 'Please check your configuration and try again.'
+            content: `${
+              error instanceof Error && error.message === 'Request cancelled by user'
+                ? '⏹️ Message cancelled. Feel free to try sending another message.'
+                : `❌ Something went wrong sending your message. ${
+                    !activeAgent
+                      ? 'Please select an agent first.'
+                      : !activeProvider && agentType === 'local'
+                        ? 'Please configure a provider for your local agent.'
+                        : activeAgent.agentType === 'remote' && !activeAgent.url
+                          ? 'Please add a URL for your remote agent.'
+                          : 'Please check your settings and try again.'
+                  }`
             }`,
             timestamp: new Date().toISOString(),
           };
@@ -231,12 +239,24 @@ export default function Messenger() {
     [addMessage, activeConversationId, agentType, activeProvider, sendMessage],
   );
 
-  const handleStopGeneration = useCallback(() => {
+  const handleStopGeneration = useCallback(async () => {
     if (isLoading) {
       // Clear any timeout references
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
+      }
+
+      try {
+        // Attempt to cancel the underlying request
+        const cancelled = await cancelCurrentRequest();
+        console.log(
+          cancelled
+            ? 'Request cancelled successfully'
+            : 'Could not cancel request (may not be supported for this agent type)',
+        );
+      } catch (error) {
+        console.error('Error cancelling request:', error);
       }
 
       setIsLoading(false);
@@ -266,12 +286,6 @@ export default function Messenger() {
       setStreamingContent('');
 
       console.log('Generation stopped by user');
-
-      // TODO: Implement request cancellation in AgentManager
-      // For now, we can only stop the UI state, but the underlying request may continue
-      console.warn(
-        'Note: Underlying agent request may still be processing. Request cancellation will be implemented in a future update.',
-      );
     }
   }, [
     addMessage,
@@ -279,6 +293,8 @@ export default function Messenger() {
     agentType,
     activeProvider,
     sendMessage,
+    cancelCurrentRequest,
+    isLoading,
   ]);
 
   // Handler to create a new conversation

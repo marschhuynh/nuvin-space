@@ -203,6 +203,11 @@ export function useAgentManager() {
     return await agentManager.cancelTask(agentUrl, taskId);
   }, []);
 
+  // Cancel current active request
+  const cancelCurrentRequest = useCallback(async (): Promise<boolean> => {
+    return await agentManager.cancelCurrentRequest();
+  }, []);
+
   // Get all tracked tasks
   const getTasks = useCallback(() => {
     return agentManager.getTasks();
@@ -242,6 +247,7 @@ export function useAgentManager() {
     // A2A Task Management
     getTask,
     cancelTask,
+    cancelCurrentRequest,
     getTasks,
     getActiveAgentTasks,
 

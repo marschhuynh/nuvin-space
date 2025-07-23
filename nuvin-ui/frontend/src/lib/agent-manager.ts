@@ -161,6 +161,35 @@ export class AgentManager {
   }
 
   /**
+   * Cancel the current active request
+   */
+  async cancelCurrentRequest(): Promise<boolean> {
+    if (!this.agentInstance) {
+      return false;
+    }
+
+    // For remote agents, cancel the active task
+    if (this.activeAgent?.agentType === 'remote' && this.activeAgent.url) {
+      const tasks = a2aService.getTasksForAgent(this.activeAgent.url);
+      const activeTask = tasks.find(task => 
+        task.status.state === 'running'
+      );
+      
+      if (activeTask) {
+        return await this.cancelTask(this.activeAgent.url, activeTask.id);
+      }
+    }
+
+    // For local agents, use the cancel method
+    if (this.activeAgent?.agentType === 'local') {
+      this.agentInstance.cancel();
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * Get conversation history for a conversation ID
    */
   getConversationHistory(conversationId: string): Message[] {

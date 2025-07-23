@@ -16,6 +16,7 @@ export class OpenAIProvider implements LLMProvider {
 
   async generateCompletion(
     params: CompletionParams,
+    signal?: AbortSignal,
   ): Promise<CompletionResult> {
     const response = await fetch(`${this.apiUrl}/v1/chat/completions`, {
       method: 'POST',
@@ -32,6 +33,7 @@ export class OpenAIProvider implements LLMProvider {
         ...(params.tools && { tools: params.tools }),
         ...(params.tool_choice && { tool_choice: params.tool_choice }),
       }),
+      signal,
     });
 
     if (!response.ok) {
@@ -52,6 +54,7 @@ export class OpenAIProvider implements LLMProvider {
 
   async *generateCompletionStream(
     params: CompletionParams,
+    signal?: AbortSignal,
   ): AsyncGenerator<string> {
     const response = await fetch(`${this.apiUrl}/v1/chat/completions`, {
       method: 'POST',
@@ -69,6 +72,7 @@ export class OpenAIProvider implements LLMProvider {
         ...(params.tools && { tools: params.tools }),
         ...(params.tool_choice && { tool_choice: params.tool_choice }),
       }),
+      signal,
     });
 
     if (!response.ok || !response.body) {
@@ -84,6 +88,12 @@ export class OpenAIProvider implements LLMProvider {
     while (!done) {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
+      
+      // Check for cancellation
+      if (signal?.aborted) {
+        throw new Error('Request cancelled by user');
+      }
+      
       if (value) {
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');

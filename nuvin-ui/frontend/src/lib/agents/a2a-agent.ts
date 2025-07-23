@@ -260,4 +260,10 @@ export class A2AAgent extends BaseAgent {
       },
     };
   }
+
+  cancel(): void {
+    // For A2A agents, cancellation is handled at the service level
+    // The AgentManager will handle task cancellation when cancelCurrentRequest is called
+    console.warn('A2A agent cancellation should be handled via cancelTask method');
+  }
 }

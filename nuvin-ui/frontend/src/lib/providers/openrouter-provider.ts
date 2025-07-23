@@ -16,6 +16,7 @@ export class OpenRouterProvider implements LLMProvider {
 
   async generateCompletion(
     params: CompletionParams,
+    signal?: AbortSignal,
   ): Promise<CompletionResult> {
     const response = await fetch(`${this.apiUrl}/api/v1/chat/completions`, {
       method: 'POST',
@@ -34,6 +35,7 @@ export class OpenRouterProvider implements LLMProvider {
         ...(params.tools && { tools: params.tools }),
         ...(params.tool_choice && { tool_choice: params.tool_choice }),
       }),
+      signal,
     });
 
     if (!response.ok) {
@@ -50,6 +52,7 @@ export class OpenRouterProvider implements LLMProvider {
 
   async *generateCompletionStream(
     params: CompletionParams,
+    signal?: AbortSignal,
   ): AsyncGenerator<string> {
     const response = await fetch(`${this.apiUrl}/api/v1/chat/completions`, {
       method: 'POST',
@@ -69,6 +72,7 @@ export class OpenRouterProvider implements LLMProvider {
         ...(params.tools && { tools: params.tools }),
         ...(params.tool_choice && { tool_choice: params.tool_choice }),
       }),
+      signal,
     });
 
     if (!response.ok) {
@@ -87,6 +91,11 @@ export class OpenRouterProvider implements LLMProvider {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
+
+      // Check for cancellation
+      if (signal?.aborted) {
+        throw new Error('Request cancelled by user');
+      }
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
