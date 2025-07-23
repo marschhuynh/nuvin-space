@@ -387,7 +387,7 @@ export class AgentManager {
         const metadata = (message as any).metadata;
         totalTokens += metadata.totalTokens || 0;
         totalCost += metadata.estimatedCost || 0;
-        messageCount++;
+        messageCount++; // Only count assistant messages with metadata
       }
     });
 

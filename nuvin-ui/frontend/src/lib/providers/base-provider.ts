@@ -1,11 +1,16 @@
+import { PROVIDER_TYPES } from './provider-utils';
 import type {
   LLMProvider,
   CompletionParams,
   CompletionResult,
   StreamChunk,
   ModelInfo,
+  StreamingRequestBody,
+  UsageData,
   ToolCall,
-} from './llm-provider';
+  ChatMessage,
+} from './types/base';
+import { ChatCompletionResponse } from './types/openrouter';
 
 export interface BaseProviderConfig {
   apiKey: string;
@@ -21,8 +26,17 @@ export interface StreamParseOptions {
   toolCallsPath?: string;
   usagePath?: string;
   finishReasonPath?: string;
+  processingMarker?: string;
   doneMarker?: string;
 }
+
+export type NestedApiResponseData =
+  | Record<string, unknown>
+  | unknown[]
+  | string
+  | number
+  | boolean
+  | null;
 
 export abstract class BaseLLMProvider implements LLMProvider {
   readonly type: string;
@@ -68,7 +82,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
     endpoint: string,
     options: {
       method?: string;
-      body?: any;
+      body?: object;
       signal?: AbortSignal;
       headers?: Record<string, string>;
     } = {},
@@ -96,7 +110,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
     params: CompletionParams,
     signal?: AbortSignal,
   ): Promise<ReadableStreamDefaultReader<Uint8Array>> {
-    const body = {
+    const body: StreamingRequestBody = {
       model: params.model,
       messages: params.messages,
       temperature: params.temperature,
@@ -124,15 +138,13 @@ export abstract class BaseLLMProvider implements LLMProvider {
     reader: ReadableStreamDefaultReader<Uint8Array>,
     options: StreamParseOptions = {},
     signal?: AbortSignal,
-  ): AsyncGenerator<any> {
+  ): AsyncGenerator<string> {
     const decoder = new TextDecoder();
     let buffer = '';
+
     const {
-      contentPath = 'choices.0.delta.content',
-      toolCallsPath = 'choices.0.delta.tool_calls',
-      usagePath = 'usage',
-      finishReasonPath = 'choices.0.finish_reason',
       doneMarker = '[DONE]',
+      processingMarker = ': OPENROUTER PROCESSING',
     } = options;
 
     while (true) {
@@ -152,7 +164,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
         if (!trimmed) continue;
 
         // Handle OpenRouter processing indicators
-        if (trimmed.startsWith(': OPENROUTER PROCESSING')) {
+        if (trimmed.startsWith(processingMarker)) {
           continue;
         }
 
@@ -180,7 +192,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
     }
   }
 
-  protected extractValue(obj: any, path: string): any {
+  protected extractValue(obj: any, path: string) {
     return path.split('.').reduce((current, key) => {
       if (current === null || current === undefined) return undefined;
       if (key.includes('[') && key.includes(']')) {
@@ -193,37 +205,23 @@ export abstract class BaseLLMProvider implements LLMProvider {
   }
 
   protected transformMessagesForProvider(
-    messages: any[],
-    providerType: string,
-  ): any[] {
-    switch (providerType) {
-      case 'Anthropic':
-        return messages.map((m) => ({
-          role: m.role,
-          content: m.content,
-          ...(m.tool_calls && { tool_calls: m.tool_calls }),
-          ...(m.tool_call_id && { tool_call_id: m.tool_call_id }),
-          ...(m.name && { name: m.name }),
-        }));
-      default:
-        return messages;
-    }
+    messages: ChatMessage[],
+  ): ChatMessage[] {
+    return messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+      ...(m.tool_calls && { tool_calls: m.tool_calls }),
+      ...(m.tool_call_id && { tool_call_id: m.tool_call_id }),
+      ...(m.name && { name: m.name }),
+    }));
   }
 
-  protected transformToolsForProvider(
-    tools: any[],
-    providerType: string,
-  ): any[] {
-    switch (providerType) {
-      case 'Anthropic':
-        return tools.map((tool) => tool.function);
-      default:
-        return tools;
-    }
+  protected transformToolsForProvider(tools: any[]): any[] {
+    return tools;
   }
 
-  protected createCompletionResult(
-    data: any,
+  protected createCompletionResult<T = ChatCompletionResponse>(
+    data: T,
     startTime?: number,
   ): CompletionResult {
     const content =
@@ -235,7 +233,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
       this.extractValue(data, 'choices.0.message.tool_calls') ||
       this.extractValue(data, 'tool_calls');
 
-    const usage = this.extractValue(data, 'usage');
+    const usage: UsageData | undefined = this.extractValue(data, 'usage');
     const model = this.extractValue(data, 'model');
     const generationId = this.extractValue(data, 'id');
     const moderationResults = this.extractValue(data, 'moderation_results');
@@ -264,14 +262,18 @@ export abstract class BaseLLMProvider implements LLMProvider {
           prompt_tokens: usage.prompt_tokens || usage.input_tokens,
           completion_tokens: usage.completion_tokens || usage.output_tokens,
           total_tokens:
-            usage.total_tokens || usage.input_tokens + usage.output_tokens,
+            usage.total_tokens ||
+            Number(usage?.input_tokens) + Number(usage?.output_tokens),
         },
       }),
-      metadata,
+      _metadata: metadata,
     };
   }
 
-  protected calculateCost(usage: any, model?: string): number | undefined {
+  protected calculateCost(
+    usage: UsageData,
+    model?: string,
+  ): number | undefined {
     // This is a basic cost calculation - providers can override this
     // For now, return undefined as costs are provider-specific
     return undefined;
@@ -283,8 +285,8 @@ export abstract class BaseLLMProvider implements LLMProvider {
     signal?: AbortSignal,
     startTime?: number,
   ): AsyncGenerator<StreamChunk> {
-    const accumulatedToolCalls: any[] = [];
-    let usage: any = null;
+    const accumulatedToolCalls: ToolCall[] = [];
+    let usage: UsageData | undefined = undefined;
     let lastData: any = null;
     let hasFinished = false;
 
@@ -292,7 +294,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
       lastData = data;
 
       // Handle usage data - OpenRouter sends this in a separate chunk
-      const currentUsage = this.extractValue(
+      const currentUsage: UsageData | undefined = this.extractValue(
         data,
         options.usagePath || 'usage',
       );
@@ -355,8 +357,6 @@ export abstract class BaseLLMProvider implements LLMProvider {
 
     // After stream ends, yield final chunk with all accumulated data
     if (hasFinished || accumulatedToolCalls.length > 0 || usage) {
-      const metadata = this.createStreamMetadata(lastData, startTime, usage);
-
       yield {
         tool_calls:
           accumulatedToolCalls.length > 0 ? accumulatedToolCalls : undefined,
@@ -368,16 +368,20 @@ export abstract class BaseLLMProvider implements LLMProvider {
                 usage.completion_tokens || usage.output_tokens || 0,
               total_tokens:
                 usage.total_tokens ||
-                usage.prompt_tokens + usage.completion_tokens ||
+                (usage.prompt_tokens ?? 0) + (usage.completion_tokens ?? 0) ||
                 0,
             }
           : undefined,
-        metadata,
+        _metadata: this.createStreamMetadata(lastData, startTime, usage),
       };
     }
   }
 
-  protected createStreamMetadata(data: any, startTime?: number, usage?: any) {
+  protected createStreamMetadata(
+    data: any,
+    startTime?: number,
+    usage?: UsageData,
+  ) {
     if (!data) return undefined;
 
     const model = this.extractValue(data, 'model');
@@ -397,7 +401,9 @@ export abstract class BaseLLMProvider implements LLMProvider {
       completionTokens: usage?.completion_tokens || usage?.output_tokens || 0,
       totalTokens:
         usage?.total_tokens ||
-        (usage ? usage.prompt_tokens + usage.completion_tokens : 0) ||
+        (usage
+          ? (usage.prompt_tokens ?? 0) + (usage.completion_tokens ?? 0)
+          : 0) ||
         0,
       raw: data,
     };

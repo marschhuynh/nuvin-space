@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo } from 'react';
+import { useEffect, useCallback, useMemo, useState } from 'react';
 import { useAgentStore } from '@/store/useAgentStore';
 import { useProviderStore } from '@/store/useProviderStore';
 import {
@@ -15,6 +15,10 @@ import type { AgentSettings } from '@/types';
  * Integrates AgentManager with Zustand stores for seamless React integration
  */
 export function useAgentManager() {
+  // Local state for loading and error handling
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
   // Get store states and actions
   const {
     agents,
@@ -94,7 +98,19 @@ export function useAgentManager() {
         throw new Error('No active provider selected for local agent');
       }
 
-      return await agentManager.sendMessage(content, options);
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const result = await agentManager.sendMessage(content, options);
+        return result;
+      } catch (err) {
+        const errorObj = err instanceof Error ? err : new Error(String(err));
+        setError(errorObj);
+        throw errorObj;
+      } finally {
+        setIsLoading(false);
+      }
     },
     [activeAgent, activeProvider],
   );
@@ -204,8 +220,13 @@ export function useAgentManager() {
   }, []);
 
   // Cancel current active request
-  const cancelCurrentRequest = useCallback(async (): Promise<boolean> => {
+  const cancelRequest = useCallback(async (): Promise<boolean> => {
     return await agentManager.cancelCurrentRequest();
+  }, []);
+
+  // Clear error state
+  const clearError = useCallback(() => {
+    setError(null);
   }, []);
 
   // Get all tracked tasks
@@ -230,6 +251,8 @@ export function useAgentManager() {
     isReady,
     agentType,
     supportsStreaming,
+    isLoading,
+    error,
 
     // Core Actions
     setActiveAgent,
@@ -243,11 +266,12 @@ export function useAgentManager() {
     clearConversationHistory,
     getAvailableModels,
     reset,
+    clearError,
 
     // A2A Task Management
     getTask,
     cancelTask,
-    cancelCurrentRequest,
+    cancelRequest,
     getTasks,
     getActiveAgentTasks,
 

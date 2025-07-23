@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { BaseLLMProvider } from '../base-provider';
-import type { ModelInfo } from '../llm-provider';
+import type { ModelInfo } from '../types/base';
 
 class TestProvider extends BaseLLMProvider {
   constructor() {

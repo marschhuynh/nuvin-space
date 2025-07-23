@@ -84,6 +84,13 @@ export class A2AAgent extends BaseAgent {
           role: 'assistant',
           content: responseContent,
           timestamp: new Date().toISOString(),
+          metadata: {
+            agentType: 'remote',
+            agentId: this.agentSettings.id,
+            responseTime: Date.now() - startTime,
+            model: 'A2A Agent',
+            taskId: finalResponse.kind === 'task' ? finalResponse.id : undefined,
+          },
         },
       ]);
 
@@ -243,6 +250,13 @@ export class A2AAgent extends BaseAgent {
         role: 'assistant',
         content: accumulated,
         timestamp: finalTimestamp,
+        metadata: {
+          agentType: 'remote',
+          agentId: this.agentSettings.id,
+          responseTime: Date.now() - startTime,
+          model: 'A2A Agent (Streaming)',
+          taskId,
+        },
       },
     ]);
 

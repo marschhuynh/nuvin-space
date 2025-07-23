@@ -5,7 +5,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
-import type { ModelInfo } from '@/lib/providers/llm-provider';
+import type { ModelInfo } from '@/lib/providers/types/base';
 import {
   formatContextLength,
   formatModelCost,

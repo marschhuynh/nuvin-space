@@ -66,9 +66,29 @@ export function hasPricingInfo(model: string): boolean {
  * Format cost as a currency string
  */
 export function formatCost(cost: number): string {
-  if (cost === 0) return '$0.00';
-  if (cost < 0.01) return '<$0.01';
-  return `$${cost.toFixed(4)}`;
+  // Handle edge cases
+  if (!isFinite(cost) || isNaN(cost)) return '$0.00';
+
+  const isNegative = cost < 0;
+  const absoluteCost = Math.abs(cost);
+
+  if (absoluteCost === 0) return '$0.00';
+
+  let formatted: string;
+
+  if (absoluteCost >= 0.01) {
+    // For amounts >= $0.01, use 2 decimal places
+    formatted = `$${absoluteCost.toFixed(2)}`;
+  } else {
+    // For very small amounts, find the position of the first significant digit
+    // and add one more decimal place for precision
+    const logValue = Math.log10(absoluteCost);
+    const firstSignificantDigitPosition = Math.floor(logValue);
+    const decimalPlaces = Math.abs(firstSignificantDigitPosition) + 1;
+    formatted = `$${absoluteCost.toFixed(decimalPlaces)}`;
+  }
+
+  return isNegative ? `-${formatted}` : formatted;
 }
 
 /**

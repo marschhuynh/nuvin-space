@@ -12,7 +12,7 @@ export interface ChatMessage {
   content: string | null;
   tool_calls?: ToolCall[];
   tool_call_id?: string;
-  name?: string; // For tool role messages
+  name?: string;
 }
 
 export interface FunctionDefinition {
@@ -39,6 +39,14 @@ export interface CompletionParams {
     | { type: 'function'; function: { name: string } };
 }
 
+export interface StreamingRequestBody
+  extends Omit<CompletionParams, 'maxTokens' | 'topP'> {
+  model: string;
+  stream: boolean;
+  max_tokens?: number;
+  top_p?: number;
+}
+
 export interface ProviderMetadata {
   model?: string;
   provider?: string;
@@ -46,31 +54,30 @@ export interface ProviderMetadata {
   moderationResults?: any;
   responseTime?: number;
   estimatedCost?: number;
-  // Provider specific data
   raw?: Record<string, any>;
+}
+
+export interface UsageData {
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  total_tokens?: number;
+  input_tokens?: number;
+  output_tokens?: number;
 }
 
 export interface CompletionResult {
   content: string;
   tool_calls?: ToolCall[];
-  usage?: {
-    prompt_tokens?: number;
-    completion_tokens?: number;
-    total_tokens?: number;
-  };
-  metadata?: ProviderMetadata;
+  usage?: UsageData;
+  _metadata?: ProviderMetadata;
 }
 
 export interface StreamChunk {
   content?: string;
   tool_calls?: ToolCall[];
   finished?: boolean;
-  usage?: {
-    prompt_tokens?: number;
-    completion_tokens?: number;
-    total_tokens?: number;
-  };
-  metadata?: ProviderMetadata;
+  usage?: UsageData;
+  _metadata?: ProviderMetadata;
 }
 
 export interface ModelInfo {

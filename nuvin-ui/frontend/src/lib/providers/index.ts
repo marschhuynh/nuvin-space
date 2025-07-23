@@ -16,7 +16,7 @@ export type {
   ChatMessage,
   FunctionDefinition,
   ToolDefinition,
-} from './llm-provider';
+} from './types/base';
 
 // Export utility functions and types
 export {

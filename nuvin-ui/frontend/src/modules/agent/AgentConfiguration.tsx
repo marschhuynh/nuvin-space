@@ -50,10 +50,8 @@ export function AgentConfiguration({
 }: AgentConfigurationProps) {
   const navigate = useNavigate();
   const { agents, activeAgentId, setActiveAgent } = useAgentStore();
-  const { providers, activeProviderId, setActiveProvider, updateProvider } =
-    useProviderStore();
-  const { getEnabledModels, loading, errors, setModels, setError, setLoading } =
-    useModelsStore();
+  const { providers, activeProviderId, updateProvider } = useProviderStore();
+  const { getEnabledModels, loading, errors } = useModelsStore();
 
   // State for remote agent card information
   const [agentCardInfo, setAgentCardInfo] = useState<AgentCardInfo | null>(
@@ -129,10 +127,6 @@ export function AgentConfiguration({
     setActiveAgent(agentId);
   };
 
-  const handleProviderChange = (providerId: string) => {
-    setActiveProvider(providerId);
-  };
-
   const handleModelChange = useCallback(
     (modelName: string) => {
       const activeProvider = providers.find((p) => p.id === activeProviderId);
@@ -165,7 +159,7 @@ export function AgentConfiguration({
   const activeProvider = providers.find((p) => p.id === activeProviderId);
 
   // Get available models for the active provider from store
-  const enabledModels = getEnabledModels(activeProviderId || '');
+  const enabledModels = getEnabledModels();
   const isLoadingModels = loading[activeProviderId || ''] || false;
   const modelsError = errors[activeProviderId || ''] || null;
 
@@ -578,11 +572,11 @@ export function AgentConfiguration({
                   )}
                 </div>
               )}
-
-              {/* Agent Status Display */}
-              <AgentStatusDisplay className="mt-4" />
             </div>
           )}
+
+          {/* Agent Status Display - Always show when an agent is selected */}
+          <AgentStatusDisplay className="mt-4" />
         </div>
       </div>
     </div>

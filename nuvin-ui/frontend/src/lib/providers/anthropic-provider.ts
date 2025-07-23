@@ -4,7 +4,7 @@ import type {
   CompletionResult,
   StreamChunk,
   ModelInfo,
-} from './llm-provider';
+} from './types/base';
 
 export class AnthropicProvider extends BaseLLMProvider {
   constructor(apiKey: string) {
@@ -26,15 +26,12 @@ export class AnthropicProvider extends BaseLLMProvider {
     const response = await this.makeRequest('/v1/messages', {
       body: {
         model: params.model,
-        messages: this.transformMessagesForProvider(
-          params.messages,
-          'Anthropic',
-        ),
+        messages: this.transformMessagesForProvider(params.messages),
         temperature: params.temperature,
         max_tokens: params.maxTokens,
         top_p: params.topP,
         ...(params.tools && {
-          tools: this.transformToolsForProvider(params.tools, 'Anthropic'),
+          tools: this.transformToolsForProvider(params.tools),
         }),
         ...(params.tool_choice && { tool_choice: params.tool_choice }),
       },
@@ -52,16 +49,13 @@ export class AnthropicProvider extends BaseLLMProvider {
     const response = await this.makeRequest('/v1/messages', {
       body: {
         model: params.model,
-        messages: this.transformMessagesForProvider(
-          params.messages,
-          'Anthropic',
-        ),
+        messages: this.transformMessagesForProvider(params.messages),
         temperature: params.temperature,
         max_tokens: params.maxTokens,
         top_p: params.topP,
         stream: true,
         ...(params.tools && {
-          tools: this.transformToolsForProvider(params.tools, 'Anthropic'),
+          tools: this.transformToolsForProvider(params.tools),
         }),
         ...(params.tool_choice && { tool_choice: params.tool_choice }),
       },
@@ -94,16 +88,13 @@ export class AnthropicProvider extends BaseLLMProvider {
     const response = await this.makeRequest('/v1/messages', {
       body: {
         model: params.model,
-        messages: this.transformMessagesForProvider(
-          params.messages,
-          'Anthropic',
-        ),
+        messages: this.transformMessagesForProvider(params.messages),
         temperature: params.temperature,
         max_tokens: params.maxTokens,
         top_p: params.topP,
         stream: true,
         ...(params.tools && {
-          tools: this.transformToolsForProvider(params.tools, 'Anthropic'),
+          tools: this.transformToolsForProvider(params.tools),
         }),
         ...(params.tool_choice && { tool_choice: params.tool_choice }),
       },

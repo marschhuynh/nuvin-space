@@ -17,7 +17,7 @@ export default function Messenger() {
     isReady,
     agentType,
     sendMessage,
-    cancelCurrentRequest,
+    cancelRequest,
   } = useAgentManager();
 
   // Use conversation store
@@ -295,7 +295,7 @@ export default function Messenger() {
 
       try {
         // Attempt to cancel the underlying request
-        const cancelled = await cancelCurrentRequest();
+        const cancelled = await cancelRequest();
         console.log(
           cancelled
             ? 'Request cancelled successfully'
@@ -339,7 +339,7 @@ export default function Messenger() {
     agentType,
     activeProvider,
     sendMessage,
-    cancelCurrentRequest,
+    cancelRequest,
     isLoading,
   ]);
 

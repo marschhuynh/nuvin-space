@@ -32,6 +32,7 @@ export abstract class BaseAgent {
 
   protected addToHistory(conversationId: string, messages: Message[]): void {
     const existing = this.conversationHistory.get(conversationId) || [];
+    console.log('Adding to history:', conversationId, messages);
     this.conversationHistory.set(conversationId, [...existing, ...messages]);
   }
 

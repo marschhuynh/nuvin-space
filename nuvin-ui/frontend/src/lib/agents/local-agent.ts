@@ -1,11 +1,17 @@
-import type { ProviderConfig, AgentSettings, Message } from '@/types';
+import type {
+  ProviderConfig,
+  AgentSettings,
+  Message,
+  MessageMetadata,
+} from '@/types';
 import type { ToolContext } from '@/types/tools';
-import { createProvider, type ChatMessage } from '../providers';
+import { createProvider, ToolCall, type ChatMessage } from '../providers';
 import { generateUUID } from '../utils';
 import { calculateCost } from '../utils/cost-calculator';
 import type { SendMessageOptions, MessageResponse } from '../agent-manager';
 import { toolIntegrationService } from '../tools';
 import { BaseAgent } from './base-agent';
+import { UsageData } from '../providers/types/base';
 
 export class LocalAgent extends BaseAgent {
   private abortController: AbortController | null = null;
@@ -22,20 +28,15 @@ export class LocalAgent extends BaseAgent {
     content: string,
     options: SendMessageOptions = {},
   ): Promise<MessageResponse> {
-    // Create new abort controller for this request
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
 
     const startTime = Date.now();
     const messageId = generateUUID();
-    const provider = createProvider(
-      // convertToLLMProviderConfig(this.providerConfig),
-      this.providerConfig,
-    );
+    const provider = createProvider(this.providerConfig);
     const convoId = options.conversationId || 'default';
     const messages: ChatMessage[] = this.buildContext(convoId, content);
 
-    // Create tool context for tool execution
     const toolContext: ToolContext = {
       userId: options.userId,
       sessionId: convoId,
@@ -46,7 +47,6 @@ export class LocalAgent extends BaseAgent {
       },
     };
 
-    // Prepare base completion parameters
     const baseParams = {
       messages,
       model: this.providerConfig.activeModel.model,
@@ -55,14 +55,12 @@ export class LocalAgent extends BaseAgent {
       topP: this.agentSettings.topP,
     };
 
-    // Enhance with tools if configured
     const enhancedParams = toolIntegrationService.enhanceCompletionParams(
       baseParams,
       this.agentSettings.toolConfig,
     );
 
     if (options.stream) {
-      // Use streaming with tools for all streaming requests to get token counts and metadata
       if (provider.generateCompletionStreamWithTools) {
         return this.handleStreamingWithTools(
           enhancedParams,
@@ -75,7 +73,6 @@ export class LocalAgent extends BaseAgent {
         );
       }
 
-      // Fallback to regular streaming for providers that don't support tools streaming
       if (provider.generateCompletionStream) {
         let accumulated = '';
         const stream = provider.generateCompletionStream(
@@ -225,9 +222,6 @@ export class LocalAgent extends BaseAgent {
     return response;
   }
 
-  /**
-   * Handle streaming with tool calls
-   */
   private async handleStreamingWithTools(
     enhancedParams: any,
     signal: AbortSignal,
@@ -237,11 +231,7 @@ export class LocalAgent extends BaseAgent {
     content: string,
     startTime: number,
   ): Promise<MessageResponse> {
-    const provider = createProvider(
-      // convertToLLMProviderConfig(this.providerConfig),
-      this.providerConfig,
-    );
-
+    const provider = createProvider(this.providerConfig);
     if (!provider.generateCompletionStreamWithTools) {
       throw new Error('Provider does not support streaming with tools');
     }
@@ -257,9 +247,14 @@ export class LocalAgent extends BaseAgent {
     };
 
     let accumulated = '';
-    let currentToolCalls: any[] = [];
-    let usage: any = null;
-    let finalMetadata: any = null;
+    let currentToolCalls: ToolCall[] = [];
+    let usage: UsageData = {
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      total_tokens: 0,
+    };
+    let finalMetadata = null;
+
     const stream = provider.generateCompletionStreamWithTools(
       enhancedParams,
       signal,
@@ -267,27 +262,23 @@ export class LocalAgent extends BaseAgent {
 
     try {
       for await (const chunk of stream) {
-        // Check for cancellation
         if (signal.aborted) {
           throw new Error('Request cancelled');
         }
 
-        // Handle text content
         if (chunk.content) {
           accumulated += chunk.content;
           options.onChunk?.(chunk.content);
         }
 
-        // Handle usage data and metadata from final chunk
         if (chunk.usage) {
           usage = chunk.usage;
         }
 
-        if (chunk.metadata) {
-          finalMetadata = chunk.metadata;
+        if (chunk._metadata) {
+          finalMetadata = chunk._metadata;
         }
 
-        // Handle tool calls
         if (chunk.tool_calls) {
           currentToolCalls = chunk.tool_calls;
 
@@ -303,6 +294,8 @@ export class LocalAgent extends BaseAgent {
                 this.agentSettings.toolConfig,
               );
 
+            console.log('[LocalAgent] Processed tool calls:', processed);
+
             if (processed.requiresFollowUp && processed.toolCalls) {
               // Execute tools and get follow-up response
               const finalResult =
@@ -311,8 +304,6 @@ export class LocalAgent extends BaseAgent {
                   { content: accumulated, tool_calls: currentToolCalls },
                   processed.toolCalls,
                   provider,
-                  toolContext,
-                  this.agentSettings.toolConfig,
                 );
 
               // Stream the final response
@@ -375,6 +366,17 @@ export class LocalAgent extends BaseAgent {
         role: 'assistant',
         content: accumulated,
         timestamp,
+        metadata: {
+          agentType: 'local',
+          agentId: this.agentSettings.id,
+          provider: this.providerConfig.type,
+          model,
+          responseTime: Date.now() - startTime,
+          promptTokens,
+          completionTokens,
+          totalTokens,
+          estimatedCost,
+        },
       },
     ]);
 

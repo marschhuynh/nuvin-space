@@ -1,4 +1,4 @@
-import type { LLMProvider, ModelInfo } from './llm-provider';
+import type { LLMProvider, ModelInfo } from './types/base';
 import { OpenAIProvider } from './openai-provider';
 import { AnthropicProvider } from './anthropic-provider';
 import { OpenRouterProvider } from './openrouter-provider';
@@ -13,7 +13,7 @@ export enum PROVIDER_TYPES {
 
 export type ProviderType = PROVIDER_TYPES;
 
-export type { ModelInfo } from './llm-provider';
+export type { ModelInfo } from './types/base';
 
 export interface LLMProviderConfig {
   type: PROVIDER_TYPES;

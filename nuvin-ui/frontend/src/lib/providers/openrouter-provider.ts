@@ -4,7 +4,8 @@ import type {
   CompletionResult,
   StreamChunk,
   ModelInfo,
-} from './llm-provider';
+} from './types/base';
+import type { ChatCompletionResponse } from './types/openrouter';
 
 export class OpenRouterProvider extends BaseLLMProvider {
   constructor(apiKey: string) {
@@ -35,8 +36,9 @@ export class OpenRouterProvider extends BaseLLMProvider {
       signal,
     });
 
-    const data = await response.json();
-    return this.createCompletionResult(data, startTime);
+    const data: ChatCompletionResponse = await response.json();
+    console.log('OpenRouter response:', data);
+    return this.createCompletionResult<ChatCompletionResponse>(data, startTime);
   }
 
   async *generateCompletionStream(

@@ -25,10 +25,16 @@ export function ModelSelector({
   className,
 }: ModelSelectorProps) {
   const { activeProviderId } = useProviderStore();
-  const { getEnabledModels, loading, errors, setModels, setError, setLoading } =
-    useModelsStore();
+  const {
+    getEnabledModelsByProviderId,
+    loading,
+    errors,
+    setModels,
+    setError,
+    setLoading,
+  } = useModelsStore();
 
-  const enabledModels = getEnabledModels(activeProviderId || '');
+  const enabledModels = getEnabledModelsByProviderId(activeProviderId || '');
   const isLoading = loading[activeProviderId || ''] || false;
   const error = errors[activeProviderId || ''] || null;
 

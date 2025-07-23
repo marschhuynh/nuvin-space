@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import type { ModelInfo } from '@/lib/providers/llm-provider';
+import type { ModelInfo } from '@/lib/providers/types/base';
 
 // Extended ModelInfo with enabled flag
 export interface ModelInfoWithState extends ModelInfo {
@@ -34,7 +34,8 @@ interface ModelsState {
   clearProviderModels: (providerId: string) => void;
   enableAllModels: (providerId: string) => void;
   disableAllModels: (providerId: string) => void;
-  getEnabledModels: (providerId: string) => ModelInfoWithState[];
+  getEnabledModels: () => ModelInfoWithState[];
+  getEnabledModelsByProviderId: (providerId: string) => ModelInfoWithState[];
   reset: () => void;
 }
 
@@ -133,7 +134,14 @@ export const useModelsStore = create<ModelsState>()(
           },
         })),
 
-      getEnabledModels: (providerId) => {
+      getEnabledModels: () => {
+        const state = get();
+        return Object.values(state.models)
+          .flat()
+          .filter((model) => model.enabled);
+      },
+
+      getEnabledModelsByProviderId: (providerId) => {
         const state = get();
         return (state.models[providerId] || []).filter(
           (model) => model.enabled,

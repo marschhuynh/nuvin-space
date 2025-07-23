@@ -43,6 +43,7 @@ export function AgentStatusDisplay({ className }: AgentStatusDisplayProps) {
 
     const agentManager = AgentManager.getInstance();
     const metrics = agentManager.getConversationMetrics(activeConversationId);
+    console.log('Conversation Metrics:', metrics, activeConversationId);
     setConversationMetrics(metrics);
   }, [activeConversationId]);
 

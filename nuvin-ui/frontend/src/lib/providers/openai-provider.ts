@@ -4,7 +4,7 @@ import type {
   CompletionResult,
   StreamChunk,
   ModelInfo,
-} from './llm-provider';
+} from './types/base';
 
 export class OpenAIProvider extends BaseLLMProvider {
   constructor(apiKey: string) {

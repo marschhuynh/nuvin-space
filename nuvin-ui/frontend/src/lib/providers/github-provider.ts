@@ -4,7 +4,7 @@ import type {
   CompletionResult,
   StreamChunk,
   ModelInfo,
-} from './llm-provider';
+} from './types/base';
 import { smartFetch } from '../fetch-proxy';
 
 export class GithubCopilotProvider extends BaseLLMProvider {

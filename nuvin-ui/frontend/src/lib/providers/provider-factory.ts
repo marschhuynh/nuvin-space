@@ -2,7 +2,7 @@ import { OpenRouterProvider } from './openrouter-provider';
 import { OpenAIProvider } from './openai-provider';
 import { AnthropicProvider } from './anthropic-provider';
 import { GithubCopilotProvider } from './github-provider';
-import type { LLMProvider } from './llm-provider';
+import type { LLMProvider } from './types/base';
 
 export type ProviderType = 'openrouter' | 'openai' | 'anthropic' | 'github';
 

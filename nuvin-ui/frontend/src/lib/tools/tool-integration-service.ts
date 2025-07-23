@@ -4,7 +4,8 @@ import type {
   ChatMessage,
   ToolDefinition,
   ToolCall as LLMToolCall,
-} from '@/lib/providers/llm-provider';
+  LLMProvider,
+} from '@/lib/providers/types/base';
 import type {
   ToolCall,
   ToolCallResult,
@@ -211,9 +212,7 @@ export class ToolIntegrationService {
     originalParams: CompletionParams,
     firstResult: CompletionResult,
     toolResults: ToolCallResult[],
-    llmProvider: any, // LLMProvider instance
-    context: ToolContext,
-    agentToolConfig?: AgentToolConfig,
+    llmProvider: LLMProvider, // LLMProvider instance
   ): Promise<CompletionResult> {
     if (!firstResult.tool_calls) {
       return firstResult;
@@ -234,10 +233,7 @@ export class ToolIntegrationService {
       tool_choice: undefined,
     };
 
-    // Get final response from LLM
-    const finalResult = await llmProvider.generateCompletion(followUpParams);
-
-    return finalResult;
+    return llmProvider.generateCompletion(followUpParams);
   }
 
   /**
