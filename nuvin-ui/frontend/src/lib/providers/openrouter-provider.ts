@@ -2,6 +2,7 @@ import type {
   LLMProvider,
   CompletionParams,
   CompletionResult,
+  StreamChunk,
   ModelInfo,
 } from './llm-provider';
 
@@ -117,6 +118,127 @@ export class OpenRouterProvider implements LLMProvider {
           }
         }
       }
+    }
+  }
+
+  async *generateCompletionStreamWithTools(
+    params: CompletionParams,
+    signal?: AbortSignal,
+  ): AsyncGenerator<StreamChunk> {
+    const response = await fetch(`${this.apiUrl}/api/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.apiKey}`,
+        'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000',
+        'X-Title': 'Nuvin Agent',
+      },
+      body: JSON.stringify({
+        model: params.model,
+        messages: params.messages,
+        temperature: params.temperature,
+        max_tokens: params.maxTokens,
+        top_p: params.topP,
+        stream: true,
+        ...(params.tools && { tools: params.tools }),
+        ...(params.tool_choice && { tool_choice: params.tool_choice }),
+      }),
+      signal,
+    });
+
+    if (!response.ok || !response.body) {
+      const text = await response.text();
+      throw new Error(`OpenRouter API error: ${response.status} - ${text}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+    let buffer = '';
+    let accumulatedToolCalls: any[] = [];
+
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      
+      // Check for cancellation
+      if (signal?.aborted) {
+        throw new Error('Request cancelled by user');
+      }
+      
+      if (value) {
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          if (trimmed === 'data: [DONE]') {
+            if (accumulatedToolCalls.length > 0) {
+              yield { tool_calls: accumulatedToolCalls, finished: true };
+            }
+            return;
+          }
+          if (!trimmed.startsWith('data:')) continue;
+          
+          try {
+            const data = JSON.parse(trimmed.slice('data:'.length));
+            const choice = data.choices?.[0];
+            
+            // Handle text content
+            const delta = choice?.delta?.content;
+            if (delta) {
+              yield { content: delta };
+            }
+            
+            // Handle tool calls
+            if (choice?.delta?.tool_calls) {
+              const toolCallDeltas = choice.delta.tool_calls;
+              for (const tcDelta of toolCallDeltas) {
+                if (tcDelta.index !== undefined) {
+                  // Initialize tool call if needed
+                  if (!accumulatedToolCalls[tcDelta.index]) {
+                    accumulatedToolCalls[tcDelta.index] = {
+                      id: tcDelta.id || '',
+                      type: 'function',
+                      function: {
+                        name: '',
+                        arguments: ''
+                      }
+                    };
+                  }
+                  
+                  const toolCall = accumulatedToolCalls[tcDelta.index];
+                  
+                  // Update tool call with delta
+                  if (tcDelta.id) toolCall.id = tcDelta.id;
+                  if (tcDelta.function?.name) {
+                    toolCall.function.name += tcDelta.function.name;
+                  }
+                  if (tcDelta.function?.arguments) {
+                    toolCall.function.arguments += tcDelta.function.arguments;
+                  }
+                }
+              }
+              
+              // Yield updated tool calls
+              yield { tool_calls: [...accumulatedToolCalls] };
+            }
+            
+            // Check if this is the final message
+            if (choice?.finish_reason === 'tool_calls') {
+              yield { tool_calls: accumulatedToolCalls, finished: true };
+            }
+          } catch (error) {
+            console.warn('Failed to parse streaming data:', error);
+          }
+        }
+      }
+    }
+    
+    if (accumulatedToolCalls.length > 0) {
+      yield { tool_calls: accumulatedToolCalls, finished: true };
     }
   }
 

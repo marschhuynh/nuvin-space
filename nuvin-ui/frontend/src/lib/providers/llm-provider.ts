@@ -44,6 +44,12 @@ export interface CompletionResult {
   tool_calls?: ToolCall[];
 }
 
+export interface StreamChunk {
+  content?: string;
+  tool_calls?: ToolCall[];
+  finished?: boolean;
+}
+
 export interface ModelInfo {
   id: string;
   name: string;
@@ -61,5 +67,6 @@ export interface LLMProvider {
   readonly type: string;
   generateCompletion(params: CompletionParams, signal?: AbortSignal): Promise<CompletionResult>;
   generateCompletionStream?(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<string>;
+  generateCompletionStreamWithTools?(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<StreamChunk>;
   getModels(): Promise<ModelInfo[]>;
 }

@@ -28,7 +28,7 @@ export function ConversationItem({
       onClick={handleClick}
       className={`group relative mx-2 my-1 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 ${
         conversation.active
-          ? 'bg-accent/80 border border-primary/40 shadow-sm'
+          ? 'bg-accent/70 border border-primary/10 shadow-2xs'
           : 'hover:bg-muted/50 border border-transparent'
       }`}
     >

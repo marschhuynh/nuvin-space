@@ -73,59 +73,61 @@ export class LocalAgent extends BaseAgent {
       this.agentSettings.toolConfig,
     );
 
-    if (options.stream && provider.generateCompletionStream) {
-      // Note: Tool calling with streaming is complex and typically not supported
-      // Fall back to non-streaming if tools are enabled
-      if (this.agentSettings.toolConfig?.enabledTools?.length) {
-        return this.sendMessage(content, { ...options, stream: false });
+    if (options.stream) {
+      // Use streaming with tools if tools are enabled and provider supports it
+      if (this.agentSettings.toolConfig?.enabledTools?.length && provider.generateCompletionStreamWithTools) {
+        return this.handleStreamingWithTools(enhancedParams, signal, options, messageId, convoId, content, startTime);
       }
+      
+      // Regular streaming for text-only responses
+      if (provider.generateCompletionStream) {
+        let accumulated = '';
+        const stream = provider.generateCompletionStream(enhancedParams, signal);
 
-      let accumulated = '';
-      const stream = provider.generateCompletionStream(enhancedParams, signal);
-
-      try {
-        for await (const chunk of stream) {
-          // Check for cancellation
-          if (signal.aborted) {
-            throw new Error('Request cancelled');
+        try {
+          for await (const chunk of stream) {
+            // Check for cancellation
+            if (signal.aborted) {
+              throw new Error('Request cancelled');
+            }
+            accumulated += chunk;
+            options.onChunk?.(chunk);
           }
-          accumulated += chunk;
-          options.onChunk?.(chunk);
+        } catch (error) {
+          if (signal.aborted) {
+            throw new Error('Request cancelled by user');
+          }
+          throw error;
         }
-      } catch (error) {
-        if (signal.aborted) {
-          throw new Error('Request cancelled by user');
-        }
-        throw error;
-      }
 
-      const timestamp = new Date().toISOString();
-      const response: MessageResponse = {
-        id: messageId,
-        content: accumulated,
-        role: 'assistant',
-        timestamp,
-        metadata: {
-          agentType: 'local',
-          agentId: this.agentSettings.id,
-          provider: this.providerConfig.type,
-          model: this.providerConfig.activeModel.model,
-          responseTime: Date.now() - startTime,
-        },
-      };
-
-      this.addToHistory(convoId, [
-        { id: generateUUID(), role: 'user', content, timestamp },
-        {
-          id: generateUUID(),
-          role: 'assistant',
+        const timestamp = new Date().toISOString();
+        const response: MessageResponse = {
+          id: messageId,
           content: accumulated,
+          role: 'assistant',
           timestamp,
-        },
-      ]);
+          metadata: {
+            agentType: 'local',
+            agentId: this.agentSettings.id,
+            provider: this.providerConfig.type,
+            model: this.providerConfig.activeModel.model,
+            responseTime: Date.now() - startTime,
+          },
+        };
 
-      options.onComplete?.(accumulated);
-      return response;
+        this.addToHistory(convoId, [
+          { id: generateUUID(), role: 'user', content, timestamp },
+          {
+            id: generateUUID(),
+            role: 'assistant',
+            content: accumulated,
+            timestamp,
+          },
+        ]);
+
+        options.onComplete?.(accumulated);
+        return response;
+      }
     }
 
     // Get initial completion (potentially with tool calls)
@@ -204,6 +206,128 @@ export class LocalAgent extends BaseAgent {
     ]);
 
     options.onComplete?.(finalResult.content);
+    return response;
+  }
+
+  /**
+   * Handle streaming with tool calls
+   */
+  private async handleStreamingWithTools(
+    enhancedParams: any,
+    signal: AbortSignal,
+    options: SendMessageOptions,
+    messageId: string,
+    convoId: string,
+    content: string,
+    startTime: number,
+  ): Promise<MessageResponse> {
+    const provider = createProvider(
+      convertToLLMProviderConfig(this.providerConfig),
+    );
+
+    if (!provider.generateCompletionStreamWithTools) {
+      throw new Error('Provider does not support streaming with tools');
+    }
+
+    const toolContext: ToolContext = {
+      userId: options.userId,
+      sessionId: convoId,
+      metadata: {
+        agentId: this.agentSettings.id,
+        provider: this.providerConfig.type,
+        model: this.providerConfig.activeModel.model,
+      },
+    };
+
+    let accumulated = '';
+    let currentToolCalls: any[] = [];
+    const stream = provider.generateCompletionStreamWithTools(enhancedParams, signal);
+
+    try {
+      for await (const chunk of stream) {
+        // Check for cancellation
+        if (signal.aborted) {
+          throw new Error('Request cancelled');
+        }
+
+        // Handle text content
+        if (chunk.content) {
+          accumulated += chunk.content;
+          options.onChunk?.(chunk.content);
+        }
+
+        // Handle tool calls
+        if (chunk.tool_calls) {
+          currentToolCalls = chunk.tool_calls;
+          
+          // If this is the final tool call chunk, execute tools
+          if (chunk.finished && currentToolCalls.length > 0) {
+            options.onChunk?.('\n\n[Executing tools...]');
+            
+            // Process tool calls
+            const processed = await toolIntegrationService.processCompletionResult(
+              { content: accumulated, tool_calls: currentToolCalls },
+              toolContext,
+              this.agentSettings.toolConfig,
+            );
+
+            if (processed.requiresFollowUp && processed.toolCalls) {
+              // Execute tools and get follow-up response
+              const finalResult = await toolIntegrationService.completeToolCallingFlow(
+                enhancedParams,
+                { content: accumulated, tool_calls: currentToolCalls },
+                processed.toolCalls,
+                provider,
+                toolContext,
+                this.agentSettings.toolConfig,
+              );
+              
+              // Stream the final response
+              if (finalResult.content) {
+                const additionalContent = finalResult.content.slice(accumulated.length);
+                if (additionalContent) {
+                  options.onChunk?.(additionalContent);
+                  accumulated = finalResult.content;
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      if (signal.aborted) {
+        throw new Error('Request cancelled by user');
+      }
+      throw error;
+    }
+
+    const timestamp = new Date().toISOString();
+    const response: MessageResponse = {
+      id: messageId,
+      content: accumulated,
+      role: 'assistant',
+      timestamp,
+      metadata: {
+        agentType: 'local',
+        agentId: this.agentSettings.id,
+        provider: this.providerConfig.type,
+        model: this.providerConfig.activeModel.model,
+        responseTime: Date.now() - startTime,
+        toolCalls: currentToolCalls.length,
+      },
+    };
+
+    this.addToHistory(convoId, [
+      { id: generateUUID(), role: 'user', content, timestamp },
+      {
+        id: generateUUID(),
+        role: 'assistant',
+        content: accumulated,
+        timestamp,
+      },
+    ]);
+
+    options.onComplete?.(accumulated);
     return response;
   }
 

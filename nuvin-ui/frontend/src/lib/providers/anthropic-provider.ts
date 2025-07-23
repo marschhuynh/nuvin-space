@@ -1,6 +1,7 @@
 import {
   CompletionParams,
   CompletionResult,
+  StreamChunk,
   LLMProvider,
   ModelInfo,
 } from './llm-provider';
@@ -127,6 +128,128 @@ export class AnthropicProvider implements LLMProvider {
           }
         }
       }
+    }
+  }
+
+  async *generateCompletionStreamWithTools(
+    params: CompletionParams,
+    signal?: AbortSignal,
+  ): AsyncGenerator<StreamChunk> {
+    const response = await fetch(`${this.apiUrl}/v1/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: params.model,
+        messages: params.messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+          ...(m.tool_calls && { tool_calls: m.tool_calls }),
+          ...(m.tool_call_id && { tool_call_id: m.tool_call_id }),
+          ...(m.name && { name: m.name }),
+        })),
+        temperature: params.temperature,
+        max_tokens: params.maxTokens,
+        top_p: params.topP,
+        stream: true,
+        ...(params.tools && {
+          tools: params.tools.map((tool) => tool.function),
+        }),
+        ...(params.tool_choice && { tool_choice: params.tool_choice }),
+      }),
+      signal,
+    });
+
+    if (!response.ok || !response.body) {
+      const text = await response.text();
+      throw new Error(`Anthropic API error: ${response.status} - ${text}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+    let buffer = '';
+    let accumulatedToolCalls: any[] = [];
+
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      
+      // Check for cancellation
+      if (signal?.aborted) {
+        throw new Error('Request cancelled by user');
+      }
+      
+      if (value) {
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          if (trimmed === 'data: [DONE]') {
+            if (accumulatedToolCalls.length > 0) {
+              yield { tool_calls: accumulatedToolCalls, finished: true };
+            }
+            return;
+          }
+          if (!trimmed.startsWith('data:')) continue;
+          
+          try {
+            const data = JSON.parse(trimmed.slice('data:'.length));
+            
+            // Handle text content
+            const delta = data.delta?.text;
+            if (delta) {
+              yield { content: delta };
+            }
+            
+            // Handle tool calls
+            if (data.delta?.tool_calls) {
+              const toolCallDeltas = data.delta.tool_calls;
+              for (const tcDelta of toolCallDeltas) {
+                if (tcDelta.index !== undefined) {
+                  // Initialize tool call if needed
+                  if (!accumulatedToolCalls[tcDelta.index]) {
+                    accumulatedToolCalls[tcDelta.index] = {
+                      id: tcDelta.id || '',
+                      type: 'function',
+                      function: {
+                        name: '',
+                        arguments: ''
+                      }
+                    };
+                  }
+                  
+                  const toolCall = accumulatedToolCalls[tcDelta.index];
+                  
+                  // Update tool call with delta
+                  if (tcDelta.id) toolCall.id = tcDelta.id;
+                  if (tcDelta.function?.name) {
+                    toolCall.function.name += tcDelta.function.name;
+                  }
+                  if (tcDelta.function?.arguments) {
+                    toolCall.function.arguments += tcDelta.function.arguments;
+                  }
+                }
+              }
+              
+              // Yield updated tool calls
+              yield { tool_calls: [...accumulatedToolCalls] };
+            }
+          } catch (error) {
+            console.warn('Failed to parse streaming data:', error);
+          }
+        }
+      }
+    }
+    
+    if (accumulatedToolCalls.length > 0) {
+      yield { tool_calls: accumulatedToolCalls, finished: true };
     }
   }
 
