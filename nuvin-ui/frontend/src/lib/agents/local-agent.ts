@@ -23,7 +23,7 @@ function convertToLLMProviderConfig(config: ProviderConfig): LLMProviderConfig {
 
 export class LocalAgent extends BaseAgent {
   private abortController: AbortController | null = null;
-  
+
   constructor(
     agentSettings: AgentSettings,
     private providerConfig: ProviderConfig,
@@ -39,7 +39,7 @@ export class LocalAgent extends BaseAgent {
     // Create new abort controller for this request
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
-    
+
     const startTime = Date.now();
     const messageId = generateUUID();
     const provider = createProvider(
@@ -76,14 +76,28 @@ export class LocalAgent extends BaseAgent {
 
     if (options.stream) {
       // Use streaming with tools if tools are enabled and provider supports it
-      if (this.agentSettings.toolConfig?.enabledTools?.length && provider.generateCompletionStreamWithTools) {
-        return this.handleStreamingWithTools(enhancedParams, signal, options, messageId, convoId, content, startTime);
+      if (
+        this.agentSettings.toolConfig?.enabledTools?.length &&
+        provider.generateCompletionStreamWithTools
+      ) {
+        return this.handleStreamingWithTools(
+          enhancedParams,
+          signal,
+          options,
+          messageId,
+          convoId,
+          content,
+          startTime,
+        );
       }
-      
+
       // Regular streaming for text-only responses
       if (provider.generateCompletionStream) {
         let accumulated = '';
-        const stream = provider.generateCompletionStream(enhancedParams, signal);
+        const stream = provider.generateCompletionStream(
+          enhancedParams,
+          signal,
+        );
 
         try {
           for await (const chunk of stream) {
@@ -103,7 +117,7 @@ export class LocalAgent extends BaseAgent {
 
         const timestamp = new Date().toISOString();
         const model = this.providerConfig.activeModel.model;
-        
+
         const response: MessageResponse = {
           id: messageId,
           content: accumulated,
@@ -260,7 +274,10 @@ export class LocalAgent extends BaseAgent {
     let accumulated = '';
     let currentToolCalls: any[] = [];
     let usage: any = null;
-    const stream = provider.generateCompletionStreamWithTools(enhancedParams, signal);
+    const stream = provider.generateCompletionStreamWithTools(
+      enhancedParams,
+      signal,
+    );
 
     try {
       for await (const chunk of stream) {
@@ -283,32 +300,36 @@ export class LocalAgent extends BaseAgent {
         // Handle tool calls
         if (chunk.tool_calls) {
           currentToolCalls = chunk.tool_calls;
-          
+
           // If this is the final tool call chunk, execute tools
           if (chunk.finished && currentToolCalls.length > 0) {
             options.onChunk?.('\n\n[Executing tools...]');
-            
-            // Process tool calls
-            const processed = await toolIntegrationService.processCompletionResult(
-              { content: accumulated, tool_calls: currentToolCalls },
-              toolContext,
-              this.agentSettings.toolConfig,
-            );
 
-            if (processed.requiresFollowUp && processed.toolCalls) {
-              // Execute tools and get follow-up response
-              const finalResult = await toolIntegrationService.completeToolCallingFlow(
-                enhancedParams,
+            // Process tool calls
+            const processed =
+              await toolIntegrationService.processCompletionResult(
                 { content: accumulated, tool_calls: currentToolCalls },
-                processed.toolCalls,
-                provider,
                 toolContext,
                 this.agentSettings.toolConfig,
               );
-              
+
+            if (processed.requiresFollowUp && processed.toolCalls) {
+              // Execute tools and get follow-up response
+              const finalResult =
+                await toolIntegrationService.completeToolCallingFlow(
+                  enhancedParams,
+                  { content: accumulated, tool_calls: currentToolCalls },
+                  processed.toolCalls,
+                  provider,
+                  toolContext,
+                  this.agentSettings.toolConfig,
+                );
+
               // Stream the final response
               if (finalResult.content) {
-                const additionalContent = finalResult.content.slice(accumulated.length);
+                const additionalContent = finalResult.content.slice(
+                  accumulated.length,
+                );
                 if (additionalContent) {
                   options.onChunk?.(additionalContent);
                   accumulated = finalResult.content;

@@ -110,12 +110,12 @@ export class GithubCopilotProvider implements LLMProvider {
     while (!done) {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
-      
+
       // Check for cancellation
       if (signal?.aborted) {
         throw new Error('Request cancelled by user');
       }
-      
+
       if (value) {
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');

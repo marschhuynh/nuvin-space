@@ -58,11 +58,13 @@ export class AnthropicProvider implements LLMProvider {
     return {
       content,
       ...(tool_calls && { tool_calls }),
-      usage: data.usage ? {
-        prompt_tokens: data.usage.input_tokens,
-        completion_tokens: data.usage.output_tokens,
-        total_tokens: data.usage.input_tokens + data.usage.output_tokens,
-      } : undefined,
+      usage: data.usage
+        ? {
+            prompt_tokens: data.usage.input_tokens,
+            completion_tokens: data.usage.output_tokens,
+            total_tokens: data.usage.input_tokens + data.usage.output_tokens,
+          }
+        : undefined,
     };
   }
 
@@ -111,12 +113,12 @@ export class AnthropicProvider implements LLMProvider {
     while (!done) {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
-      
+
       // Check for cancellation
       if (signal?.aborted) {
         throw new Error('Request cancelled by user');
       }
-      
+
       if (value) {
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
@@ -183,50 +185,55 @@ export class AnthropicProvider implements LLMProvider {
     while (!done) {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
-      
+
       // Check for cancellation
       if (signal?.aborted) {
         throw new Error('Request cancelled by user');
       }
-      
+
       if (value) {
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
-        
+
         for (const line of lines) {
           const trimmed = line.trim();
           if (!trimmed) continue;
           if (trimmed === 'data: [DONE]') {
             if (accumulatedToolCalls.length > 0 || usage) {
-              yield { 
-                tool_calls: accumulatedToolCalls.length > 0 ? accumulatedToolCalls : undefined, 
+              yield {
+                tool_calls:
+                  accumulatedToolCalls.length > 0
+                    ? accumulatedToolCalls
+                    : undefined,
                 finished: true,
-                usage: usage ? {
-                  prompt_tokens: usage.input_tokens,
-                  completion_tokens: usage.output_tokens,
-                  total_tokens: usage.input_tokens + usage.output_tokens,
-                } : undefined,
+                usage: usage
+                  ? {
+                      prompt_tokens: usage.input_tokens,
+                      completion_tokens: usage.output_tokens,
+                      total_tokens: usage.input_tokens + usage.output_tokens,
+                    }
+                  : undefined,
               };
             }
             return;
           }
           if (!trimmed.startsWith('data:')) continue;
-          
+
           try {
             const data = JSON.parse(trimmed.slice('data:'.length));
-            
+
             // Handle usage data
             if (data.usage) {
               usage = data.usage;
             }
-            
+
             // Handle text content
             const delta = data.delta?.text;
             if (delta) {
               yield { content: delta };
             }
-            
+
             // Handle tool calls
             if (data.delta?.tool_calls) {
               const toolCallDeltas = data.delta.tool_calls;
@@ -239,13 +246,13 @@ export class AnthropicProvider implements LLMProvider {
                       type: 'function',
                       function: {
                         name: '',
-                        arguments: ''
-                      }
+                        arguments: '',
+                      },
                     };
                   }
-                  
+
                   const toolCall = accumulatedToolCalls[tcDelta.index];
-                  
+
                   // Update tool call with delta
                   if (tcDelta.id) toolCall.id = tcDelta.id;
                   if (tcDelta.function?.name) {
@@ -256,7 +263,7 @@ export class AnthropicProvider implements LLMProvider {
                   }
                 }
               }
-              
+
               // Yield updated tool calls
               yield { tool_calls: [...accumulatedToolCalls] };
             }
@@ -266,7 +273,7 @@ export class AnthropicProvider implements LLMProvider {
         }
       }
     }
-    
+
     if (accumulatedToolCalls.length > 0) {
       yield { tool_calls: accumulatedToolCalls, finished: true };
     }

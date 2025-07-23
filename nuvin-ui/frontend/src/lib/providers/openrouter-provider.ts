@@ -130,7 +130,10 @@ export class OpenRouterProvider implements LLMProvider {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${this.apiKey}`,
-        'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000',
+        'HTTP-Referer':
+          typeof window !== 'undefined'
+            ? window.location.origin
+            : 'http://localhost:3000',
         'X-Title': 'Nuvin Agent',
       },
       body: JSON.stringify({
@@ -160,17 +163,17 @@ export class OpenRouterProvider implements LLMProvider {
     while (!done) {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
-      
+
       // Check for cancellation
       if (signal?.aborted) {
         throw new Error('Request cancelled by user');
       }
-      
+
       if (value) {
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
-        
+
         for (const line of lines) {
           const trimmed = line.trim();
           if (!trimmed) continue;
@@ -181,17 +184,17 @@ export class OpenRouterProvider implements LLMProvider {
             return;
           }
           if (!trimmed.startsWith('data:')) continue;
-          
+
           try {
             const data = JSON.parse(trimmed.slice('data:'.length));
             const choice = data.choices?.[0];
-            
+
             // Handle text content
             const delta = choice?.delta?.content;
             if (delta) {
               yield { content: delta };
             }
-            
+
             // Handle tool calls
             if (choice?.delta?.tool_calls) {
               const toolCallDeltas = choice.delta.tool_calls;
@@ -204,13 +207,13 @@ export class OpenRouterProvider implements LLMProvider {
                       type: 'function',
                       function: {
                         name: '',
-                        arguments: ''
-                      }
+                        arguments: '',
+                      },
                     };
                   }
-                  
+
                   const toolCall = accumulatedToolCalls[tcDelta.index];
-                  
+
                   // Update tool call with delta
                   if (tcDelta.id) toolCall.id = tcDelta.id;
                   if (tcDelta.function?.name) {
@@ -221,11 +224,11 @@ export class OpenRouterProvider implements LLMProvider {
                   }
                 }
               }
-              
+
               // Yield updated tool calls
               yield { tool_calls: [...accumulatedToolCalls] };
             }
-            
+
             // Check if this is the final message
             if (choice?.finish_reason === 'tool_calls') {
               yield { tool_calls: accumulatedToolCalls, finished: true };
@@ -236,7 +239,7 @@ export class OpenRouterProvider implements LLMProvider {
         }
       }
     }
-    
+
     if (accumulatedToolCalls.length > 0) {
       yield { tool_calls: accumulatedToolCalls, finished: true };
     }

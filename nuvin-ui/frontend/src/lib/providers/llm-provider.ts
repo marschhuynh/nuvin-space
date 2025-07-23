@@ -75,8 +75,17 @@ export interface ModelInfo {
 
 export interface LLMProvider {
   readonly type: string;
-  generateCompletion(params: CompletionParams, signal?: AbortSignal): Promise<CompletionResult>;
-  generateCompletionStream?(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<string>;
-  generateCompletionStreamWithTools?(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<StreamChunk>;
+  generateCompletion(
+    params: CompletionParams,
+    signal?: AbortSignal,
+  ): Promise<CompletionResult>;
+  generateCompletionStream?(
+    params: CompletionParams,
+    signal?: AbortSignal,
+  ): AsyncGenerator<string>;
+  generateCompletionStreamWithTools?(
+    params: CompletionParams,
+    signal?: AbortSignal,
+  ): AsyncGenerator<StreamChunk>;
   getModels(): Promise<ModelInfo[]>;
 }

@@ -22,7 +22,7 @@ export function AgentStatusDisplay({ className }: AgentStatusDisplayProps) {
     messageCount: number;
   } | null>(null);
 
-  const activeAgent = agents.find(agent => agent.id === activeAgentId);
+  const activeAgent = agents.find((agent) => agent.id === activeAgentId);
 
   useEffect(() => {
     if (!activeAgent) {
@@ -64,11 +64,16 @@ export function AgentStatusDisplay({ className }: AgentStatusDisplayProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'available': return 'bg-green-500';
-      case 'busy': return 'bg-yellow-500';
-      case 'error': return 'bg-red-500';
-      case 'offline': return 'bg-gray-500';
-      default: return 'bg-gray-500';
+      case 'available':
+        return 'bg-green-500';
+      case 'busy':
+        return 'bg-yellow-500';
+      case 'error':
+        return 'bg-red-500';
+      case 'offline':
+        return 'bg-gray-500';
+      default:
+        return 'bg-gray-500';
     }
   };
 
@@ -95,7 +100,9 @@ export function AgentStatusDisplay({ className }: AgentStatusDisplayProps) {
         {/* Agent Info */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${getStatusColor(agentStatus.status)}`} />
+            <div
+              className={`w-2 h-2 rounded-full ${getStatusColor(agentStatus.status)}`}
+            />
             <span className="text-sm font-medium">{agentStatus.name}</span>
           </div>
           <Badge variant="outline" className="text-xs">
@@ -114,22 +121,30 @@ export function AgentStatusDisplay({ className }: AgentStatusDisplayProps) {
             <div className="flex items-center gap-1">
               <Hash className="h-3 w-3 text-muted-foreground" />
               <span className="text-muted-foreground">Tokens:</span>
-              <span className="font-medium">{formatNumber(agentStatus.totalTokensUsed || 0)}</span>
+              <span className="font-medium">
+                {formatNumber(agentStatus.totalTokensUsed || 0)}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               <DollarSign className="h-3 w-3 text-muted-foreground" />
               <span className="text-muted-foreground">Cost:</span>
-              <span className="font-medium">{formatCost(agentStatus.totalCost || 0)}</span>
+              <span className="font-medium">
+                {formatCost(agentStatus.totalCost || 0)}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               <Bot className="h-3 w-3 text-muted-foreground" />
               <span className="text-muted-foreground">Messages:</span>
-              <span className="font-medium">{agentStatus.messagesProcessed || 0}</span>
+              <span className="font-medium">
+                {agentStatus.messagesProcessed || 0}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3 text-muted-foreground" />
               <span className="text-muted-foreground">Avg Time:</span>
-              <span className="font-medium">{formatTime(agentStatus.averageResponseTime || 0)}</span>
+              <span className="font-medium">
+                {formatTime(agentStatus.averageResponseTime || 0)}
+              </span>
             </div>
           </div>
         </div>
@@ -146,17 +161,23 @@ export function AgentStatusDisplay({ className }: AgentStatusDisplayProps) {
                 <div className="flex items-center gap-1">
                   <Hash className="h-3 w-3 text-muted-foreground" />
                   <span className="text-muted-foreground">Tokens:</span>
-                  <span className="font-medium">{formatNumber(conversationMetrics.totalTokens)}</span>
+                  <span className="font-medium">
+                    {formatNumber(conversationMetrics.totalTokens)}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <DollarSign className="h-3 w-3 text-muted-foreground" />
                   <span className="text-muted-foreground">Cost:</span>
-                  <span className="font-medium">{formatCost(conversationMetrics.totalCost)}</span>
+                  <span className="font-medium">
+                    {formatCost(conversationMetrics.totalCost)}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Bot className="h-3 w-3 text-muted-foreground" />
                   <span className="text-muted-foreground">Messages:</span>
-                  <span className="font-medium">{conversationMetrics.messageCount}</span>
+                  <span className="font-medium">
+                    {conversationMetrics.messageCount}
+                  </span>
                 </div>
               </div>
             </div>

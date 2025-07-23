@@ -53,8 +53,12 @@ export function GeneralSettings({
                 <SelectTrigger>
                   <SelectValue placeholder="Select theme">
                     <div className="flex items-center gap-2">
-                      {settings.theme === 'light' && <Sun className="h-4 w-4" />}
-                      {settings.theme === 'dark' && <Moon className="h-4 w-4" />}
+                      {settings.theme === 'light' && (
+                        <Sun className="h-4 w-4" />
+                      )}
+                      {settings.theme === 'dark' && (
+                        <Moon className="h-4 w-4" />
+                      )}
                       {settings.theme === 'ocean' && (
                         <Droplet className="h-4 w-4" />
                       )}
@@ -107,7 +111,7 @@ export function GeneralSettings({
                 </SelectContent>
               </Select>
             </div>
-            
+
             {/* Message Mode Setting */}
             <div className="grid gap-2">
               <Label htmlFor="messageMode">Message Mode</Label>
@@ -148,7 +152,7 @@ export function GeneralSettings({
             </div>
           </div>
         </div>
-        
+
         {/* Application Update Section */}
         <div className="flex items-center justify-between pt-4 border-t">
           <Label className="text-sm font-medium">Application Update</Label>
