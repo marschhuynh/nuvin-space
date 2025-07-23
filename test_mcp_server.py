@@ -15,7 +15,7 @@ def handle_request(request):
     """Handle incoming JSON-RPC requests"""
     method = request.get('method')
     logger.info(f"Handling request: {method}")
-    
+
     if method == 'initialize':
         return {
             'protocolVersion': '2024-11-05',
@@ -28,7 +28,7 @@ def handle_request(request):
                 'version': '1.0.0'
             }
         }
-    
+
     elif method == 'tools/list':
         return {
             'tools': [
@@ -66,11 +66,11 @@ def handle_request(request):
                 }
             ]
         }
-    
+
     elif method == 'tools/call':
         tool_name = request.get('params', {}).get('name')
         arguments = request.get('params', {}).get('arguments', {})
-        
+
         if tool_name == 'echo':
             message = arguments.get('message', 'Hello from MCP!')
             return {
@@ -81,7 +81,7 @@ def handle_request(request):
                     }
                 ]
             }
-        
+
         elif tool_name == 'add':
             a = arguments.get('a', 0)
             b = arguments.get('b', 0)
@@ -94,52 +94,52 @@ def handle_request(request):
                     }
                 ]
             }
-        
+
         else:
             raise ValueError(f'Unknown tool: {tool_name}')
-    
+
     elif method == 'resources/list':
         return {
             'resources': []
         }
-    
+
     elif method == 'resources/templates/list':
         return {
             'resourceTemplates': []
         }
-    
+
     else:
         raise ValueError(f'Unknown method: {method}')
 
 def main():
     """Main loop - read JSON-RPC requests from stdin and respond on stdout"""
     logger.info("Test MCP server starting...")
-    
+
     try:
         for line in sys.stdin:
             line = line.strip()
             if not line:
                 continue
-                
+
             try:
                 # Parse the JSON-RPC request
                 request = json.loads(line)
                 logger.info(f"Received request: {request}")
-                
+
                 # Handle the request
                 result = handle_request(request)
-                
+
                 # Send the JSON-RPC response
                 response = {
                     'jsonrpc': '2.0',
                     'id': request.get('id'),
                     'result': result
                 }
-                
+
                 # Write response to stdout
                 print(json.dumps(response), flush=True)
                 logger.info(f"Sent response: {response}")
-                
+
             except Exception as e:
                 logger.error(f"Error handling request: {e}")
                 # Send error response
@@ -152,7 +152,7 @@ def main():
                     }
                 }
                 print(json.dumps(error_response), flush=True)
-                
+
     except KeyboardInterrupt:
         logger.info("Test MCP server stopping...")
     except Exception as e:

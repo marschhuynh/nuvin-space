@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Conversation, Message } from '@/types';
+import type { Conversation, Message } from '@/types';
 
 interface ConversationState {
   conversations: Conversation[];

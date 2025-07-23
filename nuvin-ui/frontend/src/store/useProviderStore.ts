@@ -1,4 +1,4 @@
-import { ProviderConfig, ModelConfig } from '@/types';
+import type { ProviderConfig, ModelConfig } from '@/types';
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
