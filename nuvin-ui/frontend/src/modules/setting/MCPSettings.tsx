@@ -29,7 +29,7 @@ export function MCPSettings() {
   const [showAddMCPModal, setShowAddMCPModal] = useState(false);
   const [editingMCP, setEditingMCP] = useState<MCPConfig | null>(null);
   const [selectedMCPId, setSelectedMCPId] = useState<string | null>(
-    preferences?.mcpServers[0].id,
+    preferences?.mcpServers[0]?.id || null,
   );
   const [isEditing, setIsEditing] = useState(false);
   const [mcpForm, setMcpForm] = useState<Partial<MCPConfig>>({
@@ -650,10 +650,6 @@ export function MCPSettings() {
                 <p className="text-muted-foreground mb-4">
                   Select a server from the list to view its details
                 </p>
-                <Button onClick={handleCreateMCP}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add New MCP Server
-                </Button>
               </div>
             </div>
           )}

@@ -58,6 +58,11 @@ export class AnthropicProvider implements LLMProvider {
     return {
       content,
       ...(tool_calls && { tool_calls }),
+      usage: data.usage ? {
+        prompt_tokens: data.usage.input_tokens,
+        completion_tokens: data.usage.output_tokens,
+        total_tokens: data.usage.input_tokens + data.usage.output_tokens,
+      } : undefined,
     };
   }
 
@@ -173,6 +178,7 @@ export class AnthropicProvider implements LLMProvider {
     let done = false;
     let buffer = '';
     let accumulatedToolCalls: any[] = [];
+    let usage: any = null;
 
     while (!done) {
       const { value, done: doneReading } = await reader.read();
@@ -192,8 +198,16 @@ export class AnthropicProvider implements LLMProvider {
           const trimmed = line.trim();
           if (!trimmed) continue;
           if (trimmed === 'data: [DONE]') {
-            if (accumulatedToolCalls.length > 0) {
-              yield { tool_calls: accumulatedToolCalls, finished: true };
+            if (accumulatedToolCalls.length > 0 || usage) {
+              yield { 
+                tool_calls: accumulatedToolCalls.length > 0 ? accumulatedToolCalls : undefined, 
+                finished: true,
+                usage: usage ? {
+                  prompt_tokens: usage.input_tokens,
+                  completion_tokens: usage.output_tokens,
+                  total_tokens: usage.input_tokens + usage.output_tokens,
+                } : undefined,
+              };
             }
             return;
           }
@@ -201,6 +215,11 @@ export class AnthropicProvider implements LLMProvider {
           
           try {
             const data = JSON.parse(trimmed.slice('data:'.length));
+            
+            // Handle usage data
+            if (data.usage) {
+              usage = data.usage;
+            }
             
             // Handle text content
             const delta = data.delta?.text;

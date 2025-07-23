@@ -30,6 +30,10 @@ export interface MessageResponse {
     agentType: 'local' | 'remote';
     agentId: string;
     tokensUsed?: number;
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+    estimatedCost?: number;
     responseTime?: number;
     taskId?: string;
     toolCalls?: number; // Added to track tool usage
@@ -47,6 +51,10 @@ export interface AgentStatus {
   lastSuccess?: Date;
   failureCount?: number;
   error?: string;
+  totalTokensUsed?: number;
+  totalCost?: number;
+  messagesProcessed?: number;
+  averageResponseTime?: number;
 }
 
 export class AgentManager {
@@ -54,6 +62,17 @@ export class AgentManager {
   private activeAgent: AgentSettings | null = null;
   private activeProvider: ProviderConfig | null = null;
   private conversationHistory: Map<string, Message[]> = new Map();
+
+  // Agent metrics tracking
+  private agentMetrics: Map<
+    string,
+    {
+      totalTokensUsed: number;
+      totalCost: number;
+      messagesProcessed: number;
+      totalResponseTime: number;
+    }
+  > = new Map();
 
   // Use centralized UUID generator for message IDs
   private generateMessageId = generateUUID;
@@ -171,10 +190,8 @@ export class AgentManager {
     // For remote agents, cancel the active task
     if (this.activeAgent?.agentType === 'remote' && this.activeAgent.url) {
       const tasks = a2aService.getTasksForAgent(this.activeAgent.url);
-      const activeTask = tasks.find(task => 
-        task.status.state === 'running'
-      );
-      
+      const activeTask = tasks.find((task) => task.status.state === 'running');
+
       if (activeTask) {
         return await this.cancelTask(this.activeAgent.url, activeTask.id);
       }
@@ -293,6 +310,83 @@ export class AgentManager {
       return a2aService.getTasksForAgent(this.activeAgent.url);
     }
     return [];
+  }
+
+  /**
+   * Update agent metrics after a message response
+   */
+  updateAgentMetrics(
+    agentId: string,
+    responseMetadata: MessageResponse['metadata'],
+  ): void {
+    if (!responseMetadata) return;
+
+    const metrics = this.agentMetrics.get(agentId) || {
+      totalTokensUsed: 0,
+      totalCost: 0,
+      messagesProcessed: 0,
+      totalResponseTime: 0,
+    };
+
+    metrics.totalTokensUsed += responseMetadata.totalTokens || 0;
+    metrics.totalCost += responseMetadata.estimatedCost || 0;
+    metrics.messagesProcessed += 1;
+    metrics.totalResponseTime += responseMetadata.responseTime || 0;
+
+    this.agentMetrics.set(agentId, metrics);
+  }
+
+  /**
+   * Get agent status with current metrics
+   */
+  getAgentStatus(agent: AgentSettings): AgentStatus {
+    const metrics = this.agentMetrics.get(agent.id) || {
+      totalTokensUsed: 0,
+      totalCost: 0,
+      messagesProcessed: 0,
+      totalResponseTime: 0,
+    };
+
+    const averageResponseTime =
+      metrics.messagesProcessed > 0
+        ? metrics.totalResponseTime / metrics.messagesProcessed
+        : 0;
+
+    return {
+      id: agent.id,
+      name: agent.name,
+      type: agent.agentType,
+      status: 'available', // TODO: Implement proper status tracking
+      totalTokensUsed: metrics.totalTokensUsed,
+      totalCost: metrics.totalCost,
+      messagesProcessed: metrics.messagesProcessed,
+      averageResponseTime,
+    };
+  }
+
+  /**
+   * Get conversation-level metrics
+   */
+  getConversationMetrics(conversationId: string): {
+    totalTokens: number;
+    totalCost: number;
+    messageCount: number;
+  } {
+    const messages = this.conversationHistory.get(conversationId) || [];
+    let totalTokens = 0;
+    let totalCost = 0;
+    let messageCount = 0;
+
+    messages.forEach((message) => {
+      if (message.role === 'assistant' && (message as any).metadata) {
+        const metadata = (message as any).metadata;
+        totalTokens += metadata.totalTokens || 0;
+        totalCost += metadata.estimatedCost || 0;
+        messageCount++;
+      }
+    });
+
+    return { totalTokens, totalCost, messageCount };
   }
 
   getAvailableModels(): string[] {
@@ -418,7 +512,9 @@ export class AgentManager {
   /**
    * Get comprehensive agent status including connection health
    */
-  async getAgentStatus(agentSettings: AgentSettings): Promise<AgentStatus> {
+  async getAgentConnectionStatus(
+    agentSettings: AgentSettings,
+  ): Promise<AgentStatus> {
     if (agentSettings.agentType === 'local') {
       // For local agents, check if provider is configured
       const hasProvider =

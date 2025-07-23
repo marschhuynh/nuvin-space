@@ -195,14 +195,27 @@ export default function Messenger() {
           },
         });
 
-        // Log metadata for debugging
+        // Log metadata for debugging and update agent metrics
         if (response.metadata) {
           console.log('Response metadata:', {
             model: response.metadata.model,
             provider: response.metadata.provider,
             agentType: response.metadata.agentType,
             responseTime: response.metadata.responseTime,
+            totalTokens: response.metadata.totalTokens,
+            estimatedCost: response.metadata.estimatedCost,
           });
+
+          // Update agent metrics if we have an active agent
+          if (activeAgent) {
+            import('@/lib/agent-manager').then(({ AgentManager }) => {
+              const agentManager = AgentManager.getInstance();
+              agentManager.updateAgentMetrics(
+                activeAgent.id,
+                response.metadata,
+              );
+            });
+          }
         }
       } catch (error) {
         console.error('Failed to send message:', error);
@@ -213,7 +226,8 @@ export default function Messenger() {
             id: streamingId,
             role: 'assistant',
             content: `${
-              error instanceof Error && error.message === 'Request cancelled by user'
+              error instanceof Error &&
+              error.message === 'Request cancelled by user'
                 ? '⏹️ Message cancelled. Feel free to try sending another message.'
                 : `❌ Something went wrong sending your message. ${
                     !activeAgent

@@ -42,12 +42,22 @@ export interface CompletionParams {
 export interface CompletionResult {
   content: string;
   tool_calls?: ToolCall[];
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
 }
 
 export interface StreamChunk {
   content?: string;
   tool_calls?: ToolCall[];
   finished?: boolean;
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
 }
 
 export interface ModelInfo {

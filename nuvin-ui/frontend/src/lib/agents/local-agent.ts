@@ -6,6 +6,7 @@ import {
   ProviderType,
 } from '../providers';
 import { generateUUID } from '../utils';
+import { calculateCost } from '../utils/cost-calculator';
 import { BaseAgent } from './base-agent';
 import type { SendMessageOptions, MessageResponse } from '../agent-manager';
 import { toolIntegrationService } from '../tools';
@@ -101,6 +102,8 @@ export class LocalAgent extends BaseAgent {
         }
 
         const timestamp = new Date().toISOString();
+        const model = this.providerConfig.activeModel.model;
+        
         const response: MessageResponse = {
           id: messageId,
           content: accumulated,
@@ -110,8 +113,13 @@ export class LocalAgent extends BaseAgent {
             agentType: 'local',
             agentId: this.agentSettings.id,
             provider: this.providerConfig.type,
-            model: this.providerConfig.activeModel.model,
+            model,
             responseTime: Date.now() - startTime,
+            // Note: Regular streaming doesn't provide token counts from most providers
+            promptTokens: 0,
+            completionTokens: 0,
+            totalTokens: 0,
+            estimatedCost: 0,
           },
         };
 
@@ -180,6 +188,12 @@ export class LocalAgent extends BaseAgent {
     }
 
     const timestamp = new Date().toISOString();
+    const model = this.providerConfig.activeModel.model;
+    const promptTokens = finalResult.usage?.prompt_tokens || 0;
+    const completionTokens = finalResult.usage?.completion_tokens || 0;
+    const totalTokens = finalResult.usage?.total_tokens || 0;
+    const estimatedCost = calculateCost(model, promptTokens, completionTokens);
+
     const response: MessageResponse = {
       id: messageId,
       content: finalResult.content,
@@ -189,9 +203,13 @@ export class LocalAgent extends BaseAgent {
         agentType: 'local',
         agentId: this.agentSettings.id,
         provider: this.providerConfig.type,
-        model: this.providerConfig.activeModel.model,
+        model,
         responseTime: Date.now() - startTime,
         toolCalls: processed.toolCalls?.length || 0,
+        promptTokens,
+        completionTokens,
+        totalTokens,
+        estimatedCost,
       },
     };
 
@@ -241,6 +259,7 @@ export class LocalAgent extends BaseAgent {
 
     let accumulated = '';
     let currentToolCalls: any[] = [];
+    let usage: any = null;
     const stream = provider.generateCompletionStreamWithTools(enhancedParams, signal);
 
     try {
@@ -254,6 +273,11 @@ export class LocalAgent extends BaseAgent {
         if (chunk.content) {
           accumulated += chunk.content;
           options.onChunk?.(chunk.content);
+        }
+
+        // Handle usage data
+        if (chunk.usage) {
+          usage = chunk.usage;
         }
 
         // Handle tool calls
@@ -302,6 +326,12 @@ export class LocalAgent extends BaseAgent {
     }
 
     const timestamp = new Date().toISOString();
+    const model = this.providerConfig.activeModel.model;
+    const promptTokens = usage?.prompt_tokens || 0;
+    const completionTokens = usage?.completion_tokens || 0;
+    const totalTokens = usage?.total_tokens || 0;
+    const estimatedCost = calculateCost(model, promptTokens, completionTokens);
+
     const response: MessageResponse = {
       id: messageId,
       content: accumulated,
@@ -311,9 +341,13 @@ export class LocalAgent extends BaseAgent {
         agentType: 'local',
         agentId: this.agentSettings.id,
         provider: this.providerConfig.type,
-        model: this.providerConfig.activeModel.model,
+        model,
         responseTime: Date.now() - startTime,
         toolCalls: currentToolCalls.length,
+        promptTokens,
+        completionTokens,
+        totalTokens,
+        estimatedCost,
       },
     };
 
