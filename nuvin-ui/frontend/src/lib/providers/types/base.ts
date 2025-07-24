@@ -45,6 +45,9 @@ export interface StreamingRequestBody
   stream: boolean;
   max_tokens?: number;
   top_p?: number;
+  usage: {
+    include: boolean;
+  };
 }
 
 export interface ProviderMetadata {

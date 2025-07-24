@@ -171,8 +171,6 @@ export class LocalAgent extends BaseAgent {
         result,
         processed.toolCalls,
         provider,
-        toolContext,
-        this.agentSettings.toolConfig,
       );
       console.log(
         `[LocalAgent] Final result after tool execution:`,
@@ -331,11 +329,9 @@ export class LocalAgent extends BaseAgent {
     const model = this.providerConfig.activeModel.model;
 
     // Use metadata from final chunk if available, otherwise fallback to usage data
-    const promptTokens =
-      finalMetadata?.promptTokens || usage?.prompt_tokens || 0;
-    const completionTokens =
-      finalMetadata?.completionTokens || usage?.completion_tokens || 0;
-    const totalTokens = finalMetadata?.totalTokens || usage?.total_tokens || 0;
+    const promptTokens = usage?.prompt_tokens || 0;
+    const completionTokens = usage?.completion_tokens || 0;
+    const totalTokens = usage?.total_tokens || 0;
     const estimatedCost =
       finalMetadata?.estimatedCost ||
       calculateCost(model, promptTokens, completionTokens);

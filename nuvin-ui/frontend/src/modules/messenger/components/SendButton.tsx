@@ -29,7 +29,7 @@ export default function SendButton({
           size="sm"
           variant="ghost"
           onClick={handleStop}
-          className="h-8 w-8 p-0 rounded-full bg-red-100 hover:bg-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/40 stop-button-animate transition-all duration-200"
+          className="cursor-pointer h-8 w-8 p-0 rounded-full bg-red-100 hover:bg-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/40 stop-button-animate transition-all duration-200"
         >
           <Square
             className="h-3 w-3 text-red-600 dark:text-red-400"
@@ -41,7 +41,7 @@ export default function SendButton({
           size="sm"
           disabled={!message.trim()}
           onClick={handleSend}
-          className={`h-8 w-8 p-0 rounded-full transition-all duration-200 ${
+          className={`h-8 w-8 p-0 rounded-full transition-all duration-200 cursor-pointer ${
             message.trim()
               ? 'bg-primary hover:bg-primary/90 send-button-ready'
               : 'bg-muted send-button-disabled opacity-0'

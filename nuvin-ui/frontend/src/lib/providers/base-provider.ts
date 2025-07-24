@@ -117,6 +117,9 @@ export abstract class BaseLLMProvider implements LLMProvider {
       max_tokens: params.maxTokens,
       top_p: params.topP,
       stream: true,
+      usage: {
+        include: true,
+      },
       ...(params.tools && { tools: params.tools }),
       ...(params.tool_choice && { tool_choice: params.tool_choice }),
     };
