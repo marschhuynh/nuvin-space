@@ -448,14 +448,18 @@ export class AgentManager {
     activeConversationId: string | null;
   }): void {
     this.conversationHistory.clear();
-    
+
     if (!conversationStore.activeConversationId) {
       return;
     }
 
-    const messages = conversationStore.getConversationMessages(conversationStore.activeConversationId);
+    const messages = conversationStore.getConversationMessages(
+      conversationStore.activeConversationId,
+    );
     if (messages && messages.length > 0) {
-      this.conversationHistory.set(conversationStore.activeConversationId, [...messages]);
+      this.conversationHistory.set(conversationStore.activeConversationId, [
+        ...messages,
+      ]);
     }
   }
 
@@ -467,7 +471,7 @@ export class AgentManager {
     conversationStore: {
       getConversationMessages: (conversationId: string) => Message[];
     },
-    conversationId: string
+    conversationId: string,
   ): void {
     const messages = conversationStore.getConversationMessages(conversationId);
     if (messages && messages.length > 0) {

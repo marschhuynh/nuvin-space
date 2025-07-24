@@ -1,11 +1,11 @@
-import {
+import type {
   Tool,
   ToolDefinition,
   ToolCall,
   ToolCallResult,
   ToolContext,
 } from '@/types/tools';
-import { MCPTool, isMCPTool } from '@/lib/mcp/mcp-tool';
+import { type MCPTool, isMCPTool } from '@/lib/mcp/mcp-tool';
 
 export class ToolRegistry {
   private tools: Map<string, Tool> = new Map();

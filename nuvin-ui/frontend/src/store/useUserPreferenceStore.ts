@@ -18,6 +18,7 @@ export interface UserPreferences {
   fontSize: 'small' | 'medium' | 'large';
   messageMode: 'normal' | 'transparent';
   mcpServers: MCPConfig[];
+  enabledMCPTools: Record<string, string[]>;
 }
 
 interface UserPreferenceState {
@@ -36,6 +37,7 @@ const defaultPreferences: UserPreferences = {
   fontSize: 'medium',
   messageMode: 'normal',
   mcpServers: [],
+  enabledMCPTools: {},
 };
 
 export const useUserPreferenceStore = create<UserPreferenceState>()(

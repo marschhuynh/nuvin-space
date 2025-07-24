@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { MCPServerToolsList } from '@/components/mcp/MCPServerToolsList';
 
 export function MCPSettings() {
   const { preferences, updatePreferences } = useUserPreferenceStore();
@@ -637,6 +638,40 @@ export function MCPSettings() {
                         ` ${selectedMCP.args.join(' ')}`}
                     </div>
                   </div>
+
+                  {/* Available Tools */}
+                  {selectedMCP && (
+                    <div className="space-y-4">
+                      <div className="rounded-lg">
+                        <MCPServerToolsList
+                          server={selectedMCP}
+                          enabledTools={
+                            preferences?.enabledMCPTools?.[selectedMCP.id] || []
+                          }
+                          onToolToggle={(toolName, enabled) => {
+                            const currentEnabled =
+                              preferences?.enabledMCPTools?.[selectedMCP.id] ||
+                              [];
+                            const newEnabled = enabled
+                              ? [...currentEnabled, toolName]
+                              : currentEnabled.filter(
+                                  (name) => name !== toolName,
+                                );
+
+                            const newEnabledTools = {
+                              ...preferences?.enabledMCPTools,
+                              [selectedMCP.id]: newEnabled,
+                            };
+
+                            updatePreferences({
+                              enabledMCPTools: newEnabledTools,
+                            });
+                          }}
+                          isEditing={!isEditing}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </>

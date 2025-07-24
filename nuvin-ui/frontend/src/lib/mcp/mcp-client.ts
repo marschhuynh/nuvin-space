@@ -367,7 +367,7 @@ export class MCPClient {
       if (this.serverInfo?.capabilities?.resources?.templates) {
         try {
           const templatesResponse = await this.sendRequest(
-            'resources/templates/list'
+            'resources/templates/list',
           );
           const templates = templatesResponse.resourceTemplates || [];
 

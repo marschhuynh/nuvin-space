@@ -45,6 +45,9 @@ export function ToolSettings({
         tool.category?.toLowerCase?.().includes(searchTerm.toLowerCase()),
     );
 
+  console.log(`Rendering ToolSettings with ${filteredTools.length} tools`, {
+    filteredTools,
+  });
   return (
     <div className="space-y-4 flex flex-col h-full min-h-0">
       {/* Tool Settings */}
@@ -149,7 +152,9 @@ export function ToolSettings({
                           htmlFor={`tool-${tool.definition.name}`}
                           className="text-sm font-medium cursor-pointer truncate"
                         >
-                          {tool.definition.name}
+                          {tool.category === 'mcp'
+                            ? (tool as any).mcpSchema.name
+                            : tool.definition.name}
                         </label>
                         <span className="text-xs text-muted-foreground px-2 py-0.5 bg-muted rounded shrink-0">
                           {tool.category || 'utility'}

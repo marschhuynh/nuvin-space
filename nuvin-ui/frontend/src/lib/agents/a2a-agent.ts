@@ -89,7 +89,8 @@ export class A2AAgent extends BaseAgent {
             agentId: this.agentSettings.id,
             responseTime: Date.now() - startTime,
             model: 'A2A Agent',
-            taskId: finalResponse.kind === 'task' ? finalResponse.id : undefined,
+            taskId:
+              finalResponse.kind === 'task' ? finalResponse.id : undefined,
           },
         },
       ]);

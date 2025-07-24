@@ -1,12 +1,12 @@
-import {
+import { toolRegistry } from '@/lib/tools/tool-registry';
+import type {
   MCPConfig,
   ExtendedMCPConfig,
   MCPClientEvent,
   MCPClientEventHandler,
 } from '@/types/mcp';
 import { MCPClient } from './mcp-client';
-import { MCPTool, createMCPTools } from './mcp-tool';
-import { toolRegistry } from '@/lib/tools/tool-registry';
+import { type MCPTool, createMCPTools } from './mcp-tool';
 
 /**
  * Central manager for MCP server lifecycle and tool integration

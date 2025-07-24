@@ -31,10 +31,8 @@ export function useAgentManager() {
     activeProviderId,
     setActiveProvider: setStoreActiveProvider,
   } = useProviderStore();
-  const {
-    getConversationMessages,
-    activeConversationId,
-  } = useConversationStore();
+  const { getConversationMessages, activeConversationId } =
+    useConversationStore();
 
   // Get current active agent and provider
   const activeAgent = useMemo(

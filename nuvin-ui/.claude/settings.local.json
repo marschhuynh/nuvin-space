@@ -4,7 +4,9 @@
       "Bash(npm test:*)",
       "Bash(npx tsc:*)",
       "Bash(find:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(pnpm run format)",
+      "Bash(pnpm build)"
     ],
     "deny": []
   }

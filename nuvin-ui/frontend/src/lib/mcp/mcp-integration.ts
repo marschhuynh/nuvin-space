@@ -1,6 +1,6 @@
-import { MCPConfig } from '@/types/mcp';
-import { mcpManager } from './mcp-manager';
+import type { MCPConfig } from '@/types/mcp';
 import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
+import { mcpManager } from './mcp-manager';
 
 /**
  * Integration service to connect MCP manager with user preferences
