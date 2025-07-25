@@ -75,6 +75,23 @@ export function MessageListPaginated({
     }, 0);
   }, [isLoadingMore, hasMoreMessages, loadMoreCount, messages.length]);
 
+  // Check if content height is less than container height and load more if needed
+  const checkAndLoadMoreIfNeeded = useCallback(() => {
+    if (isLoadingMore || !hasMoreMessages) return;
+
+    const scrollElement = parentRef.current;
+    if (!scrollElement) return;
+
+    // Check if content is shorter than the container (no scrollbar needed)
+    const containerHeight = scrollElement.clientHeight;
+    const contentHeight = scrollElement.scrollHeight;
+    
+    if (contentHeight <= containerHeight) {
+      // Content doesn't fill the container, load more messages
+      loadMoreMessages();
+    }
+  }, [isLoadingMore, hasMoreMessages, loadMoreMessages]);
+
   // Handle scroll to detect when user scrolls up and reaches the top
   const handleScroll = useCallback(() => {
     if (!parentRef.current || isLoadingMore || !hasMoreMessages) return;
@@ -126,6 +143,47 @@ export function MessageListPaginated({
     }
   }, [messages.length, displayedCount, initialLoadCount]);
 
+  // Check if we need to load more messages after displaying initial messages
+  useLayoutEffect(() => {
+    // Use a small delay to ensure DOM has updated
+    const timeoutId = setTimeout(() => {
+      checkAndLoadMoreIfNeeded();
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [displayedCount, checkAndLoadMoreIfNeeded]);
+
+  // Also check after loading completes
+  useEffect(() => {
+    if (!isLoadingMore) {
+      // Use a small delay to ensure DOM has updated after loading
+      const timeoutId = setTimeout(() => {
+        checkAndLoadMoreIfNeeded();
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isLoadingMore, checkAndLoadMoreIfNeeded]);
+
+  // Check when window is resized or container size changes
+  useEffect(() => {
+    const scrollElement = parentRef.current;
+    if (!scrollElement) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      // Use a small delay to ensure measurements are accurate
+      setTimeout(() => {
+        checkAndLoadMoreIfNeeded();
+      }, 100);
+    });
+
+    resizeObserver.observe(scrollElement);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [checkAndLoadMoreIfNeeded]);
+
   const renderMessages = () => {
     if (messages.length === 0 && !isLoading) {
       return (
@@ -151,15 +209,22 @@ export function MessageListPaginated({
                 <span className="text-sm">Loading more messages...</span>
               </div>
             ) : (
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">
-                  Scroll up to load{' '}
+              <div className="text-center space-y-2">
+                <button
+                  onClick={() => loadMoreMessages()}
+                  className="px-4 py-2 text-sm bg-primary/10 hover:bg-primary/20 text-primary rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  disabled={isLoadingMore}
+                >
+                  Load{' '}
                   {Math.min(loadMoreCount, messages.length - displayedCount)}{' '}
                   more messages
-                </p>
+                </button>
                 <div className="text-xs text-muted-foreground">
                   Showing {displayedCount} of {messages.length} messages
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Or scroll up to load more automatically
+                </p>
               </div>
             )}
           </div>
