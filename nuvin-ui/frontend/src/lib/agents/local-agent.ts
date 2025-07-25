@@ -292,8 +292,6 @@ export class LocalAgent extends BaseAgent {
                 this.agentSettings.toolConfig,
               );
 
-            console.log('[LocalAgent] Processed tool calls:', processed);
-
             if (processed.requiresFollowUp && processed.toolCalls) {
               // Execute tools and get follow-up response
               const finalResult =

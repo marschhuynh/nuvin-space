@@ -3,7 +3,11 @@
     "composite": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@wails/runtime": ["./wailsjs/runtime/runtime.d.ts"]
+    }
   },
   "include": ["vite.config.ts"]
 }

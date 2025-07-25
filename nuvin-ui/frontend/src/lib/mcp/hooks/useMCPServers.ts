@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { MCPConfig, ExtendedMCPConfig } from '@/types/mcp';
+import { useState, useEffect, useCallback } from 'react';
+import type { MCPConfig, ExtendedMCPConfig } from '@/types/mcp';
 import { mcpIntegration } from '../mcp-integration';
 import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
 
@@ -7,13 +7,13 @@ import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
  * React hook for MCP server management
  */
 export function useMCPServers() {
-  const { preferences, updatePreferences } = useUserPreferenceStore();
+  const { preferences } = useUserPreferenceStore();
   const [serverStatuses, setServerStatuses] = useState<
     Map<string, ExtendedMCPConfig>
   >(new Map());
 
   // Update server statuses from MCP manager
-  const updateServerStatuses = () => {
+  const updateServerStatuses = useCallback(() => {
     if (!mcpIntegration.isInitialized()) {
       return;
     }
@@ -22,7 +22,7 @@ export function useMCPServers() {
     const configs = manager.getAllServerConfigs();
     const statusMap = new Map(configs.map((config) => [config.id, config]));
     setServerStatuses(statusMap);
-  };
+  }, []);
 
   useEffect(() => {
     updateServerStatuses();
@@ -31,7 +31,7 @@ export function useMCPServers() {
     const interval = setInterval(updateServerStatuses, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [updateServerStatuses]);
 
   // Merge configuration with runtime status
   const getServersWithStatus = (): ExtendedMCPConfig[] => {

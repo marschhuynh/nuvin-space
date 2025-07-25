@@ -20,6 +20,7 @@ import {
   Settings,
   X,
   Save,
+  Clipboard,
 } from 'lucide-react';
 import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
 import type { MCPConfig } from '@/types/mcp';
@@ -31,12 +32,29 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { MCPServerToolsList } from '@/components/mcp/MCPServerToolsList';
+import { ClipboardGetText } from '@wails/runtime';
+import { useMCPServers } from '@/lib/mcp/hooks/useMCPServers';
+
+interface MCPClipboardConfig {
+  mcpServers: {
+    [key: string]: {
+      command: string;
+      args?: string[];
+      env?: Record<string, string>;
+      disabled?: boolean;
+      autoApprove?: string[];
+      url?: string;
+    };
+  };
+}
 
 export function MCPSettings() {
   const { preferences, updatePreferences } = useUserPreferenceStore();
+  const { servers, toggleServer, refreshStatus } = useMCPServers();
   const [showAddMCPModal, setShowAddMCPModal] = useState(false);
   const [editingMCP, setEditingMCP] = useState<MCPConfig | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [toolsRefreshTrigger, setToolsRefreshTrigger] = useState(0);
   const [selectedMCPId, setSelectedMCPId] = useState<string | null>(
     preferences?.mcpServers?.[0]?.id || null,
   );
@@ -55,6 +73,96 @@ export function MCPSettings() {
   const selectedMCP = (preferences?.mcpServers || []).find(
     (mcp) => mcp.id === selectedMCPId,
   );
+
+  const parseClipboardMCPConfig = (
+    clipboardText: string,
+  ): Partial<MCPConfig> | null => {
+    try {
+      console.log('Attempting to parse JSON:', clipboardText.substring(0, 200) + '...');
+      const parsed = JSON.parse(clipboardText) as MCPClipboardConfig;
+      console.log('Parsed JSON structure:', parsed);
+
+      if (!parsed.mcpServers || typeof parsed.mcpServers !== 'object') {
+        console.error('Invalid structure: missing or invalid mcpServers');
+        return null;
+      }
+
+      // Get the first server configuration
+      const serverKeys = Object.keys(parsed.mcpServers);
+      console.log('Found server keys:', serverKeys);
+      
+      if (serverKeys.length === 0) {
+        console.error('No servers found in mcpServers');
+        return null;
+      }
+
+      const serverKey = serverKeys[0];
+      const serverConfig = parsed.mcpServers[serverKey];
+      console.log('Processing server:', serverKey, serverConfig);
+
+      // Determine server type based on configuration
+      const hasUrl = serverConfig.url && serverConfig.url.trim() !== '';
+      const hasCommand = serverConfig.command && serverConfig.command.trim() !== '';
+      console.log('Server analysis - hasUrl:', hasUrl, 'hasCommand:', hasCommand);
+
+      let serverType: 'stdio' | 'http' = 'stdio';
+      if (hasUrl && !hasCommand) {
+        serverType = 'http';
+      }
+
+      const result = {
+        name: serverKey
+          .replace(/[._-]/g, ' ')
+          .replace(/\b\w/g, (l) => l.toUpperCase()),
+        type: serverType,
+        command: serverConfig.command || '',
+        args: serverConfig.args || [],
+        env: serverConfig.env || {},
+        url: serverConfig.url || '',
+        enabled: !serverConfig.disabled,
+        description: `Imported MCP server: ${serverKey}`,
+      };
+      
+      console.log('Generated config:', result);
+      return result;
+    } catch (error) {
+      console.error('Failed to parse clipboard MCP config:', error);
+      return null;
+    }
+  };
+
+  const handleImportFromClipboard = async () => {
+    try {
+      console.log('Attempting to read MCP config from clipboard using Wails...');
+      const clipboardText = await ClipboardGetText();
+      
+      if (!clipboardText || clipboardText.trim() === '') {
+        alert('Clipboard is empty. Please copy a valid MCP configuration.');
+        return;
+      }
+
+      console.log('Raw clipboard text:', clipboardText);
+      const parsedConfig = parseClipboardMCPConfig(clipboardText);
+      console.log('Parsed MCP config from clipboard:', parsedConfig);
+
+      if (parsedConfig) {
+        setMcpForm({
+          ...mcpForm,
+          ...parsedConfig,
+        });
+        console.log('Form updated with parsed config');
+      } else {
+        alert(
+          'Could not parse MCP configuration from clipboard. Please ensure it matches the expected format.',
+        );
+      }
+    } catch (error) {
+      console.error('Failed to read from clipboard:', error);
+      alert(
+        'Failed to access clipboard. Error: ' + (error instanceof Error ? error.message : 'Unknown error'),
+      );
+    }
+  };
 
   const handleEditMCP = (mcp: MCPConfig) => {
     setEditingMCP(mcp);
@@ -155,11 +263,22 @@ export function MCPSettings() {
     setEditingMCP(null);
   };
 
-  const handleToggleMCP = (mcpId: string) => {
-    const updatedServers = (preferences?.mcpServers || []).map((server) =>
-      server.id === mcpId ? { ...server, enabled: !server.enabled } : server,
-    );
-    updatePreferences({ mcpServers: updatedServers });
+  const handleToggleMCP = async (mcpId: string) => {
+    const server = (preferences?.mcpServers || []).find(s => s.id === mcpId);
+    if (server) {
+      try {
+        await toggleServer(mcpId, !server.enabled);
+        // Refresh server status and tools list
+        setTimeout(() => {
+          refreshStatus();
+          setToolsRefreshTrigger(prev => prev + 1);
+        }, 1000);
+      } catch (error) {
+        console.error('Failed to toggle MCP server:', error);
+        // Could show a toast notification here
+        alert(`Failed to ${server.enabled ? 'disable' : 'enable'} server: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
   };
 
   const handleSaveMCP = () => {
@@ -281,7 +400,8 @@ export function MCPSettings() {
                   </span>
                 </div>
                 <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
-                  Fill out the form to create your new MCP server
+                  Fill out the form manually or use Import to load from
+                  clipboard
                 </p>
               </div>
             )}
@@ -408,6 +528,17 @@ export function MCPSettings() {
                   <div className="flex gap-2">
                     {isEditing ? (
                       <>
+                        {isCreating && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleImportFromClipboard}
+                            className="border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/30"
+                          >
+                            <Clipboard className="h-4 w-4 mr-1" />
+                            Import
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
@@ -851,6 +982,7 @@ export function MCPSettings() {
                             });
                           }}
                           isEditing={!isEditing}
+                          refreshTrigger={toolsRefreshTrigger}
                         />
                       </div>
                     </div>

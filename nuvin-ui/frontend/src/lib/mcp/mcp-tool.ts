@@ -131,14 +131,21 @@ export class MCPTool implements Tool {
   private convertMCPSchemaToToolDefinition(
     mcpSchema: MCPToolSchema,
   ): ToolDefinition {
+    const convertedProperties = this.convertMCPProperties(
+      mcpSchema.inputSchema.properties || {},
+    );
+    
+    // Validate the converted schema
+    for (const [key, prop] of Object.entries(convertedProperties)) {
+      this.validateToolParameter(prop, `${mcpSchema.name}.${key}`);
+    }
+    
     return {
       name: `mcp_${this.serverId}_${mcpSchema.name}`, // Prefix to avoid naming conflicts
       description: `${mcpSchema.description} (from MCP server: ${this.serverId})`,
       parameters: {
         type: 'object',
-        properties: this.convertMCPProperties(
-          mcpSchema.inputSchema.properties || {},
-        ),
+        properties: convertedProperties,
         required: mcpSchema.inputSchema.required || [],
       },
     };
@@ -157,6 +164,25 @@ export class MCPTool implements Tool {
     }
 
     return converted;
+  }
+
+  /**
+   * Validate that a tool parameter schema is valid
+   */
+  private validateToolParameter(param: any, path: string = ''): void {
+    if (param.type === 'array' && !param.items) {
+      console.warn(`Invalid tool schema at ${path}: Array type missing 'items' property. Adding fallback.`);
+    }
+    
+    if (param.type === 'object' && param.properties) {
+      for (const [key, prop] of Object.entries(param.properties)) {
+        this.validateToolParameter(prop, path ? `${path}.${key}` : key);
+      }
+    }
+    
+    if (param.type === 'array' && param.items) {
+      this.validateToolParameter(param.items, `${path}[]`);
+    }
   }
 
   /**
@@ -182,8 +208,17 @@ export class MCPTool implements Tool {
     if (mcpProp.type === 'object' && mcpProp.properties) {
       converted.properties = this.convertMCPProperties(mcpProp.properties);
     }
-    if (mcpProp.type === 'array' && mcpProp.items) {
-      converted.items = this.convertMCPProperty(mcpProp.items);
+    if (mcpProp.type === 'array') {
+      // JSON Schema requires 'items' property for arrays
+      if (mcpProp.items) {
+        converted.items = this.convertMCPProperty(mcpProp.items);
+      } else {
+        // Fallback to generic schema if items not specified
+        converted.items = {
+          type: 'string',
+          description: 'Array item'
+        };
+      }
     }
 
     return converted;

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
@@ -10,6 +10,7 @@ interface MCPServerToolsListProps {
   enabledTools: string[];
   onToolToggle?: (toolName: string, enabled: boolean) => void;
   isEditing?: boolean;
+  refreshTrigger?: number; // Add this to force refresh when server status changes
 }
 
 export function MCPServerToolsList({
@@ -17,12 +18,22 @@ export function MCPServerToolsList({
   enabledTools,
   onToolToggle,
   isEditing = false,
+  refreshTrigger,
 }: MCPServerToolsListProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [toolsRefreshKey, setToolsRefreshKey] = useState(0);
+
+  // Force refresh of tools when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger !== undefined) {
+      setToolsRefreshKey(prev => prev + 1);
+    }
+  }, [refreshTrigger]);
 
   console.log(`Rendering MCPServerToolsList for server: ${server.id}`, {
     enabledTools,
     server,
+    toolsRefreshKey,
   });
 
   const handleToolToggle = (toolName: string, enabled: boolean) => {
@@ -33,7 +44,7 @@ export function MCPServerToolsList({
 
   const serverTools = useMemo(() => {
     return toolRegistry.getMCPToolsForServer(server.id);
-  }, [server.id]);
+  }, [server.id, toolsRefreshKey]);
 
   const filteredTools = useMemo(() => {
     if (!searchTerm) return serverTools;

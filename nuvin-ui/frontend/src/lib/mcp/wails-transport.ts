@@ -1,4 +1,4 @@
-import {
+import type {
   MCPConnection,
   JSONRPCRequest,
   JSONRPCResponse,
@@ -45,7 +45,7 @@ export class WailsMCPConnection implements MCPConnection {
     try {
       const request = {
         id: this.serverId,
-        command: this.options.command!,
+        command: this.options.command,
         args: this.options.args || [],
         env: this.options.env || {},
       };

@@ -17,7 +17,8 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@wails/runtime": ["./wailsjs/runtime/runtime.d.ts"]
     }
   },
   "include": ["src"],

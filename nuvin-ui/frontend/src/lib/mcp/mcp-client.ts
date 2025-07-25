@@ -19,22 +19,31 @@ import type {
 } from '@/types/mcp';
 
 /**
- * HTTP-based MCP connection implementation
+ * HTTP-based MCP connection implementation following Streamable HTTP transport spec
  */
 class HttpMCPConnection implements MCPConnection {
   private url: string;
   private headers: Record<string, string>;
-  private messageHandler?: (message: JSONRPCResponse | JSONRPCNotification) => void;
+  private messageHandler?: (
+    message: JSONRPCResponse | JSONRPCNotification,
+  ) => void;
   private errorHandler?: (error: Error) => void;
   private closeHandler?: () => void;
   private eventSource?: EventSource;
   private isConnected = false;
-  private requestQueue: Array<{ request: JSONRPCRequest | JSONRPCNotification; resolve: () => void; reject: (error: Error) => void }> = [];
+  private sessionId?: string;
+  private requestQueue: Array<{
+    request: JSONRPCRequest | JSONRPCNotification;
+    resolve: () => void;
+    reject: (error: Error) => void;
+  }> = [];
 
   constructor(url: string, headers: Record<string, string> = {}) {
     this.url = url;
     this.headers = {
       'Content-Type': 'application/json',
+      Accept: 'application/json, text/event-stream',
+      'MCP-Protocol-Version': '2025-06-18',
       ...headers,
     };
   }
@@ -46,51 +55,46 @@ class HttpMCPConnection implements MCPConnection {
 
     return new Promise((resolve, reject) => {
       try {
-        // Set up Server-Sent Events for receiving messages
-        const sseUrl = new URL(this.url);
-        sseUrl.pathname = sseUrl.pathname.replace(/\/$/, '') + '/events';
-        
-        this.eventSource = new EventSource(sseUrl.toString());
-        
+        // Streamable HTTP transport: Use the MCP endpoint directly for SSE
+        // First, try to open a GET SSE stream for server-initiated messages
+        this.setupEventSource();
+
         const timeout = setTimeout(() => {
           this.eventSource?.close();
           reject(new Error('Connection timeout'));
         }, 10000);
 
-        this.eventSource.onopen = () => {
+        if (this.eventSource) {
+          this.eventSource.onopen = () => {
+            clearTimeout(timeout);
+            this.isConnected = true;
+            // Process any queued requests
+            this.processRequestQueue();
+            resolve();
+          };
+
+          this.eventSource.onerror = (error) => {
+            console.error('SSE connection error:', error);
+            if (!this.isConnected) {
+              clearTimeout(timeout);
+              // Fallback: connection without SSE stream
+              this.isConnected = true;
+              this.processRequestQueue();
+              resolve();
+            } else {
+              this.isConnected = false;
+              if (this.errorHandler) {
+                this.errorHandler(new Error('SSE connection error'));
+              }
+            }
+          };
+        } else {
+          // No SSE support, but we can still use POST-only mode
           clearTimeout(timeout);
           this.isConnected = true;
-          // Process any queued requests
           this.processRequestQueue();
           resolve();
-        };
-
-        this.eventSource.onmessage = (event) => {
-          try {
-            const message = JSON.parse(event.data);
-            if (this.messageHandler) {
-              this.messageHandler(message);
-            }
-          } catch (error) {
-            console.error('Failed to parse SSE message:', error);
-            if (this.errorHandler) {
-              this.errorHandler(error instanceof Error ? error : new Error(String(error)));
-            }
-          }
-        };
-
-        this.eventSource.onerror = (error) => {
-          console.error('SSE connection error:', error);
-          if (!this.isConnected) {
-            clearTimeout(timeout);
-            reject(new Error('SSE connection failed'));
-          } else {
-            this.isConnected = false;
-            if (this.errorHandler) {
-              this.errorHandler(new Error('SSE connection error'));
-            }
-          }
-        };
+        }
       } catch (error) {
         reject(error);
       }
@@ -106,18 +110,57 @@ class HttpMCPConnection implements MCPConnection {
     }
 
     try {
+      const headers = { ...this.headers };
+
+      // Add session ID header if we have one
+      if (this.sessionId) {
+        headers['Mcp-Session-Id'] = this.sessionId;
+      }
+
       const response = await fetch(this.url, {
         method: 'POST',
-        headers: this.headers,
+        headers,
         body: JSON.stringify(message),
       });
 
+      // Handle session management
+      if (response.status === 404 && this.sessionId) {
+        // Session expired, clear it to trigger re-initialization
+        this.sessionId = undefined;
+        throw new Error('Session expired - server responded with 404');
+      }
+
       if (!response.ok) {
+        if (response.status === 400) {
+          const errorText = await response.text();
+          throw new Error(`HTTP 400 Bad Request: ${errorText}`);
+        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      // For requests (not notifications), we expect a response via SSE
-      // For notifications, we just need to ensure the POST was successful
+      // Extract session ID from initialize response
+      if ('method' in message && message.method === 'initialize') {
+        const sessionIdHeader = response.headers.get('Mcp-Session-Id');
+        if (sessionIdHeader) {
+          this.sessionId = sessionIdHeader;
+        }
+      }
+
+      // Handle different response types based on content-type
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('text/event-stream')) {
+        // Server initiated SSE stream for this request
+        this.handleResponseStream(response);
+      } else if (contentType?.includes('application/json')) {
+        // Single JSON response
+        const jsonResponse = await response.json();
+        if (this.messageHandler) {
+          this.messageHandler(jsonResponse);
+        }
+      } else if (response.status === 202) {
+        // Notification accepted - no response expected
+        return;
+      }
     } catch (error) {
       throw error instanceof Error ? error : new Error(String(error));
     }
@@ -125,7 +168,24 @@ class HttpMCPConnection implements MCPConnection {
 
   async close(): Promise<void> {
     this.isConnected = false;
-    
+
+    // Terminate session if we have one
+    if (this.sessionId) {
+      try {
+        const headers = { ...this.headers };
+        headers['Mcp-Session-Id'] = this.sessionId;
+
+        await fetch(this.url, {
+          method: 'DELETE',
+          headers,
+        });
+      } catch (error) {
+        // Ignore errors during session termination
+        console.debug('Error terminating MCP session:', error);
+      }
+      this.sessionId = undefined;
+    }
+
     if (this.eventSource) {
       this.eventSource.close();
       this.eventSource = undefined;
@@ -142,7 +202,9 @@ class HttpMCPConnection implements MCPConnection {
     }
   }
 
-  onMessage(handler: (message: JSONRPCResponse | JSONRPCNotification) => void): void {
+  onMessage(
+    handler: (message: JSONRPCResponse | JSONRPCNotification) => void,
+  ): void {
     this.messageHandler = handler;
   }
 
@@ -154,6 +216,95 @@ class HttpMCPConnection implements MCPConnection {
     this.closeHandler = handler;
   }
 
+  /**
+   * Set up EventSource for server-initiated messages (optional GET SSE stream)
+   */
+  private setupEventSource(): void {
+    try {
+      const headers: Record<string, string> = {};
+      if (this.sessionId) {
+        headers['Mcp-Session-Id'] = this.sessionId;
+      }
+
+      // Note: EventSource doesn't support custom headers in standard browsers
+      // This is a limitation for session management in SSE streams
+      this.eventSource = new EventSource(this.url);
+
+      this.eventSource.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (this.messageHandler) {
+            this.messageHandler(message);
+          }
+        } catch (error) {
+          console.error('Failed to parse SSE message:', error);
+          if (this.errorHandler) {
+            this.errorHandler(
+              error instanceof Error ? error : new Error(String(error)),
+            );
+          }
+        }
+      };
+    } catch (error) {
+      console.debug(
+        'EventSource not supported or failed to initialize:',
+        error,
+      );
+      this.eventSource = undefined;
+    }
+  }
+
+  /**
+   * Handle streaming response from POST request
+   */
+  private handleResponseStream(response: Response): void {
+    if (!response.body) {
+      console.error('No response body for streaming response');
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    const processStream = async () => {
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.trim() === '') continue;
+
+            // Parse SSE format: "data: {json}"
+            if (line.startsWith('data: ')) {
+              try {
+                const jsonData = line.substring(6);
+                const message = JSON.parse(jsonData);
+                if (this.messageHandler) {
+                  this.messageHandler(message);
+                }
+              } catch (error) {
+                console.error('Failed to parse streaming message:', error);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error reading stream:', error);
+        if (this.errorHandler) {
+          this.errorHandler(
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
+      }
+    };
+
+    processStream();
+  }
+
   private async processRequestQueue(): Promise<void> {
     while (this.requestQueue.length > 0 && this.isConnected) {
       const item = this.requestQueue.shift();
@@ -162,7 +313,9 @@ class HttpMCPConnection implements MCPConnection {
           await this.send(item.request);
           item.resolve();
         } catch (error) {
-          item.reject(error instanceof Error ? error : new Error(String(error)));
+          item.reject(
+            error instanceof Error ? error : new Error(String(error)),
+          );
         }
       }
     }
@@ -465,7 +618,7 @@ export class MCPClient {
     };
 
     const params: MCPInitializeParams = {
-      protocolVersion: '2024-11-05',
+      protocolVersion: '2025-06-18',
       capabilities,
       clientInfo,
     };
