@@ -1,4 +1,4 @@
-import { PROVIDER_TYPES } from './provider-utils';
+import { extractValue } from './provider-utils';
 import type {
   LLMProvider,
   CompletionParams,
@@ -10,7 +10,7 @@ import type {
   ToolCall,
   ChatMessage,
 } from './types/base';
-import { ChatCompletionResponse } from './types/openrouter';
+import type { ChatCompletionResponse } from './types/openrouter';
 
 export interface BaseProviderConfig {
   apiKey: string;
@@ -105,25 +105,26 @@ export abstract class BaseLLMProvider implements LLMProvider {
     return response;
   }
 
-  protected async makeStreamingRequest(
-    endpoint: string,
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): Promise<ReadableStreamDefaultReader<Uint8Array>> {
-    const body: StreamingRequestBody = {
+  protected parseRequestBody<T>(params: CompletionParams): T {
+    return {
       model: params.model,
       messages: params.messages,
       temperature: params.temperature,
       max_tokens: params.maxTokens,
       top_p: params.topP,
-      stream: true,
-      usage: {
-        include: true,
-      },
-      ...(params.tools && { tools: params.tools }),
-      ...(params.tool_choice && { tool_choice: params.tool_choice }),
-    };
+      tools: params.tools || [],
+      tool_choice: params.tool_choice,
+    } as T;
+  }
 
+  protected async makeStreamingRequest(
+    endpoint: string,
+    params: CompletionParams,
+    signal?: AbortSignal,
+  ): Promise<ReadableStreamDefaultReader<Uint8Array>> {
+    const body: StreamingRequestBody = this.parseRequestBody({
+      ...params,
+    });
     const response = await this.makeRequest(endpoint, {
       method: 'POST',
       body,
@@ -195,51 +196,23 @@ export abstract class BaseLLMProvider implements LLMProvider {
     }
   }
 
-  protected extractValue(obj: any, path: string) {
-    return path.split('.').reduce((current, key) => {
-      if (current === null || current === undefined) return undefined;
-      if (key.includes('[') && key.includes(']')) {
-        const [arrayKey, indexStr] = key.split('[');
-        const index = parseInt(indexStr.replace(']', ''));
-        return current[arrayKey]?.[index];
-      }
-      return current[key];
-    }, obj);
-  }
-
-  protected transformMessagesForProvider(
-    messages: ChatMessage[],
-  ): ChatMessage[] {
-    return messages.map((m) => ({
-      role: m.role,
-      content: m.content,
-      ...(m.tool_calls && { tool_calls: m.tool_calls }),
-      ...(m.tool_call_id && { tool_call_id: m.tool_call_id }),
-      ...(m.name && { name: m.name }),
-    }));
-  }
-
-  protected transformToolsForProvider(tools: any[]): any[] {
-    return tools;
-  }
-
   protected createCompletionResult<T = ChatCompletionResponse>(
     data: T,
     startTime?: number,
   ): CompletionResult {
     const content =
-      this.extractValue(data, 'choices.0.message.content') ||
-      this.extractValue(data, 'content.0.text') ||
+      extractValue(data, 'choices.0.message.content') ||
+      extractValue(data, 'content.0.text') ||
       '';
 
     const toolCalls =
-      this.extractValue(data, 'choices.0.message.tool_calls') ||
-      this.extractValue(data, 'tool_calls');
+      extractValue(data, 'choices.0.message.tool_calls') ||
+      extractValue(data, 'tool_calls');
 
-    const usage: UsageData | undefined = this.extractValue(data, 'usage');
-    const model = this.extractValue(data, 'model');
-    const generationId = this.extractValue(data, 'id');
-    const moderationResults = this.extractValue(data, 'moderation_results');
+    const usage: UsageData | undefined = extractValue(data, 'usage');
+    const model = extractValue(data, 'model');
+    const generationId = extractValue(data, 'id');
+    const moderationResults = extractValue(data, 'moderation_results');
 
     // Calculate response time if start time provided
     const responseTime = startTime ? Date.now() - startTime : undefined;
@@ -289,15 +262,15 @@ export abstract class BaseLLMProvider implements LLMProvider {
     startTime?: number,
   ): AsyncGenerator<StreamChunk> {
     const accumulatedToolCalls: ToolCall[] = [];
-    let usage: UsageData | undefined = undefined;
-    let lastData: any = null;
+    let usage: UsageData | undefined;
+    let lastData: string | undefined;
     let hasFinished = false;
 
     for await (const data of this.parseStream(reader, options, signal)) {
       lastData = data;
 
       // Handle usage data - OpenRouter sends this in a separate chunk
-      const currentUsage: UsageData | undefined = this.extractValue(
+      const currentUsage: UsageData | undefined = extractValue(
         data,
         options.usagePath || 'usage',
       );
@@ -308,7 +281,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
       }
 
       // Handle text content
-      const content = this.extractValue(
+      const content = extractValue(
         data,
         options.contentPath || 'choices.0.delta.content',
       );
@@ -317,7 +290,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
       }
 
       // Handle tool calls
-      const toolCallDeltas = this.extractValue(
+      const toolCallDeltas = extractValue(
         data,
         options.toolCallsPath || 'choices.0.delta.tool_calls',
       );
@@ -349,7 +322,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
       }
 
       // Check for finish
-      const finishReason = this.extractValue(
+      const finishReason = extractValue(
         data,
         options.finishReasonPath || 'choices.0.finish_reason',
       );
@@ -387,9 +360,9 @@ export abstract class BaseLLMProvider implements LLMProvider {
   ) {
     if (!data) return undefined;
 
-    const model = this.extractValue(data, 'model');
-    const generationId = this.extractValue(data, 'id');
-    const moderationResults = this.extractValue(data, 'moderation_results');
+    const model = extractValue(data, 'model');
+    const generationId = extractValue(data, 'id');
+    const moderationResults = extractValue(data, 'moderation_results');
     const responseTime = startTime ? Date.now() - startTime : undefined;
     const estimatedCost = usage ? this.calculateCost(usage, model) : undefined;
 

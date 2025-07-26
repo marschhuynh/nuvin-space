@@ -284,7 +284,7 @@ export function AgentSettings() {
   return (
     <div className="flex h-full">
       {/* Left Panel - Agent List */}
-      <div className="flex flex-col w-80 border-r bg-card">
+      <div className="flex flex-col min-w-48 w-64 border-r bg-card">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b">
           <div className="flex items-center gap-2">

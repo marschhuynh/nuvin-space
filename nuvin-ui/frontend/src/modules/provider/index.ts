@@ -1,3 +1,2 @@
-export { AddProviderModal } from './AddProviderModal';
-export { EditProviderModal } from './EditProviderModal';
+export { ProviderModal } from './ProviderModal';
 export { ProviderSettings } from './ProviderSettings';

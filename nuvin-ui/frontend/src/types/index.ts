@@ -78,6 +78,7 @@ export interface ProviderConfig {
   name: string; // Custom name for the provider instance
   type: PROVIDER_TYPES; // Provider type (OpenAI, Anthropic, GitHub, etc.)
   apiKey: string;
+  apiUrl?: string;
   activeModel: ModelConfig;
 }
 

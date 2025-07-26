@@ -40,7 +40,8 @@ export const useProviderStore = create<ProviderState>()(
               : p,
           ),
         })),
-      deleteProvider: (id) =>
+      deleteProvider: (id) => {
+        // Clear models for the deleted provider
         set((state) => {
           const newProviders = state.providers.filter((p) => p.id !== id);
           const newActiveId =
@@ -49,11 +50,35 @@ export const useProviderStore = create<ProviderState>()(
                 ? newProviders[0].id
                 : ''
               : state.activeProviderId;
+
+          // Use setTimeout to avoid circular dependency issues
+          setTimeout(() => {
+            try {
+              // Import dynamically to avoid circular dependencies
+              import('./useModelsStore')
+                .then(({ useModelsStore }) => {
+                  useModelsStore.getState().clearProviderModels(id);
+                })
+                .catch((error) => {
+                  console.warn(
+                    'Could not clear models for deleted provider:',
+                    error,
+                  );
+                });
+            } catch (error) {
+              console.warn(
+                'Could not clear models for deleted provider:',
+                error,
+              );
+            }
+          }, 0);
+
           return {
             providers: newProviders,
             activeProviderId: newActiveId,
           };
-        }),
+        });
+      },
       setActiveProvider: (id) => set({ activeProviderId: id }),
       isNameUnique: (name, excludeId) => {
         const providers = get().providers;

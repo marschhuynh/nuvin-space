@@ -3,12 +3,14 @@ import { OpenAIProvider } from './openai-provider';
 import { AnthropicProvider } from './anthropic-provider';
 import { OpenRouterProvider } from './openrouter-provider';
 import { GithubCopilotProvider } from './github-provider';
+import { OpenAICompatibleProvider } from './openai-compatible-provider';
 
 export enum PROVIDER_TYPES {
   OpenAI = 'openai',
   Anthropic = 'anthropic',
   OpenRouter = 'openrouter',
   GitHub = 'github',
+  OpenAICompatible = 'openai-compatible',
 }
 
 export type ProviderType = PROVIDER_TYPES;
@@ -19,6 +21,7 @@ export interface LLMProviderConfig {
   type: PROVIDER_TYPES;
   apiKey: string;
   name?: string;
+  apiUrl?: string;
 }
 
 export function createProvider(config: LLMProviderConfig): LLMProvider {
@@ -31,6 +34,8 @@ export function createProvider(config: LLMProviderConfig): LLMProvider {
       return new OpenRouterProvider(config.apiKey);
     case PROVIDER_TYPES.GitHub:
       return new GithubCopilotProvider(config.apiKey);
+    case PROVIDER_TYPES.OpenAICompatible:
+      return new OpenAICompatibleProvider(config.apiKey, config.apiUrl);
     default:
       throw new Error(`Unsupported provider type: ${config.type}`);
   }
@@ -77,6 +82,8 @@ export function getDefaultModel(providerType: ProviderType): string {
       return 'meta-llama/llama-3.2-3b-instruct:free';
     case PROVIDER_TYPES.GitHub:
       return 'gpt-4o';
+    case PROVIDER_TYPES.OpenAICompatible:
+      return 'gpt-4o-mini';
     default:
       return '';
   }
@@ -107,4 +114,16 @@ export function formatContextLength(contextLength?: number): string {
   }
 
   return `${contextLength} tokens`;
+}
+
+export function extractValue(obj: any, path: string) {
+  return path.split('.').reduce((current, key) => {
+    if (current === null || current === undefined) return undefined;
+    if (key.includes('[') && key.includes(']')) {
+      const [arrayKey, indexStr] = key.split('[');
+      const index = parseInt(indexStr.replace(']', ''));
+      return current[arrayKey]?.[index];
+    }
+    return current[key];
+  }, obj);
 }

@@ -2,9 +2,10 @@ import { OpenRouterProvider } from './openrouter-provider';
 import { OpenAIProvider } from './openai-provider';
 import { AnthropicProvider } from './anthropic-provider';
 import { GithubCopilotProvider } from './github-provider';
+import { OpenAICompatibleProvider } from './openai-compatible-provider';
 import type { LLMProvider } from './types/base';
 
-export type ProviderType = 'openrouter' | 'openai' | 'anthropic' | 'github';
+export type ProviderType = 'openrouter' | 'openai' | 'anthropic' | 'github' | 'openai-compatible';
 
 export interface ProviderConfig {
   type: ProviderType;
@@ -29,13 +30,15 @@ export class ProviderFactory {
         return new AnthropicProvider(config.apiKey);
       case 'github':
         return new GithubCopilotProvider(config.apiKey);
+      case 'openai-compatible':
+        return new OpenAICompatibleProvider(config.apiKey, config.apiUrl);
       default:
         throw new Error(`Unsupported provider type: ${config.type}`);
     }
   }
 
   static getProviderTypes(): ProviderType[] {
-    return ['openrouter', 'openai', 'anthropic', 'github'];
+    return ['openrouter', 'openai', 'anthropic', 'github', 'openai-compatible'];
   }
 
   static getProviderDisplayName(type: ProviderType): string {
@@ -44,6 +47,7 @@ export class ProviderFactory {
       openai: 'OpenAI',
       anthropic: 'Anthropic',
       github: 'GitHub Copilot',
+      'openai-compatible': 'OpenAI-Compatible API',
     };
     return displayNames[type];
   }
@@ -55,6 +59,7 @@ export class ProviderFactory {
       openai: 'Direct access to OpenAI models including GPT-4, GPT-4o, and o1',
       anthropic: 'Access to Claude models by Anthropic',
       github: 'GitHub Copilot models for developers',
+      'openai-compatible': 'Compatible with any OpenAI-compatible API endpoint',
     };
     return descriptions[type];
   }

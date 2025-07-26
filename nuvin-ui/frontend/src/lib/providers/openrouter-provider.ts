@@ -1,4 +1,5 @@
 import { BaseLLMProvider } from './base-provider';
+import { extractValue } from './provider-utils';
 import type {
   CompletionParams,
   CompletionResult,
@@ -52,7 +53,7 @@ export class OpenRouterProvider extends BaseLLMProvider {
     );
 
     for await (const data of this.parseStream(reader, {}, signal)) {
-      const content = this.extractValue(data, 'choices.0.delta.content');
+      const content = extractValue(data, 'choices.0.delta.content');
       if (content) {
         yield content;
       }

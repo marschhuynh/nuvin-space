@@ -86,7 +86,7 @@ export function AgentConfiguration({
   const modelsError = errors[activeProviderId || ''] || null;
 
   // Helper function to get modality icons
-  const getModalityIcons = (model: any) => {
+  const getModalityIcons = useCallback((model: any) => {
     const icons = [];
     const modalities = model.inputModalities || [];
 
@@ -108,7 +108,7 @@ export function AgentConfiguration({
     return icons.length > 0
       ? icons
       : [<Type key="text" className="h-1.5 w-1.5 text-blue-500" />];
-  };
+  }, []);
 
   // Convert models to combobox options
   const modelOptions = useMemo(() => {
@@ -145,7 +145,9 @@ export function AgentConfiguration({
         ),
       };
     });
-  }, [enabledModels]);
+  }, [enabledModels, getModalityIcons]);
+
+  console.log('AgentConfiguration modelOptions:', modelOptions);
 
   return (
     <div className="min-w-[200px] w-full max-w-[300px] border-l border-border bg-card overflow-auto">

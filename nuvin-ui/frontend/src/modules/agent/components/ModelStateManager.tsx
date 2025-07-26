@@ -14,21 +14,18 @@ import {
   FileText,
   Filter,
 } from 'lucide-react';
-import {
-  fetchProviderModels,
-  type ProviderType,
-} from '@/lib/providers/provider-utils';
-import { useActiveModel, useActiveModelActions } from '../hooks/useActiveModel';
+import { useActiveModel } from '../hooks/useActiveModel';
 import { ModelsList } from './ModelsList';
 
 export function ModelStateManager() {
-  const { availableModels, isLoading, error } = useActiveModel();
-  const { setProviderModels, setProviderLoading, setProviderError } =
-    useActiveModelActions();
-  const { enableAllModels, disableAllModels } = useModelsStore();
+  const { availableModels, error } = useActiveModel();
+  const { fetchModels, enableAllModels, disableAllModels } = useModelsStore();
+
   const { activeProviderId, providers } = useProviderStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [modalityFilter, setModalityFilter] = useState<string | null>(null);
+
+  const isLoading = useModelsStore((state) => state.loading[activeProviderId]);
 
   // Get the active provider configuration
   const activeProvider = providers.find((p) => p.id === activeProviderId);
@@ -63,24 +60,20 @@ export function ModelStateManager() {
 
   const handleReloadModels = async () => {
     if (!activeProvider || !activeProviderId || isLoading) {
+      console.log('Reload skipped:', {
+        activeProvider: !!activeProvider,
+        activeProviderId,
+        isLoading,
+      });
       return;
     }
 
-    setProviderError(null);
-    setProviderLoading(true);
-
+    console.log('Starting model reload for provider:', activeProviderId);
     try {
-      const fetchedModels = await fetchProviderModels({
-        type: activeProvider.type as ProviderType,
-        apiKey: activeProvider.apiKey,
-        name: activeProvider.name,
-      });
-      console.log('Fetched models:', fetchedModels);
-      setProviderModels(fetchedModels);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Failed to reload models';
-      setProviderError(errorMessage);
+      await fetchModels(activeProvider);
+      console.log('Model reload completed for provider:', activeProviderId);
+    } catch (error) {
+      console.error('Failed to reload models:', error);
     }
   };
 
@@ -173,7 +166,7 @@ export function ModelStateManager() {
         </div>
 
         {/* Filter and Bulk Actions */}
-        <div className="flex items-center justify-between gap-4 mb-3 flex-shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-3 flex-shrink-1">
           {/* Modality Filters */}
           <div className="flex items-center gap-2">
             <Filter className="w-3 h-3 text-muted-foreground" />
@@ -195,7 +188,6 @@ export function ModelStateManager() {
                 className="h-6 text-[10px] px-2"
               >
                 <Type className="w-3 h-3 mr-1" />
-                Text
               </Button>
               <Button
                 variant={modalityFilter === 'image' ? 'default' : 'outline'}
@@ -206,7 +198,6 @@ export function ModelStateManager() {
                 className="h-6 text-[10px] px-2"
               >
                 <Image className="w-3 h-3 mr-1" />
-                Image
               </Button>
               <Button
                 variant={modalityFilter === 'audio' ? 'default' : 'outline'}
@@ -217,7 +208,6 @@ export function ModelStateManager() {
                 className="h-6 text-[10px] px-2"
               >
                 <Mic className="w-3 h-3 mr-1" />
-                Audio
               </Button>
               <Button
                 variant={modalityFilter === 'file' ? 'default' : 'outline'}
@@ -228,7 +218,6 @@ export function ModelStateManager() {
                 className="h-6 text-[10px] px-2"
               >
                 <FileText className="w-3 h-3 mr-1" />
-                File
               </Button>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { BaseLLMProvider } from './base-provider';
+import { extractValue } from './provider-utils';
 import type {
   CompletionParams,
   CompletionResult,
@@ -26,12 +27,12 @@ export class AnthropicProvider extends BaseLLMProvider {
     const response = await this.makeRequest('/v1/messages', {
       body: {
         model: params.model,
-        messages: this.transformMessagesForProvider(params.messages),
+        messages: params.messages,
         temperature: params.temperature,
         max_tokens: params.maxTokens,
         top_p: params.topP,
         ...(params.tools && {
-          tools: this.transformToolsForProvider(params.tools),
+          tools: params.tools,
         }),
         ...(params.tool_choice && { tool_choice: params.tool_choice }),
       },
@@ -49,13 +50,13 @@ export class AnthropicProvider extends BaseLLMProvider {
     const response = await this.makeRequest('/v1/messages', {
       body: {
         model: params.model,
-        messages: this.transformMessagesForProvider(params.messages),
+        messages: params.messages,
         temperature: params.temperature,
         max_tokens: params.maxTokens,
         top_p: params.topP,
         stream: true,
         ...(params.tools && {
-          tools: this.transformToolsForProvider(params.tools),
+          tools: params.tools,
         }),
         ...(params.tool_choice && { tool_choice: params.tool_choice }),
       },
@@ -74,7 +75,7 @@ export class AnthropicProvider extends BaseLLMProvider {
       },
       signal,
     )) {
-      const content = this.extractValue(data, 'delta.text');
+      const content = extractValue(data, 'delta.text');
       if (content) {
         yield content;
       }
@@ -88,13 +89,13 @@ export class AnthropicProvider extends BaseLLMProvider {
     const response = await this.makeRequest('/v1/messages', {
       body: {
         model: params.model,
-        messages: this.transformMessagesForProvider(params.messages),
+        messages: params.messages,
         temperature: params.temperature,
         max_tokens: params.maxTokens,
         top_p: params.topP,
         stream: true,
         ...(params.tools && {
-          tools: this.transformToolsForProvider(params.tools),
+          tools: params.tools,
         }),
         ...(params.tool_choice && { tool_choice: params.tool_choice }),
       },

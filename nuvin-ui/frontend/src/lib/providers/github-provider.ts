@@ -6,6 +6,7 @@ import type {
   ModelInfo,
 } from './types/base';
 import { smartFetch } from '../fetch-proxy';
+import { extractValue } from './provider-utils';
 
 export class GithubCopilotProvider extends BaseLLMProvider {
   constructor(apiKey: string) {
@@ -104,7 +105,7 @@ export class GithubCopilotProvider extends BaseLLMProvider {
     }
 
     for await (const data of this.parseStream(reader, {}, signal)) {
-      const content = this.extractValue(data, 'choices.0.delta.content');
+      const content = extractValue(data, 'choices.0.delta.content');
       if (content) {
         yield content;
       }

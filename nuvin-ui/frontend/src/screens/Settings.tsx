@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 import { Button } from '@/components/ui/button';
-import { useAgentStore } from '@/store/useAgentStore';
-import { useProviderStore } from '@/store/useProviderStore';
 import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
 import { GeneralSettings, MCPSettings } from '@/modules/setting';
-import { AddProviderModal, ProviderSettings } from '@/modules/provider';
+import { ProviderModal, ProviderSettings } from '@/modules/provider';
 import { AgentSettings } from '@/modules/agent/AgentSettings';
 import { ToolDebugger } from '@/components/debug/ToolDebugger';
 
@@ -14,7 +12,7 @@ type TabType = 'general' | 'providers' | 'agent' | 'mcp' | 'debug';
 export default function Settings() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabType>('general');
-  const [showAddProviderModal, setShowAddProviderModal] = useState(false);
+  const [showProviderModal, setShowProviderModal] = useState(false);
 
   // Handle tab query parameter
   useEffect(() => {
@@ -27,30 +25,7 @@ export default function Settings() {
     }
   }, [searchParams]);
 
-  const { reset: resetAgents } = useAgentStore();
-  const { reset: resetProviders } = useProviderStore();
-  const {
-    preferences,
-    updatePreferences,
-    reset: resetPreferences,
-  } = useUserPreferenceStore();
-
-  const handleReset = () => {
-    switch (activeTab) {
-      case 'general':
-        resetPreferences();
-        break;
-      case 'providers':
-        resetProviders();
-        break;
-      case 'agent':
-        resetAgents();
-        break;
-      case 'mcp':
-        resetPreferences();
-        break;
-    }
-  };
+  const { preferences, updatePreferences } = useUserPreferenceStore();
 
   const tabs = [
     { id: 'general' as const, label: 'General' },
@@ -63,7 +38,7 @@ export default function Settings() {
   return (
     <div className="flex flex-1 overflow-hidden bg-background">
       {/* Sidebar */}
-      <div className="w-64 flex-shrink-0 border-r bg-card border-border">
+      <div className="w-64 flex-shrink-1 border-r bg-card border-border">
         <div className="p-6">
           <h1 className="text-2xl font-bold mb-6">Settings</h1>
           <div className="space-y-2">
@@ -93,7 +68,7 @@ export default function Settings() {
 
           {activeTab === 'providers' && (
             <ProviderSettings
-              onAddProvider={() => setShowAddProviderModal(true)}
+              onAddProvider={() => setShowProviderModal(true)}
             />
           )}
 
@@ -106,9 +81,10 @@ export default function Settings() {
       </div>
 
       {/* Modals */}
-      <AddProviderModal
-        open={showAddProviderModal}
-        onOpenChange={setShowAddProviderModal}
+      <ProviderModal
+        open={showProviderModal}
+        onOpenChange={setShowProviderModal}
+        mode="add"
       />
     </div>
   );

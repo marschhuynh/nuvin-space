@@ -3,7 +3,7 @@ import { Plus, Settings, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useProviderStore } from '@/store/useProviderStore';
 import { ModelStateManager } from '@/modules/agent/components/ModelStateManager';
-import { EditProviderModal } from './EditProviderModal';
+import { ProviderModal } from './ProviderModal';
 
 interface ProviderSettingsProps {
   onAddProvider: () => void;
@@ -13,11 +13,11 @@ export function ProviderSettings({ onAddProvider }: ProviderSettingsProps) {
   const { providers, deleteProvider, setActiveProvider, activeProviderId } =
     useProviderStore();
   const [editingProvider, setEditingProvider] = useState<any | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showProviderModal, setShowProviderModal] = useState(false);
 
   const startEditing = (provider: any) => {
     setEditingProvider(provider);
-    setShowEditModal(true);
+    setShowProviderModal(true);
   };
 
   const handleProviderSelect = (provider: any) => {
@@ -27,7 +27,7 @@ export function ProviderSettings({ onAddProvider }: ProviderSettingsProps) {
   return (
     <div className="flex h-full">
       {/* Left Panel - Provider List */}
-      <div className="flex flex-col w-80 border-r bg-card">
+      <div className="flex flex-col min-w-48 w-64 border-r bg-card">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b">
           <div className="flex items-center gap-2">
@@ -171,10 +171,11 @@ export function ProviderSettings({ onAddProvider }: ProviderSettingsProps) {
         )}
 
         {/* Edit Provider Modal */}
-        <EditProviderModal
-          open={showEditModal}
-          onOpenChange={setShowEditModal}
+        <ProviderModal
+          open={showProviderModal}
+          onOpenChange={setShowProviderModal}
           provider={editingProvider}
+          mode="edit"
         />
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { BaseLLMProvider } from './base-provider';
+import { extractValue } from './provider-utils';
 import type {
   CompletionParams,
   CompletionResult,
@@ -7,11 +8,11 @@ import type {
 } from './types/base';
 
 export class OpenAIProvider extends BaseLLMProvider {
-  constructor(apiKey: string) {
+  constructor(apiKey: string, apiUrl: string = 'https://api.openai.com') {
     super({
       providerName: 'OpenAI',
       apiKey,
-      apiUrl: 'https://api.openai.com',
+      apiUrl: apiUrl,
     });
   }
 
@@ -47,7 +48,7 @@ export class OpenAIProvider extends BaseLLMProvider {
     );
 
     for await (const data of this.parseStream(reader, {}, signal)) {
-      const content = this.extractValue(data, 'choices.0.delta.content');
+      const content = extractValue(data, 'choices.0.delta.content');
       if (content) {
         yield content;
       }
@@ -184,5 +185,18 @@ export class OpenAIProvider extends BaseLLMProvider {
 
   private getOutputModalities(modelId: string): string[] {
     return ['text'];
+  }
+
+  protected parseRequestBody<T>(params: CompletionParams): T {
+    return {
+      model: params.model,
+      messages: params.messages,
+      temperature: params.temperature,
+      max_tokens: params.maxTokens,
+      top_p: params.topP,
+      stream: true,
+      ...(params.tools && { tools: params.tools }),
+      ...(params.tool_choice && { tool_choice: params.tool_choice }),
+    } as T;
   }
 }

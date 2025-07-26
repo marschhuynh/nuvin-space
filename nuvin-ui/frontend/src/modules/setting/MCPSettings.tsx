@@ -78,7 +78,10 @@ export function MCPSettings() {
     clipboardText: string,
   ): Partial<MCPConfig> | null => {
     try {
-      console.log('Attempting to parse JSON:', clipboardText.substring(0, 200) + '...');
+      console.log(
+        'Attempting to parse JSON:',
+        clipboardText.substring(0, 200) + '...',
+      );
       const parsed = JSON.parse(clipboardText) as MCPClipboardConfig;
       console.log('Parsed JSON structure:', parsed);
 
@@ -90,7 +93,7 @@ export function MCPSettings() {
       // Get the first server configuration
       const serverKeys = Object.keys(parsed.mcpServers);
       console.log('Found server keys:', serverKeys);
-      
+
       if (serverKeys.length === 0) {
         console.error('No servers found in mcpServers');
         return null;
@@ -102,8 +105,14 @@ export function MCPSettings() {
 
       // Determine server type based on configuration
       const hasUrl = serverConfig.url && serverConfig.url.trim() !== '';
-      const hasCommand = serverConfig.command && serverConfig.command.trim() !== '';
-      console.log('Server analysis - hasUrl:', hasUrl, 'hasCommand:', hasCommand);
+      const hasCommand =
+        serverConfig.command && serverConfig.command.trim() !== '';
+      console.log(
+        'Server analysis - hasUrl:',
+        hasUrl,
+        'hasCommand:',
+        hasCommand,
+      );
 
       let serverType: 'stdio' | 'http' = 'stdio';
       if (hasUrl && !hasCommand) {
@@ -122,7 +131,7 @@ export function MCPSettings() {
         enabled: !serverConfig.disabled,
         description: `Imported MCP server: ${serverKey}`,
       };
-      
+
       console.log('Generated config:', result);
       return result;
     } catch (error) {
@@ -133,9 +142,11 @@ export function MCPSettings() {
 
   const handleImportFromClipboard = async () => {
     try {
-      console.log('Attempting to read MCP config from clipboard using Wails...');
+      console.log(
+        'Attempting to read MCP config from clipboard using Wails...',
+      );
       const clipboardText = await ClipboardGetText();
-      
+
       if (!clipboardText || clipboardText.trim() === '') {
         alert('Clipboard is empty. Please copy a valid MCP configuration.');
         return;
@@ -159,7 +170,8 @@ export function MCPSettings() {
     } catch (error) {
       console.error('Failed to read from clipboard:', error);
       alert(
-        'Failed to access clipboard. Error: ' + (error instanceof Error ? error.message : 'Unknown error'),
+        'Failed to access clipboard. Error: ' +
+          (error instanceof Error ? error.message : 'Unknown error'),
       );
     }
   };
@@ -264,19 +276,21 @@ export function MCPSettings() {
   };
 
   const handleToggleMCP = async (mcpId: string) => {
-    const server = (preferences?.mcpServers || []).find(s => s.id === mcpId);
+    const server = (preferences?.mcpServers || []).find((s) => s.id === mcpId);
     if (server) {
       try {
         await toggleServer(mcpId, !server.enabled);
         // Refresh server status and tools list
         setTimeout(() => {
           refreshStatus();
-          setToolsRefreshTrigger(prev => prev + 1);
+          setToolsRefreshTrigger((prev) => prev + 1);
         }, 1000);
       } catch (error) {
         console.error('Failed to toggle MCP server:', error);
         // Could show a toast notification here
-        alert(`Failed to ${server.enabled ? 'disable' : 'enable'} server: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        alert(
+          `Failed to ${server.enabled ? 'disable' : 'enable'} server: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
       }
     }
   };
@@ -355,7 +369,7 @@ export function MCPSettings() {
     <>
       <div className="flex h-full">
         {/* Left Panel - MCP Server List */}
-        <div className="flex flex-col w-80 border-r bg-card">
+        <div className="flex flex-col min-w-48 w-64 border-r bg-card">
           {/* Header */}
           <div className="flex justify-between items-center p-4 border-b">
             <div className="flex items-center gap-2">

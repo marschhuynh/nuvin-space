@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import type { ModelInfo } from '@/lib/providers/types/base';
+import {
+  fetchProviderModels,
+  type ProviderType,
+} from '@/lib/providers/provider-utils';
+import type { ProviderConfig } from '@/types';
 
 // Extended ModelInfo with enabled flag
 export interface ModelInfoWithState extends ModelInfo {
@@ -24,6 +29,7 @@ interface ModelsState {
 
   // Actions
   setModels: (providerId: string, models: ModelInfo[]) => void;
+  fetchModels: (provider: ProviderConfig) => Promise<ModelInfo[]>;
   updateModelState: (
     providerId: string,
     modelId: string,
@@ -65,6 +71,81 @@ export const useModelsStore = create<ModelsState>()(
           },
         })),
 
+      fetchModels: async (provider) => {
+        // Set loading state immediately
+        set((currentState) => ({
+          ...currentState,
+          loading: {
+            ...currentState.loading,
+            [provider.id]: true,
+          },
+          errors: {
+            ...currentState.errors,
+            [provider.id]: null,
+          },
+        }));
+
+        try {
+          const models = await fetchProviderModels({
+            type: provider.type as ProviderType,
+            apiKey: provider.apiKey,
+            name: provider.name,
+            apiUrl: provider.apiUrl,
+          });
+
+          // Update models and clear loading state
+          set((currentState) => {
+            const existingModels = currentState.models[provider.id] || [];
+            const existingEnabledStates = existingModels.reduce(
+              (acc, model) => {
+                acc[model.id] = model.enabled;
+                return acc;
+              },
+              {} as Record<string, boolean>,
+            );
+
+            return {
+              ...currentState,
+              models: {
+                ...currentState.models,
+                [provider.id]: models.map((model) => ({
+                  ...model,
+                  enabled: existingEnabledStates[model.id] ?? true, // Preserve existing state or default to true
+                })),
+              },
+              loading: {
+                ...currentState.loading,
+                [provider.id]: false,
+              },
+              errors: {
+                ...currentState.errors,
+                [provider.id]: null,
+              },
+            };
+          });
+
+          return models;
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : 'Failed to fetch models';
+
+          // Set error and clear loading state
+          set((currentState) => ({
+            ...currentState,
+            loading: {
+              ...currentState.loading,
+              [provider.id]: false,
+            },
+            errors: {
+              ...currentState.errors,
+              [provider.id]: errorMessage,
+            },
+          }));
+
+          throw error;
+        }
+      },
+
       updateModelState: (providerId, modelId, enabled) =>
         set((state) => ({
           models: {
@@ -75,13 +156,26 @@ export const useModelsStore = create<ModelsState>()(
           },
         })),
 
-      setLoading: (providerId, loading) =>
-        set((state) => ({
-          loading: {
-            ...state.loading,
-            [providerId]: loading,
-          },
-        })),
+      setLoading: (providerId, loading) => {
+        return set((state) => {
+          console.log(
+            `Setting loading state for provider ${providerId}: ${loading}`,
+            {
+              loading: {
+                ...state.loading,
+                [providerId]: loading,
+              },
+            },
+          );
+          return {
+            ...state,
+            loading: {
+              ...state.loading,
+              [providerId]: loading,
+            },
+          };
+        });
+      },
 
       setError: (providerId, error) =>
         set((state) => ({
