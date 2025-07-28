@@ -25,6 +25,11 @@ export const PROVIDER_METADATA = {
     name: 'OpenAI Compatible',
     description: 'Compatible with OpenAI API, allows custom API URLs.',
   },
+  [PROVIDER_TYPES.DeepInfra]: {
+    name: 'DeepInfra',
+    description: 'DeepInfra API for fast inference with competitive pricing.',
+    apiUrl: 'https://api.deepinfra.com/v1/openai',
+  },
 };
 
 // default provider configuration

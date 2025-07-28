@@ -7,7 +7,7 @@
 /**
  * Extract a value from an object using a dot-notation path
  * Supports array indexing with bracket notation
- * 
+ *
  * @param obj - The object to extract from
  * @param path - The path to the value (e.g., "user.name" or "items[0].title")
  * @returns The extracted value or undefined if not found

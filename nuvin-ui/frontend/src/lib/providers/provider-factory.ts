@@ -3,6 +3,7 @@ import { OpenAIProvider } from './openai-provider';
 import { AnthropicProvider } from './anthropic-provider';
 import { GithubCopilotProvider } from './github-provider';
 import { OpenAICompatibleProvider } from './openai-compatible-provider';
+import { DeepInfraProvider } from './deepinfra-provider';
 import type { LLMProvider } from './types/base';
 
 export type ProviderType =
@@ -10,7 +11,8 @@ export type ProviderType =
   | 'openai'
   | 'anthropic'
   | 'github'
-  | 'openai-compatible';
+  | 'openai-compatible'
+  | 'deepinfra';
 
 export interface ProviderConfig {
   type: ProviderType;
@@ -37,13 +39,22 @@ export class ProviderFactory {
         return new GithubCopilotProvider(config.apiKey);
       case 'openai-compatible':
         return new OpenAICompatibleProvider(config.apiKey, config.apiUrl);
+      case 'deepinfra':
+        return new DeepInfraProvider(config.apiKey);
       default:
         throw new Error(`Unsupported provider type: ${config.type}`);
     }
   }
 
   static getProviderTypes(): ProviderType[] {
-    return ['openrouter', 'openai', 'anthropic', 'github', 'openai-compatible'];
+    return [
+      'openrouter',
+      'openai',
+      'anthropic',
+      'github',
+      'openai-compatible',
+      'deepinfra',
+    ];
   }
 
   static getProviderDisplayName(type: ProviderType): string {
@@ -53,6 +64,7 @@ export class ProviderFactory {
       anthropic: 'Anthropic',
       github: 'GitHub Copilot',
       'openai-compatible': 'OpenAI-Compatible API',
+      deepinfra: 'DeepInfra',
     };
     return displayNames[type];
   }
@@ -65,6 +77,7 @@ export class ProviderFactory {
       anthropic: 'Access to Claude models by Anthropic',
       github: 'GitHub Copilot models for developers',
       'openai-compatible': 'Compatible with any OpenAI-compatible API endpoint',
+      deepinfra: 'Access to LLMs with fast inference and competitive pricing',
     };
     return descriptions[type];
   }

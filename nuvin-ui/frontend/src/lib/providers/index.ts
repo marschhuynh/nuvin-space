@@ -6,6 +6,7 @@ export { OpenRouterProvider } from './openrouter-provider';
 export { OpenAIProvider } from './openai-provider';
 export { AnthropicProvider } from './anthropic-provider';
 export { GithubCopilotProvider } from './github-provider';
+export { DeepInfraProvider } from './deepinfra-provider';
 export type {
   LLMProvider,
   CompletionParams,

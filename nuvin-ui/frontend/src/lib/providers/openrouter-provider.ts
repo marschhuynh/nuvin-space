@@ -120,7 +120,7 @@ export class OpenRouterProvider extends BaseLLMProvider {
   ): AsyncGenerator<StreamChunk> {
     console.log('Starting OpenRouter streaming with tools:', params);
     const startTime = Date.now();
-    
+
     const requestBody: any = {
       model: params.model,
       messages: params.messages,

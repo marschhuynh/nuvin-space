@@ -4,6 +4,7 @@ import { AnthropicProvider } from './anthropic-provider';
 import { OpenRouterProvider } from './openrouter-provider';
 import { GithubCopilotProvider } from './github-provider';
 import { OpenAICompatibleProvider } from './openai-compatible-provider';
+import { DeepInfraProvider } from './deepinfra-provider';
 
 export enum PROVIDER_TYPES {
   OpenAI = 'openai',
@@ -11,6 +12,7 @@ export enum PROVIDER_TYPES {
   OpenRouter = 'openrouter',
   GitHub = 'github',
   OpenAICompatible = 'openai-compatible',
+  DeepInfra = 'deepinfra',
 }
 
 export type ProviderType = PROVIDER_TYPES;
@@ -36,6 +38,8 @@ export function createProvider(config: LLMProviderConfig): LLMProvider {
       return new GithubCopilotProvider(config.apiKey);
     case PROVIDER_TYPES.OpenAICompatible:
       return new OpenAICompatibleProvider(config.apiKey, config.apiUrl);
+    case PROVIDER_TYPES.DeepInfra:
+      return new DeepInfraProvider(config.apiKey);
     default:
       throw new Error(`Unsupported provider type: ${config.type}`);
   }
@@ -84,6 +88,8 @@ export function getDefaultModel(providerType: ProviderType): string {
       return 'gpt-4o';
     case PROVIDER_TYPES.OpenAICompatible:
       return 'gpt-4o-mini';
+    case PROVIDER_TYPES.DeepInfra:
+      return 'meta-llama/Llama-3.3-70B-Instruct-Turbo';
     default:
       return '';
   }
@@ -115,4 +121,3 @@ export function formatContextLength(contextLength?: number): string {
 
   return `${contextLength} tokens`;
 }
-
