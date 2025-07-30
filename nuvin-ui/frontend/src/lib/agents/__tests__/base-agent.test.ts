@@ -80,10 +80,24 @@ describe('BaseAgent buildContext', () => {
       },
       {
         id: '2',
-        role: 'assistant',
-        content:
-          '<|tool_calls_section_begin|><|tool_call_begin|>random_number:call_123<|tool_call_argument_begin|>{"min":0,"max":100}<|tool_call_result_begin|>{"random_number": 47}<|tool_call_end|><|tool_calls_section_end|>Here are your random numbers!',
+        role: 'tool',
+        content: 'Executed tool: random_number',
         timestamp: '2023-01-01T00:01:00Z',
+        toolCall: {
+          name: 'random_number',
+          id: 'call_123',
+          arguments: { min: 0, max: 100 },
+          result: {
+            success: true,
+            data: { random_number: 47 },
+          },
+        },
+      },
+      {
+        id: '3',
+        role: 'assistant',
+        content: 'Here are your random numbers!',
+        timestamp: '2023-01-01T00:01:30Z',
       },
     ];
 
@@ -111,9 +125,8 @@ describe('BaseAgent buildContext', () => {
       },
       {
         role: 'tool',
-        content: '{"random_number":47}',
+        content: '{"success":true,"data":{"random_number":47}}',
         tool_call_id: 'call_123',
-        name: 'random_number',
       },
       { role: 'assistant', content: 'Here are your random numbers!' },
       { role: 'user', content: 'Generate more numbers' },
@@ -125,10 +138,39 @@ describe('BaseAgent buildContext', () => {
     const messageWithMultipleToolCalls: Message[] = [
       {
         id: '1',
-        role: 'assistant',
-        content:
-          '<|tool_calls_section_begin|><|tool_call_begin|>random_number:call_123<|tool_call_argument_begin|>{"min":0,"max":100}<|tool_call_result_begin|>{"random_number": 47}<|tool_call_end|><|tool_call_begin|>random_number:call_456<|tool_call_argument_begin|>{"min":0,"max":100}<|tool_call_result_begin|>{"random_number": 82}<|tool_call_end|><|tool_calls_section_end|>Generated two numbers.',
+        role: 'tool',
+        content: 'Executed tool: random_number',
         timestamp: '2023-01-01T00:00:00Z',
+        toolCall: {
+          name: 'random_number',
+          id: 'call_123',
+          arguments: { min: 0, max: 100 },
+          result: {
+            success: true,
+            data: { random_number: 47 },
+          },
+        },
+      },
+      {
+        id: '2',
+        role: 'tool',
+        content: 'Executed tool: random_number',
+        timestamp: '2023-01-01T00:00:10Z',
+        toolCall: {
+          name: 'random_number',
+          id: 'call_456',
+          arguments: { min: 0, max: 100 },
+          result: {
+            success: true,
+            data: { random_number: 82 },
+          },
+        },
+      },
+      {
+        id: '3',
+        role: 'assistant',
+        content: 'Generated two numbers.',
+        timestamp: '2023-01-01T00:00:20Z',
       },
     ];
 
@@ -151,6 +193,17 @@ describe('BaseAgent buildContext', () => {
               arguments: '{"min":0,"max":100}',
             },
           },
+        ],
+      },
+      {
+        role: 'tool',
+        content: '{"success":true,"data":{"random_number":47}}',
+        tool_call_id: 'call_123',
+      },
+      {
+        role: 'assistant',
+        content: null,
+        tool_calls: [
           {
             id: 'call_456',
             type: 'function',
@@ -163,15 +216,8 @@ describe('BaseAgent buildContext', () => {
       },
       {
         role: 'tool',
-        content: '{"random_number":47}',
-        tool_call_id: 'call_123',
-        name: 'random_number',
-      },
-      {
-        role: 'tool',
-        content: '{"random_number":82}',
+        content: '{"success":true,"data":{"random_number":82}}',
         tool_call_id: 'call_456',
-        name: 'random_number',
       },
       { role: 'assistant', content: 'Generated two numbers.' },
       { role: 'user', content: 'Thanks!' },
@@ -183,10 +229,15 @@ describe('BaseAgent buildContext', () => {
     const messageWithToolCallsNoResults: Message[] = [
       {
         id: '1',
-        role: 'assistant',
-        content:
-          '<|tool_calls_section_begin|><|tool_call_begin|>random_number:call_123<|tool_call_argument_begin|>{"min":0,"max":100}<|tool_call_end|><|tool_calls_section_end|>',
+        role: 'tool',
+        content: 'Executed tool: random_number',
         timestamp: '2023-01-01T00:00:00Z',
+        toolCall: {
+          name: 'random_number',
+          id: 'call_123',
+          arguments: { min: 0, max: 100 },
+          // No result property - tool call without result
+        },
       },
     ];
 

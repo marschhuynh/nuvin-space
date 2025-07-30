@@ -292,28 +292,42 @@ export class LocalAgent extends BaseAgent {
               );
 
             if (processed.requiresFollowUp && processed.toolCalls) {
-              // Emit Message 2: Tool execution message
-              const toolCallsMarkup =
-                toolIntegrationService.buildToolCallsMarkup(
-                  currentToolCalls,
-                  processed.toolCalls,
-                );
+              // Emit separate messages for each tool call
+              if (options.onAdditionalMessage) {
+                for (let i = 0; i < currentToolCalls.length; i++) {
+                  const toolCall = currentToolCalls[i];
+                  const result = processed.toolCalls.find(
+                    (r) => r.id === toolCall.id,
+                  );
 
-              if (toolCallsMarkup && options.onAdditionalMessage) {
-                const toolMessage: MessageResponse = {
-                  id: generateUUID(),
-                  content: toolCallsMarkup,
-                  role: 'assistant',
-                  timestamp: new Date().toISOString(),
-                  metadata: {
-                    agentType: 'local',
-                    agentId: this.agentSettings.id,
-                    provider: this.providerConfig.type,
-                    model: this.providerConfig.activeModel.model,
-                    toolCalls: currentToolCalls.length,
-                  },
-                };
-                options.onAdditionalMessage(toolMessage);
+                  const toolMessage: MessageResponse = {
+                    id: generateUUID(),
+                    content: `Executed tool: ${toolCall.function.name}`,
+                    role: 'tool',
+                    timestamp: new Date().toISOString(),
+                    toolCall: {
+                      name: toolCall.function.name,
+                      id: toolCall.id,
+                      arguments: JSON.parse(toolCall.function.arguments),
+                      result: result
+                        ? {
+                            success: result.result.success,
+                            data: result.result.data,
+                            error: result.result.error,
+                            metadata: result.result.metadata,
+                          }
+                        : undefined,
+                      isExecuting: false,
+                    },
+                    metadata: {
+                      agentType: 'local',
+                      agentId: this.agentSettings.id,
+                      provider: this.providerConfig.type,
+                      model: this.providerConfig.activeModel.model,
+                    },
+                  };
+                  options.onAdditionalMessage(toolMessage);
+                }
               }
 
               // Execute tools and get follow-up response

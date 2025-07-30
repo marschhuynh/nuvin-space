@@ -1,9 +1,7 @@
 import { Cpu, Copy, Check, FileText } from 'lucide-react';
 import { useState, useCallback, useMemo } from 'react';
-import { parseToolCalls, stripToolCalls } from '@/lib/utils/tool-call-parser';
 import { ClipboardSetText } from '../../../wailsjs/runtime/runtime';
 import { MarkdownRenderer } from './MarkdownRenderer';
-import { ToolCall } from './components/ToolCall';
 import type { MessageMetadata } from '@/types';
 
 interface AssistantMessageProps {
@@ -21,24 +19,15 @@ export function AssistantMessage({
   const [copied, setCopied] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
 
-  const trimmedContent = content.trim();
-
-  // Parse tool calls from the content
-  const parsedContent = useMemo(() => {
-    return parseToolCalls(trimmedContent);
-  }, [trimmedContent]);
-
-  // Get clean content without tool call markup
+  // Always strip all tool call markup from the content
   const cleanContent = useMemo(() => {
-    return parsedContent.hasToolCalls
-      ? stripToolCalls(trimmedContent)
-      : trimmedContent;
-  }, [parsedContent.hasToolCalls, trimmedContent]);
+    return content.trim();
+  }, [content]);
 
   const handleCopy = useCallback(async () => {
     try {
       // Copy raw content in raw view, clean content otherwise
-      const contentToCopy = showRaw ? trimmedContent : cleanContent;
+      const contentToCopy = showRaw ? content.trim() : cleanContent;
 
       if (typeof ClipboardSetText === 'function') {
         await ClipboardSetText(contentToCopy);
@@ -50,13 +39,13 @@ export function AssistantMessage({
     } catch (error) {
       console.error('Failed to copy message:', error);
     }
-  }, [trimmedContent, cleanContent, showRaw]);
+  }, [content, cleanContent, showRaw]);
 
   const toggleRawView = useCallback(() => {
     setShowRaw((prev) => !prev);
   }, []);
 
-  if (trimmedContent.length === 0) return null;
+  if (cleanContent.length === 0) return null;
 
   return (
     <>
@@ -79,7 +68,7 @@ export function AssistantMessage({
       <div className="relative max-w-[70%]">
         {/* Message bubble */}
         <div
-          className={`rounded-lg overflow-auto transition-all duration-300 ${parsedContent.hasToolCalls ? '' : 'p-4'} relative ${
+          className={`rounded-lg overflow-auto transition-all duration-300 p-4 relative ${
             messageMode === 'transparent'
               ? 'text-foreground'
               : isStreaming
@@ -92,27 +81,16 @@ export function AssistantMessage({
           {showRaw ? (
             // Raw view
             <pre className="text-sm whitespace-pre-wrap font-sans">
-              {trimmedContent}
+              {content.trim()}
             </pre>
           ) : (
             // Rendered view
             <div className="text-sm relative">
-              {/* Render tool calls first */}
-              {parsedContent.hasToolCalls &&
-                parsedContent.toolCalls.map((toolCall, index) => (
-                  <ToolCall
-                    key={`${toolCall.name}-${toolCall.id}-${index}`}
-                    toolCall={toolCall}
-                  />
-                ))}
-
-              {/* Render clean content if there's any */}
-              {cleanContent.trim().length > 0 && (
-                <MarkdownRenderer
-                  content={cleanContent}
-                  className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
-                />
-              )}
+              {/* Render clean content */}
+              <MarkdownRenderer
+                content={cleanContent}
+                className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+              />
 
               {isStreaming && (
                 <div className="inline-flex items-center gap-2 animate-in fade-in duration-300 mt-2">

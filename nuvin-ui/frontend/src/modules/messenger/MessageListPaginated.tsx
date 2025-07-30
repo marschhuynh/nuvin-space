@@ -241,6 +241,7 @@ export function MessageListPaginated({
             timestamp={message.timestamp}
             isStreaming={streamingMessageId === message.id}
             metadata={message.metadata}
+            toolCall={message.toolCall}
           />
         ))}
 

@@ -27,10 +27,22 @@ export interface MessageMetadata {
 
 export interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'tool';
   content: string;
   timestamp?: string;
   metadata?: MessageMetadata;
+  toolCall?: {
+    name: string;
+    id: string;
+    arguments: any;
+    result?: {
+      success: boolean;
+      data?: any;
+      error?: string;
+      metadata?: Record<string, any>;
+    };
+    isExecuting?: boolean;
+  };
 }
 
 export interface Conversation {

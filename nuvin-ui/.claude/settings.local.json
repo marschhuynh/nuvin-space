@@ -15,7 +15,8 @@
       "Bash(pnpm test:*)",
       "Bash(npx vitest run:*)",
       "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs"
+      "mcp__context7__get-library-docs",
+      "Bash(wails dev:*)"
     ],
     "deny": []
   }

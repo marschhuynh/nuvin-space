@@ -28,8 +28,20 @@ export interface SendMessageOptions {
 export interface MessageResponse {
   id: string;
   content: string;
-  role: 'assistant';
+  role: 'assistant' | 'tool';
   timestamp: string;
+  toolCall?: {
+    name: string;
+    id: string;
+    arguments: any;
+    result?: {
+      success: boolean;
+      data?: any;
+      error?: string;
+      metadata?: Record<string, any>;
+    };
+    isExecuting?: boolean;
+  };
   metadata?: {
     model?: string;
     provider?: string;

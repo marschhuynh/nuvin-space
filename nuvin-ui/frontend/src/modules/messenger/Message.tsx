@@ -1,15 +1,28 @@
 import { UserMessage } from './UserMessage';
 import { AssistantMessage } from './AssistantMessage';
+import { ToolCallMessage } from './ToolCallMessage';
 import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
 import type { MessageMetadata } from '@/types';
 
 interface MessageProps {
   id: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'tool';
   content: string;
   timestamp?: string;
   isStreaming?: boolean;
   metadata?: MessageMetadata;
+  toolCall?: {
+    name: string;
+    id: string;
+    arguments: any;
+    result?: {
+      success: boolean;
+      data?: any;
+      error?: string;
+      metadata?: Record<string, any>;
+    };
+    isExecuting?: boolean;
+  };
 }
 
 export function Message({
@@ -17,6 +30,7 @@ export function Message({
   content,
   isStreaming = false,
   metadata,
+  toolCall,
 }: MessageProps) {
   const { preferences } = useUserPreferenceStore();
   const trimmedContent = content.trim();
@@ -34,6 +48,14 @@ export function Message({
           content={content}
           isStreaming={isStreaming}
           messageMode={preferences.messageMode}
+        />
+      ) : role === 'tool' && toolCall ? (
+        <ToolCallMessage
+          toolName={toolCall.name}
+          toolId={toolCall.id}
+          arguments={toolCall.arguments}
+          result={toolCall.result}
+          isExecuting={toolCall.isExecuting}
         />
       ) : (
         <AssistantMessage
