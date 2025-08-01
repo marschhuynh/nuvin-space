@@ -14,12 +14,12 @@ interface MessageProps {
   toolCall?: {
     name: string;
     id: string;
-    arguments: any;
+    arguments: Record<string, unknown>;
     result?: {
       success: boolean;
-      data?: any;
+      data?: unknown;
       error?: string;
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
     };
     isExecuting?: boolean;
   };

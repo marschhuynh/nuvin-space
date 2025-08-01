@@ -46,7 +46,7 @@ export function ToolSettings({
     );
 
   return (
-    <div className="space-y-4 flex flex-col h-full min-h-[100px]">
+    <div className="space-y-4 flex flex-col h-full min-h-[300px]">
       {/* Tool Settings */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -96,10 +96,9 @@ export function ToolSettings({
       {/* Available Tools */}
       <div className="space-y-2 flex-1 flex flex-col min-h-0">
         <div className="flex flex-wrap items-center justify-between">
-          <Label>Available Tools</Label>
+          <Label className="whitespace-no-break-spaces">Available Tools</Label>
           <p className="text-xs text-muted-foreground">
-            {filteredTools.length} tools available •{' '}
-            {toolConfig.enabledTools.length} enabled
+            {`${toolConfig.enabledTools.length} / ${filteredTools.length} tools`}
           </p>
         </div>
 

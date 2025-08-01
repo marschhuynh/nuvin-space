@@ -105,7 +105,7 @@ export default function Messenger() {
   // Create combined messages with streaming content
   const messages = streamingMessageId
     ? [
-        ...storeMessages,
+        ...storeMessages.filter((msg) => msg.id !== streamingMessageId), // Remove any stored message with same ID
         {
           id: streamingMessageId,
           role: 'assistant' as const,
@@ -178,14 +178,14 @@ export default function Messenger() {
             }
           },
           onComplete: (finalContent: string) => {
-            // Final update when streaming is complete - metadata will be added after sendMessage resolves
+            // Streaming is complete - add the final message to store and clear streaming state
             if (conversationId) {
               // Get the accumulated content for this conversation
               const accumulatedContent =
                 streamingStates[conversationId]?.content || '';
               const contentToUse = finalContent || accumulatedContent;
 
-              // Always add the final assistant message at the end (after all tool calls)
+              // Add the final assistant message to the store
               if (contentToUse) {
                 const finalAssistantMessage: Message = {
                   id: streamingId,
@@ -197,7 +197,7 @@ export default function Messenger() {
                 addMessage(conversationId, finalAssistantMessage);
               }
 
-              // Clear streaming state for this conversation after updating the message
+              // Clear streaming state after adding the final message
               setTimeout(() => {
                 setStreamingStates((prev) => {
                   const newState = { ...prev };
