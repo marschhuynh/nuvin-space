@@ -1,8 +1,9 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type { Message as MessageType } from '@/types';
 import { Message } from './Message';
 import { LoadingMessage } from './components/LoadingMessage';
+import { EmptyConversation } from './components/EmptyConversation';
 
 interface MessageListProps {
   messages: MessageType[];
@@ -32,31 +33,22 @@ export function MessageList({
     },
   });
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     if (parentRef.current) {
       parentRef.current.scrollTop = parentRef.current.scrollHeight;
     }
-  };
+  }, []);
 
   // Scroll to bottom when component mounts (opening conversation)
   useEffect(() => {
     setTimeout(() => {
       scrollToBottom();
     }, 300);
-  }, []);
+  }, [scrollToBottom]);
 
   const renderMessages = () => {
     if (messages.length === 0 && !isLoading) {
-      return (
-        <div className="flex items-center justify-center h-full text-muted-foreground">
-          <div className="text-center">
-            <p className="text-lg mb-2">Welcome to Nuvin Space</p>
-            <p className="text-sm">
-              Start a conversation by typing a message below.
-            </p>
-          </div>
-        </div>
-      );
+      return <EmptyConversation />;
     }
 
     if (!enableVirtualizer) {

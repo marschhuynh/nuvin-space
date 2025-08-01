@@ -9,6 +9,7 @@ import type { Message as MessageType } from '@/types';
 import { Message } from './Message';
 import { LoadingMessage } from './components/LoadingMessage';
 import { Loader2 } from 'lucide-react';
+import { EmptyConversation } from './components/EmptyConversation';
 
 interface MessageListPaginatedProps {
   messages: MessageType[];
@@ -41,7 +42,7 @@ export function MessageListPaginated({
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({
         behavior: smooth ? 'smooth' : 'auto',
-        block: 'end',
+        block: 'start',
       });
     }
   }, []);
@@ -186,16 +187,7 @@ export function MessageListPaginated({
 
   const renderMessages = () => {
     if (messages.length === 0 && !isLoading) {
-      return (
-        <div className="flex items-center justify-center h-full text-muted-foreground">
-          <div className="text-center">
-            <p className="text-lg mb-2">Welcome to Nuvin Space</p>
-            <p className="text-sm">
-              Start a conversation by typing a message below.
-            </p>
-          </div>
-        </div>
-      );
+      return <EmptyConversation />;
     }
 
     return (

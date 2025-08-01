@@ -85,7 +85,7 @@ export function ToolCallMessage({
       </div>
 
       {/* Tool call card - compact linear layout */}
-      <div className="relative max-w-[70%]">
+      <div className="relative w-[70%] max-w-[70%]">
         <div className="rounded-lg bg-card border-border hover:shadow-xs hover:border-border/80 shadow-xxs border transition-all duration-300">
           {!showToolDetail ? (
             /* Compact linear view: icon > name > status > collapse */
