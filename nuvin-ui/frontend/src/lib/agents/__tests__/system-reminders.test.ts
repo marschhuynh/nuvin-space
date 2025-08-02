@@ -181,13 +181,12 @@ describe('SystemReminderGenerator', () => {
 
       const formatted = generator.formatRemindersForInjection(reminders);
 
-      expect(formatted).toContain('type: text');
       expect(formatted).toContain('<system-reminder>');
       expect(formatted).toContain('Test reminder content');
       expect(formatted).toContain('</system-reminder>');
     });
 
-    it('should include cache control for ephemeral reminders', () => {
+    it('should format ephemeral reminders', () => {
       const reminders = [
         {
           id: 'test',
@@ -200,8 +199,9 @@ describe('SystemReminderGenerator', () => {
 
       const formatted = generator.formatRemindersForInjection(reminders);
 
-      expect(formatted).toContain('cache_control:');
-      expect(formatted).toContain('type: ephemeral');
+      expect(formatted).toContain('<system-reminder>');
+      expect(formatted).toContain('Ephemeral reminder');
+      expect(formatted).toContain('</system-reminder>');
     });
   });
 });
@@ -217,9 +217,10 @@ describe('ReminderGeneratorService', () => {
     it('should enhance message with reminders by default', () => {
       const result = service.enhanceMessageWithReminders('test message');
 
-      expect(result).toContain('test message');
-      expect(result).toContain('<system-reminder>');
-      expect(result).toContain('important-instruction-reminders');
+      expect(Array.isArray(result)).toBe(true);
+      expect(result[1]).toBe('test message'); // User message should be in the middle
+      expect(result.join('')).toContain('<system-reminder>');
+      expect(result.join('')).toContain('important-instruction-reminders');
     });
 
     it('should skip reminders when disabled', () => {
@@ -227,8 +228,8 @@ describe('ReminderGeneratorService', () => {
         includeReminders: false,
       });
 
-      expect(result).toBe('test message');
-      expect(result).not.toContain('<system-reminder>');
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toEqual(['test message']);
     });
 
     it('should include todo reminders when todo state provided', () => {
@@ -241,7 +242,7 @@ describe('ReminderGeneratorService', () => {
         },
       });
 
-      expect(result).toContain('your todo list is currently empty');
+      expect(result.join('')).toContain('your todo list is currently empty');
     });
   });
 

@@ -290,6 +290,14 @@ export class AgentManager {
   }
 
   /**
+   * Add messages to conversation history (for testing)
+   */
+  addToConversationHistory(conversationId: string, messages: Message[]): void {
+    const existing = this.conversationHistory.get(conversationId) || [];
+    this.conversationHistory.set(conversationId, [...existing, ...messages]);
+  }
+
+  /**
    * Clear conversation history
    */
   clearConversationHistory(conversationId?: string): void {

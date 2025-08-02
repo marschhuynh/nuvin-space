@@ -152,7 +152,7 @@ export default function Messenger() {
         // Send message using AgentManager with streaming
         const response = await sendMessage(content, {
           conversationId: conversationId,
-          stream: true,
+          stream: false,
           onChunk: (chunk: string) => {
             // Update streaming content for this specific conversation
             setStreamingStates((prev) => ({
