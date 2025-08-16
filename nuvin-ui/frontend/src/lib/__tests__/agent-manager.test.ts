@@ -16,7 +16,6 @@ describe('AgentManager', () => {
     id: 'test-agent-1',
     name: 'Test Agent',
     agentType: 'local',
-    persona: 'helpful',
     responseLength: 'medium',
     systemPrompt: 'Test prompt',
     temperature: 0.7,
