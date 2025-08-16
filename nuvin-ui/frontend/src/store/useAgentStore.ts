@@ -16,7 +16,6 @@ const defaultAgents: AgentSettings[] = [
   {
     id: '1',
     name: 'General Assistant',
-    persona: 'helpful',
     responseLength: 'medium',
     temperature: 0.7,
     topP: 1.0,
@@ -28,7 +27,6 @@ const defaultAgents: AgentSettings[] = [
   {
     id: '2',
     name: 'Code Reviewer',
-    persona: 'analytical',
     responseLength: 'detailed',
     temperature: 0.3,
     topP: 0.9,
@@ -40,7 +38,6 @@ const defaultAgents: AgentSettings[] = [
   {
     id: '3',
     name: 'Creative Writer',
-    persona: 'creative',
     responseLength: 'long',
     temperature: 1.2,
     topP: 1.0,
@@ -52,7 +49,6 @@ const defaultAgents: AgentSettings[] = [
   {
     id: '4',
     name: 'Business Analyst',
-    persona: 'professional',
     responseLength: 'detailed',
     temperature: 0.4,
     topP: 0.8,
@@ -64,7 +60,6 @@ const defaultAgents: AgentSettings[] = [
   {
     id: '5',
     name: 'Casual Buddy',
-    persona: 'casual',
     responseLength: 'short',
     temperature: 0.8,
     topP: 1.0,
@@ -76,7 +71,6 @@ const defaultAgents: AgentSettings[] = [
   {
     id: '6',
     name: 'Technical Tutor',
-    persona: 'helpful',
     responseLength: 'detailed',
     temperature: 0.5,
     topP: 0.9,

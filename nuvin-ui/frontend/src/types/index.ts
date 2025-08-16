@@ -97,7 +97,6 @@ export interface ProviderConfig {
 export interface AgentSettings {
   id: string;
   name: string;
-  persona: 'helpful' | 'professional' | 'creative' | 'analytical' | 'casual';
   responseLength: 'short' | 'medium' | 'long' | 'detailed';
   temperature: number;
   topP: number;

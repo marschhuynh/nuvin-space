@@ -15,15 +15,11 @@ interface LocalAgentSettingsProps {
   agentType: 'local' | 'remote';
   onNameChange: (name: string) => void;
   onAgentTypeChange: (type: 'local' | 'remote') => void;
-  persona: 'helpful' | 'professional' | 'creative' | 'analytical' | 'casual';
   responseLength: 'short' | 'medium' | 'long';
   temperature: number;
   topP: number;
   maxTokens: number;
   isEditing: boolean;
-  onPersonaChange: (
-    persona: 'helpful' | 'professional' | 'creative' | 'analytical' | 'casual',
-  ) => void;
   onResponseLengthChange: (length: 'short' | 'medium' | 'long') => void;
   onTemperatureChange: (temp: number) => void;
   onTopPChange: (topP: number) => void;
@@ -31,7 +27,6 @@ interface LocalAgentSettingsProps {
 }
 
 export function LocalAgentSettings({
-  persona,
   responseLength,
   temperature,
   maxTokens,
@@ -40,7 +35,6 @@ export function LocalAgentSettings({
   agentType,
   onNameChange,
   onAgentTypeChange,
-  onPersonaChange,
   onResponseLengthChange,
   onTemperatureChange,
   onMaxTokensChange,
@@ -62,28 +56,6 @@ export function LocalAgentSettings({
             ) : (
               <div className="px-3 py-2 border rounded-md bg-background text-sm select-all h-9 flex items-center">
                 {name || 'Unnamed Agent'}
-              </div>
-            )}
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="persona">Persona</Label>
-            {isEditing ? (
-              <Select value={persona} onValueChange={onPersonaChange}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Select persona" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="helpful">Helpful Assistant</SelectItem>
-                  <SelectItem value="professional">Professional</SelectItem>
-                  <SelectItem value="creative">Creative</SelectItem>
-                  <SelectItem value="analytical">Analytical</SelectItem>
-                  <SelectItem value="casual">Casual</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <div className="px-3 py-2 border rounded-md bg-background text-sm capitalize select-all h-9 flex items-center">
-                {persona === 'helpful' ? 'Helpful Assistant' : persona}
               </div>
             )}
           </div>

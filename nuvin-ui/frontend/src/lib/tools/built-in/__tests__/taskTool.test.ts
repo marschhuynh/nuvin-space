@@ -110,7 +110,6 @@ describe('taskTool', () => {
     const mockActiveAgent: AgentSettings = {
       id: 'test-agent',
       name: 'Test Agent',
-      persona: 'helpful',
       responseLength: 'medium',
       temperature: 0.7,
       topP: 1.0,

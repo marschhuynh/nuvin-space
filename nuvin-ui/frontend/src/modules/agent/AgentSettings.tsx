@@ -25,12 +25,6 @@ import { AuthenticationSettings } from './components/AuthenticationSettings';
 import { ToolSettings } from './components/ToolSettings';
 import { SystemPromptSettings } from './components/SystemPromptSettings';
 
-type AgentPersona =
-  | 'helpful'
-  | 'professional'
-  | 'creative'
-  | 'analytical'
-  | 'casual';
 type ResponseLength = 'short' | 'medium' | 'long';
 type AgentType = 'local' | 'remote';
 
@@ -73,7 +67,6 @@ export function AgentSettings() {
 
   const [agentData, setAgentData] = useState<{
     name: string;
-    persona: AgentPersona;
     responseLength: ResponseLength;
     temperature: number;
     topP: number;
@@ -91,7 +84,6 @@ export function AgentSettings() {
     toolConfig: AgentToolConfig;
   }>({
     name: '',
-    persona: 'helpful',
     responseLength: 'medium',
     temperature: 0.7,
     topP: 1.0,
@@ -122,7 +114,6 @@ export function AgentSettings() {
     if (selectedAgent && !isCreating) {
       setAgentData({
         name: selectedAgent.name,
-        persona: selectedAgent.persona,
         responseLength:
           selectedAgent.responseLength === 'detailed'
             ? 'long'
@@ -173,7 +164,6 @@ export function AgentSettings() {
     // Reset form to defaults
     setAgentData({
       name: '',
-      persona: 'helpful',
       responseLength: 'medium',
       temperature: 0.7,
       topP: 1.0,
@@ -204,7 +194,6 @@ export function AgentSettings() {
       // Reload agent data
       setAgentData({
         name: selectedAgent.name,
-        persona: selectedAgent.persona,
         responseLength:
           selectedAgent.responseLength === 'detailed'
             ? 'long'
@@ -408,8 +397,6 @@ export function AgentSettings() {
                     {getStatusIcon(agent.status)}
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="capitalize">{agent.persona}</span>
-                    <span>•</span>
                     <span>{agent.responseLength} responses</span>
                   </div>
                   {agent.agentType === 'remote' && agent.url && (
@@ -528,14 +515,10 @@ export function AgentSettings() {
                     onAgentTypeChange={(agentType) =>
                       setAgentData({ ...agentData, agentType })
                     }
-                    persona={agentData.persona}
                     responseLength={agentData.responseLength}
                     temperature={agentData.temperature}
                     topP={agentData.topP}
                     maxTokens={agentData.maxTokens}
-                    onPersonaChange={(persona) =>
-                      setAgentData({ ...agentData, persona })
-                    }
                     onResponseLengthChange={(responseLength) =>
                       setAgentData({ ...agentData, responseLength })
                     }

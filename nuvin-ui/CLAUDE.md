@@ -15,7 +15,7 @@
 1. **Multi-Agent Support**
    - Local agents (using configured providers)
    - Remote agents (A2A protocol)
-   - Pre-configured agent personas (General Assistant, Code Reviewer, Creative Writer, etc.)
+   - Pre-configured agents (General Assistant, Code Reviewer, Creative Writer, etc.)
 
 2. **Provider Integration**
    - OpenAI, Anthropic, OpenRouter, GitHub Copilot
@@ -184,7 +184,6 @@ Agents have configurable parameters:
 interface AgentSettings {
   id: string;
   name: string;
-  persona: string;
   responseLength: 'short' | 'medium' | 'long' | 'detailed';
   temperature: number;
   topP: number;
