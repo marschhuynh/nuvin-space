@@ -5,7 +5,6 @@ import {
   type SystemReminder,
   type TodoStateForReminders,
 } from './system-reminders';
-import { ToolCallResult } from '../tools';
 
 export class ReminderGeneratorService {
   private generator: SystemReminderGenerator;
@@ -108,54 +107,6 @@ export class ReminderGeneratorService {
    */
   getCurrentTodoState(conversationId?: string): TodoStateForReminders {
     return SystemReminderGenerator.getTodoStateForContext(conversationId);
-  }
-
-  /**
-   * Generate specific reminder types for testing
-   */
-  generateSpecificReminder(
-    type: 'todo-empty' | 'todo-changed' | 'security' | 'behavioral',
-    context: Partial<MessageContext> = {},
-  ): SystemReminder | null {
-    const fullContext: MessageContext = {
-      conversationId: '',
-      messageContent: '',
-      messageHistory: [],
-      ...context,
-    };
-
-    switch (type) {
-      case 'todo-empty':
-        return this.generator['generateTodoStatusReminder']({
-          todos: [],
-          isEmpty: true,
-          hasInProgress: false,
-          recentChanges: false,
-        });
-
-      case 'todo-changed':
-        return this.generator['generateTodoStatusReminder']({
-          todos: [{ id: '1', content: 'Test', status: 'pending' }],
-          isEmpty: false,
-          hasInProgress: false,
-          recentChanges: true,
-        });
-
-      case 'security':
-        return this.generator['generateSecurityReminder']({
-          ...fullContext,
-          hasFileReads: true,
-        });
-
-      case 'behavioral':
-        return this.generator['generateBehavioralReminder']({
-          ...fullContext,
-          messageContent: 'create a new file',
-        });
-
-      default:
-        return null;
-    }
   }
 }
 

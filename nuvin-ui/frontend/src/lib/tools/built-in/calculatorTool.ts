@@ -24,8 +24,9 @@ export const calculatorTool: Tool = {
 
       if (!expression || typeof expression !== 'string') {
         return {
-          success: false,
-          error: 'Expression parameter is required and must be a string',
+          status: 'error',
+          type: 'text',
+          result: 'Expression parameter is required and must be a string',
         };
       }
 
@@ -83,23 +84,26 @@ export const calculatorTool: Tool = {
 
       if (isNaN(result)) {
         return {
-          success: false,
-          error: 'Invalid mathematical expression',
+          status: 'error',
+          type: 'text',
+          result: 'Invalid mathematical expression',
         };
       }
 
       return {
-        success: true,
-        data: {
+        status: 'success',
+        type: 'text',
+        result: `${expression} = ${result}`,
+        additionalResult: {
           expression: expression,
-          result: result,
-          formatted: `${expression} = ${result}`,
+          numericResult: result,
         },
       };
     } catch (error) {
       return {
-        success: false,
-        error: `Calculation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        status: 'error',
+        type: 'text',
+        result: `Calculation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   },

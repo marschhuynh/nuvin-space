@@ -78,15 +78,17 @@ of the user's intent`,
 
       if (!description || typeof description !== 'string') {
         return {
-          success: false,
-          error: 'Description parameter is required and must be a string',
+          status: 'error',
+          type: 'text',
+          result: 'Description parameter is required and must be a string',
         };
       }
 
       if (!prompt || typeof prompt !== 'string') {
         return {
-          success: false,
-          error: 'Prompt parameter is required and must be a string',
+          status: 'error',
+          type: 'text',
+          result: 'Prompt parameter is required and must be a string',
         };
       }
 
@@ -94,8 +96,9 @@ of the user's intent`,
       const wordCount = description.trim().split(/\s+/).length;
       if (wordCount < 2 || wordCount > 8) {
         return {
-          success: false,
-          error: 'Description should be 3-5 words (2-8 words accepted)',
+          status: 'error',
+          type: 'text',
+          result: 'Description should be 3-5 words (2-8 words accepted)',
         };
       }
 
@@ -103,8 +106,9 @@ of the user's intent`,
       const activeAgent = agentManager.getActiveAgent();
       if (!activeAgent) {
         return {
-          success: false,
-          error: 'No active agent available to handle the task',
+          status: 'error',
+          type: 'text',
+          result: 'No active agent available to handle the task',
         };
       }
 
@@ -120,12 +124,13 @@ of the user's intent`,
         });
 
         return {
-          success: true,
-          data: {
+          status: 'success',
+          type: 'text',
+          result: response.content,
+          additionalResult: {
             taskId,
             description,
             prompt,
-            response: response.content,
             agentId: response.metadata?.agentId,
             agentType: response.metadata?.agentType,
             tokensUsed: response.metadata?.totalTokens,
@@ -141,8 +146,9 @@ of the user's intent`,
       } catch (agentError) {
         // Handle agent execution errors
         return {
-          success: false,
-          error: `Task execution failed: ${
+          status: 'error',
+          type: 'text',
+          result: `Task execution failed: ${
             agentError instanceof Error ? agentError.message : 'Unknown error'
           }`,
           metadata: {
@@ -154,8 +160,9 @@ of the user's intent`,
       }
     } catch (error) {
       return {
-        success: false,
-        error: `Task tool error: ${
+        status: 'error',
+        type: 'text',
+        result: `Task tool error: ${
           error instanceof Error ? error.message : 'Unknown error'
         }`,
       };

@@ -14,9 +14,10 @@ interface ToolCallMessageProps {
   toolName: string;
   arguments: any;
   result?: {
-    success: boolean;
-    data?: any;
-    error?: string;
+    status: 'success' | 'error' | 'warning';
+    type: 'text' | 'json';
+    result: string | object;
+    additionalResult?: Record<string, any>;
     metadata?: Record<string, any>;
   };
   isExecuting?: boolean;
@@ -61,10 +62,10 @@ export function ToolCallMessage({
     if (isExecuting) {
       return <Clock className="h-4 w-4 text-blue-500 animate-pulse" />;
     }
-    if (result?.success) {
+    if (result?.status === 'success') {
       return <CheckCircle className="h-4 w-4 text-green-500" />;
     }
-    if (result?.success === false) {
+    if (result?.status === 'error') {
       return <XCircle className="h-4 w-4 text-red-500" />;
     }
     return <Wrench className="h-4 w-4 text-gray-400" />;
@@ -72,8 +73,9 @@ export function ToolCallMessage({
 
   const getStatusText = () => {
     if (isExecuting) return 'Executing...';
-    if (result?.success) return 'Completed';
-    if (result?.success === false) return 'Failed';
+    if (result?.status === 'success') return 'Completed';
+    if (result?.status === 'error') return 'Failed';
+    if (result?.status === 'warning') return 'Warning';
     return 'Pending';
   };
 
@@ -104,9 +106,9 @@ export function ToolCallMessage({
                   className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                     isExecuting
                       ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
-                      : result?.success
+                      : result?.status === 'success'
                         ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'
-                        : result?.success === false
+                        : result?.status === 'error'
                           ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'
                           : 'bg-muted text-muted-foreground'
                   }`}
@@ -140,9 +142,9 @@ export function ToolCallMessage({
                     className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       isExecuting
                         ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
-                        : result?.success
+                        : result?.status === 'success'
                           ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'
-                          : result?.success === false
+                          : result?.status === 'error'
                             ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'
                             : 'bg-muted text-muted-foreground'
                     }`}
@@ -182,50 +184,6 @@ export function ToolCallMessage({
                     </pre>
                   </div>
                 </div>
-
-                {/* Result Section */}
-                {result && (
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-foreground">
-                        Result
-                      </span>
-                      {result.success ? (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <XCircle className="h-4 w-4 text-red-500" />
-                      )}
-                    </div>
-
-                    <div className="mt-2">
-                      <div
-                        className={`p-3 rounded border text-sm ${
-                          result.success
-                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/50 text-green-800 dark:text-green-200'
-                            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/50 text-red-800 dark:text-red-200'
-                        }`}
-                      >
-                        {result.success ? (
-                          result.data ? (
-                            <pre className="overflow-auto leading-relaxed font-mono text-xs">
-                              {formatJSON(result.data)}
-                            </pre>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4" />
-                              <span>Operation completed successfully</span>
-                            </div>
-                          )
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <XCircle className="h-4 w-4" />
-                            <span>{result.error || 'Operation failed'}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </>
           )}

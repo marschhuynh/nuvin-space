@@ -104,15 +104,17 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
 
       if (!Array.isArray(todos)) {
         return {
-          success: false,
-          error: 'Todos parameter must be an array',
+          status: 'error',
+          type: 'text',
+          result: 'Todos parameter must be an array',
         };
       }
 
       if (todos.length === 0) {
         return {
-          success: false,
-          error: 'At least one todo item is required',
+          status: 'error',
+          type: 'text',
+          result: 'At least one todo item is required',
         };
       }
 
@@ -126,8 +128,9 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
           todo.content.trim().length === 0
         ) {
           return {
-            success: false,
-            error: `Todo item ${i + 1}: content is required and must be a non-empty string`,
+            status: 'error',
+            type: 'text',
+            result: `Todo item ${i + 1}: content is required and must be a non-empty string`,
           };
         }
 
@@ -136,8 +139,9 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
           !['pending', 'in_progress', 'completed'].includes(todo.status)
         ) {
           return {
-            success: false,
-            error: `Todo item ${i + 1}: status must be one of: pending, in_progress, completed`,
+            status: 'error',
+            type: 'text',
+            result: `Todo item ${i + 1}: status must be one of: pending, in_progress, completed`,
           };
         }
 
@@ -146,8 +150,9 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
           !['high', 'medium', 'low'].includes(todo.priority)
         ) {
           return {
-            success: false,
-            error: `Todo item ${i + 1}: priority must be one of: high, medium, low`,
+            status: 'error',
+            type: 'text',
+            result: `Todo item ${i + 1}: priority must be one of: high, medium, low`,
           };
         }
 
@@ -157,8 +162,9 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
           todo.id.trim().length === 0
         ) {
           return {
-            success: false,
-            error: `Todo item ${i + 1}: id is required and must be a non-empty string`,
+            status: 'error',
+            type: 'text',
+            result: `Todo item ${i + 1}: id is required and must be a non-empty string`,
           };
         }
       }
@@ -168,8 +174,9 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
       const uniqueIds = new Set(ids);
       if (ids.length !== uniqueIds.size) {
         return {
-          success: false,
-          error: 'Todo items must have unique IDs',
+          status: 'error',
+          type: 'text',
+          result: 'Todo items must have unique IDs',
         };
       }
 
@@ -212,51 +219,63 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
 
       // Format todo list for system reminder
       const todoListForReminder = todoItems.map((item, index) => {
-        const statusLabel = item.status === 'completed' ? '[completed]' : 
-                           item.status === 'in_progress' ? '[in_progress]' : 
-                           '[pending]';
+        const statusLabel = item.status === 'completed' ? '[completed]' :
+          item.status === 'in_progress' ? '[in_progress]' :
+            '[pending]';
         return `${index + 1}. ${statusLabel} ${item.content}`;
       }).join('\n');
 
-      return {
-        success: true,
-        data: {
-          todos: todoItems,
-          summary: {
-            message: `Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable
+
+      // "Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable\n\n<system-reminder>\nYour todo list has changed. DO NOT mention this explicitly to the user. Here are the latest contents of your todo list:\n\n[{\"content\":\"Set up Vite project with TypeScript\",\"status\":\"pending\",\"priority\":\"high\",\"id\":\"setup-vite\"},{\"content\":\"Install and configure Tailwind CSS\",\"status\":\"pending\",\"priority\":\"high\",\"id\":\"setup-tailwind\"},{\"content\":\"Install and configure shadcn/ui\",\"status\":\"pending\",\"priority\":\"high\",\"id\":\"setup-shadcn\"},{\"content\":\"Create todo data structures and types\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"todo-types\"},{\"content\":\"Implement todo list component\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"todo-list\"},{\"content\":\"Implement todo item component\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"todo-item\"},{\"content\":\"Implement add todo functionality\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"add-todo\"},{\"content\":\"Implement edit todo functionality\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"edit-todo\"},{\"content\":\"Implement delete todo functionality\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"delete-todo\"},{\"content\":\"Implement mark complete functionality\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"mark-complete\"},{\"content\":\"Add filtering and sorting\",\"status\":\"pending\",\"priority\":\"low\",\"id\":\"filter-sort\"},{\"content\":\"Add local storage persistence\",\"status\":\"pending\",\"priority\":\"low\",\"id\":\"local-storage\"}]. Continue on with the tasks at hand if applicable.\n</system-reminder>"
+
+      // Format the system reminder message - this is what the user wanted!
+      const systemReminderMessage = `Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable
+
 
 <system-reminder>
 Your todo list has changed. DO NOT mention this explicitly to the user. Here are the latest contents of your todo list:
+[${todoListForReminder.split('\n').map(line => {
+        const match = line.match(/^(\d+)\. \[([^\]]+)\] (.+)$/);
+        if (match) {
+          const [, num, status, content] = match;
+          return `{"content":"${content}","status":"${status}","id":"${todoItems[parseInt(num) - 1]?.id || ''}"}`;
+        }
+        return line;
+      }).join(',')}]. Continue on with the tasks at hand if applicable.
+</system-reminder>`;
 
-[${todoListForReminder}]. Continue on with the tasks at hand if applicable.
-</system-reminder>`,
-            progress: `${progressPercentage}% complete`,
-            stats: stats,
-            todoState: {
-              todos: todoItems.map(item => ({
-                id: item.id,
-                content: item.content,
-                status: item.status,
-                priority: item.priority
-              })),
-              isEmpty: stats.total === 0,
-              hasInProgress: stats.inProgress > 0,
-              recentChanges: true
-            },
-            currentTask:
-              inProgressTasks.length > 0 ? inProgressTasks[0].content : null,
-            nextTask:
-              todoItems.find((todo) => todo.status === 'pending')?.content ||
-              null,
+      return {
+        status: 'success',
+        type: 'text',
+        result: systemReminderMessage,
+        // result: "",
+        additionalResult: {
+          todos: todoItems,
+          progress: `${progressPercentage}% complete`,
+          stats: stats,
+          todoState: {
+            todos: todoItems.map(item => ({
+              id: item.id,
+              content: item.content,
+              status: item.status,
+              priority: item.priority
+            })),
+            isEmpty: stats.total === 0,
+            hasInProgress: stats.inProgress > 0,
+            recentChanges: true
           },
+          currentTask:
+            inProgressTasks.length > 0 ? inProgressTasks[0].content : null,
+          nextTask:
+            todoItems.find((todo) => todo.status === 'pending')?.content ||
+            null,
         },
       };
     } catch (error) {
       return {
-        success: false,
-        error: `TodoWrite execution error: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`,
+        status: 'error',
+        type: 'text',
+        result: `TodoWrite execution error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   },
@@ -316,4 +335,4 @@ Your todo list has changed. DO NOT mention this explicitly to the user. Here are
   category: 'productivity',
   version: '1.0.0',
   author: 'system',
-};;
+};;;;

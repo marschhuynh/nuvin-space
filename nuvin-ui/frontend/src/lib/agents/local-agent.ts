@@ -1,14 +1,14 @@
 import type { ProviderConfig, AgentSettings, Message } from '@/types';
 import type { ToolContext } from '@/types/tools';
+
 import { createProvider, type ToolCall, type ChatMessage } from '../providers';
 import { generateUUID } from '../utils';
 import { calculateCost } from '../utils/cost-calculator';
-import type { SendMessageOptions, MessageResponse } from './agent-manager';
 import { toolIntegrationService } from '../tools';
 import type { UsageData } from '../providers/types/base';
+
 import { BaseAgent } from './base-agent';
-import { useTodoStore } from '@/store/useTodoStore';
-import { reminderGenerator } from './reminder-generator';
+import type { SendMessageOptions, MessageResponse } from './agent-manager';
 
 export class LocalAgent extends BaseAgent {
   private abortController: AbortController | null = null;
@@ -151,6 +151,7 @@ export class LocalAgent extends BaseAgent {
         model: this.providerConfig.activeModel.model,
       },
     };
+
     const processed = await toolIntegrationService.processCompletionResult(
       result,
       toolContext,
@@ -196,6 +197,15 @@ export class LocalAgent extends BaseAgent {
               model,
             },
           };
+
+          if (processed.result.content) {
+            options.onAdditionalMessage({
+              id: generateUUID(),
+              content: processed.result.content,
+              role: 'assistant',
+              timestamp: new Date().toISOString()
+            });
+          }
           options.onAdditionalMessage(toolMessageResponse);
         }
       }
@@ -285,6 +295,14 @@ export class LocalAgent extends BaseAgent {
           },
         };
 
+        if (processed.result.content) {
+          messagesToAdd.push({
+            id: generateUUID(),
+            content: processed.result.content,
+            role: 'assistant',
+            timestamp: new Date().toISOString()
+          });
+        }
         messagesToAdd.push(toolMessage);
       }
     }
@@ -395,14 +413,7 @@ export class LocalAgent extends BaseAgent {
                       name: toolCall.function.name,
                       id: toolCall.id,
                       arguments: JSON.parse(toolCall.function.arguments),
-                      result: result
-                        ? {
-                          success: result.result.success,
-                          data: result.result.data,
-                          error: result.result.error,
-                          metadata: result.result.metadata,
-                        }
-                        : undefined,
+                      result: result?.result,
                       isExecuting: false,
                     },
                     metadata: {
@@ -544,6 +555,7 @@ export class LocalAgent extends BaseAgent {
     options.onComplete?.(accumulated);
     return response;
   }
+
 
   /**
    * Cancel the current request

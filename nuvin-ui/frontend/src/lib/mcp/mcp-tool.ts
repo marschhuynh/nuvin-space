@@ -50,8 +50,9 @@ export class MCPTool implements Tool {
       // Validate that the MCP client is connected
       if (!this.mcpClient.isConnected()) {
         return {
-          success: false,
-          error: `MCP server '${this.serverId}' is not connected`,
+          status: 'error',
+          type: 'text',
+          result: `MCP server '${this.serverId}' is not connected`,
         };
       }
 
@@ -68,19 +69,34 @@ export class MCPTool implements Tool {
       // Convert MCP result to internal format
       const result = this.convertMCPResultToToolResult(mcpResult);
 
+      if (mcpResult.isError) {
+        return {
+          status: 'error',
+          type: 'text',
+          result: typeof result === 'string' ? result : JSON.stringify(result),
+          metadata: {
+            serverId: this.serverId,
+            mcpToolName: this.mcpSchema.name,
+            executionTime: Date.now(),
+          },
+        };
+      }
+
       return {
-        success: !mcpResult.isError,
-        data: result,
+        status: 'success',
+        type: typeof result === 'string' ? 'text' : 'json',
+        result: result,
         metadata: {
           serverId: this.serverId,
           mcpToolName: this.mcpSchema.name,
-          executionTime: Date.now(), // Could be enhanced with actual timing
+          executionTime: Date.now(),
         },
       };
     } catch (error) {
       return {
-        success: false,
-        error: `MCP tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
+        status: 'error',
+        type: 'text',
+        result: `MCP tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
         metadata: {
           serverId: this.serverId,
           mcpToolName: this.mcpSchema.name,

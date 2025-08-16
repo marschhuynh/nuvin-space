@@ -36,9 +36,10 @@ export interface Message {
     id: string;
     arguments: any;
     result?: {
-      success: boolean;
-      data?: any;
-      error?: string;
+      status: 'success' | 'error' | 'warning';
+      type: 'text' | 'json';
+      result: string | object;
+      additionalResult?: Record<string, any>;
       metadata?: Record<string, any>;
     };
     isExecuting?: boolean;

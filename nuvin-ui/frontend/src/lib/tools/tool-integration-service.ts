@@ -179,13 +179,19 @@ export class ToolIntegrationService {
     toolResults.forEach((result) => {
       const toolCall = originalToolCalls.find((call) => call.id === result.id);
       if (toolCall) {
+        // Handle new standardized format
+        let content: string;
+        if (result.result.status === 'error') {
+          content = result.result.result as string;
+        } else if (result.result.type === 'text') {
+          content = result.result.result as string;
+        } else {
+          content = JSON.stringify(result.result.result);
+        }
+
         messages.push({
           role: 'tool',
-          content: JSON.stringify({
-            success: result.result.success,
-            data: result.result.data,
-            error: result.result.error,
-          }),
+          content: content,
           tool_call_id: result.id,
           name: result.name,
         });
@@ -204,7 +210,7 @@ export class ToolIntegrationService {
     conversationId?: string,
   ): ChatMessage[] {
     try {
-      const hasRecentChangesOnTodoList = toolResults.some((result) => result.result.success && result.name === 'TodoWrite');
+      const hasRecentChangesOnTodoList = toolResults.some((result) => result.result.status === 'success' && result.name === 'TodoWrite');
 
       console.log('DEBUG:hasRecentChangesOnTodoList', hasRecentChangesOnTodoList);
 

@@ -123,13 +123,15 @@ Returns todos with their current status, priority, creation dates, and conversat
       response.summary = summaryMessage;
 
       return {
-        success: true,
-        data: response,
+        status: 'success',
+        type: 'json',
+        result: response,
       };
     } catch (error) {
       return {
-        success: false,
-        error: `TodoRead execution error: ${
+        status: 'error',
+        type: 'text',
+        result: `TodoRead execution error: ${
           error instanceof Error ? error.message : 'Unknown error'
         }`,
       };

@@ -120,8 +120,9 @@ export class ToolRegistry {
         id: toolCall.id,
         name: toolCall.name,
         result: {
-          success: false,
-          error: `Tool '${toolCall.name}' not found`,
+          status: 'error',
+          type: 'text',
+          result: `Tool '${toolCall.name}' not found`,
         },
       };
     }
@@ -133,8 +134,9 @@ export class ToolRegistry {
           id: toolCall.id,
           name: toolCall.name,
           result: {
-            success: false,
-            error: 'Invalid parameters',
+            status: 'error',
+            type: 'text',
+            result: 'Invalid parameters',
           },
         };
       }
@@ -152,8 +154,9 @@ export class ToolRegistry {
         id: toolCall.id,
         name: toolCall.name,
         result: {
-          success: false,
-          error:
+          status: 'error',
+          type: 'text',
+          result:
             error instanceof Error ? error.message : 'Unknown error occurred',
         },
       };

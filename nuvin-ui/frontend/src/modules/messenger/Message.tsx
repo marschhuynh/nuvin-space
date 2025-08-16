@@ -16,9 +16,10 @@ interface MessageProps {
     id: string;
     arguments: Record<string, unknown>;
     result?: {
-      success: boolean;
-      data?: unknown;
-      error?: string;
+      status: 'success' | 'error' | 'warning';
+      type: 'text' | 'json';
+      result: string | object;
+      additionalResult?: Record<string, any>;
       metadata?: Record<string, unknown>;
     };
     isExecuting?: boolean;
@@ -49,7 +50,7 @@ export function Message({
           isStreaming={isStreaming}
           messageMode={preferences.messageMode}
         />
-      ) : role === 'tool' && toolCall ? (
+      ) : toolCall ? (
         <ToolCallMessage
           toolName={toolCall.name}
           arguments={toolCall.arguments}

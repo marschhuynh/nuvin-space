@@ -73,8 +73,9 @@ export const randomTool: Tool = {
           case 'number':
             if (min >= max) {
               return {
-                success: false,
-                error: 'Minimum value must be less than maximum value',
+                status: 'error',
+                type: 'text',
+                result: 'Minimum value must be less than maximum value',
               };
             }
             result = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -87,8 +88,9 @@ export const randomTool: Tool = {
           case 'choice':
             if (!choices || !Array.isArray(choices) || choices.length === 0) {
               return {
-                success: false,
-                error: 'Choices array is required and must not be empty',
+                status: 'error',
+                type: 'text',
+                result: 'Choices array is required and must not be empty',
               };
             }
             result = choices[Math.floor(Math.random() * choices.length)];
@@ -100,20 +102,25 @@ export const randomTool: Tool = {
 
           default:
             return {
-              success: false,
-              error: `Unknown random type: ${type}`,
+              status: 'error',
+              type: 'text',
+              result: `Unknown random type: ${type}`,
             };
         }
 
         results.push(result);
       }
 
+      const finalResult = count === 1 ? results[0] : results;
+      
       return {
-        success: true,
-        data: {
+        status: 'success',
+        type: 'text',
+        result: typeof finalResult === 'string' ? finalResult : JSON.stringify(finalResult),
+        additionalResult: {
           type,
           count,
-          results: count === 1 ? results[0] : results,
+          rawResults: results,
           parameters: {
             min: type === 'number' ? min : undefined,
             max: type === 'number' ? max : undefined,
@@ -125,8 +132,9 @@ export const randomTool: Tool = {
       };
     } catch (error) {
       return {
-        success: false,
-        error: `Random generation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        status: 'error',
+        type: 'text',
+        result: `Random generation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   },

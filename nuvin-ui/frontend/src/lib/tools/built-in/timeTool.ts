@@ -64,8 +64,9 @@ export const timeTool: Tool = {
           );
         } catch (error) {
           return {
-            success: false,
-            error: `Invalid timezone: ${timezone}`,
+            status: 'error',
+            type: 'text',
+            result: `Invalid timezone: ${timezone}`,
           };
         }
       }
@@ -80,9 +81,9 @@ export const timeTool: Tool = {
         case 'custom':
           if (!customFormat) {
             return {
-              success: false,
-              error:
-                'customFormat parameter is required when format is "custom"',
+              status: 'error',
+              type: 'text',
+              result: 'customFormat parameter is required when format is "custom"',
             };
           }
           // Basic custom formatting (simplified)
@@ -99,9 +100,10 @@ export const timeTool: Tool = {
       }
 
       return {
-        success: true,
-        data: {
-          current_time: timeString,
+        status: 'success',
+        type: 'text',
+        result: timeString,
+        additionalResult: {
           timezone: timezone,
           format: format,
           details: timeData,
@@ -109,8 +111,9 @@ export const timeTool: Tool = {
       };
     } catch (error) {
       return {
-        success: false,
-        error: `Time retrieval error: ${
+        status: 'error',
+        type: 'text',
+        result: `Time retrieval error: ${
           error instanceof Error ? error.message : 'Unknown error'
         }`,
       };

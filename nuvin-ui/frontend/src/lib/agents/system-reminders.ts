@@ -40,7 +40,7 @@ export class SystemReminderGenerator {
   private static readonly CORE_INSTRUCTIONS: SystemReminder = {
     id: 'core-instructions',
     type: 'instruction',
-    content: `"As you answer the user's questions, you can use the following context:
+    content: `As you answer the user's questions, you can use the following context:
     # important-instruction-reminders
     Do what has been asked; nothing more, nothing less.
     NEVER create files unless they're absolutely necessary for achieving your goal.
@@ -48,7 +48,7 @@ export class SystemReminderGenerator {
     NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
 
 
-    IMPORTANT: this context may or may not be relevant to your tasks. You should not respond to this context unless it is highly relevant to your task."`,
+    IMPORTANT: this context may or may not be relevant to your tasks. You should not respond to this context unless it is highly relevant to your task.`,
     priority: 'high',
   };
 
@@ -70,37 +70,34 @@ export class SystemReminderGenerator {
     return reminders;
   }
 
-  private generateTodoStatusReminder(
-    todoState: TodoStateForReminders,
-  ): SystemReminder[] | null {
+  private generateTodoStatusReminder(todoState: TodoStateForReminders): SystemReminder[] | null {
     if (todoState.isEmpty) {
       return [{
         id: 'todo-empty',
         type: 'todo-status',
-        content: `This is a reminder that your todo list is currently empty. DO NOT mention this to the user explicitly because they are already aware. If you are working on tasks that would benefit from a todo list please use the TodoWrite tool to create one. If not, please feel free to ignore. Again do not mention this message to the user.`,
+        content: `This is a reminder that your todo list is currently empty. DO NOT mention this to the user explicitly because they are already aware. If you are working on tasks that would benefit from a todo list please use the TodoWrite tool to create one. If not, please feel free to ignore. Again do not mention this message to the user`,
         priority: 'medium',
       }];
     }
 
-    if (todoState.recentChanges && todoState?.todos?.length) {
-      // Format todo list with status indicators
-      const todoListForReminder = todoState?.todos?.map((item, index) => {
-        const statusLabel = item.status === 'completed' ? '[completed]' :
-          item.status === 'in_progress' ? '[in_progress]' :
-            '[pending]';
-        return `${index + 1}. ${statusLabel} ${item.content}`;
-      }).join('\n');
+    //     if (todoState.recentChanges && todoState?.todos?.length) {
+    //       // Format todo list with status indicators
+    //       const todoListForReminder = todoState?.todos?.map((item, index) => {
+    //         const statusLabel = item.status === 'completed' ? '[completed]' :
+    //           item.status === 'in_progress' ? '[in_progress]' :
+    //             '[pending]';
+    //         return `${index + 1}. ${statusLabel} ${item.content}`;
+    //       }).join('\n');
 
-      // Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable
-      return [{
-        id: 'todo-changed',
-        type: 'todo-status',
-        content: `Your todo list has changed. DO NOT mention this explicitly to the user. Here are the latest contents of your todo list:
+    //       return [{
+    //         id: 'todo-changed',
+    //         type: 'todo-status',
+    //         content: `Your todo list has changed. DO NOT mention this explicitly to the user. Here are the latest contents of your todo list:
 
-[${todoListForReminder}]. Continue on with the tasks at hand if applicable.`,
-        priority: 'medium',
-      }];
-    }
+    // [${todoListForReminder}]. Continue on with the tasks at hand if applicable.`,
+    //         priority: 'medium',
+    //       }];
+    //     }
 
     // Only include status if there are items and they're relevant
     if (Number(todoState?.todos?.length) > 0 && todoState?.hasInProgress) {
@@ -124,8 +121,8 @@ export class SystemReminderGenerator {
     const reminderBlocks = reminders.map((reminder) => {
       let block = '';
 
-      block += `<system-reminder>\n`;
-      block += `${reminder.content}\n`;
+      block += `<system-reminder>`;
+      block += `${reminder.content}`;
       block += `</system-reminder>`;
 
       return block;

@@ -36,8 +36,9 @@ export const bashTool: Tool = {
 
       if (!command || typeof command !== 'string') {
         return {
-          success: false,
-          error: 'Command parameter is required and must be a string',
+          status: 'error',
+          type: 'text',
+          result: 'Command parameter is required and must be a string',
         };
       }
 
@@ -47,8 +48,9 @@ export const bashTool: Tool = {
       // Validate timeout bounds
       if (timeoutSeconds > 600) {
         return {
-          success: false,
-          error: 'Timeout cannot exceed 600 seconds (10 minutes)',
+          status: 'error',
+          type: 'text',
+          result: 'Timeout cannot exceed 600 seconds (10 minutes)',
         };
       }
 
@@ -76,8 +78,9 @@ export const bashTool: Tool = {
 
       if (isDangerous) {
         return {
-          success: false,
-          error:
+          status: 'error',
+          type: 'text',
+          result:
             'Command contains potentially dangerous operations and has been blocked for security reasons',
         };
       }
@@ -97,47 +100,63 @@ export const bashTool: Tool = {
       const response = await App.ExecuteCommand(commandRequest);
 
       // Format response for tool result
-      const result = {
-        success: response.success,
-        data: {
-          command: command,
-          exitCode: response.exitCode,
-          stdout: response.stdout || '',
-          stderr: response.stderr || '',
-          duration: response.duration,
-          description: description,
-        },
-      } as any;
-
-      // Add error information if command failed
-      if (!response.success) {
-        result.error =
-          response.error ||
-          `Command failed with exit code ${response.exitCode}`;
-
-        // Include stderr in error if available
-        if (response.stderr) {
-          result.error += `\nStderr: ${response.stderr}`;
-        }
-      }
+      const additionalResult: Record<string, any> = {
+        command: command,
+        exitCode: response.exitCode,
+        duration: response.duration,
+        description: description,
+      };
 
       // Add warnings for long-running commands
       if (response.duration > 30000) {
-        result.data.warning = `Command took ${Math.round(response.duration / 1000)}s to complete`;
+        additionalResult.warning = `Command took ${Math.round(response.duration / 1000)}s to complete`;
       }
 
       // Add truncation warning if needed
       if (response.truncated) {
-        result.data.warning =
-          (result.data.warning ? result.data.warning + '. ' : '') +
+        additionalResult.warning =
+          (additionalResult.warning ? additionalResult.warning + '. ' : '') +
           'Output was truncated due to size limits';
       }
 
-      return result;
+      // Check if command failed
+      if (!response.success) {
+        let errorMessage = response.error || `Command failed with exit code ${response.exitCode}`;
+        
+        // Include stderr in error if available
+        if (response.stderr) {
+          errorMessage += `\nStderr: ${response.stderr}`;
+        }
+        
+        return {
+          status: 'error',
+          type: 'text',
+          result: errorMessage,
+          additionalResult,
+        };
+      }
+
+      // Format successful output
+      let output = '';
+      if (response.stdout) {
+        output += response.stdout;
+      }
+      if (response.stderr) {
+        if (output) output += '\n';
+        output += `[stderr] ${response.stderr}`;
+      }
+      
+      return {
+        status: 'success',
+        type: 'text',
+        result: output || '(no output)',
+        additionalResult,
+      };
     } catch (error) {
       return {
-        success: false,
-        error: `Bash execution error: ${
+        status: 'error',
+        type: 'text',
+        result: `Bash execution error: ${
           error instanceof Error ? error.message : 'Unknown error'
         }`,
       };
