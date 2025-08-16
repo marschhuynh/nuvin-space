@@ -16,7 +16,10 @@
       "mcp__serena__find_referencing_symbols",
       "mcp__serena__think_about_collected_information",
       "mcp__serena__think_about_task_adherence",
-      "mcp__serena__replace_symbol_body"
+      "mcp__serena__replace_symbol_body",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__insert_after_symbol",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   }
