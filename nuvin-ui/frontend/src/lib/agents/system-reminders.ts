@@ -28,6 +28,9 @@ export interface TodoStateForReminders {
   isEmpty?: boolean;
   hasInProgress?: boolean;
   recentChanges?: boolean;
+  allCompleted?: boolean;
+  completedCount?: number;
+  totalCount?: number;
 }
 
 export interface UserPreferences {
@@ -86,24 +89,17 @@ export class SystemReminderGenerator {
       ];
     }
 
-    //     if (todoState.recentChanges && todoState?.todos?.length) {
-    //       // Format todo list with status indicators
-    //       const todoListForReminder = todoState?.todos?.map((item, index) => {
-    //         const statusLabel = item.status === 'completed' ? '[completed]' :
-    //           item.status === 'in_progress' ? '[in_progress]' :
-    //             '[pending]';
-    //         return `${index + 1}. ${statusLabel} ${item.content}`;
-    //       }).join('\n');
-
-    //       return [{
-    //         id: 'todo-changed',
-    //         type: 'todo-status',
-    //         content: `Your todo list has changed. DO NOT mention this explicitly to the user. Here are the latest contents of your todo list:
-
-    // [${todoListForReminder}]. Continue on with the tasks at hand if applicable.`,
-    //         priority: 'medium',
-    //       }];
-    //     }
+    // Check if all todos are completed
+    if (todoState.allCompleted && todoState.totalCount && todoState.totalCount > 0) {
+      return [
+        {
+          id: 'todo-all-completed',
+          type: 'todo-status',
+          content: `🎉 Excellent work! All ${todoState.totalCount} todo items have been completed successfully. You can now celebrate this achievement with the user or ask if there are any new tasks they'd like to work on. Feel free to acknowledge this accomplishment naturally in your response.`,
+          priority: 'medium',
+        },
+      ];
+    }
 
     // Only include status if there are items and they're relevant
     if (Number(todoState?.todos?.length) > 0 && todoState?.hasInProgress) {

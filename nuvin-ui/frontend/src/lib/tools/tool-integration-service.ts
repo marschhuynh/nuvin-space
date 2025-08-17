@@ -267,7 +267,7 @@ export class ToolIntegrationService {
     llmProvider: LLMProvider, // LLMProvider instance
     context?: ToolContext,
     agentToolConfig?: AgentToolConfig,
-    maxRecursionDepth: number = 50, // Prevent infinite recursion
+    maxRecursionDepth: number = 5, // Prevent infinite recursion
     currentDepth: number = 0,
   ): Promise<CompletionResult> {
     if (!firstResult.tool_calls) {
@@ -322,9 +322,22 @@ export class ToolIntegrationService {
       );
 
       if (processed.requiresFollowUp && processed.tool_results) {
-        // Recursively call completeToolCallingFlow with incremented depth
+        // For the recursive call, we need to build new params that include the assistant message
+        // with the new tool calls, so the context is correct
+        const assistantMessageWithToolCalls = {
+          role: 'assistant' as const,
+          content: finalResult.content || '',
+          tool_calls: finalResult.tool_calls,
+        };
+
+        const newParams: CompletionParams = {
+          ...originalParams,
+          messages: [...followUpParams.messages, assistantMessageWithToolCalls],
+        };
+
+        // Recursively call completeToolCallingFlow with the new context
         return await this.completeToolCallingFlow(
-          followUpParams,
+          newParams,
           finalResult,
           processed.tool_results,
           llmProvider,

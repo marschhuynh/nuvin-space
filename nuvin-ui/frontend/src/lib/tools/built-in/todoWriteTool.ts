@@ -232,24 +232,48 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
 
       // "Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable\n\n<system-reminder>\nYour todo list has changed. DO NOT mention this explicitly to the user. Here are the latest contents of your todo list:\n\n[{\"content\":\"Set up Vite project with TypeScript\",\"status\":\"pending\",\"priority\":\"high\",\"id\":\"setup-vite\"},{\"content\":\"Install and configure Tailwind CSS\",\"status\":\"pending\",\"priority\":\"high\",\"id\":\"setup-tailwind\"},{\"content\":\"Install and configure shadcn/ui\",\"status\":\"pending\",\"priority\":\"high\",\"id\":\"setup-shadcn\"},{\"content\":\"Create todo data structures and types\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"todo-types\"},{\"content\":\"Implement todo list component\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"todo-list\"},{\"content\":\"Implement todo item component\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"todo-item\"},{\"content\":\"Implement add todo functionality\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"add-todo\"},{\"content\":\"Implement edit todo functionality\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"edit-todo\"},{\"content\":\"Implement delete todo functionality\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"delete-todo\"},{\"content\":\"Implement mark complete functionality\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"mark-complete\"},{\"content\":\"Add filtering and sorting\",\"status\":\"pending\",\"priority\":\"low\",\"id\":\"filter-sort\"},{\"content\":\"Add local storage persistence\",\"status\":\"pending\",\"priority\":\"low\",\"id\":\"local-storage\"}]. Continue on with the tasks at hand if applicable.\n</system-reminder>"
 
-      // Format the system reminder message - this is what the user wanted!
-      const systemReminderMessage = `Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable
+      // Check if all todos are completed for special celebration message
+      const allCompleted = todoItems.length > 0 && todoItems.every(todo => todo.status === 'completed');
 
+      let systemReminderMessage: string;
+
+      if (allCompleted) {
+        // Special celebration message when all todos are completed
+        systemReminderMessage = `🎉 Outstanding work! All ${todoItems.length} todo items have been completed successfully! This is a significant achievement that deserves recognition.
+
+<system-reminder>
+All todo items are now completed! You can celebrate this accomplishment with the user and ask if they'd like to work on new tasks or if there's anything else they need help with. Here's the completed todo list:
+[${todoListForReminder
+            .split('\n')
+            .map((line) => {
+              const match = line.match(/^(\d+)\. \[([^\]]+)\] (.+)$/);
+              if (match) {
+                const [, num, status, content] = match;
+                return `{"content":"${content}","status":"${status}","id":"${todoItems[parseInt(num) - 1]?.id || ''}"}`;
+              }
+              return line;
+            })
+            .join(',')}]. Feel free to acknowledge this achievement and ask about next steps.
+</system-reminder>`;
+      } else {
+        // Regular message for ongoing work
+        systemReminderMessage = `Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable
 
 <system-reminder>
 Your todo list has changed. DO NOT mention this explicitly to the user. Here are the latest contents of your todo list:
 [${todoListForReminder
-        .split('\n')
-        .map((line) => {
-          const match = line.match(/^(\d+)\. \[([^\]]+)\] (.+)$/);
-          if (match) {
-            const [, num, status, content] = match;
-            return `{"content":"${content}","status":"${status}","id":"${todoItems[parseInt(num) - 1]?.id || ''}"}`;
-          }
-          return line;
-        })
-        .join(',')}]. Continue on with the tasks at hand if applicable.
+            .split('\n')
+            .map((line) => {
+              const match = line.match(/^(\d+)\. \[([^\]]+)\] (.+)$/);
+              if (match) {
+                const [, num, status, content] = match;
+                return `{"content":"${content}","status":"${status}","id":"${todoItems[parseInt(num) - 1]?.id || ''}"}`;
+              }
+              return line;
+            })
+            .join(',')}]. Continue on with the tasks at hand if applicable.
 </system-reminder>`;
+      }
 
       return {
         status: 'success',
@@ -260,6 +284,7 @@ Your todo list has changed. DO NOT mention this explicitly to the user. Here are
           todos: todoItems,
           progress: `${progressPercentage}% complete`,
           stats: stats,
+          allCompleted: allCompleted,
           todoState: {
             todos: todoItems.map((item) => ({
               id: item.id,
@@ -270,12 +295,16 @@ Your todo list has changed. DO NOT mention this explicitly to the user. Here are
             isEmpty: stats.total === 0,
             hasInProgress: stats.inProgress > 0,
             recentChanges: true,
+            allCompleted: allCompleted,
+            completedCount: stats.completed,
+            totalCount: stats.total,
           },
           currentTask:
             inProgressTasks.length > 0 ? inProgressTasks[0].content : null,
           nextTask:
             todoItems.find((todo) => todo.status === 'pending')?.content ||
             null,
+          celebrationMessage: allCompleted ? `🎉 All ${todoItems.length} tasks completed!` : null,
         },
       };
     } catch (error) {

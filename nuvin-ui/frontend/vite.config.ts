@@ -33,4 +33,48 @@ export default defineConfig({
       ],
     },
   },
+  test: {
+    // Test environment
+    environment: 'jsdom',
+
+    // Global test configuration
+    globals: true,
+
+    // Setup files
+    setupFiles: [
+      'src/test/setup.ts',
+      'src/test/agent-test-setup.ts',
+    ],
+
+    // Coverage configuration
+    coverage: {
+      provider: 'v8',
+      include: [
+        'src/lib/agents/**/*.ts',
+        'src/lib/tools/**/*.ts',
+        'src/lib/providers/**/*.ts',
+      ],
+      exclude: [
+        'src/**/__tests__/**',
+        'src/**/*.test.ts',
+        'src/**/*.d.ts',
+        'src/**/mocks/**',
+      ],
+      reporter: ['text', 'lcov', 'html'],
+      thresholds: {
+        global: {
+          branches: 70,
+          functions: 70,
+          lines: 70,
+          statements: 70,
+        },
+      },
+    },
+
+    // Test timeout for async operations
+    testTimeout: 10000,
+
+    // Mock configuration
+    clearMocks: true,
+  },
 });

@@ -59,12 +59,14 @@ nuvin-agent/
 ### Setup
 
 1. **Clone the repository**:
+
    ```bash
    git clone <repository-url>
    cd nuvin-agent
    ```
 
 2. **Install Wails CLI** (if not already installed):
+
    ```bash
    go install github.com/wailsapp/wails/v2/cmd/wails@latest
    ```

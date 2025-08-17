@@ -20,7 +20,8 @@
       "mcp__serena__check_onboarding_performed",
       "mcp__serena__insert_after_symbol",
       "Bash(npx tsc:*)",
-      "mcp__serena__find_file"
+      "mcp__serena__find_file",
+      "mcp__serena__read_memory"
     ],
     "deny": []
   }

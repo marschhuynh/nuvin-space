@@ -1,6 +1,5 @@
 import type { AgentSettings, ProviderConfig, Message } from '@/types';
 import { useTodoStore } from '@/store/useTodoStore';
-import { generateUUID } from '../utils';
 import {
   a2aService,
   type A2AAuthConfig,
@@ -104,7 +103,7 @@ export class AgentManager {
   > = new Map();
 
   private agentInstance: BaseAgent | null = null;
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): AgentManager {
     if (!AgentManager.instance) {

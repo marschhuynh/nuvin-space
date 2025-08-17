@@ -6,7 +6,7 @@ export abstract class BaseAgent {
   constructor(
     protected agentSettings: AgentSettings,
     protected conversationHistory: Map<string, Message[]>,
-  ) {}
+  ) { }
 
   setSettings(agentSettings: AgentSettings) {
     this.agentSettings = agentSettings;
@@ -36,6 +36,20 @@ export abstract class BaseAgent {
     this.conversationHistory.set(conversationId, [...existing, ...messages]);
   }
 
+  /**
+   * Builds the conversation context for sending to the AI provider.
+   *
+   * This function takes a conversation ID and new user content, then constructs
+   * a complete chat context by:
+   * 1. Retrieving the conversation history from memory
+   * 2. Transforming internal message format to provider-compatible format (OpenAI-style)
+   * 3. Handling tool call messages by converting them to proper assistant/tool message pairs
+   * 4. Adding the system prompt and new user messages to create the full context
+   *
+   * @param conversationId - The ID of the conversation to build context for
+   * @param content - Array of new user message content to add to the context
+   * @returns Array of ChatMessage objects ready to send to the AI provider
+   */
   buildContext(conversationId: string, content: string[]): ChatMessage[] {
     const history = this.retrieveMemory(conversationId);
     const transformedHistory: ChatMessage[] = [];
@@ -82,15 +96,15 @@ export abstract class BaseAgent {
 
     const userMessage: ChatMessage[] = Array.isArray(content)
       ? content.map((msg) => ({
-          role: 'user',
-          content: msg,
-        }))
+        role: 'user',
+        content: msg,
+      }))
       : [
-          {
-            role: 'user',
-            content,
-          },
-        ];
+        {
+          role: 'user',
+          content,
+        },
+      ];
 
     return [
       { role: 'system', content: this.agentSettings.systemPrompt },

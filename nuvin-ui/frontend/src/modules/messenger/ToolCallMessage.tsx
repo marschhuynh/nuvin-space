@@ -268,6 +268,49 @@ export function ToolCallMessage({
                     )}
                   </div>
                 </div>
+                 {/* Result Section */}
+                 {result && (
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-foreground">
+                        Result
+                      </span>
+                      {result.status === 'success' ? (
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-red-500" />
+                      )}
+                    </div>
+
+                    <div className="mt-2">
+                      <div
+                        className={`p-3 rounded border text-sm ${
+                          result.status === 'success'
+                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/50 text-green-800 dark:text-green-200'
+                            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/50 text-red-800 dark:text-red-200'
+                        }`}
+                      >
+                        {result.status === 'success' ? (
+                          result.data ? (
+                            <pre className="overflow-auto leading-relaxed font-mono text-xs">
+                              {formatJSON(result.data)}
+                            </pre>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4" />
+                              <span>Operation completed successfully</span>
+                            </div>
+                          )
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <XCircle className="h-4 w-4" />
+                            <span>{result.status === 'error' || 'Operation failed'}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           )}

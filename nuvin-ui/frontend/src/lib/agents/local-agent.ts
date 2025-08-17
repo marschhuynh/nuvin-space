@@ -6,12 +6,28 @@ import { generateUUID } from '../utils';
 import { calculateCost } from '../utils/cost-calculator';
 import { toolIntegrationService } from '../tools';
 import type { UsageData } from '../providers/types/base';
+import type { CompletionParams, CompletionResult, LLMProvider } from '../providers/types/base';
+import type { ToolCallResult } from '@/types/tools';
 
 import { BaseAgent } from './base-agent';
 import type { SendMessageOptions, MessageResponse } from './agent-manager';
 
+interface ExecutionContext {
+  messageId: string;
+  convoId: string;
+  content: string[];
+  options: SendMessageOptions;
+  params: CompletionParams;
+  startTime: number;
+  toolContext: ToolContext;
+  providerConfig: ProviderConfig;
+}
+
 export class LocalAgent extends BaseAgent {
   private abortController: AbortController | null = null;
+  private messageBuilder: MessageBuilder;
+  private streamingHandler: StreamingHandler;
+  private toolExecutor: ToolExecutor;
 
   constructor(
     agentSettings: AgentSettings,
@@ -19,6 +35,9 @@ export class LocalAgent extends BaseAgent {
     history: Map<string, Message[]>,
   ) {
     super(agentSettings, history);
+    this.messageBuilder = new MessageBuilder();
+    this.streamingHandler = new StreamingHandler(this.addToHistory.bind(this));
+    this.toolExecutor = new ToolExecutor(agentSettings.toolConfig);
   }
 
   async sendMessage(
@@ -26,13 +45,116 @@ export class LocalAgent extends BaseAgent {
     options: SendMessageOptions = {},
   ): Promise<MessageResponse> {
     this.abortController = new AbortController();
-    const signal = this.abortController.signal;
 
-    const startTime = Date.now();
-    const messageId = generateUUID();
+    const context = this.createExecutionContext(content, options);
     const provider = createProvider(this.providerConfig);
+
+    try {
+      if (options.stream) {
+        return await this.handleStreamingMessage(context, provider);
+      } else {
+        return await this.handleRegularMessage(context, provider);
+      }
+    } catch (error) {
+      this.handleError(error, options);
+      throw error;
+    }
+  }
+
+  private async handleRegularMessage(
+    context: ExecutionContext,
+    provider: LLMProvider
+  ): Promise<MessageResponse> {
+    // 1. Get initial completion
+    let currentResult = await provider.generateCompletion(context.params, this.abortController?.signal);
+    let allToolResults: ToolCallResult[] = [];
+    let recursionDepth = 0;
+    const maxRecursionDepth = 50;
+    let currentMessages = [...context.params.messages]; // Track message history properly
+
+    // 2. Handle recursive tool calls at agent level
+    while (currentResult.tool_calls && currentResult.tool_calls.length > 0 && recursionDepth < maxRecursionDepth) {
+      console.log(`[LocalAgent] Processing ${currentResult.tool_calls.length} tool calls (depth: ${recursionDepth})`);
+
+      // Execute tools for this round
+      const toolResults = await this.toolExecutor.executeTools(
+        currentResult,
+        context,
+        (toolMessage) => context.options.onAdditionalMessage?.(toolMessage)
+      );
+
+      // Accumulate all tool results for history
+      allToolResults.push(...toolResults);
+
+      // Create follow-up messages with tool results
+      const toolMessages = this.createToolResultMessages(currentResult.tool_calls, toolResults);
+
+      // Add assistant message with tool calls to conversation
+      currentMessages.push({
+        role: 'assistant' as const,
+        content: currentResult.content,
+        tool_calls: currentResult.tool_calls
+      });
+
+      // Add tool result messages to conversation
+      currentMessages.push(...toolMessages);
+
+      // Update params for next round with accumulated messages
+      const followUpParams = {
+        ...context.params,
+        messages: currentMessages,
+      };
+
+      // Get next completion
+      recursionDepth++;
+      currentResult = await provider.generateCompletion(followUpParams, this.abortController?.signal);
+    }
+
+    // 3. Handle case where recursion limit reached
+    if (currentResult.tool_calls && currentResult.tool_calls.length > 0 && recursionDepth >= maxRecursionDepth) {
+      console.warn(`[LocalAgent] Maximum recursion depth (${maxRecursionDepth}) reached, stopping tool calling flow`);
+      currentResult.content = (currentResult.content || '') +
+        `\n\n[Tool calling stopped due to maximum recursion depth. ${currentResult.tool_calls.length} tool call(s) not executed]`;
+    }
+
+    // 4. Build response and update history
+    const response = this.messageBuilder.buildFinalResponse(currentResult, context);
+
+    // 5. Add messages to history (including all tool results from all rounds)
+    const historyMessages = this.messageBuilder.buildMessagesForHistory(
+      context.content,
+      currentResult,
+      allToolResults
+    );
+    this.addToHistory(context.convoId, historyMessages);
+
+    // 6. Call completion callback
+    context.options.onComplete?.(currentResult.content);
+
+    return response;
+  }
+
+  private async handleStreamingMessage(
+    context: ExecutionContext,
+    provider: LLMProvider
+  ): Promise<MessageResponse> {
+    if (provider.generateCompletionStreamWithTools) {
+      return await this.streamingHandler.handleWithTools(context, provider, this.abortController?.signal);
+    } else if (provider.generateCompletionStream) {
+      return await this.streamingHandler.handleBasic(context, provider, this.abortController?.signal);
+    } else {
+      // Fallback to regular message if streaming not supported
+      return await this.handleRegularMessage(context, provider);
+    }
+  }
+
+  private createExecutionContext(
+    content: string[],
+    options: SendMessageOptions
+  ): ExecutionContext {
+    const messageId = generateUUID();
     const convoId = options.conversationId || 'default';
-    const messages: ChatMessage[] = this.buildContext(convoId, content);
+    const messages = this.buildContext(convoId, content);
 
     const baseParams = {
       messages,
@@ -42,406 +164,222 @@ export class LocalAgent extends BaseAgent {
       topP: this.agentSettings.topP,
     };
 
-    const paramsWithTools = toolIntegrationService.enhanceCompletionParams(
+    const enhancedParams = toolIntegrationService.enhanceCompletionParams(
       baseParams,
       this.agentSettings.toolConfig,
     );
 
-    console.log('DEBUG:paramsWithTools', paramsWithTools);
-
-    if (options.stream) {
-      if (provider.generateCompletionStreamWithTools) {
-        return this.handleStreamingWithTools(
-          paramsWithTools,
-          signal,
-          options,
-          messageId,
-          convoId,
-          content,
-          startTime,
-        );
+    return {
+      messageId,
+      convoId,
+      content,
+      options,
+      params: enhancedParams,
+      startTime: Date.now(),
+      providerConfig: this.providerConfig,
+      toolContext: {
+        userId: options.userId,
+        sessionId: convoId,
+        metadata: {
+          agentId: this.agentSettings.id,
+          provider: this.providerConfig.type,
+          model: this.providerConfig.activeModel.model,
+        },
       }
-
-      if (provider.generateCompletionStream) {
-        let accumulated = '';
-        const stream = provider.generateCompletionStream(
-          paramsWithTools,
-          signal,
-        );
-
-        try {
-          for await (const chunk of stream) {
-            // Check for cancellation
-            if (signal.aborted) {
-              throw new Error('Request cancelled');
-            }
-            accumulated += chunk;
-            options.onChunk?.(chunk);
-          }
-        } catch (error) {
-          if (signal.aborted) {
-            throw new Error('Request cancelled by user');
-          }
-          throw error;
-        }
-
-        const timestamp = new Date().toISOString();
-        const model = this.providerConfig.activeModel.model;
-
-        const response: MessageResponse = {
-          id: messageId,
-          content: accumulated,
-          role: 'assistant',
-          timestamp,
-          metadata: {
-            agentType: 'local',
-            agentId: this.agentSettings.id,
-            provider: this.providerConfig.type,
-            model,
-            responseTime: Date.now() - startTime,
-            // Note: Regular streaming doesn't provide token counts from most providers
-            promptTokens: 0,
-            completionTokens: 0,
-            totalTokens: 0,
-            estimatedCost: 0,
-          },
-        };
-
-        const userMessage: Message[] = Array.isArray(content)
-          ? content.map((msg) => ({
-            id: generateUUID(),
-            role: 'user',
-            content: msg,
-            timestamp,
-          }))
-          : [
-            {
-              id: generateUUID(),
-              role: 'user',
-              content,
-              timestamp,
-            },
-          ];
-
-        this.addToHistory(convoId, [
-          ...userMessage,
-          {
-            id: generateUUID(),
-            role: 'assistant',
-            content: accumulated,
-            timestamp,
-          },
-        ]);
-
-        options.onComplete?.(accumulated);
-        return response;
-      }
-    }
-
-    // Get initial completion (potentially with tool calls)
-    const result = await provider.generateCompletion(paramsWithTools, signal);
-    console.log('DEBUG:generateCompletion:result', result);
-
-    const toolContext: ToolContext = {
-      userId: options.userId,
-      sessionId: convoId,
-      metadata: {
-        agentId: this.agentSettings.id,
-        provider: this.providerConfig.type,
-        model: this.providerConfig.activeModel.model,
-      },
     };
+  }
 
-    const processed = await toolIntegrationService.processCompletionResult(
-      result,
-      toolContext,
-      this.agentSettings.toolConfig,
-    );
-
-    console.log('DEBUG:tool_call:processed', processed);
-
-    let resultWithToolResult = result;
-
-    // If tools were called, emit tool messages first, then get the final response
-    if (processed.requiresFollowUp && processed.tool_results) {
-      // Emit tool call messages immediately via onAdditionalMessage callback
-      if (options.onAdditionalMessage && result.tool_calls) {
-        const timestamp = new Date().toISOString();
-        const model = this.providerConfig.activeModel.model;
-
-        for (const toolCallResult of processed.tool_results) {
-          // Find the original tool call to get parameters
-          const originalToolCall = result.tool_calls.find(
-            (tc) => tc.id === toolCallResult.id,
-          );
-          const parameters = originalToolCall
-            ? JSON.parse(originalToolCall.function.arguments || '{}')
-            : {};
-
-          const toolMessageResponse: MessageResponse = {
-            id: generateUUID(),
-            content: `Executed tool: ${toolCallResult.name}`,
-            role: 'tool',
-            timestamp,
-            toolCall: {
-              name: toolCallResult.name,
-              id: toolCallResult.id,
-              arguments: parameters,
-              result: toolCallResult.result,
-              isExecuting: false,
-            },
-            metadata: {
-              agentType: 'local',
-              agentId: this.agentSettings.id,
-              provider: this.providerConfig.type,
-              model,
-            },
-          };
-
-          if (processed.result.content) {
-            options.onAdditionalMessage({
-              id: generateUUID(),
-              content: processed.result.content,
-              role: 'assistant',
-              timestamp: new Date().toISOString(),
-            });
-          }
-          options.onAdditionalMessage(toolMessageResponse);
-        }
-      }
-
-      // Execute tools and get follow-up response
-      resultWithToolResult =
-        await toolIntegrationService.completeToolCallingFlow(
-          paramsWithTools,
-          result,
-          processed.tool_results,
-          provider,
-          toolContext,
-          this.agentSettings.toolConfig,
-        );
-      console.log('DEBUG:completeToolCallingFlow:result', resultWithToolResult);
+  private handleError(error: any, options: SendMessageOptions): void {
+    if (this.abortController?.signal.aborted) {
+      const cancelError = new Error('Request cancelled by user');
+      options.onError?.(cancelError);
     } else {
-      console.log(`[LocalAgent] No follow-up required, using original result`);
+      options.onError?.(error instanceof Error ? error : new Error('Unknown error'));
     }
+  }
 
+  private createToolResultMessages(
+    toolCalls: ToolCall[],
+    toolResults: ToolCallResult[]
+  ): ChatMessage[] {
+    const messages: ChatMessage[] = [];
+
+    toolResults.forEach((result) => {
+      const toolCall = toolCalls.find((call) => call.id === result.id);
+      if (toolCall) {
+        // Handle standardized format
+        let content: string;
+        if (result.result.status === 'error') {
+          content = result.result.result as string;
+        } else if (result.result.type === 'text') {
+          content = result.result.result as string;
+        } else {
+          content = JSON.stringify(result.result.result);
+        }
+
+        messages.push({
+          role: 'tool',
+          content: content,
+          tool_call_id: result.id,
+          name: result.name,
+        });
+      }
+    });
+
+    return messages;
+  }
+
+  cancel(): void {
+    this.abortController?.abort();
+  }
+}
+
+// Separate classes for different concerns
+
+class MessageBuilder {
+  buildFinalResponse(result: CompletionResult, context: ExecutionContext): MessageResponse {
     const timestamp = new Date().toISOString();
-    const model = this.providerConfig.activeModel.model;
-    const promptTokens = resultWithToolResult.usage?.prompt_tokens || 0;
-    const completionTokens = resultWithToolResult.usage?.completion_tokens || 0;
-    const totalTokens = resultWithToolResult.usage?.total_tokens || 0;
+    const model = context.providerConfig.activeModel.model;
+    const promptTokens = result.usage?.prompt_tokens || 0;
+    const completionTokens = result.usage?.completion_tokens || 0;
+    const totalTokens = result.usage?.total_tokens || 0;
     const estimatedCost = calculateCost(model, promptTokens, completionTokens);
 
-    const response: MessageResponse = {
-      id: messageId,
-      content: resultWithToolResult.content,
+    return {
+      id: context.messageId,
+      content: result.content,
       role: 'assistant',
       timestamp,
       metadata: {
         agentType: 'local',
-        agentId: this.agentSettings.id,
-        provider: this.providerConfig.type,
+        agentId: context.toolContext.metadata?.agentId || 'unknown',
+        provider: context.toolContext.metadata?.provider || 'unknown',
         model,
-        responseTime: Date.now() - startTime,
-        toolCalls: processed.tool_results?.length || 0,
+        responseTime: Date.now() - context.startTime,
         promptTokens,
         completionTokens,
         totalTokens,
         estimatedCost,
       },
     };
+  }
 
-    // Build messages to add to history
-    const messagesToAdd: Message[] = Array.isArray(content)
-      ? content.map((msg) => ({
+  buildMessagesForHistory(
+    content: string[],
+    result: CompletionResult,
+    allToolResults?: ToolCallResult[]
+  ): Message[] {
+    const timestamp = new Date().toISOString();
+    const messages: Message[] = [];
+
+    // Add user messages
+    content.forEach(msg => {
+      messages.push({
         id: generateUUID(),
         role: 'user',
         content: msg,
         timestamp,
-      }))
-      : [
-        {
-          id: generateUUID(),
-          role: 'user',
-          content,
-          timestamp,
-        },
-      ];
+      });
+    });
 
-    // Add tool call messages if tools were executed (for internal history)
-    if (
-      processed.requiresFollowUp &&
-      processed.tool_results &&
-      result.tool_calls
-    ) {
-      for (const toolCallResult of processed.tool_results) {
-        // Find the original tool call to get parameters
-        const originalToolCall = result.tool_calls.find(
-          (tc) => tc.id === toolCallResult.id,
-        );
-        const parameters = originalToolCall
-          ? JSON.parse(originalToolCall.function.arguments || '{}')
-          : {};
-
-        const toolMessage: Message = {
+    // Add tool messages from all rounds if present
+    if (allToolResults && allToolResults.length > 0) {
+      allToolResults.forEach(toolResult => {
+        messages.push({
           id: generateUUID(),
           role: 'tool',
-          content: `Executed tool: ${toolCallResult.name}`,
+          content: `Executed tool: ${toolResult.name}`,
           timestamp,
           toolCall: {
-            name: toolCallResult.name,
-            id: toolCallResult.id,
-            arguments: parameters,
-            result: toolCallResult.result,
+            name: toolResult.name,
+            id: toolResult.id,
+            arguments: {}, // Arguments would need to be tracked separately
+            result: toolResult.result,
             isExecuting: false,
           },
-        };
-
-        if (processed.result.content) {
-          messagesToAdd.push({
-            id: generateUUID(),
-            content: processed.result.content,
-            role: 'assistant',
-            timestamp: new Date().toISOString(),
-          });
-        }
-        messagesToAdd.push(toolMessage);
-      }
+        });
+      });
     }
 
     // Add final assistant response
-    messagesToAdd.push({
+    messages.push({
       id: generateUUID(),
       role: 'assistant',
-      content: resultWithToolResult.content,
+      content: result.content,
       timestamp,
     });
 
-    this.addToHistory(convoId, messagesToAdd);
-
-    options.onComplete?.(resultWithToolResult.content);
-    return response;
+    return messages;
   }
+}
 
-  private async handleStreamingWithTools(
-    enhancedParams: any,
-    signal: AbortSignal,
-    options: SendMessageOptions,
-    messageId: string,
-    convoId: string,
-    content: string[],
-    startTime: number,
+class StreamingHandler {
+  constructor(private addToHistory: (convoId: string, messages: Message[]) => void) { }
+
+  async handleWithTools(
+    context: ExecutionContext,
+    provider: LLMProvider,
+    signal?: AbortSignal
   ): Promise<MessageResponse> {
-    const provider = createProvider(this.providerConfig);
     if (!provider.generateCompletionStreamWithTools) {
       throw new Error('Provider does not support streaming with tools');
     }
 
-    const toolContext: ToolContext = {
-      userId: options.userId,
-      sessionId: convoId,
-      metadata: {
-        agentId: this.agentSettings.id,
-        provider: this.providerConfig.type,
-        model: this.providerConfig.activeModel.model,
-      },
-    };
-
+    const toolExecutor = new ToolExecutor();
     let accumulated = '';
     let currentToolCalls: ToolCall[] = [];
-    let processedToolResults: any[] = [];
+    let processedToolResults: ToolCallResult[] = [];
     let usage: UsageData = {
       prompt_tokens: 0,
       completion_tokens: 0,
       total_tokens: 0,
     };
-    let finalMetadata = null;
 
-    const stream = provider.generateCompletionStreamWithTools(
-      enhancedParams,
-      signal,
-    );
+    const stream = provider.generateCompletionStreamWithTools(context.params, signal);
 
     try {
       for await (const chunk of stream) {
-        if (signal.aborted) {
+        if (signal?.aborted) {
           throw new Error('Request cancelled');
         }
 
         if (chunk.content) {
           accumulated += chunk.content;
-          options.onChunk?.(chunk.content);
+          context.options.onChunk?.(chunk.content);
         }
 
         if (chunk.usage) {
           usage = chunk.usage;
         }
 
-        if (chunk._metadata) {
-          finalMetadata = chunk._metadata;
-        }
-
         if (chunk.tool_calls) {
           currentToolCalls = chunk.tool_calls;
 
-          // If this is the final tool call chunk, execute tools
           if (chunk.finished && currentToolCalls.length > 0) {
-            // Process tool calls
-            const processed =
-              await toolIntegrationService.processCompletionResult(
-                { content: accumulated, tool_calls: currentToolCalls },
-                toolContext,
-                this.agentSettings.toolConfig,
-              );
+            // Process and execute tools
+            const processed = await toolIntegrationService.processCompletionResult(
+              { content: accumulated, tool_calls: currentToolCalls },
+              context.toolContext,
+              toolExecutor.toolConfig,
+            );
 
             if (processed.requiresFollowUp && processed.tool_results) {
-              // Store processed tool results for history
               processedToolResults = processed.tool_results;
 
-              // Emit separate messages for each tool call
-              if (options.onAdditionalMessage) {
-                for (let i = 0; i < currentToolCalls.length; i++) {
-                  const toolCall = currentToolCalls[i];
-                  const result = processed.tool_results.find(
-                    (r) => r.id === toolCall.id,
-                  );
+              // Emit tool messages
+              this.emitToolMessages(currentToolCalls, processed.tool_results, context.options.onAdditionalMessage);
 
-                  const toolMessage: MessageResponse = {
-                    id: generateUUID(),
-                    content: `Executed tool: ${toolCall.function.name}`,
-                    role: 'tool',
-                    timestamp: new Date().toISOString(),
-                    toolCall: {
-                      name: toolCall.function.name,
-                      id: toolCall.id,
-                      arguments: JSON.parse(toolCall.function.arguments),
-                      result: result?.result,
-                      isExecuting: false,
-                    },
-                    metadata: {
-                      agentType: 'local',
-                      agentId: this.agentSettings.id,
-                      provider: this.providerConfig.type,
-                      model: this.providerConfig.activeModel.model,
-                    },
-                  };
-                  options.onAdditionalMessage(toolMessage);
-                }
-              }
+              // Get follow-up response (handles recursive tool calls)
+              const finalResult = await toolIntegrationService.completeToolCallingFlow(
+                context.params,
+                { content: accumulated, tool_calls: currentToolCalls },
+                processed.tool_results,
+                provider,
+                context.toolContext,
+                toolExecutor.toolConfig, // Pass tool config for recursive calls
+              );
 
-              // Execute tools and get follow-up response
-              const finalResult =
-                await toolIntegrationService.completeToolCallingFlow(
-                  enhancedParams,
-                  { content: accumulated, tool_calls: currentToolCalls },
-                  processed.tool_results,
-                  provider,
-                  toolContext,
-                  this.agentSettings.toolConfig,
-                );
-
-              // Emit Message 3: Final response
-              if (finalResult.content.trim() && options.onAdditionalMessage) {
+              if (finalResult.content.trim() && context.options.onAdditionalMessage) {
                 const finalMessage: MessageResponse = {
                   id: generateUUID(),
                   content: finalResult.content,
@@ -449,123 +387,214 @@ export class LocalAgent extends BaseAgent {
                   timestamp: new Date().toISOString(),
                   metadata: {
                     agentType: 'local',
-                    agentId: this.agentSettings.id,
-                    provider: this.providerConfig.type,
-                    model: this.providerConfig.activeModel.model,
-                    responseTime: Date.now() - startTime,
+                    agentId: context.toolContext.metadata?.agentId || 'unknown',
+                    provider: context.toolContext.metadata?.provider || 'unknown',
+                    model: context.toolContext.metadata?.model || 'unknown',
+                    responseTime: Date.now() - context.startTime,
                   },
                 };
-                options.onAdditionalMessage(finalMessage);
+                context.options.onAdditionalMessage(finalMessage);
               }
             }
           }
         }
       }
     } catch (error) {
-      if (signal.aborted) {
+      if (signal?.aborted) {
         throw new Error('Request cancelled by user');
       }
       throw error;
     }
 
-    const timestamp = new Date().toISOString();
-    const model = this.providerConfig.activeModel.model;
+    const response = this.buildStreamingResponse(accumulated, usage, context, currentToolCalls.length);
 
-    // Use metadata from final chunk if available, otherwise fallback to usage data
+    // Add to history and call completion
+    const messageBuilder = new MessageBuilder();
+    const historyMessages = messageBuilder.buildMessagesForHistory(
+      context.content,
+      { content: accumulated, usage },
+      processedToolResults
+    );
+
+    this.addToHistory(context.convoId, historyMessages);
+
+    context.options.onComplete?.(accumulated);
+    return response;
+  }
+
+  async handleBasic(
+    context: ExecutionContext,
+    provider: LLMProvider,
+    signal?: AbortSignal
+  ): Promise<MessageResponse> {
+    if (!provider.generateCompletionStream) {
+      throw new Error('Provider does not support basic streaming');
+    }
+
+    let accumulated = '';
+    const stream = provider.generateCompletionStream(context.params, signal);
+
+    try {
+      for await (const chunk of stream) {
+        if (signal?.aborted) {
+          throw new Error('Request cancelled');
+        }
+        accumulated += chunk;
+        context.options.onChunk?.(chunk);
+      }
+    } catch (error) {
+      if (signal?.aborted) {
+        throw new Error('Request cancelled by user');
+      }
+      throw error;
+    }
+
+    const response = this.buildStreamingResponse(accumulated, undefined, context, 0);
+
+    // Add to history and call completion
+    const messageBuilder = new MessageBuilder();
+    const historyMessages = messageBuilder.buildMessagesForHistory(
+      context.content,
+      { content: accumulated }
+    );
+    this.addToHistory(context.convoId, historyMessages);
+
+    context.options.onComplete?.(accumulated);
+    return response;
+  }
+
+  private buildStreamingResponse(
+    content: string,
+    usage: UsageData | undefined,
+    context: ExecutionContext,
+    toolCallCount: number
+  ): MessageResponse {
+    const timestamp = new Date().toISOString();
+    const model = context.providerConfig.activeModel.model;
     const promptTokens = usage?.prompt_tokens || 0;
     const completionTokens = usage?.completion_tokens || 0;
     const totalTokens = usage?.total_tokens || 0;
-    const estimatedCost =
-      finalMetadata?.estimatedCost ||
-      calculateCost(model, promptTokens, completionTokens);
+    const estimatedCost = calculateCost(model, promptTokens, completionTokens);
 
-    const response: MessageResponse = {
-      id: messageId,
-      content: accumulated,
+    return {
+      id: context.messageId,
+      content,
       role: 'assistant',
       timestamp,
       metadata: {
         agentType: 'local',
-        agentId: this.agentSettings.id,
-        provider: this.providerConfig.type,
+        agentId: context.toolContext.metadata?.agentId || 'unknown',
+        provider: context.toolContext.metadata?.provider || 'unknown',
         model,
-        responseTime: Date.now() - startTime,
-        toolCalls: currentToolCalls.length,
+        responseTime: Date.now() - context.startTime,
+        toolCalls: toolCallCount,
         promptTokens,
         completionTokens,
         totalTokens,
         estimatedCost,
       },
     };
-
-    // Build messages to add to history
-    const messagesToAddStreaming: Message[] = Array.isArray(content)
-      ? content.map((msg) => ({
-        id: generateUUID(),
-        role: 'user',
-        content: msg,
-        timestamp,
-      }))
-      : [];
-
-    // Add tool call messages if tools were executed during streaming
-    if (processedToolResults.length > 0) {
-      for (const toolCallResult of processedToolResults) {
-        // Find the original tool call to get parameters
-        const originalToolCall = currentToolCalls.find(
-          (tc) => tc.id === toolCallResult.id,
-        );
-        const parameters = originalToolCall
-          ? JSON.parse(originalToolCall.function.arguments || '{}')
-          : {};
-
-        messagesToAddStreaming.push({
-          id: generateUUID(),
-          role: 'tool',
-          content: `Executed tool: ${toolCallResult.name}`,
-          timestamp,
-          toolCall: {
-            name: toolCallResult.name,
-            id: toolCallResult.id,
-            arguments: parameters,
-            result: toolCallResult.result,
-            isExecuting: false,
-          },
-        });
-      }
-    }
-
-    // Add final assistant response
-    messagesToAddStreaming.push({
-      id: generateUUID(),
-      role: 'assistant',
-      content: accumulated,
-      timestamp,
-      metadata: {
-        agentType: 'local',
-        agentId: this.agentSettings.id,
-        provider: this.providerConfig.type,
-        model,
-        responseTime: Date.now() - startTime,
-        promptTokens,
-        completionTokens,
-        totalTokens,
-        estimatedCost,
-      },
-    });
-
-    this.addToHistory(convoId, messagesToAddStreaming);
-
-    options.onComplete?.(accumulated);
-    return response;
   }
 
-  /**
-   * Cancel the current request
-   */
-  cancel(): void {
-    if (this.abortController) {
-      this.abortController.abort();
+  private emitToolMessages(
+    toolCalls: ToolCall[],
+    toolResults: ToolCallResult[],
+    onAdditionalMessage?: (message: MessageResponse) => void
+  ): void {
+    if (!onAdditionalMessage) return;
+
+    for (let i = 0; i < toolCalls.length; i++) {
+      const toolCall = toolCalls[i];
+      const result = toolResults.find(r => r.id === toolCall.id);
+
+      const toolMessage: MessageResponse = {
+        id: generateUUID(),
+        content: `Executed tool: ${toolCall.function.name}`,
+        role: 'tool',
+        timestamp: new Date().toISOString(),
+        toolCall: {
+          name: toolCall.function.name,
+          id: toolCall.id,
+          arguments: JSON.parse(toolCall.function.arguments),
+          result: result?.result,
+          isExecuting: false,
+        },
+        metadata: {
+          agentType: 'local',
+          agentId: 'local', // Will be filled properly in real implementation
+          provider: 'local',
+          model: 'local',
+        },
+      };
+      onAdditionalMessage(toolMessage);
+    }
+  }
+}
+
+class ToolExecutor {
+  constructor(public toolConfig?: any) { }
+
+  async executeTools(
+    result: CompletionResult,
+    context: ExecutionContext,
+    onToolMessage: (message: MessageResponse) => void
+  ): Promise<ToolCallResult[]> {
+    if (!result.tool_calls || result.tool_calls.length === 0) {
+      return [];
+    }
+
+    // Execute the tools using the tool integration service
+    const processed = await toolIntegrationService.processCompletionResult(
+      result,
+      context.toolContext,
+      this.toolConfig,
+    );
+
+    if (processed.requiresFollowUp && processed.tool_results) {
+      // Emit tool messages
+      this.emitToolMessages(result.tool_calls, processed.tool_results, context, onToolMessage);
+      return processed.tool_results;
+    }
+
+    return [];
+  }
+
+  private emitToolMessages(
+    toolCalls: ToolCall[],
+    toolResults: ToolCallResult[],
+    context: ExecutionContext,
+    onToolMessage: (message: MessageResponse) => void
+  ): void {
+    const timestamp = new Date().toISOString();
+    const model = context.providerConfig.activeModel.model;
+
+    for (const toolCallResult of toolResults) {
+      const originalToolCall = toolCalls.find(tc => tc.id === toolCallResult.id);
+      const parameters = originalToolCall
+        ? JSON.parse(originalToolCall.function.arguments || '{}')
+        : {};
+
+      const toolMessageResponse: MessageResponse = {
+        id: generateUUID(),
+        content: `Executed tool: ${toolCallResult.name}`,
+        role: 'tool',
+        timestamp,
+        toolCall: {
+          name: toolCallResult.name,
+          id: toolCallResult.id,
+          arguments: parameters,
+          result: toolCallResult.result,
+          isExecuting: false,
+        },
+        metadata: {
+          agentType: 'local',
+          agentId: context.toolContext.metadata?.agentId || 'unknown',
+          provider: context.toolContext.metadata?.provider || 'unknown',
+          model,
+        },
+      };
+
+      onToolMessage(toolMessageResponse);
     }
   }
 }

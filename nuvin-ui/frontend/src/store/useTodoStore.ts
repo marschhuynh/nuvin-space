@@ -350,11 +350,18 @@ export const useTodoStore = create<TodoState>()(
           ? state.todos[conversationId] || []
           : state.globalTodos;
 
+        const completedCount = todos.filter((t) => t.status === 'completed').length;
+        const totalCount = todos.length;
+        const allCompleted = totalCount > 0 && completedCount === totalCount;
+
         return {
           todos,
           isEmpty: todos.length === 0,
           hasInProgress: todos.some((t) => t.status === 'in_progress'),
           recentChanges: get().hasRecentChanges(conversationId),
+          allCompleted,
+          completedCount,
+          totalCount,
         };
       },
 
