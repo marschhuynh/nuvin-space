@@ -218,6 +218,7 @@ export class LocalAgent extends BaseAgent {
           processed.tool_results,
           provider,
           toolContext,
+          this.agentSettings.toolConfig,
         );
       console.log('DEBUG:completeToolCallingFlow:result', resultWithToolResult);
     } else {
@@ -435,6 +436,8 @@ export class LocalAgent extends BaseAgent {
                   { content: accumulated, tool_calls: currentToolCalls },
                   processed.tool_results,
                   provider,
+                  toolContext,
+                  this.agentSettings.toolConfig,
                 );
 
               // Emit Message 3: Final response

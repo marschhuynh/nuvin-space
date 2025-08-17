@@ -266,9 +266,20 @@ export class ToolIntegrationService {
     toolResults: ToolCallResult[],
     llmProvider: LLMProvider, // LLMProvider instance
     context?: ToolContext,
+    agentToolConfig?: AgentToolConfig,
+    maxRecursionDepth: number = 50, // Prevent infinite recursion
+    currentDepth: number = 0,
   ): Promise<CompletionResult> {
     if (!firstResult.tool_calls) {
       return firstResult;
+    }
+
+    if (currentDepth >= maxRecursionDepth) {
+      console.warn(`[ToolIntegration] Maximum recursion depth (${maxRecursionDepth}) reached, stopping tool calling flow`);
+      return {
+        ...firstResult,
+        content: firstResult.content + '\n\n[Tool calling stopped due to maximum recursion depth]',
+      };
     }
 
     // Create messages with tool results
@@ -292,15 +303,38 @@ export class ToolIntegrationService {
     const followUpParams: CompletionParams = {
       ...originalParams,
       messages: [...originalParams.messages, ...enhancedToolMessages],
-      // Don't include tools in follow-up to prevent infinite loops
-      tools: undefined,
-      tool_choice: undefined,
     };
 
     console.log('DEBUG:followUpParams', followUpParams);
     const finalResult = await llmProvider.generateCompletion(followUpParams);
 
     console.log('DEBUG:finalResult', finalResult);
+
+    // Check if the final result contains more tool calls
+    if (finalResult.tool_calls && finalResult.tool_calls.length > 0) {
+      console.log(`[ToolIntegration] Follow-up response contains ${finalResult.tool_calls.length} tool calls, processing recursively (depth: ${currentDepth + 1})`);
+
+      // Process the new tool calls
+      const processed = await this.processCompletionResult(
+        finalResult,
+        context!,
+        agentToolConfig,
+      );
+
+      if (processed.requiresFollowUp && processed.tool_results) {
+        // Recursively call completeToolCallingFlow with incremented depth
+        return await this.completeToolCallingFlow(
+          followUpParams,
+          finalResult,
+          processed.tool_results,
+          llmProvider,
+          context,
+          agentToolConfig,
+          maxRecursionDepth,
+          currentDepth + 1,
+        );
+      }
+    }
 
     return {
       ...finalResult,
