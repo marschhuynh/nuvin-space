@@ -149,14 +149,14 @@ export function ToolCallMessage({
   // Extract description from arguments if not provided directly
   const getToolDescription = () => {
     if (description) return description;
-    
+
     // Try to extract description from arguments
     if (args && typeof args === 'object') {
       if (args.description && typeof args.description === 'string') {
         return args.description;
       }
     }
-    
+
     return null;
   };
 
@@ -364,7 +364,7 @@ export function ToolCallMessage({
                             )}
                           </div>
                         )}
-                        
+
                         {/* Show additional result if available */}
                         {result.additionalResult && (
                           <div className="mt-3 pt-3 border-t border-current/20">
@@ -374,7 +374,7 @@ export function ToolCallMessage({
                             </pre>
                           </div>
                         )}
-                        
+
                         {/* Show metadata if available */}
                         {result.metadata && Object.keys(result.metadata).length > 0 && (
                           <div className="mt-3 pt-3 border-t border-current/20">
@@ -393,7 +393,7 @@ export function ToolCallMessage({
           )}
 
           {/* Control buttons positioned absolutely inside the tool card */}
-          <div className="absolute top-2.5 right-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+          <div className="absolute top-2.5 right-26 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
             {isEditing ? (
               <>
                 <button

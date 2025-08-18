@@ -802,8 +802,13 @@ func (a *App) ExecuteCommand(cmdReq CommandRequest) CommandResponse {
 	if len(cmdReq.Args) > 0 {
 		cmd = exec.CommandContext(ctx, cmdReq.Command, cmdReq.Args...)
 	} else {
-		// For shell commands, use sh -c to execute
-		cmd = exec.CommandContext(ctx, "sh", "-c", cmdReq.Command)
+		// For shell commands, use the default shell from SHELL environment variable
+		shell := os.Getenv("SHELL")
+		if shell == "" {
+			// Fallback to sh if SHELL is not set
+			shell = "sh"
+		}
+		cmd = exec.CommandContext(ctx, shell, "-c", cmdReq.Command)
 	}
 
 	// Set working directory if specified

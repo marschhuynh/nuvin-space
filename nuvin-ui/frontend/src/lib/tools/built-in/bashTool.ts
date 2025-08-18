@@ -56,8 +56,6 @@ export const bashTool: Tool = {
 
       // Security check: Warn about potentially dangerous commands
       const dangerousCommands = [
-        'rm -rf',
-        'sudo rm',
         'chmod -R 777',
         'dd if=',
         'mkfs',
@@ -158,9 +156,8 @@ export const bashTool: Tool = {
       return {
         status: 'error',
         type: 'text',
-        result: `Bash execution error: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`,
+        result: `Bash execution error: ${error instanceof Error ? error.message : 'Unknown error'
+          }`,
       };
     }
   },

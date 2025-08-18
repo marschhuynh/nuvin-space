@@ -100,7 +100,7 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
         )}
 
         {/* Controls positioned absolutely inside the message bubble */}
-        <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100">
+        <div className="absolute bottom-[-10px] right-2 flex gap-1 opacity-0 group-hover:opacity-100">
           {isEditing ? (
             <>
               <button
