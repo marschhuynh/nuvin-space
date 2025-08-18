@@ -124,6 +124,9 @@ export default function Messenger() {
         return;
       }
 
+      // Capture current conversation ID at the beginning
+      const conversationId = activeConversationId?.toString() || 'default';
+
       const newMessage: Message = {
         id: generateUUID(),
         role: 'user',
@@ -144,12 +147,38 @@ export default function Messenger() {
         [conversationId]: { messageId: streamingId, content: '' },
       }));
 
-      // Capture current conversation ID so callbacks continue updating
-      // the correct conversation even if the user switches views
-      const conversationId = activeConversationId?.toString() || 'default';
+      // Track if error message was already added to prevent duplicates
+      let errorMessageAdded = false;
 
-      // Track if error was already handled by onError callback
-      let errorHandledByCallback = false;
+      const addErrorMessage = (error: any) => {
+        if (errorMessageAdded) {
+          console.log('Error message already added, skipping duplicate');
+          return;
+        }
+        
+        errorMessageAdded = true;
+        
+        if (conversationId) {
+          const errorMessage: Message = {
+            id: streamingId,
+            role: 'assistant',
+            content: `❌ ${formatErrorMessage(error instanceof Error ? error : String(error))}`,
+            timestamp: new Date().toISOString(),
+          };
+
+          // Use addMessage to ensure the error message is added to the store
+          addMessage(conversationId, errorMessage);
+        }
+
+        // Clear streaming state for this conversation
+        setStreamingStates((prev) => {
+          const newState = { ...prev };
+          delete newState[conversationId];
+          return newState;
+        });
+
+        setIsLoading(false);
+      };
 
       try {
         // Send message using AgentManager with streaming
@@ -222,29 +251,7 @@ export default function Messenger() {
           },
           onError: (error) => {
             console.error('Message sending failed (onError callback):', error);
-            errorHandledByCallback = true;
-
-            // Add error message to conversation (using addMessage since the message doesn't exist yet)
-            if (conversationId) {
-              const errorMessage: Message = {
-                id: streamingId,
-                role: 'assistant',
-                content: `❌ ${formatErrorMessage(error instanceof Error ? error : String(error))}`,
-                timestamp: new Date().toISOString(),
-              };
-
-              // Use addMessage to ensure the error message is added to the store
-              addMessage(conversationId, errorMessage);
-            }
-
-            // Clear streaming state for this conversation
-            setStreamingStates((prev) => {
-              const newState = { ...prev };
-              delete newState[conversationId];
-              return newState;
-            });
-
-            setIsLoading(false);
+            addErrorMessage(error);
           },
         });
 
@@ -294,28 +301,12 @@ export default function Messenger() {
         }
       } catch (error) {
         console.error('Failed to send message (catch block):', error);
-
-        // Only handle the error here if it wasn't already handled by the onError callback
-        if (!errorHandledByCallback && conversationId && streamingId) {
-          const errorMessage: Message = {
-            id: streamingId,
-            role: 'assistant',
-            content: `❌ ${formatErrorMessage(error instanceof Error ? error : String(error))}`,
-            timestamp: new Date().toISOString(),
-          };
-
-          // Use addMessage to ensure the error message is added to the store
-          addMessage(conversationId, errorMessage);
-
-          // Clear streaming state for this conversation
-          setStreamingStates((prev) => {
-            const newState = { ...prev };
-            delete newState[conversationId];
-            return newState;
-          });
-        }
+        addErrorMessage(error);
       } finally {
-        setIsLoading(false);
+        // Ensure loading is always reset if no error message was added
+        if (!errorMessageAdded) {
+          setIsLoading(false);
+        }
         timeoutRef.current = null;
       }
     },
@@ -332,7 +323,7 @@ export default function Messenger() {
       updateMessage,
       summarizeConversation,
     ],
-  );
+  );;;;
 
   const handleStopGeneration = useCallback(async () => {
     if (isLoading) {
