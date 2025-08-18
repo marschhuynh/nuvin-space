@@ -13,7 +13,7 @@ import {
   X
 } from 'lucide-react';
 import { useState, useCallback } from 'react';
-import { ClipboardSetText } from '../../../wailsjs/runtime/runtime';
+import { ClipboardSetText } from '@/lib/wails-runtime';
 import { useConversationStore } from '@/store/useConversationStore';
 
 interface ToolCallMessageProps {

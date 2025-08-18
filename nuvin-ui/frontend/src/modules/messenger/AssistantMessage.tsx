@@ -9,7 +9,7 @@ import {
   X,
 } from 'lucide-react';
 import { useState, useCallback, useMemo } from 'react';
-import { ClipboardSetText } from '../../../wailsjs/runtime/runtime';
+import { ClipboardSetText } from '@/lib/wails-runtime';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { useConversationStore } from '@/store/useConversationStore';
 import type { MessageMetadata } from '@/types';

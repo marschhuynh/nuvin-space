@@ -4,6 +4,7 @@ import {
   EventsOn as WailsEventsOn,
   EventsOff as WailsEventsOff,
   ClipboardGetText as WailsClipboardGetText,
+  ClipboardSetText as WailsClipboardSetText,
 } from '@wails/runtime';
 
 // Detect if running inside a Wails desktop environment
@@ -54,4 +55,12 @@ export async function ClipboardGetText(): Promise<string> {
     }
   }
   return '';
+}
+
+export async function ClipboardSetText(text: string): Promise<void> {
+  if (hasRuntime) {
+    await WailsClipboardSetText(text);
+  } else if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+  }
 }
