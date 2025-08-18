@@ -28,6 +28,7 @@ interface FetchRequest {
   headers: Record<string, string>;
   body?: string;
   stream?: boolean;
+  timeout?: number; // seconds
 }
 
 interface FetchResponse {
@@ -224,7 +225,7 @@ class ProxyResponse implements Response {
  */
 export async function fetchProxy(
   input: RequestInfo | URL,
-  init?: RequestInit & { stream?: boolean },
+  init?: RequestInit & { stream?: boolean; timeout?: number },
   useServer = false,
 ): Promise<Response> {
   console.log('fetchProxy', input, init?.stream);
@@ -284,6 +285,7 @@ export async function fetchProxy(
     headers,
     body,
     stream: init?.stream || false,
+    timeout: init?.timeout,
   };
 
   LogInfo(`Fetch proxy: ${method.toUpperCase()} ${url}`);

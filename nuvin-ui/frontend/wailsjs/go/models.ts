@@ -52,6 +52,7 @@ export namespace main {
 	    headers: Record<string, string>;
 	    body?: string;
 	    stream?: boolean;
+	    timeout?: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new FetchRequest(source);
@@ -64,6 +65,7 @@ export namespace main {
 	        this.headers = source["headers"];
 	        this.body = source["body"];
 	        this.stream = source["stream"];
+	        this.timeout = source["timeout"];
 	    }
 	}
 	export class FetchResponse {

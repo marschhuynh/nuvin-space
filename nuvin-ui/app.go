@@ -35,6 +35,7 @@ type FetchRequest struct {
 	Headers map[string]string `json:"headers"`
 	Body    string            `json:"body,omitempty"`
 	Stream  bool              `json:"stream,omitempty"`
+	Timeout int               `json:"timeout,omitempty"` // timeout in seconds (0 means default)
 }
 
 // FetchResponse represents the response to send back to JavaScript
@@ -50,10 +51,10 @@ type FetchResponse struct {
 
 // StreamChunk represents a chunk of streamed data
 type StreamChunk struct {
-    StreamID string `json:"streamId"`
-    Data     string `json:"data"`
-    Done     bool   `json:"done"`
-    Error    string `json:"error,omitempty"`
+	StreamID string `json:"streamId"`
+	Data     string `json:"data"`
+	Done     bool   `json:"done"`
+	Error    string `json:"error,omitempty"`
 }
 
 // NewApp creates a new App application struct
@@ -81,7 +82,12 @@ func (a *App) FetchProxy(fetchReq FetchRequest) FetchResponse {
 	}
 
 	// Create HTTP client with appropriate timeout
-	timeout := 30 * time.Second
+	// Default to 5 minutes unless specified, streaming disables client timeout
+	timeoutSeconds := 300
+	if fetchReq.Timeout > 0 {
+		timeoutSeconds = fetchReq.Timeout
+	}
+	timeout := time.Duration(timeoutSeconds) * time.Second
 
 	// Check if this might be a streaming request (SSE, etc.)
 	acceptHeader := fetchReq.Headers["accept"]
@@ -94,15 +100,21 @@ func (a *App) FetchProxy(fetchReq FetchRequest) FetchResponse {
 	runtime.LogInfo(a.ctx, fmt.Sprintf("Accept header: %s, Stream flag: %v, Has stream in body: %v, Is streaming: %v", acceptHeader, fetchReq.Stream, hasStreamInBody, isStreamingRequest))
 
 	if isStreamingRequest {
-		timeout = 0 // No timeout for streaming requests
+		timeout = 0 // No overall timeout for streaming requests
 		runtime.LogInfo(a.ctx, "Using no timeout for streaming request")
+	}
+
+	// Configure transport with header timeout matching request timeout (cap at 60s for streaming)
+	headerTimeout := time.Duration(timeoutSeconds) * time.Second
+	if isStreamingRequest {
+		headerTimeout = 60 * time.Second
 	}
 
 	client := &http.Client{
 		Timeout: timeout,
 		Transport: &http.Transport{
 			DisableKeepAlives:     true,
-			ResponseHeaderTimeout: 30 * time.Second,
+			ResponseHeaderTimeout: headerTimeout,
 			IdleConnTimeout:       90 * time.Second,
 			ForceAttemptHTTP2:     false, // Force HTTP/1.1 to avoid HTTP/2 stream issues
 		},
@@ -457,29 +469,6 @@ func (a *App) streamResponse(streamID string, body io.ReadCloser) {
 		}
 	}
 }
-
-// MCP methods moved to mcp-tools.go
-
-// StopMCPServer stops an MCP server process
-//
-
-// StopAllMCPServers stops all running MCP server processes
-//
-
-// SendMCPMessage sends a JSON-RPC message to an MCP server
-//
-
-// GetMCPServerStatus returns the status of all MCP servers
-//
-
-// monitorMCPProcess monitors the process and handles completion
-//
-
-// forwardMCPStdout forwards stdout from MCP server to frontend
-//
-
-// forwardMCPStderr forwards stderr from MCP server to frontend
-//
 
 // CommandRequest represents a command execution request
 type CommandRequest struct {

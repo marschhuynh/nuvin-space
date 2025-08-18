@@ -325,7 +325,7 @@ export function ToolCallMessage({
 
                     <div className="mt-2">
                       <div
-                        className={`p-3 rounded border text-sm ${
+                        className={`overflow-auto p-3 rounded border text-sm ${
                           result.status === 'success'
                             ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/50 text-green-800 dark:text-green-200'
                             : result.status === 'warning'
