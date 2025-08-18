@@ -1,3 +1,23 @@
+# [1.1.0](https://github.com/marschhuynh/nuvin-space/compare/v1.0.0...v1.1.0) (2025-08-18)
+
+
+### Bug Fixes
+
+* duplicate error message ([00bc8da](https://github.com/marschhuynh/nuvin-space/commit/00bc8da77717f33bd2c470caf86aa14fad8ff55f))
+* prevent recursive server fetch ([c3cd1f0](https://github.com/marschhuynh/nuvin-space/commit/c3cd1f0c5e96c6636bd76997f873096ec7720162))
+
+
+### Features
+
+* add import/export setting ([38e5863](https://github.com/marschhuynh/nuvin-space/commit/38e58638f75754249f03654460c877c55e110586))
+* add tool permission dialog ([b859f5b](https://github.com/marschhuynh/nuvin-space/commit/b859f5b4a072c3ff03c152b1767dda5c9f6254f6))
+* Enhance message editing capabilities in messenger components ([3e1f8cf](https://github.com/marschhuynh/nuvin-space/commit/3e1f8cfc2899157df1849abd40a7f6fd777d3fed))
+* enhance tool permission dialog with parameter display and update permission store ([74c06c9](https://github.com/marschhuynh/nuvin-space/commit/74c06c9309b93755f2df743dcd64a55001f64694))
+* Implement recursive message flow handling in LocalAgent ([0cdd417](https://github.com/marschhuynh/nuvin-space/commit/0cdd417390ce5dd9f7b9a0b13b9ac33d06810102))
+* make the agent follow up the tool-call request ([4ebc015](https://github.com/marschhuynh/nuvin-space/commit/4ebc015650a19ada93aee0b1cb1a523f506b0084))
+* re-structure srv ([573066f](https://github.com/marschhuynh/nuvin-space/commit/573066f632c2620b03b2fc38f823b38c9a580c20))
+* use snake_case for built-in tool names ([6fe7d77](https://github.com/marschhuynh/nuvin-space/commit/6fe7d772c51ae387ddb11c4ed58d64b24b4b04d4))
+
 # 1.0.0 (2025-08-16)
 
 
