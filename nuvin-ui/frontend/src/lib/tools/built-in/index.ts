@@ -5,6 +5,9 @@ import { randomTool } from './randomTool';
 import { bashTool } from './bashTool';
 import { todoWriteTool } from './todoWriteTool';
 import { taskTool } from './taskTool';
+import { readFileTool } from './readFileTool';
+import { editFileTool } from './editFileTool';
+import { newFileTool } from './newFileTool';
 
 export * from './calculatorTool';
 export * from './timeTool';
@@ -12,6 +15,9 @@ export * from './randomTool';
 export * from './bashTool';
 export * from './todoWriteTool';
 export * from './taskTool';
+export * from './readFileTool';
+export * from './editFileTool';
+export * from './newFileTool';
 
 /**
  * Register all built-in tools with the tool registry
@@ -24,6 +30,9 @@ export function registerBuiltInTools(): void {
     toolRegistry.registerTool(bashTool);
     toolRegistry.registerTool(todoWriteTool);
     toolRegistry.registerTool(taskTool);
+    toolRegistry.registerTool(readFileTool);
+    toolRegistry.registerTool(editFileTool);
+    toolRegistry.registerTool(newFileTool);
   } catch (error) {
     console.error('Failed to register built-in tools:', error);
   }
@@ -40,5 +49,8 @@ export function getBuiltInTools() {
     bashTool,
     todoWriteTool,
     taskTool,
+    readFileTool,
+    editFileTool,
+    newFileTool,
   ];
 }
