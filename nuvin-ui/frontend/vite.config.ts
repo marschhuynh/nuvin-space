@@ -11,6 +11,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@wails/runtime': path.resolve(__dirname, './wailsjs/runtime/runtime.js'),
       '@wails/binding': path.resolve(__dirname, './bindings/nuvin-ui'),
+      '@wails/services': path.resolve(__dirname, './bindings/nuvin-ui/services')
     },
   },
   build: {

@@ -22,6 +22,7 @@ tasks:
   frontend:build:
     dir: frontend
     cmds:
+      - wails3 generate bindings -ts -i
       - pnpm build
 
   frontend:dev:
@@ -35,6 +36,7 @@ tasks:
     env:
       FRONTEND_DEVSERVER_URL: "{{.DEV_URL}}"
     cmds:
+      - wails3 generate bindings -ts -i
       - |
         (cd frontend && pnpm dev) &
       - go run .

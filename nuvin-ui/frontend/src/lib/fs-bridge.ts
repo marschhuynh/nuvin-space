@@ -1,4 +1,5 @@
 import { isWailsEnvironment } from '@/lib/wails-runtime';
+import { ReadFile, WriteFile, ListDir, MkdirAll, Remove, Rename, PathExists } from '@wails/services/filetoolsservice';
 
 export interface FileInfo {
   path: string;
@@ -17,8 +18,8 @@ async function nodeFs() {
 }
 
 export async function readFile(path: string): Promise<string> {
-  if (isWailsEnvironment() && window.go?.main?.App) {
-    return window.go.main.App.ReadFile(path);
+  if (isWailsEnvironment()) {
+    return ReadFile(path);
   }
   if (isNode) {
     const fs = await nodeFs();
@@ -28,8 +29,8 @@ export async function readFile(path: string): Promise<string> {
 }
 
 export async function writeFile(path: string, content: string): Promise<void> {
-  if (isWailsEnvironment() && window.go?.main?.App) {
-    return window.go.main.App.WriteFile({ path, content });
+  if (isWailsEnvironment()) {
+    return WriteFile({ path, content });
   }
   if (isNode) {
     const fs = await nodeFs();
@@ -40,8 +41,9 @@ export async function writeFile(path: string, content: string): Promise<void> {
 }
 
 export async function listDir(dir: string): Promise<FileInfo[]> {
-  if (isWailsEnvironment() && window.go?.main?.App) {
-    return window.go.main.App.ListDir(dir);
+  if (isWailsEnvironment()) {
+    const result = await ListDir(dir);
+    return result || [];
   }
   if (isNode) {
     const fs = await nodeFs();
@@ -64,8 +66,8 @@ export async function listDir(dir: string): Promise<FileInfo[]> {
 }
 
 export async function mkdirAll(dir: string): Promise<void> {
-  if (isWailsEnvironment() && window.go?.main?.App) {
-    return window.go.main.App.MkdirAll(dir);
+  if (isWailsEnvironment()) {
+    return MkdirAll(dir);
   }
   if (isNode) {
     const fs = await nodeFs();
@@ -75,8 +77,8 @@ export async function mkdirAll(dir: string): Promise<void> {
 }
 
 export async function remove(path: string, recursive = false): Promise<void> {
-  if (isWailsEnvironment() && window.go?.main?.App) {
-    return window.go.main.App.Remove(path, recursive);
+  if (isWailsEnvironment()) {
+    return Remove(path, recursive);
   }
   if (isNode) {
     const fs = await nodeFs();
@@ -95,8 +97,8 @@ export async function remove(path: string, recursive = false): Promise<void> {
 }
 
 export async function rename(oldPath: string, newPath: string): Promise<void> {
-  if (isWailsEnvironment() && window.go?.main?.App) {
-    return window.go.main.App.Rename(oldPath, newPath);
+  if (isWailsEnvironment()) {
+    return Rename(oldPath, newPath);
   }
   if (isNode) {
     const fs = await nodeFs();
@@ -107,8 +109,8 @@ export async function rename(oldPath: string, newPath: string): Promise<void> {
 }
 
 export async function pathExists(path: string): Promise<boolean> {
-  if (isWailsEnvironment() && window.go?.main?.App) {
-    return window.go.main.App.PathExists(path);
+  if (isWailsEnvironment()) {
+    return PathExists(path);
   }
   if (isNode) {
     const fs = await nodeFs();

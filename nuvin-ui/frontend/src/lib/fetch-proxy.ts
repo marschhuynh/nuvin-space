@@ -3,7 +3,7 @@
  * This bypasses CORS restrictions and provides better error handling
  */
 
-import { FetchProxy as HTTPProxyFetchProxy } from '../../bindings/nuvin-ui/services/httpproxyservice'
+import { FetchProxy as HTTPProxyFetchProxy } from '@wails/services/httpproxyservice'
 import {
   LogInfo,
   LogError,

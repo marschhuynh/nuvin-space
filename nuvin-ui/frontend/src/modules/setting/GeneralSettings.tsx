@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { OpenFileDialogAndRead } from '@wails/services/filedialogservice';
 import {
   Select,
   SelectContent,
@@ -68,6 +69,39 @@ export function GeneralSettings({
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  const handleImportClick = async () => {
+    try {
+      const fileContent = await OpenFileDialogAndRead({
+        Title: 'Import Settings',
+        DefaultFilename: '',
+        DefaultDirectory: '',
+        Filters: [
+          {
+            DisplayName: 'JSON Files (*.json)',
+            Pattern: '*.json',
+          },
+        ],
+        ShowHiddenFiles: false,
+        CanCreateDirectories: false,
+        ResolvesAliases: true,
+      });
+
+      if (fileContent) {
+        // Create a File object from the content
+        const file = new File([fileContent], 'settings.json', {
+          type: 'application/json',
+        });
+        importSettings(file);
+      }
+    } catch (error) {
+      console.error('Failed to open file dialog:', error);
+      setImportStatus({
+        type: 'error',
+        message: 'Failed to open file dialog. Please try again.',
+      });
+    }
   };
 
   const importSettings = async (file: File) => {
@@ -299,21 +333,10 @@ export function GeneralSettings({
           {/* Import Settings */}
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Import Settings</Label>
-            <div className="flex items-center gap-2">
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleFileSelect}
-                style={{ display: 'none' }}
-                id="settings-import"
-              />
-              <label htmlFor="settings-import">
-                <Button type="button" variant="outline">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Import Settings
-                </Button>
-              </label>
-            </div>
+            <Button type="button" variant="outline" onClick={handleImportClick}>
+              <Upload className="h-4 w-4 mr-2" />
+              Import Settings
+            </Button>
           </div>
 
           {/* Import Status Message */}

@@ -1,5 +1,5 @@
 import { Tool } from '@/types/tools';
-import { ExecuteCommand as CommandExecutorExecuteCommand } from '../../../../bindings/nuvin-ui/services/commandexecutorservice.js';
+import { ExecuteCommand as CommandExecutorExecuteCommand } from '@wails/services/commandexecutorservice';
 
 export const bashTool: Tool = {
   definition: {

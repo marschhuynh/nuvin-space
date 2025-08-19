@@ -62,3 +62,44 @@ export interface FetchResponse {
     "error"?: string;
     "streamId"?: string;
 }
+
+/**
+ * FileInfo represents basic file metadata for directory listings
+ */
+export interface FileInfo {
+    "path": string;
+    "name": string;
+    "isDir": boolean;
+    "size": number;
+    "modTime": string;
+}
+
+/**
+ * FileWriteRequest represents a request to write file contents
+ */
+export interface FileWriteRequest {
+    "path": string;
+    "content": string;
+}
+
+/**
+ * MCPMessage represents a JSON-RPC message
+ */
+export interface MCPMessage {
+    "jsonrpc": string;
+    "id"?: any;
+    "method"?: string;
+    "params"?: any;
+    "result"?: any;
+    "error"?: any;
+}
+
+/**
+ * MCPRequest represents a request to start an MCP server
+ */
+export interface MCPRequest {
+    "id": string;
+    "command": string;
+    "args": string[] | null;
+    "env": { [_: string]: string } | null;
+}

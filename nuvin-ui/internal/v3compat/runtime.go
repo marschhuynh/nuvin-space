@@ -156,3 +156,65 @@ func MessageDialog(_ context.Context, o MessageDialogOptions) (string, error) {
 	selected := <-result
 	return selected, nil
 }
+
+// ----- File Dialogs -----
+
+type OpenDialogOptions struct {
+	Title                string
+	DefaultFilename      string
+	DefaultDirectory     string
+	Filters              []FileFilter
+	ShowHiddenFiles      bool
+	CanCreateDirectories bool
+	ResolvesAliases      bool
+}
+
+type SaveDialogOptions struct {
+	Title                string
+	DefaultFilename      string
+	DefaultDirectory     string
+	Filters              []FileFilter
+	ShowHiddenFiles      bool
+	CanCreateDirectories bool
+}
+
+type FileFilter struct {
+	DisplayName string
+	Pattern     string
+}
+
+// OpenFileDialog opens a file picker dialog and returns the selected file path
+func OpenFileDialog(_ context.Context, options OpenDialogOptions) (string, error) {
+	if appRef == nil {
+		return "", nil
+	}
+
+	dialog := appRef.Dialog.OpenFile()
+	if mainWindow != nil {
+		dialog.AttachToWindow(mainWindow)
+	}
+
+	result, err := dialog.PromptForSingleSelection()
+	if err != nil {
+		return "", err
+	}
+	return result, nil
+}
+
+// SaveFileDialog opens a save file dialog and returns the selected file path
+func SaveFileDialog(_ context.Context, options SaveDialogOptions) (string, error) {
+	if appRef == nil {
+		return "", nil
+	}
+
+	dialog := appRef.Dialog.SaveFile()
+	if mainWindow != nil {
+		dialog.AttachToWindow(mainWindow)
+	}
+
+	result, err := dialog.PromptForSingleSelection()
+	if err != nil {
+		return "", err
+	}
+	return result, nil
+}

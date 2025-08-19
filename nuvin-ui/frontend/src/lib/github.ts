@@ -1,4 +1,4 @@
-import { FetchGithubCopilotKey as GitHubOAuthFetchGithubCopilotKey } from '../../bindings/nuvin-ui/services/githuboauthservice.js';
+import { FetchGithubCopilotKey as GitHubOAuthFetchGithubCopilotKey } from '@wails/services/githuboauthservice';
 
 export async function fetchGithubCopilotKey(): Promise<string | null> {
   try {

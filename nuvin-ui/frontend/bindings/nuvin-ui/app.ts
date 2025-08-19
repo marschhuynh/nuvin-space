@@ -10,97 +10,9 @@
 // @ts-ignore: Unused imports
 import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wailsio/runtime";
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: Unused imports
-import * as $models from "./models.js";
-
 /**
  * CheckForUpdates fetches latest release info and prompts the user to update.
  */
 export function CheckForUpdates(): $CancellablePromise<void> {
     return $Call.ByID(2675659504);
-}
-
-/**
- * GetMCPServerStatus returns the status of all MCP servers
- */
-export function GetMCPServerStatus(): $CancellablePromise<{ [_: string]: string } | null> {
-    return $Call.ByID(3257159796);
-}
-
-/**
- * ListDir lists entries in a directory with basic metadata
- */
-export function ListDir(dir: string): $CancellablePromise<$models.FileInfo[] | null> {
-    return $Call.ByID(2120475736, dir);
-}
-
-/**
- * MkdirAll creates a directory and all parents as needed
- */
-export function MkdirAll(dir: string): $CancellablePromise<void> {
-    return $Call.ByID(165715507, dir);
-}
-
-/**
- * PathExists checks if a path exists on disk
- */
-export function PathExists(path: string): $CancellablePromise<boolean> {
-    return $Call.ByID(20277526, path);
-}
-
-/**
- * ReadFile reads a file from disk and returns its contents as UTF-8 string
- */
-export function ReadFile(path: string): $CancellablePromise<string> {
-    return $Call.ByID(1160596971, path);
-}
-
-/**
- * Remove removes a file or directory. If recursive is true, removes directories recursively.
- */
-export function Remove(path: string, recursive: boolean): $CancellablePromise<void> {
-    return $Call.ByID(1395520005, path, recursive);
-}
-
-/**
- * Rename moves or renames a file or directory to a new path, creating parents as needed
- */
-export function Rename(oldPath: string, newPath: string): $CancellablePromise<void> {
-    return $Call.ByID(3432540379, oldPath, newPath);
-}
-
-/**
- * SendMCPMessage sends a JSON-RPC message to an MCP server
- */
-export function SendMCPMessage(serverID: string, message: $models.MCPMessage): $CancellablePromise<void> {
-    return $Call.ByID(2501498836, serverID, message);
-}
-
-/**
- * StartMCPServer starts an MCP server process
- */
-export function StartMCPServer(mcpReq: $models.MCPRequest): $CancellablePromise<void> {
-    return $Call.ByID(674663250, mcpReq);
-}
-
-/**
- * StopAllMCPServers stops all running MCP server processes
- */
-export function StopAllMCPServers(): $CancellablePromise<void> {
-    return $Call.ByID(3351826952);
-}
-
-/**
- * StopMCPServer stops an MCP server process
- */
-export function StopMCPServer(serverID: string): $CancellablePromise<void> {
-    return $Call.ByID(3658953848, serverID);
-}
-
-/**
- * WriteFile writes content to the specified path, creating parent directories as needed
- */
-export function WriteFile(req: $models.FileWriteRequest): $CancellablePromise<void> {
-    return $Call.ByID(3562730546, req);
 }

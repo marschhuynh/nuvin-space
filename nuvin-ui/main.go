@@ -28,6 +28,9 @@ func main() {
 	httpProxyService := services.NewHTTPProxyService(streamingService)
 	githubOAuthService := services.NewGitHubOAuthService()
 	commandExecutorService := services.NewCommandExecutorService()
+	fileDialogService := services.NewFileDialogService()
+	fileToolsService := services.NewFileToolsService()
+	mcpToolsService := services.NewMCPToolsService()
 
 	app := application.New(application.Options{
 		Name:        "Nuvin Space",
@@ -46,6 +49,9 @@ func main() {
 			application.NewService(githubOAuthService),
 			application.NewService(commandExecutorService),
 			application.NewService(streamingService),
+			application.NewService(fileDialogService),
+			application.NewService(fileToolsService),
+			application.NewService(mcpToolsService),
 		},
 	})
 
@@ -63,7 +69,7 @@ func main() {
 	// Initialise v3 compat helpers
 	compat.Init(app, win)
 
-	// Call legacy startup path (ctx is unused by compat)
+	// Call legacy startup path (services will be initialized by Wails via OnStartup)
 	svc.startup(context.Background())
 
 	// Run the app
