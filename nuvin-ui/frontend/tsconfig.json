@@ -18,7 +18,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@wails/runtime": ["./wailsjs/runtime/runtime.d.ts"]
+      "@wails/runtime": ["./wailsjs/runtime/runtime.d.ts"],
+      "@wails/binding": ["./bindings/nuvin-ui"]
     }
   },
   "include": ["src"],

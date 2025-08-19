@@ -3,11 +3,13 @@ import { createRoot } from 'react-dom/client';
 
 import { enableGlobalFetchProxy } from '@/lib/fetch-proxy';
 import App from './App';
+import * as WailsBinding from '@wails/binding'
 import './style.css';
 
 // enableGlobalFetchProxy();
 
 const container = document.getElementById('root');
+
 
 if (!container) {
   throw new Error('Root container not found');
@@ -20,3 +22,9 @@ root.render(
     <App />
   </React.StrictMode>,
 );
+
+try {
+  WailsBinding.Debug.LogRandomTest();
+} catch (e) {
+  console.warn('Error invoking Debug.LogRandomTest:', e);
+}

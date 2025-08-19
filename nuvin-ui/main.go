@@ -18,8 +18,9 @@ var assets embed.FS
 
 func main() {
 	// Create application options
-	// Create our service instance
-	svc := NewApp()
+    // Create our service instances
+    svc := NewApp()
+    debugSvc := NewDebug()
 
 	app := application.New(application.Options{
 		Name:        "Nuvin Space",
@@ -31,9 +32,10 @@ func main() {
 			Handler: application.BundledAssetFileServer(assets),
 		},
 		LogLevel: slog.LevelInfo,
-		Services: []application.Service{
-			application.NewService(svc),
-		},
+        Services: []application.Service{
+            application.NewService(svc),
+            application.NewService(debugSvc),
+        },
 	})
 
 	// Create the main window

@@ -41,6 +41,9 @@ importers:
       '@types/mermaid':
         specifier: ^9.2.0
         version: 9.2.0
+      '@wailsio/runtime':
+        specifier: 3.0.0-alpha.66
+        version: 3.0.0-alpha.66
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1301,6 +1304,9 @@ packages:
 
   '@vitest/utils@3.2.4':
     resolution: {integrity: sha512-fB2V0JFrQSMsCo9HiSq3Ezpdv4iYaXRG1Sx8edX3MwxfyNn83mKiGzOcH+Fkxt4MHxr3y42fQi1oeAInqgX2QA==}
+
+  '@wailsio/runtime@3.0.0-alpha.66':
+    resolution: {integrity: sha512-ENLu8rn1griL1gFHJqkq1i+BVxrrA0JPJHYneUJYuf/s54kjuQViW0RKDEe/WTDo56ABpfykrd/T8OYpPUyXUw==}
 
   acorn@8.15.0:
     resolution: {integrity: sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==}
@@ -3770,6 +3776,8 @@ snapshots:
       '@vitest/pretty-format': 3.2.4
       loupe: 3.1.4
       tinyrainbow: 2.0.0
+
+  '@wailsio/runtime@3.0.0-alpha.66': {}
 
   acorn@8.15.0: {}
 

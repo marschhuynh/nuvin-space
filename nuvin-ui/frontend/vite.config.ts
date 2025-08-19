@@ -10,6 +10,7 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@wails/runtime': path.resolve(__dirname, './wailsjs/runtime/runtime.js'),
+      '@wails/binding': path.resolve(__dirname, './bindings/nuvin-ui'),
     },
   },
   build: {
