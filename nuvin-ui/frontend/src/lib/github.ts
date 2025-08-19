@@ -1,14 +1,8 @@
-import { callApp } from './wails-call';
+import { FetchGithubCopilotKey as GitHubOAuthFetchGithubCopilotKey } from '../../bindings/nuvin-ui/services/githuboauthservice.js';
 
 export async function fetchGithubCopilotKey(): Promise<string | null> {
   try {
-    // Check if Wails runtime is available
-    if (!window.go || !window.go.main || !window.go.main.App) {
-      console.error('Wails runtime is not available');
-      return null;
-    }
-
-  const token = await callApp<string>('FetchGithubCopilotKey');
+    const token = await GitHubOAuthFetchGithubCopilotKey();
     return token || null;
   } catch (error) {
     console.error('Failed to fetch GitHub Copilot key:', error);

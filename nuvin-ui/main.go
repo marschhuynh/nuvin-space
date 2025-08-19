@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	compat "nuvin-ui/internal/v3compat"
+	"nuvin-ui/services"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -18,9 +19,15 @@ var assets embed.FS
 
 func main() {
 	// Create application options
-    // Create our service instances
-    svc := NewApp()
-    debugSvc := NewDebug()
+	// Create our service instances
+	svc := NewApp()
+	debugSvc := NewDebug()
+
+	// Create standalone service instances
+	streamingService := services.NewStreamingService()
+	httpProxyService := services.NewHTTPProxyService(streamingService)
+	githubOAuthService := services.NewGitHubOAuthService()
+	commandExecutorService := services.NewCommandExecutorService()
 
 	app := application.New(application.Options{
 		Name:        "Nuvin Space",
@@ -32,10 +39,14 @@ func main() {
 			Handler: application.BundledAssetFileServer(assets),
 		},
 		LogLevel: slog.LevelInfo,
-        Services: []application.Service{
-            application.NewService(svc),
-            application.NewService(debugSvc),
-        },
+		Services: []application.Service{
+			application.NewService(svc),
+			application.NewService(debugSvc),
+			application.NewService(httpProxyService),
+			application.NewService(githubOAuthService),
+			application.NewService(commandExecutorService),
+			application.NewService(streamingService),
+		},
 	})
 
 	// Create the main window

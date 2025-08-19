@@ -1,5 +1,5 @@
 import { Tool } from '@/types/tools';
-import { callApp } from '@/lib/wails-call';
+import { ExecuteCommand as CommandExecutorExecuteCommand } from '../../../../bindings/nuvin-ui/services/commandexecutorservice.js';
 
 export const bashTool: Tool = {
   definition: {
@@ -95,7 +95,7 @@ export const bashTool: Tool = {
       );
 
       // Execute command via Wails backend
-      const response = await callApp<any>('ExecuteCommand', commandRequest);
+      const response = await CommandExecutorExecuteCommand(commandRequest);
 
       // Format response for tool result
       const additionalResult: Record<string, any> = {

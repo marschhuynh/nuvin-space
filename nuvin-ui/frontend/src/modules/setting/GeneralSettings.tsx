@@ -24,7 +24,6 @@ import { useProviderStore } from '@/store/useProviderStore';
 import { useAgentStore } from '@/store/useAgentStore';
 import { useModelsStore } from '@/store/useModelsStore';
 import { useTheme } from '@/lib/theme';
-import { callApp } from '@/lib/wails-call';
 
 interface GeneralSettingsProps {
   settings: UserPreferences;
@@ -47,7 +46,7 @@ export function GeneralSettings({
     const providers = useProviderStore.getState().providers;
     const agents = useAgentStore.getState().agents;
     const models = useModelsStore.getState().models;
-    
+
     const exportData = {
       version: '1.0.0',
       exportDate: new Date().toISOString(),
@@ -61,7 +60,7 @@ export function GeneralSettings({
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `nuvin-settings-${new Date().toISOString().split('T')[0]}.json`;
@@ -74,27 +73,27 @@ export function GeneralSettings({
   const importSettings = async (file: File) => {
     try {
       setImportStatus({ type: null, message: '' });
-      
+
       // Read file content
       const fileContent = await file.text();
       const importData = JSON.parse(fileContent);
-      
+
       // Validate the import data structure
       if (!importData.version || !importData.userPreferences) {
         throw new Error('Invalid settings file format');
       }
-      
+
       // Get store instances
       const userPreferenceStore = useUserPreferenceStore.getState();
       const providerStore = useProviderStore.getState();
       const agentStore = useAgentStore.getState();
       const modelsStore = useModelsStore.getState();
-      
+
       // Import user preferences
       if (importData.userPreferences) {
         userPreferenceStore.updatePreferences(importData.userPreferences);
       }
-      
+
       // Import providers
       if (importData.providers && Array.isArray(importData.providers)) {
         // Clear existing providers and add imported ones
@@ -107,7 +106,7 @@ export function GeneralSettings({
           }
         }
       }
-      
+
       // Import agents
       if (importData.agents && Array.isArray(importData.agents)) {
         // Clear existing agents and add imported ones
@@ -120,7 +119,7 @@ export function GeneralSettings({
           }
         }
       }
-      
+
       // Import models/enabled states
       if (importData.enabledModels) {
         // Reset models store and set imported model states
@@ -135,17 +134,17 @@ export function GeneralSettings({
           }
         }
       }
-      
+
       setImportStatus({
         type: 'success',
         message: 'Settings imported successfully! The page will refresh to apply changes.'
       });
-      
+
       // Refresh the page after a short delay to ensure all stores are updated
       setTimeout(() => {
         window.location.reload();
       }, 2000);
-      
+
     } catch (error) {
       console.error('Failed to import settings:', error);
       setImportStatus({
@@ -296,7 +295,7 @@ export function GeneralSettings({
         {/* Import/Export Settings Section */}
         <div className="space-y-4 pt-4 border-t">
           <h3 className="text-lg font-medium">Settings Management</h3>
-          
+
           {/* Import Settings */}
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Import Settings</Label>
@@ -316,18 +315,18 @@ export function GeneralSettings({
               </label>
             </div>
           </div>
-          
+
           {/* Import Status Message */}
           {importStatus.type && (
             <div className={`p-3 rounded-md text-sm ${
-              importStatus.type === 'success' 
-                ? 'bg-green-50 text-green-800 border border-green-200' 
+              importStatus.type === 'success'
+                ? 'bg-green-50 text-green-800 border border-green-200'
                 : 'bg-red-50 text-red-800 border border-red-200'
             }`}>
               {importStatus.message}
             </div>
           )}
-          
+
           {/* Export Settings */}
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Export Settings</Label>
@@ -340,7 +339,7 @@ export function GeneralSettings({
         {/* Application Update Section */}
         <div className="flex items-center justify-between pt-4 border-t">
           <Label className="text-sm font-medium">Application Update</Label>
-          <Button type="button" onClick={() => void callApp('CheckForUpdates')}>
+          <Button type="button">
             Check for Updates
           </Button>
         </div>

@@ -3,7 +3,7 @@
  * This bypasses CORS restrictions and provides better error handling
  */
 
-import { callApp } from './wails-call';
+import { FetchProxy as HTTPProxyFetchProxy } from '../../bindings/nuvin-ui/services/httpproxyservice'
 import {
   LogInfo,
   LogError,
@@ -293,13 +293,13 @@ export async function fetchProxy(
   try {
     const response: FetchResponse = useServer
       ? await (
-          await nativeFetch(`${SERVER_BASE_URL}/fetch`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(fetchRequest),
-          })
-        ).json()
-      : await callApp<FetchResponse>('FetchProxy', fetchRequest);
+        await nativeFetch(`${SERVER_BASE_URL}/fetch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(fetchRequest),
+        })
+      ).json()
+      : await HTTPProxyFetchProxy(fetchRequest);
 
     if (response.error) {
       LogError(`Fetch proxy error: ${response.error}`);

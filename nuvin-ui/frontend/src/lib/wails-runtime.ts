@@ -1,12 +1,5 @@
-// Wails v3 runtime is provided by '@wailsio/runtime' at runtime and on the global `wails` object.
-// To avoid strict type coupling during migration, we use dynamic access with fallbacks.
-
-// Detect if running inside a Wails desktop environment
-const hasRuntime =
-  typeof window !== 'undefined' && typeof (window as any).runtime !== 'undefined';
-
 export function isWailsEnvironment(): boolean {
-  return hasRuntime;
+  return Boolean((window as any).wails);
 }
 
 export function LogInfo(message: string): void {
@@ -40,7 +33,7 @@ export async function ClipboardGetText(): Promise<string> {
     try {
       return await navigator.clipboard.readText();
     } catch {
-      console.warn('Failed to read clipboard contents', { hasRuntime });
+      console.warn('Failed to read clipboard contents', { hasRuntime: isWailsEnvironment() });
       return '';
     }
   }

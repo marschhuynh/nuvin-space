@@ -9,10 +9,6 @@ export {
 };
 
 export type {
-    CommandRequest,
-    CommandResponse,
-    FetchRequest,
-    FetchResponse,
     FileInfo,
     FileWriteRequest,
     MCPMessage,

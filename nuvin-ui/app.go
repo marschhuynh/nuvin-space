@@ -1,66 +1,34 @@
 package main
 
 import (
-	"bufio"
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-	"os"
-	"os/exec"
-	"strings"
 	"sync"
-	"time"
 
-	"github.com/google/uuid"
-	"github.com/pkg/browser"
-    runtime "nuvin-ui/internal/v3compat"
+	"nuvin-ui/services"
 )
 
-// App struct
+// App struct - simplified to use services
 type App struct {
-	ctx          context.Context
-	mcpProcesses map[string]*MCPProcess
-	mcpMutex     sync.RWMutex
+	ctx                    context.Context
+	mcpProcesses           map[string]*MCPProcess
+	mcpMutex               sync.RWMutex
+	httpProxyService       *services.HTTPProxyService
+	githubOAuthService     *services.GitHubOAuthService
+	commandExecutorService *services.CommandExecutorService
+	streamingService       *services.StreamingService
 }
 
-// MCP types moved to mcp-tools.go
-
-// FetchRequest represents a fetch request from JavaScript
-type FetchRequest struct {
-	URL     string            `json:"url"`
-	Method  string            `json:"method"`
-	Headers map[string]string `json:"headers"`
-	Body    string            `json:"body,omitempty"`
-	Stream  bool              `json:"stream,omitempty"`
-	Timeout int               `json:"timeout,omitempty"` // timeout in seconds (0 means default)
-}
-
-// FetchResponse represents the response to send back to JavaScript
-type FetchResponse struct {
-	Status     int               `json:"status"`
-	StatusText string            `json:"statusText"`
-	Headers    map[string]string `json:"headers"`
-	Body       string            `json:"body"`
-	OK         bool              `json:"ok"`
-	Error      string            `json:"error,omitempty"`
-	StreamID   string            `json:"streamId,omitempty"`
-}
-
-// StreamChunk represents a chunk of streamed data
-type StreamChunk struct {
-	StreamID string `json:"streamId"`
-	Data     string `json:"data"`
-	Done     bool   `json:"done"`
-	Error    string `json:"error,omitempty"`
-}
-
-// NewApp creates a new App application struct
+// NewApp creates a new App application struct with all services
 func NewApp() *App {
+	// Create streaming service first (dependency for HTTP proxy)
+	streamingService := services.NewStreamingService()
+
 	return &App{
-		mcpProcesses: make(map[string]*MCPProcess),
+		mcpProcesses:           make(map[string]*MCPProcess),
+		httpProxyService:       services.NewHTTPProxyService(streamingService),
+		githubOAuthService:     services.NewGitHubOAuthService(),
+		commandExecutorService: services.NewCommandExecutorService(),
+		streamingService:       streamingService,
 	}
 }
 
@@ -68,575 +36,33 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+
+	// Initialize all services
+	// a.httpProxyService.OnStartup(ctx)
+	// a.githubOAuthService.OnStartup(ctx)
+	// a.commandExecutorService.OnStartup(ctx)
+	// a.streamingService.OnStartup(ctx)
+
 	go a.listenForGlobalShortcut()
-	a.CheckForUpdates()
+	// a.CheckForUpdates()
 }
 
-// FetchProxy handles HTTP requests from JavaScript, bypassing CORS and browser restrictions
-func (a *App) FetchProxy(fetchReq FetchRequest) FetchResponse {
-	runtime.LogInfo(a.ctx, fmt.Sprintf("FetchProxy: %s %s %v", fetchReq.Method, fetchReq.URL, fetchReq.Stream))
-
-	// Default method to GET if not specified
-	if fetchReq.Method == "" {
-		fetchReq.Method = "GET"
-	}
-
-	// Create HTTP client with appropriate timeout
-	// Default to 5 minutes unless specified, streaming disables client timeout
-	timeoutSeconds := 300
-	if fetchReq.Timeout > 0 {
-		timeoutSeconds = fetchReq.Timeout
-	}
-	timeout := time.Duration(timeoutSeconds) * time.Second
-
-	// Check if this might be a streaming request (SSE, etc.)
-	acceptHeader := fetchReq.Headers["accept"]
-	hasStreamInBody := strings.Contains(fetchReq.Body, `"stream":true`) || strings.Contains(fetchReq.Body, `"stream": true`)
-	isStreamingRequest := fetchReq.Stream ||
-		acceptHeader == "text/event-stream" ||
-		strings.Contains(strings.ToLower(acceptHeader), "event-stream") ||
-		hasStreamInBody
-
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Accept header: %s, Stream flag: %v, Has stream in body: %v, Is streaming: %v", acceptHeader, fetchReq.Stream, hasStreamInBody, isStreamingRequest))
-
-	if isStreamingRequest {
-		timeout = 0 // No overall timeout for streaming requests
-		runtime.LogInfo(a.ctx, "Using no timeout for streaming request")
-	}
-
-	// Configure transport with header timeout matching request timeout (cap at 60s for streaming)
-	headerTimeout := time.Duration(timeoutSeconds) * time.Second
-	if isStreamingRequest {
-		headerTimeout = 60 * time.Second
-	}
-
-	client := &http.Client{
-		Timeout: timeout,
-		Transport: &http.Transport{
-			DisableKeepAlives:     true,
-			ResponseHeaderTimeout: headerTimeout,
-			IdleConnTimeout:       90 * time.Second,
-			ForceAttemptHTTP2:     false, // Force HTTP/1.1 to avoid HTTP/2 stream issues
-		},
-	}
-
-	// Prepare request body
-	var bodyReader io.Reader
-	if fetchReq.Body != "" {
-		bodyReader = strings.NewReader(fetchReq.Body)
-	}
-
-	// Create HTTP request
-	req, err := http.NewRequest(fetchReq.Method, fetchReq.URL, bodyReader)
-	if err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("Failed to create request: %v", err))
-		return FetchResponse{
-			Status:     0,
-			StatusText: "Request Creation Failed",
-			OK:         false,
-			Error:      err.Error(),
-			Headers:    make(map[string]string),
-		}
-	}
-
-	// Set headers
-	for key, value := range fetchReq.Headers {
-		req.Header.Set(key, value)
-	}
-
-	// Execute request
-	resp, err := client.Do(req)
-	if err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("Request failed: %v", err))
-		return FetchResponse{
-			Status:     0,
-			StatusText: "Network Error",
-			OK:         false,
-			Error:      err.Error(),
-			Headers:    make(map[string]string),
-		}
-	}
-	// Note: Don't defer resp.Body.Close() here - we'll handle it based on streaming vs non-streaming
-
-	// Convert response headers to map
-	headers := make(map[string]string)
-	for key, values := range resp.Header {
-		if len(values) > 0 {
-			headers[key] = values[0] // Take first value for simplicity
-		}
-	}
-
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Response: %d %s", resp.StatusCode, resp.Status))
-
-	// Check if streaming is requested (explicit flag or stream in body)
-	if fetchReq.Stream || hasStreamInBody {
-		// Generate unique stream ID
-		streamID := uuid.New().String()
-		streamType := "explicit"
-		if hasStreamInBody && !fetchReq.Stream {
-			streamType = "auto-detected"
-		}
-		runtime.LogInfo(a.ctx, fmt.Sprintf("Starting %s stream [%s] for %s", streamType, streamID[:8], fetchReq.URL))
-
-		// Start streaming in a goroutine
-		go a.streamResponse(streamID, resp.Body)
-
-		return FetchResponse{
-			Status:     resp.StatusCode,
-			StatusText: resp.Status,
-			Headers:    headers,
-			OK:         resp.StatusCode >= 200 && resp.StatusCode < 300,
-			StreamID:   streamID,
-		}
-	}
-
-	// Read response body for non-streaming requests
-	defer resp.Body.Close() // Close body for non-streaming requests
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("Failed to read response body: %v", err))
-		return FetchResponse{
-			Status:     resp.StatusCode,
-			StatusText: resp.Status,
-			OK:         resp.StatusCode >= 200 && resp.StatusCode < 300,
-			Error:      err.Error(),
-			Headers:    make(map[string]string),
-		}
-	}
-
-	return FetchResponse{
-		Status:     resp.StatusCode,
-		StatusText: resp.Status,
-		Headers:    headers,
-		Body:       string(bodyBytes),
-		OK:         resp.StatusCode >= 200 && resp.StatusCode < 300,
-	}
-}
-
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
-}
-
-// GitHub OAuth device flow response structures
-type DeviceCodeResponse struct {
-	DeviceCode      string `json:"device_code"`
-	UserCode        string `json:"user_code"`
-	VerificationURI string `json:"verification_uri"`
-	Interval        int    `json:"interval"`
-}
-
-type AccessTokenResponse struct {
-	AccessToken string `json:"access_token"`
-	Error       string `json:"error"`
-}
-
-type CopilotTokenResponse struct {
-	Token string `json:"token"`
-}
-
-// FetchGithubCopilotKey handles GitHub authentication and returns access token
-func (a *App) FetchGithubCopilotKey() string {
-	// const CLIENT_ID = "Iv23liAiMVpE28SJwyIn" // GitHub Copilot client id
-	const CLIENT_ID = "Iv1.b507a08c87ecfe98" // GitHub Copilot client id
-
-	// Step 1: Request device code with proper headers
-	deviceBody := url.Values{
-		"client_id": {CLIENT_ID},
-		"scope":     {"read:user"},
-	}
-
-	deviceReq, err := http.NewRequest("POST", "https://github.com/login/device/code", strings.NewReader(deviceBody.Encode()))
-	if err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("Failed to create device code request: %v", err))
-		return ""
-	}
-
-	deviceReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	deviceReq.Header.Set("Accept", "application/json")
-	deviceReq.Header.Set("Editor-Version", "vscode/1.100.3")
-	deviceReq.Header.Set("Editor-Plugin-Version", "GitHub.copilot/1.330.0")
-	deviceReq.Header.Set("User-Agent", "GithubCopilot/1.330.0")
-
-	client := &http.Client{}
-	deviceResp, err := client.Do(deviceReq)
-	if err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("Failed to request device code: %v", err))
-		return ""
-	}
-	defer deviceResp.Body.Close()
-
-	if deviceResp.StatusCode != http.StatusOK {
-		runtime.LogError(a.ctx, fmt.Sprintf("Failed to request device code: %d", deviceResp.StatusCode))
-		return ""
-	}
-
-	var deviceData DeviceCodeResponse
-	if err := json.NewDecoder(deviceResp.Body).Decode(&deviceData); err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("Failed to decode device code response: %v", err))
-		return ""
-	}
-
-	// Step 2: Ask user to authenticate
-	browser.OpenURL(deviceData.VerificationURI)
-
-	// Automatically copy the user code to clipboard
-	err = runtime.ClipboardSetText(a.ctx, deviceData.UserCode)
-	if err != nil {
-		runtime.LogWarning(a.ctx, fmt.Sprintf("Failed to copy user code to clipboard: %v", err))
-	} else {
-		runtime.LogInfo(a.ctx, fmt.Sprintf("User code %s copied to clipboard", deviceData.UserCode))
-	}
-
-	_, err = runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
-		Type:    runtime.InfoDialog,
-		Title:   "GitHub Authentication",
-		Message: fmt.Sprintf("Please authenticate with GitHub using code: %s\n\nThe code has been automatically copied to your clipboard. Just paste it on the GitHub authentication page.\n\nClick OK after you've completed authentication.", deviceData.UserCode),
-	})
-	if err != nil {
-		runtime.LogError(a.ctx, fmt.Sprintf("Failed to show dialog: %v", err))
-		return ""
-	}
-
-	// Step 3: Poll for access token with proper headers
-	for {
-		time.Sleep(time.Duration(deviceData.Interval) * time.Second)
-
-		tokenBody := url.Values{
-			"client_id":   {CLIENT_ID},
-			"device_code": {deviceData.DeviceCode},
-			"grant_type":  {"urn:ietf:params:oauth:grant-type:device_code"},
-		}
-
-		tokenReq, err := http.NewRequest("POST", "https://github.com/login/oauth/access_token", strings.NewReader(tokenBody.Encode()))
-		if err != nil {
-			runtime.LogError(a.ctx, fmt.Sprintf("Failed to create token request: %v", err))
-			return ""
-		}
-
-		tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		tokenReq.Header.Set("accept", "application/json")
-		tokenReq.Header.Set("editor-version", "vscode/1.100.3")
-		tokenReq.Header.Set("editor-plugin-version", "GitHub.copilot/1.330.0")
-		tokenReq.Header.Set("user-agent", "GithubCopilot/1.330.0")
-
-		tokenResp, err := client.Do(tokenReq)
-		if err != nil {
-			runtime.LogError(a.ctx, fmt.Sprintf("Failed to poll for access token: %v", err))
-			return ""
-		}
-		defer tokenResp.Body.Close()
-
-		if tokenResp.StatusCode != http.StatusOK {
-			runtime.LogError(a.ctx, fmt.Sprintf("Failed to poll for access token: %d", tokenResp.StatusCode))
-			return ""
-		}
-
-		var tokenData AccessTokenResponse
-		if err := json.NewDecoder(tokenResp.Body).Decode(&tokenData); err != nil {
-			runtime.LogError(a.ctx, fmt.Sprintf("Failed to decode token response: %v", err))
-			return ""
-		}
-
-		if tokenData.Error != "" {
-			if tokenData.Error == "authorization_pending" {
-				continue
-			}
-			runtime.LogError(a.ctx, fmt.Sprintf("GitHub auth error: %s", tokenData.Error))
-			return ""
-		}
-
-		runtime.LogInfo(a.ctx, "Successfully obtained GitHub access token")
-
-		// Step 4: Verify the token works by testing API access
-		userReq, err := http.NewRequest("GET", "https://api.github.com/user", nil)
-		if err != nil {
-			runtime.LogError(a.ctx, fmt.Sprintf("Failed to create user request: %v", err))
-			return ""
-		}
-		userReq.Header.Set("Authorization", "Bearer "+tokenData.AccessToken)
-		userReq.Header.Set("Accept", "application/json")
-
-		userResp, err := client.Do(userReq)
-		if err != nil {
-			runtime.LogError(a.ctx, fmt.Sprintf("Failed to verify token: %v", err))
-			return ""
-		}
-		defer userResp.Body.Close()
-
-		if userResp.StatusCode != http.StatusOK {
-			runtime.LogError(a.ctx, fmt.Sprintf("Token verification failed: %d", userResp.StatusCode))
-			return ""
-		}
-
-		// Step 5: Try to get Copilot token (this may fail, but we'll handle it gracefully)
-		runtime.LogInfo(a.ctx, "Attempting to get Copilot token...")
-
-		copilotReq, err := http.NewRequest("GET", "https://api.github.com/copilot_internal/v2/token", nil)
-		runtime.LogInfo(a.ctx, fmt.Sprintf("Copilot request: %v", copilotReq))
-
-		if err != nil {
-			runtime.LogWarning(a.ctx, fmt.Sprintf("Failed to create Copilot request: %v", err))
-			return a.handleCopilotFallback(tokenData.AccessToken)
-		}
-
-		copilotReq.Header.Set("Authorization", "Bearer "+tokenData.AccessToken)
-		copilotReq.Header.Set("user-agent", "GithubCopilot/1.330.0")
-
-		copilotResp, err := client.Do(copilotReq)
-		if err != nil {
-			runtime.LogWarning(a.ctx, fmt.Sprintf("Failed to get Copilot token: %v", err))
-			return a.handleCopilotFallback(tokenData.AccessToken)
-		}
-		defer copilotResp.Body.Close()
-
-		if copilotResp.StatusCode != http.StatusOK {
-			runtime.LogWarning(a.ctx, fmt.Sprintf("Copilot token request failed: %d - %s - %v", copilotResp.StatusCode, tokenData.AccessToken, copilotResp))
-			return a.handleCopilotFallback(tokenData.AccessToken)
-		}
-
-		var copilotData CopilotTokenResponse
-		if err := json.NewDecoder(copilotResp.Body).Decode(&copilotData); err != nil {
-			runtime.LogWarning(a.ctx, fmt.Sprintf("Failed to decode Copilot response: %v", err))
-			return a.handleCopilotFallback(tokenData.AccessToken)
-		}
-
-		return copilotData.Token
-	}
-}
-
-// handleCopilotFallback handles the case where Copilot token is not available
-func (a *App) handleCopilotFallback(accessToken string) string {
-	runtime.LogInfo(a.ctx, "Using GitHub access token instead of Copilot token")
-
-	_, err := runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
-		Type:    runtime.InfoDialog,
-		Title:   "GitHub Access Token",
-		Message: "Successfully authenticated with GitHub!\n\nNote: The Copilot internal API is not available for public use. You'll receive a GitHub access token instead, which you can use for GitHub API calls.\n\nFor actual Copilot functionality, consider using GitHub Copilot in VS Code, GitHub.com, or the GitHub CLI.",
-	})
-	if err != nil {
-		runtime.LogWarning(a.ctx, fmt.Sprintf("Failed to show fallback dialog: %v", err))
-	}
-
-	return accessToken
-}
-
-// streamResponse handles streaming response data via Wails events
-func (a *App) streamResponse(streamID string, body io.ReadCloser) {
-	defer body.Close()
-
-	// Small delay to ensure frontend event listener is set up
-	time.Sleep(100 * time.Millisecond)
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Stream [%s] starting to read data", streamID[:8]))
-
-	reader := bufio.NewReader(body)
-	buffer := make([]byte, 1024) // 1KB chunks
-
-	for {
-		n, err := reader.Read(buffer)
-		if n > 0 {
-			// Send chunk via event
-			chunkData := string(buffer[:n])
-			chunk := StreamChunk{
-				StreamID: streamID,
-				Data:     chunkData,
-				Done:     false,
-			}
-			runtime.LogInfo(a.ctx, fmt.Sprintf("Streaming chunk [%s] (%d bytes): %s", streamID[:8], n, chunkData))
-			runtime.EventsEmit(a.ctx, fmt.Sprintf("fetch-stream-chunk:%s", streamID), chunk)
-		}
-
-		if err != nil {
-			if err == io.EOF {
-				// Send completion signal
-				chunk := StreamChunk{
-					StreamID: streamID,
-					Data:     "",
-					Done:     true,
-				}
-				runtime.EventsEmit(a.ctx, fmt.Sprintf("fetch-stream-chunk:%s", streamID), chunk)
-			} else {
-				// Send error
-				chunk := StreamChunk{
-					StreamID: streamID,
-					Data:     "",
-					Done:     true,
-					Error:    err.Error(),
-				}
-				runtime.EventsEmit(a.ctx, fmt.Sprintf("fetch-stream-chunk:%s", streamID), chunk)
-			}
-			break
-		}
-	}
-}
-
-// CommandRequest represents a command execution request
-type CommandRequest struct {
-	Command     string            `json:"command"`
-	Args        []string          `json:"args,omitempty"`
-	WorkingDir  string            `json:"workingDir,omitempty"`
-	Env         map[string]string `json:"env,omitempty"`
-	Timeout     int               `json:"timeout,omitempty"` // timeout in seconds
-	Description string            `json:"description,omitempty"`
-}
-
-// CommandResponse represents the response from command execution
-type CommandResponse struct {
-	Success   bool   `json:"success"`
-	ExitCode  int    `json:"exitCode"`
-	Stdout    string `json:"stdout"`
-	Stderr    string `json:"stderr"`
-	Error     string `json:"error,omitempty"`
-	Duration  int64  `json:"duration"` // duration in milliseconds
-	Truncated bool   `json:"truncated,omitempty"`
-}
-
-// ExecuteCommand executes a shell command and returns the result
-func (a *App) ExecuteCommand(cmdReq CommandRequest) CommandResponse {
-	startTime := time.Now()
-
-	// Security check: Don't allow empty commands
-	if cmdReq.Command == "" {
-		return CommandResponse{
-			Success:  false,
-			ExitCode: -1,
-			Error:    "Command cannot be empty",
-			Duration: time.Since(startTime).Milliseconds(),
-		}
-	}
-
-	// Set default timeout to 2 minutes if not specified
-	timeout := 120
-	if cmdReq.Timeout > 0 {
-		timeout = cmdReq.Timeout
-	}
-
-	// Create context with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
-	defer cancel()
-
-	// Create command
-	var cmd *exec.Cmd
-	if len(cmdReq.Args) > 0 {
-		cmd = exec.CommandContext(ctx, cmdReq.Command, cmdReq.Args...)
-	} else {
-		// For shell commands, use the default shell from SHELL environment variable
-		shell := os.Getenv("SHELL")
-		if shell == "" {
-			// Fallback to sh if SHELL is not set
-			shell = "sh"
-		}
-		cmd = exec.CommandContext(ctx, shell, "-c", cmdReq.Command)
-	}
-
-	// Set working directory if specified
-	if cmdReq.WorkingDir != "" {
-		cmd.Dir = cmdReq.WorkingDir
-	}
-
-	// Set environment variables
-	if len(cmdReq.Env) > 0 {
-		env := os.Environ()
-		for key, value := range cmdReq.Env {
-			env = append(env, fmt.Sprintf("%s=%s", key, value))
-		}
-		cmd.Env = env
-	}
-
-	// Log command execution
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Executing command: %s %v (timeout: %ds)", cmdReq.Command, cmdReq.Args, timeout))
-
-	// Execute command and capture output
-	stdout, stderr, err := a.runCommandWithLimits(cmd)
-	duration := time.Since(startTime).Milliseconds()
-
-	// Determine exit code
-	exitCode := 0
-	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			exitCode = exitError.ExitCode()
-		} else {
-			exitCode = -1
-		}
-	}
-
-	// Check for timeout
-	if ctx.Err() == context.DeadlineExceeded {
-		return CommandResponse{
-			Success:  false,
-			ExitCode: -1,
-			Stdout:   stdout,
-			Stderr:   stderr,
-			Error:    fmt.Sprintf("Command timed out after %d seconds", timeout),
-			Duration: duration,
-		}
-	}
-
-	// Return response
-	response := CommandResponse{
-		Success:  err == nil,
-		ExitCode: exitCode,
-		Stdout:   stdout,
-		Stderr:   stderr,
-		Duration: duration,
-	}
-
-	if err != nil && response.Error == "" {
-		response.Error = err.Error()
-	}
-
-	return response
-}
-
-// runCommandWithLimits runs a command with output size limits
-func (a *App) runCommandWithLimits(cmd *exec.Cmd) (stdout, stderr string, err error) {
-	const maxOutputSize = 30000 // 30KB limit to match Claude Code's limit
-
-	stdoutPipe, err := cmd.StdoutPipe()
-	if err != nil {
-		return "", "", err
-	}
-
-	stderrPipe, err := cmd.StderrPipe()
-	if err != nil {
-		return "", "", err
-	}
-
-	err = cmd.Start()
-	if err != nil {
-		return "", "", err
-	}
-
-	// Read stdout with limit
-	stdoutBytes := make([]byte, maxOutputSize)
-	stdoutRead, _ := io.ReadFull(stdoutPipe, stdoutBytes)
-	if stdoutRead == maxOutputSize {
-		// Check if there's more data
-		extraBytes := make([]byte, 1)
-		if n, _ := stdoutPipe.Read(extraBytes); n > 0 {
-			stdout = string(stdoutBytes) + "\n... (output truncated)"
-		} else {
-			stdout = string(stdoutBytes[:stdoutRead])
-		}
-	} else {
-		stdout = string(stdoutBytes[:stdoutRead])
-	}
-
-	// Read stderr with limit
-	stderrBytes := make([]byte, maxOutputSize)
-	stderrRead, _ := io.ReadFull(stderrPipe, stderrBytes)
-	if stderrRead == maxOutputSize {
-		// Check if there's more data
-		extraBytes := make([]byte, 1)
-		if n, _ := stderrPipe.Read(extraBytes); n > 0 {
-			stderr = string(stderrBytes) + "\n... (output truncated)"
-		} else {
-			stderr = string(stderrBytes[:stderrRead])
-		}
-	} else {
-		stderr = string(stderrBytes[:stderrRead])
-	}
-
-	err = cmd.Wait()
-	return stdout, stderr, err
-}
+// // FetchProxy delegates to the HTTP proxy service
+// func (a *App) FetchProxy(fetchReq services.FetchRequest) services.FetchResponse {
+// 	return a.httpProxyService.FetchProxy(fetchReq)
+// }
+
+// // FetchGithubCopilotKey delegates to the GitHub OAuth service
+// func (a *App) FetchGithubCopilotKey() string {
+// 	return a.githubOAuthService.FetchGithubCopilotKey()
+// }
+
+// // ExecuteCommand delegates to the command executor service
+// func (a *App) ExecuteCommand(cmdReq services.CommandRequest) services.CommandResponse {
+// 	return a.commandExecutorService.ExecuteCommand(cmdReq)
+// }
+
+// // Greet returns a greeting for the given name (kept for compatibility)
+// func (a *App) Greet(name string) string {
+// 	return fmt.Sprintf("Hello %s, It's show time!", name)
+// }
