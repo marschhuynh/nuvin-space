@@ -2,11 +2,11 @@
 
 ## Project Overview
 
-**Nuvin Space** is a desktop AI agent management application built with Wails (Go + React + TypeScript). It provides a unified interface for interacting with multiple AI providers and agents, including support for MCP (Model Context Protocol) servers for tool integration.
+**Nuvin Space** is a desktop AI agent management application built with Wails3 (Go + React + TypeScript). It provides a unified interface for interacting with multiple AI providers and agents, including support for MCP (Model Context Protocol) servers for tool integration.
 
 ### Architecture
 - **Frontend**: React + TypeScript with TailwindCSS and Radix UI components
-- **Backend**: Go application using Wails framework for desktop integration
+- **Backend**: Go application using Wails3 framework for desktop integration
 - **State Management**: Zustand for client-side state
 - **UI Framework**: Custom component library built on Radix UI primitives
 
@@ -75,8 +75,9 @@ pnpm run format           # Format code with Biome
 
 ### Backend/Desktop App
 ```bash
-wails dev                 # Development mode with hot reload
-wails build               # Build production executable
+wails3 task dev           # Development mode with hot reload (Vite + Go)
+wails3 task build         # Build production executable
+wails3 task package:archive  # Create platform-specific archive
 go run .                  # Run Go backend directly
 ```
 
@@ -94,7 +95,7 @@ go run .                  # Run Go backend directly
 
 ### Backend Stack
 - **Go** - Backend language
-- **Wails v2** - Desktop framework
+- **Wails v3** - Desktop framework
 - **Context/cancellation** - Request management
 - **JSON-RPC** - MCP communication protocol
 
@@ -230,15 +231,16 @@ pnpm run test:coverage  # Coverage report
 
 ### Development
 ```bash
-wails dev  # Hot reload for both frontend and backend
+wails3 task dev  # Hot reload for both frontend and backend
 ```
 
 ### Production Build
 ```bash
-wails build  # Creates platform-specific executable
+wails3 task build         # Build production executable
+wails3 task package:archive  # Create platform-specific archive
 ```
 
-The built application will be in the `build/bin/` directory.
+The built application will be in the `build/` directory, and packaged distributions will be in the `dist/` directory.
 
 ## Common Development Tasks
 
