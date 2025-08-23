@@ -1,4 +1,4 @@
-import { Tool } from '@/types/tools';
+import type { Tool } from '@/types/tools';
 import { ExecuteCommand as CommandExecutorExecuteCommand } from '@wails/services/commandexecutorservice';
 
 export const bashTool: Tool = {

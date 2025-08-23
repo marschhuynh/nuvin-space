@@ -47,20 +47,20 @@ export const useToolPermissionStore = create<ToolPermissionState>()(
       askPermission: (conversationId, toolName, toolParams) =>
         new Promise<'once' | 'conversation' | 'deny'>((resolve) => {
           const newRequest = { conversationId, toolName, toolParams, resolve };
-          
+
           set((state) => {
             // If no current request, show this one immediately
             if (!state.request) {
-              return { 
+              return {
                 ...state,
                 request: newRequest,
-                requestQueue: [...state.requestQueue]
+                requestQueue: [...state.requestQueue],
               };
             } else {
               // Otherwise, queue it
               return {
                 ...state,
-                requestQueue: [...state.requestQueue, newRequest]
+                requestQueue: [...state.requestQueue, newRequest],
               };
             }
           });
@@ -70,16 +70,16 @@ export const useToolPermissionStore = create<ToolPermissionState>()(
         if (req) {
           req.resolve(decision);
         }
-        
+
         set((state) => {
           // Process next request in queue if any
           const nextRequest = state.requestQueue[0];
           const remainingQueue = state.requestQueue.slice(1);
-          
+
           return {
             ...state,
             request: nextRequest || null,
-            requestQueue: remainingQueue
+            requestQueue: remainingQueue,
           };
         });
       },
@@ -89,4 +89,4 @@ export const useToolPermissionStore = create<ToolPermissionState>()(
       partialize: (state) => ({ permissions: state.permissions }),
     },
   ),
-);;
+);

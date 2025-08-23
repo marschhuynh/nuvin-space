@@ -402,7 +402,7 @@ class StreamingHandler {
 
       // Stream the follow-up response as well
       const followUpStream = provider.generateCompletionStreamWithTools(followUpParams, signal);
-      
+
       try {
         for await (const chunk of followUpStream) {
           if (signal?.aborted) {
