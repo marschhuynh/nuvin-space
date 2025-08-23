@@ -194,7 +194,7 @@ export function AssistantMessage({ id, content, isStreaming = false, messageMode
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="p-1 rounded-md transition-all duration-200 hover:bg-red-500/20 text-foreground/80 hover:text-red-500 backdrop-blur-sm shadow-sm bg-foreground/10"
+                  className="p-1 rounded-md transition-all duration-200 hover:bg-red-500/20 text-foreground/80 hover:text-red-500 backdrop-blur-sm bg-foreground/10 shadow-sm "
                   title="Delete message"
                 >
                   <Trash2 className="h-3 w-3" />

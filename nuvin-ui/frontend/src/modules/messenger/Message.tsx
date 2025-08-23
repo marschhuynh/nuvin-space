@@ -49,6 +49,7 @@ export function Message({ id, role, content, isStreaming = false, metadata, tool
           arguments={toolCall.arguments}
           result={toolCall.result}
           isExecuting={toolCall.isExecuting}
+          messageMode={preferences.messageMode}
         />
       ) : (
         <AssistantMessage

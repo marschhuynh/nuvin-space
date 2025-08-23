@@ -140,7 +140,7 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
               <button
                 type="button"
                 onClick={handleDelete}
-                className="p-1 rounded-md transition-all duration-200 hover:bg-red-500/20 text-primary-foreground/80 hover:text-red-200 backdrop-blur-sm shadow-sm bg-primary-foreground/10"
+                className={`p-1 rounded-md transition-all duration-200 ${messageMode === 'transparent' ? 'hover:bg-red-500/20 hover:text-red-500 text-foreground/80 hover:text-foreground' : 'hover:bg-red-500/20 text-primary-foreground/80 hover:text-red-200'} backdrop-blur-sm shadow-sm ${messageMode === 'transparent' ? 'bg-foreground/10' : 'bg-primary-foreground/10'}`}
                 title="Delete message"
               >
                 <Trash2 className="h-3 w-3" />
@@ -148,7 +148,7 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
               <button
                 type="button"
                 onClick={handleEdit}
-                className="p-1 rounded-md transition-all duration-200 hover:bg-primary-foreground/20 text-primary-foreground/80 hover:text-primary-foreground backdrop-blur-sm shadow-sm bg-primary-foreground/10"
+                className={`p-1 rounded-md transition-all duration-200 ${messageMode === 'transparent' ? 'hover:bg-foreground/20 text-foreground/80 hover:text-foreground' : 'hover:bg-primary-foreground/20 hover:text-primary-foreground text-primary-foreground/80'} backdrop-blur-sm shadow-sm ${messageMode === 'transparent' ? 'bg-foreground/10' : 'bg-primary-foreground/10'}`}
                 title="Edit message"
               >
                 <Edit className="h-3 w-3" />
@@ -156,7 +156,7 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
               <button
                 type="button"
                 onClick={handleCopy}
-                className={`p-1 rounded-md transition-all duration-200 hover:bg-primary-foreground/20 text-primary-foreground/80 hover:text-primary-foreground backdrop-blur-sm shadow-sm bg-primary-foreground/10 ${copied ? 'scale-110 bg-green-500/20 text-green-200' : ''}`}
+                className={`p-1 rounded-md transition-all duration-200 ${messageMode === 'transparent' ? 'hover:bg-foreground/20 text-foreground/80 hover:text-foreground' : 'hover:bg-primary-foreground/20 text-primary-foreground/80'} backdrop-blur-sm shadow-sm ${messageMode === 'transparent' ? 'bg-foreground/10' : 'bg-primary-foreground/10'} ${copied ? 'scale-110 bg-green-500/20 text-green-200' : ''}`}
                 title="Copy message"
               >
                 {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}

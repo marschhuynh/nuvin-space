@@ -24,6 +24,7 @@ interface ToolCallMessageProps {
     metadata?: Record<string, any>;
   };
   isExecuting?: boolean;
+  messageMode?: 'normal' | 'transparent';
 }
 
 // Helper function to remove system reminder tags from content
@@ -40,6 +41,7 @@ export function ToolCallMessage({
   arguments: args,
   result,
   isExecuting = false,
+  messageMode,
 }: ToolCallMessageProps) {
   const [copied, setCopied] = useState(false);
   const [showToolDetail, setShowToolDetail] = useState(false);
@@ -200,7 +202,13 @@ export function ToolCallMessage({
       <div
         className={`relative ${isEditing ? 'w-full min-w-[600px]' : 'w-[70%] max-w-[70%]'} transition-all duration-300`}
       >
-        <div className="rounded-lg bg-card border-border hover:shadow-xs hover:border-border/80 shadow-xxs border transition-all duration-300 overflow-visible relative">
+        <div
+          className={
+            messageMode === 'transparent'
+              ? 'text-foreground'
+              : 'rounded-lg bg-card border-border hover:shadow-xs hover:border-border/80 shadow-xxs border transition-all duration-300 overflow-visible relative'
+          }
+        >
           {!showToolDetail ? (
             /* Compact linear view: collapse icon > tool name > status text */
             <div className="px-3 py-2.5">
