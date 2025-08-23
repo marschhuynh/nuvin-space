@@ -9,7 +9,7 @@ interface NavbarProps {
   userName?: string;
 }
 
-export function Navbar() {
+export function Navbar(props: NavbarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, setTheme, resolvedTheme } = useTheme();

@@ -61,8 +61,8 @@ func (s *CommandExecutorService) ExecuteCommand(cmdReq CommandRequest) CommandRe
 		}
 	}
 
-	// Set default timeout to 2 minutes if not specified
-	timeout := 120
+	// Set default timeout to 5 minutes if not specified
+	timeout := 300
 	if cmdReq.Timeout > 0 {
 		timeout = cmdReq.Timeout
 	}

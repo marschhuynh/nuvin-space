@@ -149,3 +149,31 @@ tasks:
       - |
         if [ "{{.GOOS}}" != "linux" ]; then echo "This task should be run on Linux"; fi
       - tar czf dist/{{.APP_NAME}}_{{.VERSION}}_linux-{{.GOARCH}}.tar.gz -C dist {{.APP_NAME}}_{{.VERSION}}_linux-{{.GOARCH}}
+
+  generate:icon:
+    desc: Generate .icns icon from icons/appstore.png (macOS only)
+    cmds:
+      - |
+        if [ "{{.GOOS}}" != "darwin" ]; then echo "This task must be run on macOS" && exit 1; fi
+      - mkdir -p icons
+      - |
+        ICON_SRC="icons/appstore.png"
+        if [ ! -f "$ICON_SRC" ]; then echo "Source icon not found: $ICON_SRC" && exit 1; fi
+      - |
+        # Generate .icns from icons/appstore.png
+        ICON_SRC="icons/appstore.png"
+        if command -v iconutil >/dev/null 2>&1 && command -v sips >/dev/null 2>&1 && [ -f "$ICON_SRC" ]; then \
+          TMPSET=$(mktemp -d)/AppIcon.iconset; mkdir -p "$TMPSET"; \
+          echo "Generating icon sizes..."; \
+          for SIZE in 16 32 64 128 256 512; do \
+            echo "  Creating ${SIZE}x${SIZE} icon..."; \
+            sips -z $SIZE $SIZE "$ICON_SRC" --out "$TMPSET/icon_${SIZE}x${SIZE}.png" >/dev/null; \
+            sips -z $((SIZE*2)) $((SIZE*2)) "$ICON_SRC" --out "$TMPSET/icon_${SIZE}x${SIZE}@2x.png" >/dev/null; \
+          done; \
+          echo "Generating .icns file..."; \
+          iconutil -c icns "$TMPSET" -o "icons/appicon.icns"; \
+          echo "Icon generated successfully: icons/appicon.icns"; \
+        else \
+          echo "Error: iconutil/sips not available or source icon missing"; \
+          exit 1; \
+        fi

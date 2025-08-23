@@ -1,0 +1,22 @@
+{
+  "productName": "Nuvin Space",
+  "productVersion": "1.0.0",
+  "productDescription": "Desktop AI agent management application",
+  "productCompany": "Marsch Huynh",
+  "productCopyright": "© 2025, Marsch Huynh",
+  "productComments": "A unified interface for interacting with multiple AI providers and agents",
+  "binaryName": "nuvin-space",
+  "executableName": "nuvin-space",
+  "productIdentifier": "com.marschhuynh.nuvin-space",
+  "build": {
+    "dir": ".",
+    "frontend": "frontend"
+  },
+  "frontend": {
+    "dir": "frontend",
+    "install": "pnpm install",
+    "build": "pnpm build",
+    "dev": "pnpm dev",
+    "devUrl": "http://localhost:5173"
+  }
+}
