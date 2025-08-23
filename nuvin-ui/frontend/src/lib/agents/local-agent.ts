@@ -36,14 +36,11 @@ export class LocalAgent extends BaseAgent {
   ) {
     super(agentSettings, history);
     this.messageBuilder = new MessageBuilder();
-    this.streamingHandler = new StreamingHandler(this.addToHistory.bind(this));
     this.toolExecutor = new ToolExecutor(agentSettings.toolConfig);
+    this.streamingHandler = new StreamingHandler(this.addToHistory.bind(this), this.toolExecutor);
   }
 
-  async sendMessage(
-    content: string[],
-    options: SendMessageOptions = {},
-  ): Promise<MessageResponse> {
+  async sendMessage(content: string[], options: SendMessageOptions = {}): Promise<MessageResponse> {
     this.abortController = new AbortController();
 
     const context = this.createExecutionContext(content, options);
@@ -61,10 +58,7 @@ export class LocalAgent extends BaseAgent {
     }
   }
 
-  private async handleRegularMessage(
-    context: ExecutionContext,
-    provider: LLMProvider
-  ): Promise<MessageResponse> {
+  private async handleRegularMessage(context: ExecutionContext, provider: LLMProvider): Promise<MessageResponse> {
     // 1. Get initial completion
     let currentResult = await provider.generateCompletion(context.params, this.abortController?.signal);
     let allToolResults: ToolCallResult[] = [];
@@ -77,10 +71,8 @@ export class LocalAgent extends BaseAgent {
       console.log(`[LocalAgent] Processing ${currentResult.tool_calls.length} tool calls (depth: ${recursionDepth})`);
 
       // Execute tools for this round
-      const toolResults = await this.toolExecutor.executeTools(
-        currentResult,
-        context,
-        (toolMessage) => context.options.onAdditionalMessage?.(toolMessage)
+      const toolResults = await this.toolExecutor.executeTools(currentResult, context, (toolMessage) =>
+        context.options.onAdditionalMessage?.(toolMessage),
       );
 
       // Accumulate all tool results for history
@@ -93,7 +85,7 @@ export class LocalAgent extends BaseAgent {
       currentMessages.push({
         role: 'assistant' as const,
         content: currentResult.content,
-        tool_calls: currentResult.tool_calls
+        tool_calls: currentResult.tool_calls,
       });
 
       // Add tool result messages to conversation
@@ -113,7 +105,8 @@ export class LocalAgent extends BaseAgent {
     // 3. Handle case where recursion limit reached
     if (currentResult.tool_calls && currentResult.tool_calls.length > 0 && recursionDepth >= maxRecursionDepth) {
       console.warn(`[LocalAgent] Maximum recursion depth (${maxRecursionDepth}) reached, stopping tool calling flow`);
-      currentResult.content = (currentResult.content || '') +
+      currentResult.content =
+        (currentResult.content || '') +
         `\n\n[Tool calling stopped due to maximum recursion depth. ${currentResult.tool_calls.length} tool call(s) not executed]`;
     }
 
@@ -121,11 +114,7 @@ export class LocalAgent extends BaseAgent {
     const response = this.messageBuilder.buildFinalResponse(currentResult, context);
 
     // 5. Add messages to history (including all tool results from all rounds)
-    const historyMessages = this.messageBuilder.buildMessagesForHistory(
-      context.content,
-      currentResult,
-      allToolResults
-    );
+    const historyMessages = this.messageBuilder.buildMessagesForHistory(context.content, currentResult, allToolResults);
     this.addToHistory(context.convoId, historyMessages);
 
     // 6. Call completion callback
@@ -134,10 +123,7 @@ export class LocalAgent extends BaseAgent {
     return response;
   }
 
-  private async handleStreamingMessage(
-    context: ExecutionContext,
-    provider: LLMProvider
-  ): Promise<MessageResponse> {
+  private async handleStreamingMessage(context: ExecutionContext, provider: LLMProvider): Promise<MessageResponse> {
     if (provider.generateCompletionStreamWithTools) {
       return await this.streamingHandler.handleWithTools(context, provider, this.abortController?.signal);
     } else if (provider.generateCompletionStream) {
@@ -148,10 +134,7 @@ export class LocalAgent extends BaseAgent {
     }
   }
 
-  private createExecutionContext(
-    content: string[],
-    options: SendMessageOptions
-  ): ExecutionContext {
+  private createExecutionContext(content: string[], options: SendMessageOptions): ExecutionContext {
     const messageId = generateUUID();
     const convoId = options.conversationId || 'default';
     const messages = this.buildContext(convoId, content);
@@ -164,10 +147,7 @@ export class LocalAgent extends BaseAgent {
       topP: this.agentSettings.topP,
     };
 
-    const enhancedParams = toolIntegrationService.enhanceCompletionParams(
-      baseParams,
-      this.agentSettings.toolConfig,
-    );
+    const enhancedParams = toolIntegrationService.enhanceCompletionParams(baseParams, this.agentSettings.toolConfig);
 
     return {
       messageId,
@@ -185,7 +165,7 @@ export class LocalAgent extends BaseAgent {
           provider: this.providerConfig.type,
           model: this.providerConfig.activeModel.model,
         },
-      }
+      },
     };
   }
 
@@ -198,17 +178,16 @@ export class LocalAgent extends BaseAgent {
     }
   }
 
-  private createToolResultMessages(
-    toolCalls: ToolCall[],
-    toolResults: ToolCallResult[]
-  ): ChatMessage[] {
+  private createToolResultMessages(toolCalls: ToolCall[], toolResults: ToolCallResult[]): ChatMessage[] {
     const messages: ChatMessage[] = [];
 
-    toolResults.forEach((result) => {
-      const toolCall = toolCalls.find((call) => call.id === result.id);
-      if (toolCall) {
+    // Iterate through ALL tool calls to ensure each gets a response
+    toolCalls.forEach((toolCall) => {
+      const result = toolResults.find((r) => r.id === toolCall.id);
+
+      let content: string;
+      if (result) {
         // Handle standardized format
-        let content: string;
         if (result.result.status === 'error') {
           content = result.result.result as string;
         } else if (result.result.type === 'text') {
@@ -216,14 +195,17 @@ export class LocalAgent extends BaseAgent {
         } else {
           content = JSON.stringify(result.result.result);
         }
-
-        messages.push({
-          role: 'tool',
-          content: content,
-          tool_call_id: result.id,
-          name: result.name,
-        });
+      } else {
+        // No result found for this tool call - create error response
+        content = `Error: Tool "${toolCall.function.name}" did not return a result.`;
       }
+
+      messages.push({
+        role: 'tool',
+        content: content,
+        tool_call_id: toolCall.id,
+        name: toolCall.function.name,
+      });
     });
 
     return messages;
@@ -264,16 +246,12 @@ class MessageBuilder {
     };
   }
 
-  buildMessagesForHistory(
-    content: string[],
-    result: CompletionResult,
-    allToolResults?: ToolCallResult[]
-  ): Message[] {
+  buildMessagesForHistory(content: string[], result: CompletionResult, allToolResults?: ToolCallResult[]): Message[] {
     const timestamp = new Date().toISOString();
     const messages: Message[] = [];
 
     // Add user messages
-    content.forEach(msg => {
+    content.forEach((msg) => {
       messages.push({
         id: generateUUID(),
         role: 'user',
@@ -284,7 +262,7 @@ class MessageBuilder {
 
     // Add tool messages from all rounds if present
     if (allToolResults && allToolResults.length > 0) {
-      allToolResults.forEach(toolResult => {
+      allToolResults.forEach((toolResult) => {
         messages.push({
           id: generateUUID(),
           role: 'tool',
@@ -314,21 +292,29 @@ class MessageBuilder {
 }
 
 class StreamingHandler {
-  constructor(private addToHistory: (convoId: string, messages: Message[]) => void) { }
+  constructor(
+    private addToHistory: (convoId: string, messages: Message[]) => void,
+    private toolExecutor: ToolExecutor,
+  ) {}
 
   async handleWithTools(
     context: ExecutionContext,
     provider: LLMProvider,
-    signal?: AbortSignal
+    signal?: AbortSignal,
   ): Promise<MessageResponse> {
     if (!provider.generateCompletionStreamWithTools) {
       throw new Error('Provider does not support streaming with tools');
     }
 
-    const toolExecutor = new ToolExecutor();
-    let accumulated = '';
+    const messageBuilder = new MessageBuilder();
+    let allToolResults: ToolCallResult[] = [];
+    let currentMessages = [...context.params.messages]; // Track message history properly
+    let recursionDepth = 0;
+    const maxRecursionDepth = 50;
+
+    // 1. Get initial streaming completion
+    let streamedContent = '';
     let currentToolCalls: ToolCall[] = [];
-    let processedToolResults: ToolCallResult[] = [];
     let usage: UsageData = {
       prompt_tokens: 0,
       completion_tokens: 0,
@@ -338,13 +324,14 @@ class StreamingHandler {
     const stream = provider.generateCompletionStreamWithTools(context.params, signal);
 
     try {
+      // Stream the initial response
       for await (const chunk of stream) {
         if (signal?.aborted) {
           throw new Error('Request cancelled');
         }
 
         if (chunk.content) {
-          accumulated += chunk.content;
+          streamedContent += chunk.content;
           context.options.onChunk?.(chunk.content);
         }
 
@@ -354,49 +341,6 @@ class StreamingHandler {
 
         if (chunk.tool_calls) {
           currentToolCalls = chunk.tool_calls;
-
-          if (chunk.finished && currentToolCalls.length > 0) {
-            // Process and execute tools
-            const processed = await toolIntegrationService.processCompletionResult(
-              { content: accumulated, tool_calls: currentToolCalls },
-              context.toolContext,
-              toolExecutor.toolConfig,
-            );
-
-            if (processed.requiresFollowUp && processed.tool_results) {
-              processedToolResults = processed.tool_results;
-
-              // Emit tool messages
-              this.emitToolMessages(currentToolCalls, processed.tool_results, context.options.onAdditionalMessage);
-
-              // Get follow-up response (handles recursive tool calls)
-              const finalResult = await toolIntegrationService.completeToolCallingFlow(
-                context.params,
-                { content: accumulated, tool_calls: currentToolCalls },
-                processed.tool_results,
-                provider,
-                context.toolContext,
-                toolExecutor.toolConfig, // Pass tool config for recursive calls
-              );
-
-              if (finalResult.content.trim() && context.options.onAdditionalMessage) {
-                const finalMessage: MessageResponse = {
-                  id: generateUUID(),
-                  content: finalResult.content,
-                  role: 'assistant',
-                  timestamp: new Date().toISOString(),
-                  metadata: {
-                    agentType: 'local',
-                    agentId: context.toolContext.metadata?.agentId || 'unknown',
-                    provider: context.toolContext.metadata?.provider || 'unknown',
-                    model: context.toolContext.metadata?.model || 'unknown',
-                    responseTime: Date.now() - context.startTime,
-                  },
-                };
-                context.options.onAdditionalMessage(finalMessage);
-              }
-            }
-          }
         }
       }
     } catch (error) {
@@ -406,27 +350,104 @@ class StreamingHandler {
       throw error;
     }
 
-    const response = this.buildStreamingResponse(accumulated, usage, context, currentToolCalls.length);
+    // 2. Build initial result object
+    let currentResult: CompletionResult = {
+      content: streamedContent,
+      tool_calls: currentToolCalls.length > 0 ? currentToolCalls : undefined,
+      usage: usage,
+    };
 
-    // Add to history and call completion
-    const messageBuilder = new MessageBuilder();
-    const historyMessages = messageBuilder.buildMessagesForHistory(
-      context.content,
-      { content: accumulated, usage },
-      processedToolResults
+    // 3. Handle recursive tool calls (similar to handleRegularMessage)
+    while (currentResult.tool_calls && currentResult.tool_calls.length > 0 && recursionDepth < maxRecursionDepth) {
+      console.log(
+        `[StreamingHandler] Processing ${currentResult.tool_calls.length} tool calls (depth: ${recursionDepth})`,
+      );
+
+      // Execute tools for this round - use the same toolExecutor as regular message handler
+      const toolResults = await this.toolExecutor.executeTools(currentResult, context, (toolMessage) =>
+        context.options.onAdditionalMessage?.(toolMessage),
+      );
+
+      // Accumulate all tool results for history
+      allToolResults.push(...toolResults);
+
+      // Create follow-up messages with tool results - using the helper method
+      const toolMessages = this.createToolResultMessages(currentResult.tool_calls, toolResults);
+
+      // Add assistant message with tool calls to conversation
+      currentMessages.push({
+        role: 'assistant' as const,
+        content: currentResult.content,
+        tool_calls: currentResult.tool_calls,
+      });
+
+      // Add tool result messages to conversation
+      currentMessages.push(...toolMessages);
+
+      // Update params for next round with accumulated messages
+      const followUpParams = {
+        ...context.params,
+        messages: currentMessages,
+      };
+
+      // Get next completion (non-streaming for follow-ups to maintain consistency)
+      recursionDepth++;
+      const followUpResult = await provider.generateCompletion(followUpParams, signal);
+
+      // If this follow-up has content, emit it as an additional message
+      if (followUpResult.content.trim() && context.options.onAdditionalMessage) {
+        const followUpMessage: MessageResponse = {
+          id: generateUUID(),
+          content: followUpResult.content,
+          role: 'assistant',
+          timestamp: new Date().toISOString(),
+          metadata: {
+            agentType: 'local',
+            agentId: context.toolContext.metadata?.agentId || 'unknown',
+            provider: context.toolContext.metadata?.provider || 'unknown',
+            model: context.toolContext.metadata?.model || 'unknown',
+            responseTime: Date.now() - context.startTime,
+          },
+        };
+        context.options.onAdditionalMessage(followUpMessage);
+      }
+
+      currentResult = followUpResult;
+    }
+
+    // 4. Handle case where recursion limit reached
+    if (currentResult.tool_calls && currentResult.tool_calls.length > 0 && recursionDepth >= maxRecursionDepth) {
+      console.warn(
+        `[StreamingHandler] Maximum recursion depth (${maxRecursionDepth}) reached, stopping tool calling flow`,
+      );
+      currentResult.content =
+        (currentResult.content || '') +
+        `\n\n[Tool calling stopped due to maximum recursion depth. ${currentResult.tool_calls.length} tool call(s) not executed]`;
+    }
+
+    // 5. Build final response
+    const response = this.buildStreamingResponse(
+      streamedContent, // Use original streamed content for the main response
+      usage,
+      context,
+      allToolResults.length, // Total tool calls across all rounds
     );
 
+    // 6. Add messages to history (including all tool results from all rounds)
+    const historyMessages = messageBuilder.buildMessagesForHistory(
+      context.content,
+      { content: streamedContent, usage }, // Use original streamed content
+      allToolResults,
+    );
     this.addToHistory(context.convoId, historyMessages);
 
-    context.options.onComplete?.(accumulated);
+    // 7. Call completion callback
+    context.options.onComplete?.(streamedContent);
+
     return response;
   }
 
-  async handleBasic(
-    context: ExecutionContext,
-    provider: LLMProvider,
-    signal?: AbortSignal
-  ): Promise<MessageResponse> {
+  async handleBasic(context: ExecutionContext, provider: LLMProvider, signal?: AbortSignal): Promise<MessageResponse> {
     if (!provider.generateCompletionStream) {
       throw new Error('Provider does not support basic streaming');
     }
@@ -453,10 +474,9 @@ class StreamingHandler {
 
     // Add to history and call completion
     const messageBuilder = new MessageBuilder();
-    const historyMessages = messageBuilder.buildMessagesForHistory(
-      context.content,
-      { content: accumulated }
-    );
+    const historyMessages = messageBuilder.buildMessagesForHistory(context.content, {
+      content: accumulated,
+    });
     this.addToHistory(context.convoId, historyMessages);
 
     context.options.onComplete?.(accumulated);
@@ -467,7 +487,7 @@ class StreamingHandler {
     content: string,
     usage: UsageData | undefined,
     context: ExecutionContext,
-    toolCallCount: number
+    toolCallCount: number,
   ): MessageResponse {
     const timestamp = new Date().toISOString();
     const model = context.providerConfig.activeModel.model;
@@ -499,13 +519,13 @@ class StreamingHandler {
   private emitToolMessages(
     toolCalls: ToolCall[],
     toolResults: ToolCallResult[],
-    onAdditionalMessage?: (message: MessageResponse) => void
+    onAdditionalMessage?: (message: MessageResponse) => void,
   ): void {
     if (!onAdditionalMessage) return;
 
     for (let i = 0; i < toolCalls.length; i++) {
       const toolCall = toolCalls[i];
-      const result = toolResults.find(r => r.id === toolCall.id);
+      const result = toolResults.find((r) => r.id === toolCall.id);
 
       const toolMessage: MessageResponse = {
         id: generateUUID(),
@@ -529,15 +549,48 @@ class StreamingHandler {
       onAdditionalMessage(toolMessage);
     }
   }
+
+  private createToolResultMessages(toolCalls: ToolCall[], toolResults: ToolCallResult[]): ChatMessage[] {
+    const messages: ChatMessage[] = [];
+
+    // Iterate through ALL tool calls to ensure each gets a response
+    toolCalls.forEach((toolCall) => {
+      const result = toolResults.find((r) => r.id === toolCall.id);
+
+      let content: string;
+      if (result) {
+        // Handle standardized format
+        if (result.result.status === 'error') {
+          content = result.result.result as string;
+        } else if (result.result.type === 'text') {
+          content = result.result.result as string;
+        } else {
+          content = JSON.stringify(result.result.result);
+        }
+      } else {
+        // No result found for this tool call - create error response
+        content = `Error: Tool "${toolCall.function.name}" did not return a result.`;
+      }
+
+      messages.push({
+        role: 'tool',
+        content: content,
+        tool_call_id: toolCall.id,
+        name: toolCall.function.name,
+      });
+    });
+
+    return messages;
+  }
 }
 
 class ToolExecutor {
-  constructor(public toolConfig?: any) { }
+  constructor(public toolConfig?: any) {}
 
   async executeTools(
     result: CompletionResult,
     context: ExecutionContext,
-    onToolMessage: (message: MessageResponse) => void
+    onToolMessage: (message: MessageResponse) => void,
   ): Promise<ToolCallResult[]> {
     if (!result.tool_calls || result.tool_calls.length === 0) {
       return [];
@@ -563,16 +616,14 @@ class ToolExecutor {
     toolCalls: ToolCall[],
     toolResults: ToolCallResult[],
     context: ExecutionContext,
-    onToolMessage: (message: MessageResponse) => void
+    onToolMessage: (message: MessageResponse) => void,
   ): void {
     const timestamp = new Date().toISOString();
     const model = context.providerConfig.activeModel.model;
 
     for (const toolCallResult of toolResults) {
-      const originalToolCall = toolCalls.find(tc => tc.id === toolCallResult.id);
-      const parameters = originalToolCall
-        ? JSON.parse(originalToolCall.function.arguments || '{}')
-        : {};
+      const originalToolCall = toolCalls.find((tc) => tc.id === toolCallResult.id);
+      const parameters = originalToolCall ? JSON.parse(originalToolCall.function.arguments || '{}') : {};
 
       const toolMessageResponse: MessageResponse = {
         id: generateUUID(),
