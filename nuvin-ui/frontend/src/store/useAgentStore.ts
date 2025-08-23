@@ -18,7 +18,7 @@ export const useAgentStore = create<AgentState>()(
   persist(
     devtools((set) => ({
       agents: defaultAgents,
-      activeAgentId: defaultAgents[0].id,
+      activeAgentId: defaultAgents?.[0]?.id,
       addAgent: (agent) => set((state) => ({ agents: [...state.agents, agent] })),
       updateAgent: (agent) =>
         set((state) => ({
