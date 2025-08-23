@@ -3,17 +3,10 @@
  * This bypasses CORS restrictions and provides better error handling
  */
 
-import { FetchProxy as HTTPProxyFetchProxy } from '@wails/services/httpproxyservice'
-import {
-  LogInfo,
-  LogError,
-  EventsOn,
-  EventsOff,
-  isWailsEnvironment,
-} from './wails-runtime';
+import { FetchProxy as HTTPProxyFetchProxy } from '@wails/services/httpproxyservice';
+import { LogInfo, LogError, EventsOn, EventsOff, isWailsEnvironment } from './wails-runtime';
 
-const SERVER_BASE_URL =
-  import.meta.env.VITE_SERVER_URL || 'http://localhost:8080';
+const SERVER_BASE_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:8080';
 
 // Preserve a reference to the platform's original fetch implementation so we
 // can call it directly when proxying through the standalone Gin server. This
@@ -64,11 +57,7 @@ class ProxyResponse implements Response {
   private _bodyText: string;
   private _bodyUsed: boolean = false;
 
-  constructor(
-    bodyText: string,
-    init: ResponseInit & { url: string },
-    streamId?: string,
-  ) {
+  constructor(bodyText: string, init: ResponseInit & { url: string }, streamId?: string) {
     this._bodyText = bodyText;
     this.status = init.status || 200;
     this.statusText = init.statusText || 'OK';
@@ -96,9 +85,7 @@ class ProxyResponse implements Response {
     return new ReadableStream({
       start(controller) {
         let buffer = '';
-        console.log(
-          `[${streamId.substring(0, 8)}] Stream started, listening for chunks`,
-        );
+        console.log(`[${streamId.substring(0, 8)}] Stream started, listening for chunks`);
 
         const eventName = `fetch-stream-chunk:${streamId}`;
         const handleChunk = (chunk: StreamChunk) => {
@@ -108,16 +95,11 @@ class ProxyResponse implements Response {
             size: chunk.data?.length || 0,
             done: chunk.done,
             error: chunk.error,
-            data:
-              chunk.data?.substring(0, 100) +
-              (chunk.data && chunk.data.length > 100 ? '...' : ''),
+            data: chunk.data?.substring(0, 100) + (chunk.data && chunk.data.length > 100 ? '...' : ''),
           });
 
           if (chunk.error) {
-            console.error(
-              `[${streamId.substring(0, 8)}] Stream error:`,
-              chunk.error,
-            );
+            console.error(`[${streamId.substring(0, 8)}] Stream error:`, chunk.error);
             controller.error(new Error(chunk.error));
             EventsOff(eventName);
             return;
@@ -132,25 +114,19 @@ class ProxyResponse implements Response {
           }
 
           if (chunk.done) {
-            console.log(
-              `[${streamId.substring(0, 8)}] Stream completed, total: ${buffer.length} bytes`,
-            );
+            console.log(`[${streamId.substring(0, 8)}] Stream completed, total: ${buffer.length} bytes`);
             controller.close();
             EventsOff(eventName);
           }
         };
 
         EventsOn(eventName, handleChunk);
-        console.log(
-          `[${streamId.substring(0, 8)}] Event listener registered for '${eventName}'`,
-        );
+        console.log(`[${streamId.substring(0, 8)}] Event listener registered for '${eventName}'`);
       },
 
       cancel() {
         const eventName = `fetch-stream-chunk:${streamId}`;
-        console.log(
-          `[${streamId.substring(0, 8)}] Cancelling stream, removing event listener`,
-        );
+        console.log(`[${streamId.substring(0, 8)}] Cancelling stream, removing event listener`);
         EventsOff(eventName);
       },
     });
@@ -230,12 +206,7 @@ export async function fetchProxy(
 ): Promise<Response> {
   console.log('fetchProxy', input, init?.stream);
   // Convert input to URL string
-  const url =
-    typeof input === 'string'
-      ? input
-      : input instanceof URL
-        ? input.toString()
-        : input.url;
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
 
   // Extract request details
   const method = init?.method || 'GET';
@@ -293,12 +264,12 @@ export async function fetchProxy(
   try {
     const response: FetchResponse = useServer
       ? await (
-        await nativeFetch(`${SERVER_BASE_URL}/fetch`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(fetchRequest),
-        })
-      ).json()
+          await nativeFetch(`${SERVER_BASE_URL}/fetch`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fetchRequest),
+          })
+        ).json()
       : await HTTPProxyFetchProxy(fetchRequest);
 
     if (response.error) {
@@ -325,9 +296,7 @@ export async function fetchProxy(
     );
   } catch (error) {
     LogError(`Fetch proxy failed: ${error}`);
-    throw new Error(
-      `Fetch failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
+    throw new Error(`Fetch failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

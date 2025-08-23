@@ -25,8 +25,7 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
   const [editContent, setEditContent] = useState(content);
   const trimmedContent = content.trim();
 
-  const { updateMessage, deleteMessage, activeConversationId } =
-    useConversationStore();
+  const { updateMessage, deleteMessage, activeConversationId } = useConversationStore();
 
   const handleCopy = useCallback(async () => {
     try {
@@ -112,9 +111,7 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
             }}
           />
         ) : (
-          <pre className="text-sm whitespace-pre-wrap font-sans">
-            {trimmedContent}
-          </pre>
+          <pre className="text-sm whitespace-pre-wrap font-sans">{trimmedContent}</pre>
         )}
 
         {/* Controls positioned absolutely inside the message bubble */}
@@ -162,11 +159,7 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
                 className={`p-1 rounded-md transition-all duration-200 hover:bg-primary-foreground/20 text-primary-foreground/80 hover:text-primary-foreground backdrop-blur-sm shadow-sm bg-primary-foreground/10 ${copied ? 'scale-110 bg-green-500/20 text-green-200' : ''}`}
                 title="Copy message"
               >
-                {copied ? (
-                  <Check className="h-3 w-3" />
-                ) : (
-                  <Copy className="h-3 w-3" />
-                )}
+                {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
               </button>
             </>
           )}
@@ -178,8 +171,7 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
           <DialogHeader>
             <DialogTitle>Delete message</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this message? This action cannot
-              be undone.
+              Are you sure you want to delete this message? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

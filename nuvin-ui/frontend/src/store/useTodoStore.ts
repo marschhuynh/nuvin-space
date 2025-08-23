@@ -80,10 +80,7 @@ export const useTodoStore = create<TodoState>()(
               ...state,
               todos: {
                 ...state.todos,
-                [todoData.conversationId]: [
-                  ...(state.todos[todoData.conversationId] || []),
-                  newTodo,
-                ],
+                [todoData.conversationId]: [...(state.todos[todoData.conversationId] || []), newTodo],
               },
               lastModified: {
                 ...state.lastModified,
@@ -111,9 +108,7 @@ export const useTodoStore = create<TodoState>()(
 
         set((state) => {
           // Try to find in global todos first
-          const globalIndex = state.globalTodos.findIndex(
-            (t) => t.id === todoId,
-          );
+          const globalIndex = state.globalTodos.findIndex((t) => t.id === todoId);
           if (globalIndex !== -1) {
             const updatedGlobalTodos = [...state.globalTodos];
             updatedGlobalTodos[globalIndex] = {
@@ -126,9 +121,7 @@ export const useTodoStore = create<TodoState>()(
           // Search in conversation todos
           const newTodos = { ...state.todos };
           for (const conversationId in newTodos) {
-            const todoIndex = newTodos[conversationId].findIndex(
-              (t) => t.id === todoId,
-            );
+            const todoIndex = newTodos[conversationId].findIndex((t) => t.id === todoId);
             if (todoIndex !== -1) {
               const updatedConversationTodos = [...newTodos[conversationId]];
               updatedConversationTodos[todoIndex] = {
@@ -147,9 +140,7 @@ export const useTodoStore = create<TodoState>()(
       deleteTodo: (todoId) => {
         set((state) => {
           // Try to remove from global todos first
-          const globalIndex = state.globalTodos.findIndex(
-            (t) => t.id === todoId,
-          );
+          const globalIndex = state.globalTodos.findIndex((t) => t.id === todoId);
           if (globalIndex !== -1) {
             return {
               ...state,
@@ -160,13 +151,9 @@ export const useTodoStore = create<TodoState>()(
           // Search and remove from conversation todos
           const newTodos = { ...state.todos };
           for (const conversationId in newTodos) {
-            const todoIndex = newTodos[conversationId].findIndex(
-              (t) => t.id === todoId,
-            );
+            const todoIndex = newTodos[conversationId].findIndex((t) => t.id === todoId);
             if (todoIndex !== -1) {
-              newTodos[conversationId] = newTodos[conversationId].filter(
-                (t) => t.id !== todoId,
-              );
+              newTodos[conversationId] = newTodos[conversationId].filter((t) => t.id !== todoId);
               break;
             }
           }
@@ -227,17 +214,13 @@ export const useTodoStore = create<TodoState>()(
           let sourceConversationId: string | null = null;
 
           // Find the todo to move
-          const globalIndex = state.globalTodos.findIndex(
-            (t) => t.id === todoId,
-          );
+          const globalIndex = state.globalTodos.findIndex((t) => t.id === todoId);
           if (globalIndex !== -1) {
             todoToMove = state.globalTodos[globalIndex];
             sourceIsGlobal = true;
           } else {
             for (const convId in state.todos) {
-              const todoIndex = state.todos[convId].findIndex(
-                (t) => t.id === todoId,
-              );
+              const todoIndex = state.todos[convId].findIndex((t) => t.id === todoId);
               if (todoIndex !== -1) {
                 todoToMove = state.todos[convId][todoIndex];
                 sourceConversationId = convId;
@@ -258,15 +241,11 @@ export const useTodoStore = create<TodoState>()(
           // Remove from source
           let newState = { ...state };
           if (sourceIsGlobal) {
-            newState.globalTodos = state.globalTodos.filter(
-              (t) => t.id !== todoId,
-            );
+            newState.globalTodos = state.globalTodos.filter((t) => t.id !== todoId);
           } else if (sourceConversationId) {
             newState.todos = {
               ...state.todos,
-              [sourceConversationId]: state.todos[sourceConversationId].filter(
-                (t) => t.id !== todoId,
-              ),
+              [sourceConversationId]: state.todos[sourceConversationId].filter((t) => t.id !== todoId),
             };
           }
 
@@ -274,16 +253,10 @@ export const useTodoStore = create<TodoState>()(
           if (conversationId) {
             newState.todos = {
               ...newState.todos,
-              [conversationId]: [
-                ...(newState.todos[conversationId] || []),
-                updatedTodo,
-              ],
+              [conversationId]: [...(newState.todos[conversationId] || []), updatedTodo],
             };
           } else {
-            newState.globalTodos = [
-              ...newState.globalTodos,
-              { ...updatedTodo, conversationId: undefined },
-            ];
+            newState.globalTodos = [...newState.globalTodos, { ...updatedTodo, conversationId: undefined }];
           }
 
           return newState;
@@ -292,9 +265,7 @@ export const useTodoStore = create<TodoState>()(
 
       getTodos: (conversationId) => {
         const state = get();
-        return conversationId
-          ? state.todos[conversationId] || []
-          : state.globalTodos;
+        return conversationId ? state.todos[conversationId] || [] : state.globalTodos;
       },
 
       getTodoById: (todoId) => {
@@ -315,9 +286,7 @@ export const useTodoStore = create<TodoState>()(
 
       getTodoStats: (conversationId) => {
         const state = get();
-        const todos = conversationId
-          ? state.todos[conversationId] || []
-          : state.globalTodos;
+        const todos = conversationId ? state.todos[conversationId] || [] : state.globalTodos;
         return calculateStats(todos);
       },
 
@@ -346,9 +315,7 @@ export const useTodoStore = create<TodoState>()(
 
       getTodoStateForReminders: (conversationId) => {
         const state = get();
-        const todos = conversationId
-          ? state.todos[conversationId] || []
-          : state.globalTodos;
+        const todos = conversationId ? state.todos[conversationId] || [] : state.globalTodos;
 
         const completedCount = todos.filter((t) => t.status === 'completed').length;
         const totalCount = todos.length;

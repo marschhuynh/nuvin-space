@@ -45,9 +45,7 @@ export function createProvider(config: LLMProviderConfig): LLMProvider {
   }
 }
 
-export async function fetchProviderModels(
-  config: LLMProviderConfig,
-): Promise<ModelInfo[]> {
+export async function fetchProviderModels(config: LLMProviderConfig): Promise<ModelInfo[]> {
   try {
     const provider = createProvider(config);
     return await provider.getModels();
@@ -57,9 +55,7 @@ export async function fetchProviderModels(
   }
 }
 
-export async function fetchAllProviderModels(
-  configs: LLMProviderConfig[],
-): Promise<Record<string, ModelInfo[]>> {
+export async function fetchAllProviderModels(configs: LLMProviderConfig[]): Promise<Record<string, ModelInfo[]>> {
   const results: Record<string, ModelInfo[]> = {};
 
   const promises = configs.map(async (config) => {
@@ -95,10 +91,7 @@ export function getDefaultModel(providerType: ProviderType): string {
   }
 }
 
-export function formatModelCost(
-  inputCost?: number,
-  outputCost?: number,
-): string {
+export function formatModelCost(inputCost?: number, outputCost?: number): string {
   if (inputCost === undefined || outputCost === undefined) {
     return 'Pricing unavailable';
   }

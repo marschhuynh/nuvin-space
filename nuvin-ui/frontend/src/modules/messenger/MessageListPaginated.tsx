@@ -1,10 +1,4 @@
-import {
-  useRef,
-  useEffect,
-  useLayoutEffect,
-  useState,
-  useCallback,
-} from 'react';
+import { useRef, useEffect, useLayoutEffect, useState, useCallback } from 'react';
 import type { Message as MessageType } from '@/types';
 import { Message } from './Message';
 import { LoadingMessage } from './components/LoadingMessage';
@@ -61,9 +55,7 @@ export function MessageListPaginated({
     // Simulate loading delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    setDisplayedCount((prev) =>
-      Math.min(prev + loadMoreCount, messages.length),
-    );
+    setDisplayedCount((prev) => Math.min(prev + loadMoreCount, messages.length));
 
     // Restore scroll position after DOM update
     setTimeout(() => {
@@ -207,16 +199,12 @@ export function MessageListPaginated({
                   className="px-4 py-2 text-sm bg-primary/10 hover:bg-primary/20 text-primary rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
                   disabled={isLoadingMore}
                 >
-                  Load{' '}
-                  {Math.min(loadMoreCount, messages.length - displayedCount)}{' '}
-                  more messages
+                  Load {Math.min(loadMoreCount, messages.length - displayedCount)} more messages
                 </button>
                 <div className="text-xs text-muted-foreground">
                   Showing {displayedCount} of {messages.length} messages
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Or scroll up to load more automatically
-                </p>
+                <p className="text-xs text-muted-foreground">Or scroll up to load more automatically</p>
               </div>
             )}
           </div>

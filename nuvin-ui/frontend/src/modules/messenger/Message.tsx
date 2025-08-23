@@ -27,14 +27,7 @@ interface MessageProps {
   };
 }
 
-export function Message({
-  id,
-  role,
-  content,
-  isStreaming = false,
-  metadata,
-  toolCall,
-}: MessageProps) {
+export function Message({ id, role, content, isStreaming = false, metadata, toolCall }: MessageProps) {
   const { preferences } = useUserPreferenceStore();
   const trimmedContent = content.trim();
 
@@ -47,12 +40,7 @@ export function Message({
       }`}
     >
       {role === 'user' ? (
-        <UserMessage
-          id={id}
-          content={content}
-          isStreaming={isStreaming}
-          messageMode={preferences.messageMode}
-        />
+        <UserMessage id={id} content={content} isStreaming={isStreaming} messageMode={preferences.messageMode} />
       ) : toolCall ? (
         <ToolCallMessage
           id={id}

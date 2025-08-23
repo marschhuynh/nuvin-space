@@ -42,9 +42,7 @@ function mapProviderTypeToLLMType(type: string): LLMProviderConfig['type'] {
 
   const mappedType = typeMapping[type];
   if (!mappedType) {
-    throw new Error(
-      `Invalid provider type: ${type}. Supported types: ${Object.keys(typeMapping).join(', ')}`,
-    );
+    throw new Error(`Invalid provider type: ${type}. Supported types: ${Object.keys(typeMapping).join(', ')}`);
   }
 
   return mappedType;
@@ -59,10 +57,7 @@ export function useActiveProviderLLMConfig(): LLMProviderConfig | null {
 
     // Validate provider has required fields
     if (!provider.type || !provider.apiKey) {
-      console.warn(
-        'Active provider missing required type or apiKey:',
-        provider,
-      );
+      console.warn('Active provider missing required type or apiKey:', provider);
       return null;
     }
 

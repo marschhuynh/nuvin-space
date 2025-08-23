@@ -1,29 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Combobox } from '@/components/ui/combobox';
 import { useAgentStore } from '@/store/useAgentStore';
 import { useProviderStore } from '@/store/useProviderStore';
 import { useModelsStore } from '@/store/useModelsStore';
 import type { AgentConfig } from '@/types';
-import {
-  AlertCircle,
-  Bot,
-  Globe,
-  Home,
-  Loader2,
-  Settings,
-  Type,
-  Eye,
-  Mic,
-  Image,
-} from 'lucide-react';
+import { AlertCircle, Bot, Globe, Home, Loader2, Settings, Type, Eye, Mic, Image } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { formatContextLength } from '@/lib/providers/provider-utils';
@@ -34,13 +17,10 @@ interface AgentConfigurationProps {
   onReset?: () => void;
 }
 
-export function AgentConfiguration({
-  onConfigChange,
-}: AgentConfigurationProps) {
+export function AgentConfiguration({ onConfigChange }: AgentConfigurationProps) {
   const navigate = useNavigate();
   const { agents, activeAgentId, setActiveAgent } = useAgentStore();
-  const { providers, activeProviderId, updateProvider, setActiveProvider } =
-    useProviderStore();
+  const { providers, activeProviderId, updateProvider, setActiveProvider } = useProviderStore();
   const { getEnabledModels, loading, errors } = useModelsStore();
 
   // Notify parent when store changes
@@ -101,13 +81,7 @@ export function AgentConfiguration({
       };
       updateProvider(updatedProvider);
     },
-    [
-      providers,
-      activeProviderId,
-      setActiveProvider,
-      updateProvider,
-      findProviderForModel,
-    ],
+    [providers, activeProviderId, setActiveProvider, updateProvider, findProviderForModel],
   );
 
   const handleNavigateToProviderSettings = () => {
@@ -131,9 +105,7 @@ export function AgentConfiguration({
       icons.push(<Type key="text" className="h-1.5 w-1.5 text-blue-500" />);
     }
     if (modalities.includes('image') || model.modality === 'multimodal') {
-      icons.push(
-        <Image size={5} key="image" className="h-1.5 w-1.5 text-green-500" />,
-      );
+      icons.push(<Image size={5} key="image" className="h-1.5 w-1.5 text-green-500" />);
     }
     if (modalities.includes('audio')) {
       icons.push(<Mic key="audio" className="h-1.5 w-1.5 text-purple-500" />);
@@ -142,9 +114,7 @@ export function AgentConfiguration({
       icons.push(<Eye key="video" className="h-1.5 w-1.5 text-orange-500" />);
     }
 
-    return icons.length > 0
-      ? icons
-      : [<Type key="text" className="h-1.5 w-1.5 text-blue-500" />];
+    return icons.length > 0 ? icons : [<Type key="text" className="h-1.5 w-1.5 text-blue-500" />];
   }, []);
 
   // Convert models to combobox options
@@ -152,9 +122,7 @@ export function AgentConfiguration({
     return enabledModels.map((model) => {
       const [provider, modelName] = model.name.split(': ');
       const contextInfo = formatContextLength(model.contextLength);
-      const costInfo = `$${model?.inputCost?.toFixed(
-        2,
-      )}/$${model?.outputCost?.toFixed(2)} / 1M`;
+      const costInfo = `$${model?.inputCost?.toFixed(2)}/$${model?.outputCost?.toFixed(2)} / 1M`;
       const modalityIcons = getModalityIcons(model);
 
       return {
@@ -165,18 +133,12 @@ export function AgentConfiguration({
         content: (
           <div className="flex flex-col gap-1 py-1">
             <div className="flex items-center justify-between gap-2">
-              <span className="font-medium text-sm truncate flex-1 min-w-0">
-                {model.id}
-              </span>
-              <span className="text-xs text-muted-foreground flex-shrink-0">
-                {contextInfo}
-              </span>
+              <span className="font-medium text-sm truncate flex-1 min-w-0">{model.id}</span>
+              <span className="text-xs text-muted-foreground flex-shrink-0">{contextInfo}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">{modalityIcons}</div>
-              <span className="text-xs font-mono text-green-600">
-                {costInfo}
-              </span>
+              <span className="text-xs font-mono text-green-600">{costInfo}</span>
             </div>
           </div>
         ),
@@ -252,18 +214,14 @@ export function AgentConfiguration({
                   {isLoadingModels ? (
                     <div className="flex items-center gap-2 p-4 border rounded-lg bg-muted/50">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="text-sm text-muted-foreground">
-                        Loading models...
-                      </span>
+                      <span className="text-sm text-muted-foreground">Loading models...</span>
                     </div>
                   ) : modelsError ? (
                     <div className="p-4 border border-destructive/20 rounded-lg bg-destructive/5">
                       <div className="flex items-start gap-2">
                         <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
-                          <p className="text-sm text-destructive">
-                            Error loading models: {modelsError}
-                          </p>
+                          <p className="text-sm text-destructive">Error loading models: {modelsError}</p>
                         </div>
                       </div>
                     </div>
@@ -290,21 +248,13 @@ export function AgentConfiguration({
                       renderValue={(option) => {
                         const model = option.data;
                         const modalityIcons = getModalityIcons(model);
-                        const costInfo = `$${model?.inputCost?.toFixed(
-                          2,
-                        )}/$${model?.outputCost?.toFixed(2)} / 1M`;
+                        const costInfo = `$${model?.inputCost?.toFixed(2)}/$${model?.outputCost?.toFixed(2)} / 1M`;
                         return (
                           <div className="flex flex-col gap-0.5 text-left py-0 w-full min-w-0">
-                            <div className="font-medium text-sm truncate min-w-0">
-                              {option.value}
-                            </div>
+                            <div className="font-medium text-sm truncate min-w-0">{option.value}</div>
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-1">
-                                {modalityIcons}
-                              </div>
-                              <div className="text-xs font-mono text-green-600 ml-auto flex-shrink-0">
-                                {costInfo}
-                              </div>
+                              <div className="flex items-center gap-1">{modalityIcons}</div>
+                              <div className="text-xs font-mono text-green-600 ml-auto flex-shrink-0">{costInfo}</div>
                             </div>
                           </div>
                         );

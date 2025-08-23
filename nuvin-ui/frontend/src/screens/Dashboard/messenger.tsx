@@ -11,14 +11,7 @@ import { MessageListPaginated } from '@/modules/messenger/MessageListPaginated';
 import { ChatInput } from '../../modules/messenger';
 
 export default function Messenger() {
-  const {
-    activeAgent,
-    activeProvider,
-    isReady,
-    agentType,
-    sendMessage,
-    cancelRequest,
-  } = useAgentManager();
+  const { activeAgent, activeProvider, isReady, agentType, sendMessage, cancelRequest } = useAgentManager();
 
   // Use conversation store
   const {
@@ -38,17 +31,13 @@ export default function Messenger() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // State for streaming message per conversation
-  const [streamingStates, setStreamingStates] = useState<
-    Record<string, { messageId: string; content: string }>
-  >({});
+  const [streamingStates, setStreamingStates] = useState<Record<string, { messageId: string; content: string }>>({});
 
   // Get current conversation messages
   const storeMessages = getActiveMessages();
 
   // Get current conversation's streaming state
-  const currentStreamingState = activeConversationId
-    ? streamingStates[activeConversationId]
-    : undefined;
+  const currentStreamingState = activeConversationId ? streamingStates[activeConversationId] : undefined;
   const streamingMessageId = currentStreamingState?.messageId || null;
   const streamingContent = currentStreamingState?.content || '';
 
@@ -63,18 +52,12 @@ export default function Messenger() {
   const summarizeConversation = useCallback(
     async (conversationId: string) => {
       const messages = getConversationMessages(conversationId);
-      if (
-        messages.length < SUMMARY_TRIGGER_COUNT ||
-        messages.length % SUMMARY_TRIGGER_COUNT !== 0
-      )
-        return;
+      if (messages.length < SUMMARY_TRIGGER_COUNT || messages.length % SUMMARY_TRIGGER_COUNT !== 0) return;
 
       const conversation = getActiveConversation();
       if (!conversation) return;
 
-      const convoText = messages
-        .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
-        .join('\n');
+      const convoText = messages.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
 
       try {
         // Use a separate conversation ID to prevent summary from being added to main conversation
@@ -94,12 +77,7 @@ export default function Messenger() {
         console.error('Failed to summarize conversation:', err);
       }
     },
-    [
-      getConversationMessages,
-      getActiveConversation,
-      sendMessage,
-      updateConversation,
-    ],
+    [getConversationMessages, getActiveConversation, sendMessage, updateConversation],
   );
 
   // Create combined messages with streaming content
@@ -213,8 +191,7 @@ export default function Messenger() {
             // Streaming is complete - add the final message to store and clear streaming state
             if (conversationId) {
               // Get the accumulated content for this conversation
-              const accumulatedContent =
-                streamingStates[conversationId]?.content || '';
+              const accumulatedContent = streamingStates[conversationId]?.content || '';
               const contentToUse = finalContent || accumulatedContent;
 
               // Add the final assistant message to the store
@@ -261,9 +238,7 @@ export default function Messenger() {
           if (conversationId && streamingId) {
             // Get the current message to preserve content
             const currentMessages = getConversationMessages(conversationId);
-            const currentMessage = currentMessages.find(
-              (m) => m.id === streamingId,
-            );
+            const currentMessage = currentMessages.find((m) => m.id === streamingId);
 
             if (currentMessage) {
               const messageWithMetadata: Message = {
@@ -292,10 +267,7 @@ export default function Messenger() {
           if (activeAgent) {
             import('@/lib/agents/agent-manager').then(({ AgentManager }) => {
               const agentManager = AgentManager.getInstance();
-              agentManager.updateAgentMetrics(
-                activeAgent.id,
-                response.metadata,
-              );
+              agentManager.updateAgentMetrics(activeAgent.id, response.metadata);
             });
           }
         }
@@ -323,7 +295,7 @@ export default function Messenger() {
       updateMessage,
       summarizeConversation,
     ],
-  );;;;
+  );
 
   const handleStopGeneration = useCallback(async () => {
     if (isLoading) {
@@ -378,14 +350,7 @@ export default function Messenger() {
 
       console.log('Generation stopped by user');
     }
-  }, [
-    addMessage,
-    activeConversationId,
-    cancelRequest,
-    isLoading,
-    streamingMessageId,
-    updateMessage,
-  ]);
+  }, [addMessage, activeConversationId, cancelRequest, isLoading, streamingMessageId, updateMessage]);
 
   // Handler to create a new conversation
   const handleNewConversation = useCallback(() => {
@@ -408,10 +373,7 @@ export default function Messenger() {
       className="flex-1 flex flex-col items-center p-8 text-center"
       style={{ justifyContent: 'center', transform: 'translateY(-20%)' }}
     >
-      <div
-        className="max-w-lg mx-auto flex flex-col items-center"
-        style={{ gap: '1.618rem' }}
-      >
+      <div className="max-w-lg mx-auto flex flex-col items-center" style={{ gap: '1.618rem' }}>
         <div
           className="bg-gray-100 rounded-full flex items-center justify-center"
           style={{
@@ -445,8 +407,7 @@ export default function Messenger() {
               marginBottom: '0.5rem',
             }}
           >
-            Start your first conversation with an AI agent. Click the button
-            below to begin chatting.
+            Start your first conversation with an AI agent. Click the button below to begin chatting.
           </p>
         </div>
         <div className="flex flex-col items-center" style={{ gap: '0.75rem' }}>
@@ -500,9 +461,7 @@ export default function Messenger() {
             onStop={handleStopGeneration}
             disabled={isLoading || !isReady}
             placeholder={
-              !isReady
-                ? 'Configure an agent and provider to start chatting...'
-                : 'Type your message here...'
+              !isReady ? 'Configure an agent and provider to start chatting...' : 'Type your message here...'
             }
           />
         </>

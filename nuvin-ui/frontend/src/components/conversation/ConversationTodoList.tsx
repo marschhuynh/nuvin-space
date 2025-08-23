@@ -3,19 +3,8 @@ import { useTodoStore } from '@/store/useTodoStore';
 import { useConversationStore } from '@/store/useConversationStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import {
-  CheckCircle2,
-  Circle,
-  Clock,
-  ChevronDown,
-  ChevronRight,
-  ListTodo,
-} from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { CheckCircle2, Circle, Clock, ChevronDown, ChevronRight, ListTodo } from 'lucide-react';
 import type { TodoItem } from '@/types';
 
 interface ConversationTodoListProps {
@@ -28,9 +17,7 @@ export function ConversationTodoList({ className }: ConversationTodoListProps) {
 
   // Get todos for the current conversation
   const todos = activeConversationId ? getTodos(activeConversationId) : [];
-  const stats = activeConversationId
-    ? getTodoStats(activeConversationId)
-    : null;
+  const stats = activeConversationId ? getTodoStats(activeConversationId) : null;
 
   // Check if there are any uncompleted items
   const hasUncompletedItems = todos.some((todo) => todo.status !== 'completed');
@@ -76,11 +63,7 @@ export function ConversationTodoList({ className }: ConversationTodoListProps) {
                 )}
               </div>
               <Button variant="ghost" size="sm" className="h-3 w-3 p-0">
-                {isOpen ? (
-                  <ChevronDown className="h-2.5 w-2.5" />
-                ) : (
-                  <ChevronRight className="h-2.5 w-2.5" />
-                )}
+                {isOpen ? <ChevronDown className="h-2.5 w-2.5" /> : <ChevronRight className="h-2.5 w-2.5" />}
               </Button>
             </CardTitle>
           </CardHeader>
@@ -95,12 +78,8 @@ export function ConversationTodoList({ className }: ConversationTodoListProps) {
                   key={todo.id}
                   className="flex items-center gap-2 text-xs hover:bg-muted/30 transition-colors rounded px-1 py-0.5"
                 >
-                  <div className="flex-shrink-0">
-                    {getStatusIcon(todo.status)}
-                  </div>
-                  <span
-                    className={`flex-1 ${todo.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}
-                  >
+                  <div className="flex-shrink-0">{getStatusIcon(todo.status)}</div>
+                  <span className={`flex-1 ${todo.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>
                     {todo.content}
                   </span>
                 </div>

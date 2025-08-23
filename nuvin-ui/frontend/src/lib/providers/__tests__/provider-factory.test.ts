@@ -74,33 +74,16 @@ describe('ProviderFactory', () => {
 
   it('should return correct provider types', () => {
     const types = ProviderFactory.getProviderTypes();
-    expect(types).toEqual([
-      'openrouter',
-      'openai',
-      'anthropic',
-      'github',
-      'openai-compatible',
-      'deepinfra',
-    ]);
+    expect(types).toEqual(['openrouter', 'openai', 'anthropic', 'github', 'openai-compatible', 'deepinfra']);
   });
 
   it('should return correct display names', () => {
-    expect(ProviderFactory.getProviderDisplayName('openrouter')).toBe(
-      'OpenRouter',
-    );
+    expect(ProviderFactory.getProviderDisplayName('openrouter')).toBe('OpenRouter');
     expect(ProviderFactory.getProviderDisplayName('openai')).toBe('OpenAI');
-    expect(ProviderFactory.getProviderDisplayName('anthropic')).toBe(
-      'Anthropic',
-    );
-    expect(ProviderFactory.getProviderDisplayName('github')).toBe(
-      'GitHub Copilot',
-    );
-    expect(ProviderFactory.getProviderDisplayName('openai-compatible')).toBe(
-      'OpenAI-Compatible API',
-    );
-    expect(ProviderFactory.getProviderDisplayName('deepinfra')).toBe(
-      'DeepInfra',
-    );
+    expect(ProviderFactory.getProviderDisplayName('anthropic')).toBe('Anthropic');
+    expect(ProviderFactory.getProviderDisplayName('github')).toBe('GitHub Copilot');
+    expect(ProviderFactory.getProviderDisplayName('openai-compatible')).toBe('OpenAI-Compatible API');
+    expect(ProviderFactory.getProviderDisplayName('deepinfra')).toBe('DeepInfra');
   });
 
   it('should validate provider config correctly', () => {

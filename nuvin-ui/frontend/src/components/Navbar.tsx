@@ -21,18 +21,13 @@ export function Navbar({ userName = 'Guest' }: NavbarProps) {
       <nav className="border-b border-border bg-card px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div
-              className="flex items-center gap-3 cursor-pointer"
-              onClick={() => navigate('/')}
-            >
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
               <img
                 src={appIcon}
                 alt="Nuvin Space"
                 className="h-9 w-9 transition-transform duration-200 active:animate-[wiggle_0.3s_ease-in-out]"
               />
-              <h1 className="text-xl font-semibold tracking-tight">
-                Nuvin Space
-              </h1>
+              <h1 className="text-xl font-semibold tracking-tight">Nuvin Space</h1>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -47,9 +42,7 @@ export function Navbar({ userName = 'Guest' }: NavbarProps) {
                 <span>Dashboard</span>
               </Button>
               <Button
-                variant={
-                  location.pathname === '/settings' ? 'default' : 'ghost'
-                }
+                variant={location.pathname === '/settings' ? 'default' : 'ghost'}
                 size="sm"
                 className="h-8 px-3 gap-2"
                 onClick={() => navigate('/settings')}

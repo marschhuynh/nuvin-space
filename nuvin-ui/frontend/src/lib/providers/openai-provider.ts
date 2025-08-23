@@ -1,11 +1,6 @@
 import { BaseLLMProvider } from './base-provider';
 import { extractValue } from './utils';
-import type {
-  CompletionParams,
-  CompletionResult,
-  StreamChunk,
-  ModelInfo,
-} from './types/base';
+import type { CompletionParams, CompletionResult, StreamChunk, ModelInfo } from './types/base';
 
 export class OpenAIProvider extends BaseLLMProvider {
   constructor(apiKey: string, apiUrl: string = 'https://api.openai.com/v1') {
@@ -16,10 +11,7 @@ export class OpenAIProvider extends BaseLLMProvider {
     });
   }
 
-  async generateCompletion(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): Promise<CompletionResult> {
+  async generateCompletion(params: CompletionParams, signal?: AbortSignal): Promise<CompletionResult> {
     const response = await this.makeRequest('/chat/completions', {
       body: {
         model: params.model,
@@ -37,15 +29,8 @@ export class OpenAIProvider extends BaseLLMProvider {
     return this.createCompletionResult(data);
   }
 
-  async *generateCompletionStream(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): AsyncGenerator<string> {
-    const reader = await this.makeStreamingRequest(
-      'chat/completions',
-      params,
-      signal,
-    );
+  async *generateCompletionStream(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<string> {
+    const reader = await this.makeStreamingRequest('chat/completions', params, signal);
 
     for await (const data of this.parseStream(reader, {}, signal)) {
       const content = extractValue(data, 'choices.0.delta.content');
@@ -59,11 +44,7 @@ export class OpenAIProvider extends BaseLLMProvider {
     params: CompletionParams,
     signal?: AbortSignal,
   ): AsyncGenerator<StreamChunk> {
-    const reader = await this.makeStreamingRequest(
-      '/chat/completions',
-      params,
-      signal,
-    );
+    const reader = await this.makeStreamingRequest('/chat/completions', params, signal);
 
     for await (const chunk of this.parseStreamWithTools(reader, {}, signal)) {
       yield chunk;
@@ -79,12 +60,7 @@ export class OpenAIProvider extends BaseLLMProvider {
     const models = data.data || [];
 
     const transformedModels = models
-      .filter(
-        (model: any) =>
-          model.id &&
-          !model.id.includes('tts') &&
-          !model.id.includes('whisper'),
-      )
+      .filter((model: any) => model.id && !model.id.includes('tts') && !model.id.includes('whisper'))
       .map((model: any): ModelInfo => {
         return this.formatModelInfo(model, {
           contextLength: this.getContextLength(model.id),
@@ -160,24 +136,14 @@ export class OpenAIProvider extends BaseLLMProvider {
   }
 
   protected getModality(modelId: string): string {
-    if (
-      modelId.includes('gpt-4o') ||
-      modelId.includes('o1') ||
-      modelId.includes('o3') ||
-      modelId.includes('o4')
-    ) {
+    if (modelId.includes('gpt-4o') || modelId.includes('o1') || modelId.includes('o3') || modelId.includes('o4')) {
       return 'multimodal';
     }
     return 'text';
   }
 
   protected getInputModalities(modelId: string): string[] {
-    if (
-      modelId.includes('gpt-4o') ||
-      modelId.includes('o1') ||
-      modelId.includes('o3') ||
-      modelId.includes('o4')
-    ) {
+    if (modelId.includes('gpt-4o') || modelId.includes('o1') || modelId.includes('o3') || modelId.includes('o4')) {
       return ['text', 'image'];
     }
     return ['text'];

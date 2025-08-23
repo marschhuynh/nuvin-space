@@ -19,9 +19,7 @@ export function ToolDebugger() {
       selectedAgent: selectedAgent?.name || 'None',
       toolRegistry: {
         totalTools: toolRegistry.getToolCount(),
-        builtInTools: toolRegistry
-          .getBuiltInTools()
-          .map((t) => t.definition.name),
+        builtInTools: toolRegistry.getBuiltInTools().map((t) => t.definition.name),
         mcpTools: toolRegistry.getAllMCPTools().map((t) => ({
           name: t.definition.name,
           serverId: t.getServerId(),
@@ -86,17 +84,14 @@ export function ToolDebugger() {
               Total Tools: <Badge>{debugInfo.toolRegistry.totalTools}</Badge>
             </div>
             <div>
-              MCP Servers:{' '}
-              <Badge>{debugInfo.toolRegistry.mcpServers.length}</Badge>
+              MCP Servers: <Badge>{debugInfo.toolRegistry.mcpServers.length}</Badge>
             </div>
           </div>
         </div>
 
         {/* Built-in Tools */}
         <div>
-          <h4 className="font-medium text-sm mb-2">
-            Built-in Tools ({debugInfo.toolRegistry.builtInTools.length})
-          </h4>
+          <h4 className="font-medium text-sm mb-2">Built-in Tools ({debugInfo.toolRegistry.builtInTools.length})</h4>
           <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto pr-2">
             {debugInfo.toolRegistry.builtInTools.map((tool: string) => (
               <Badge key={tool} variant="secondary" className="text-xs">
@@ -108,16 +103,11 @@ export function ToolDebugger() {
 
         {/* MCP Tools */}
         <div>
-          <h4 className="font-medium text-sm mb-2">
-            MCP Tools ({debugInfo.toolRegistry.mcpTools.length})
-          </h4>
+          <h4 className="font-medium text-sm mb-2">MCP Tools ({debugInfo.toolRegistry.mcpTools.length})</h4>
           <div className="space-y-1 max-h-40 overflow-y-auto pr-2">
             {debugInfo.toolRegistry.mcpTools.map((tool: any) => (
               <div key={tool.name} className="flex items-center space-x-2">
-                <Badge
-                  variant={tool.available ? 'default' : 'secondary'}
-                  className="text-xs"
-                >
+                <Badge variant={tool.available ? 'default' : 'secondary'} className="text-xs">
                   {tool.name}
                 </Badge>
                 <span className="text-xs text-gray-500">({tool.serverId})</span>
@@ -136,9 +126,7 @@ export function ToolDebugger() {
           <h4 className="font-medium text-sm mb-2">Agent Tool Configuration</h4>
           <div className="space-y-2">
             <div>
-              <span className="text-xs font-medium">
-                Manually Configured Tools:
-              </span>
+              <span className="text-xs font-medium">Manually Configured Tools:</span>
               <div className="flex flex-wrap gap-1 mt-1 max-h-24 overflow-y-auto pr-2">
                 {debugInfo.agentTools.configuredTools.length > 0 ? (
                   debugInfo.agentTools.configuredTools.map((tool: string) => (
@@ -153,9 +141,7 @@ export function ToolDebugger() {
             </div>
 
             <div>
-              <span className="text-xs font-medium">
-                Actually Available to Agent:
-              </span>
+              <span className="text-xs font-medium">Actually Available to Agent:</span>
               <div className="flex flex-wrap gap-1 mt-1 max-h-24 overflow-y-auto pr-2">
                 {debugInfo.agentTools.availableToAgent.map((tool: string) => (
                   <Badge key={tool} variant="default" className="text-xs">

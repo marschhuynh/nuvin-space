@@ -1,10 +1,4 @@
-import type {
-  Tool,
-  ToolDefinition,
-  ToolCall,
-  ToolCallResult,
-  ToolContext,
-} from '@/types/tools';
+import type { Tool, ToolDefinition, ToolCall, ToolCallResult, ToolContext } from '@/types/tools';
 import { type MCPTool, isMCPTool } from '@/lib/mcp/mcp-tool';
 
 export class ToolRegistry {
@@ -17,9 +11,7 @@ export class ToolRegistry {
    */
   registerTool(tool: Tool): void {
     if (this.tools.has(tool.definition.name)) {
-      throw new Error(
-        `Tool with name '${tool.definition.name}' is already registered`,
-      );
+      throw new Error(`Tool with name '${tool.definition.name}' is already registered`);
     }
 
     // Validate tool definition
@@ -94,9 +86,7 @@ export class ToolRegistry {
    */
   getToolsByCategory(category: string): Tool[] {
     const toolNames = this.categories.get(category) || [];
-    return toolNames
-      .map((name) => this.tools.get(name))
-      .filter((tool) => tool !== undefined) as Tool[];
+    return toolNames.map((name) => this.tools.get(name)).filter((tool) => tool !== undefined) as Tool[];
   }
 
   /**
@@ -109,10 +99,7 @@ export class ToolRegistry {
   /**
    * Execute a tool call
    */
-  async executeTool(
-    toolCall: ToolCall,
-    context?: ToolContext,
-  ): Promise<ToolCallResult> {
+  async executeTool(toolCall: ToolCall, context?: ToolContext): Promise<ToolCallResult> {
     const tool = this.tools.get(toolCall.name);
 
     if (!tool) {
@@ -156,8 +143,7 @@ export class ToolRegistry {
         result: {
           status: 'error',
           type: 'text',
-          result:
-            error instanceof Error ? error.message : 'Unknown error occurred',
+          result: error instanceof Error ? error.message : 'Unknown error occurred',
         },
       };
     }
@@ -176,9 +162,7 @@ export class ToolRegistry {
     // Process in batches to limit concurrency
     for (let i = 0; i < toolCalls.length; i += maxConcurrent) {
       const batch = toolCalls.slice(i, i + maxConcurrent);
-      const batchPromises = batch.map((toolCall) =>
-        this.executeTool(toolCall, context),
-      );
+      const batchPromises = batch.map((toolCall) => this.executeTool(toolCall, context));
       const batchResults = await Promise.all(batchPromises);
       results.push(...batchResults);
     }
@@ -374,9 +358,7 @@ export class ToolRegistry {
     // Validate parameter names
     const nameRegex = /^[a-zA-Z][a-zA-Z0-9_]*$/;
     if (!nameRegex.test(definition.name)) {
-      throw new Error(
-        'Tool name must start with a letter and contain only letters, numbers, and underscores',
-      );
+      throw new Error('Tool name must start with a letter and contain only letters, numbers, and underscores');
     }
   }
 

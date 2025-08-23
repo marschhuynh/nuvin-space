@@ -10,32 +10,34 @@ export const readFileTool: Tool = {
       properties: {
         path: {
           type: 'string',
-          description: 'Path to the file to read'
+          description: 'Path to the file to read',
         },
         start: {
           type: 'number',
-          description: 'Optional start line number (1-indexed)'
+          description: 'Optional start line number (1-indexed)',
         },
         end: {
           type: 'number',
-          description: 'Optional end line number (1-indexed, inclusive)'
-        }
+          description: 'Optional end line number (1-indexed, inclusive)',
+        },
       },
-      required: ['path']
-    }
+      required: ['path'],
+    },
   },
 
   async execute(parameters) {
     try {
       const { path, start, end } = parameters as {
-        path: string; start?: number; end?: number;
+        path: string;
+        start?: number;
+        end?: number;
       };
 
       if (!path || typeof path !== 'string') {
         return {
           status: 'error',
           type: 'text',
-          result: 'path parameter is required and must be a string'
+          result: 'path parameter is required and must be a string',
         };
       }
 
@@ -54,7 +56,7 @@ export const readFileTool: Tool = {
       return {
         status: 'error',
         type: 'text',
-        result: `Failed to read file: ${err instanceof Error ? err.message : err}`
+        result: `Failed to read file: ${err instanceof Error ? err.message : err}`,
       };
     }
   },
@@ -74,5 +76,5 @@ export const readFileTool: Tool = {
 
   category: 'filesystem',
   version: '1.0.0',
-  author: 'system'
+  author: 'system',
 };

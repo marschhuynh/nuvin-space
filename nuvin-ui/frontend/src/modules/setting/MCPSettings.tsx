@@ -1,17 +1,21 @@
 import { useState } from 'react';
-import {
-  Pause,
-  Play,
-  Plus,
-  Settings,
-  Trash2,
-} from 'lucide-react';
+import { Pause, Play, Plus, Settings, Trash2 } from 'lucide-react';
 import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
 import type { MCPConfig } from '@/types/mcp';
 import { ClipboardGetText } from '@/lib/wails-runtime';
 import { useMCPServers } from '@/lib/mcp/hooks/useMCPServers';
 
-import { Input, Button, Textarea, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components';
+import {
+  Input,
+  Button,
+  Textarea,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components';
 import { MCPServerToolsList } from '@/components/mcp/MCPServerToolsList';
 import { Label } from '@radix-ui/react-label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@radix-ui/react-select';
@@ -41,9 +45,7 @@ export function MCPSettings() {
   const [editingMCP, setEditingMCP] = useState<MCPConfig | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [toolsRefreshTrigger, setToolsRefreshTrigger] = useState(0);
-  const [selectedMCPId, setSelectedMCPId] = useState<string | null>(
-    preferences?.mcpServers?.[0]?.id || null,
-  );
+  const [selectedMCPId, setSelectedMCPId] = useState<string | null>(preferences?.mcpServers?.[0]?.id || null);
   const [isEditing, setIsEditing] = useState(false);
   const [mcpForm, setMcpForm] = useState<Partial<MCPConfig>>({
     name: '',
@@ -56,9 +58,7 @@ export function MCPSettings() {
     description: '',
   });
 
-  const selectedMCP = (preferences?.mcpServers || []).find(
-    (mcp) => mcp.id === selectedMCPId,
-  );
+  const selectedMCP = (preferences?.mcpServers || []).find((mcp) => mcp.id === selectedMCPId);
 
   // Dialog state for user notifications
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -70,14 +70,9 @@ export function MCPSettings() {
     setDialogOpen(true);
   };
 
-  const parseClipboardMCPConfig = (
-    clipboardText: string,
-  ): Partial<MCPConfig> | null => {
+  const parseClipboardMCPConfig = (clipboardText: string): Partial<MCPConfig> | null => {
     try {
-      console.log(
-        'Attempting to parse JSON:',
-        clipboardText.substring(0, 200) + '...',
-      );
+      console.log('Attempting to parse JSON:', clipboardText.substring(0, 200) + '...');
       const parsed = JSON.parse(clipboardText) as MCPClipboardConfig;
       console.log('Parsed JSON structure:', parsed);
 
@@ -101,14 +96,8 @@ export function MCPSettings() {
 
       // Determine server type based on configuration
       const hasUrl = serverConfig.url && serverConfig.url.trim() !== '';
-      const hasCommand =
-        serverConfig.command && serverConfig.command.trim() !== '';
-      console.log(
-        'Server analysis - hasUrl:',
-        hasUrl,
-        'hasCommand:',
-        hasCommand,
-      );
+      const hasCommand = serverConfig.command && serverConfig.command.trim() !== '';
+      console.log('Server analysis - hasUrl:', hasUrl, 'hasCommand:', hasCommand);
 
       let serverType: 'stdio' | 'http' = 'stdio';
       if (hasUrl && !hasCommand) {
@@ -116,9 +105,7 @@ export function MCPSettings() {
       }
 
       const result = {
-        name: serverKey
-          .replace(/[._-]/g, ' ')
-          .replace(/\b\w/g, (l) => l.toUpperCase()),
+        name: serverKey.replace(/[._-]/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
         type: serverType,
         command: serverConfig.command || '',
         args: serverConfig.args || [],
@@ -138,9 +125,7 @@ export function MCPSettings() {
 
   const handleImportFromClipboard = async () => {
     try {
-      console.log(
-        'Attempting to read MCP config from clipboard using Wails...',
-      );
+      console.log('Attempting to read MCP config from clipboard using Wails...');
       const clipboardText = await ClipboardGetText();
 
       if (!clipboardText || clipboardText.trim() === '') {
@@ -168,9 +153,7 @@ export function MCPSettings() {
       console.error('Failed to read from clipboard:', error);
       showDialog(
         'Clipboard Error',
-        `Failed to access clipboard${
-          error instanceof Error && error.message ? `: ${error.message}` : ''
-        }`,
+        `Failed to access clipboard${error instanceof Error && error.message ? `: ${error.message}` : ''}`,
       );
     }
   };
@@ -193,15 +176,11 @@ export function MCPSettings() {
   };
 
   const handleDeleteMCP = (mcpId: string) => {
-    const updatedServers = (preferences?.mcpServers || []).filter(
-      (server) => server.id !== mcpId,
-    );
+    const updatedServers = (preferences?.mcpServers || []).filter((server) => server.id !== mcpId);
     updatePreferences({ mcpServers: updatedServers });
     if (selectedMCPId === mcpId) {
       const remainingServers = updatedServers;
-      setSelectedMCPId(
-        remainingServers.length > 0 ? remainingServers[0].id : null,
-      );
+      setSelectedMCPId(remainingServers.length > 0 ? remainingServers[0].id : null);
     }
   };
 
@@ -372,46 +351,40 @@ export function MCPSettings() {
               />
 
               {/* Server Details Content */}
-                <div className={`flex-1 p-6 overflow-auto`}>
-                  {isEditing ? (
-                    <MCPServerEditor
-                      mcpForm={mcpForm}
-                      setMcpForm={(updater) => setMcpForm((prev) => updater(prev))}
-                      handleArgChange={handleArgChange}
-                      addArg={addArg}
-                      removeArg={removeArg}
-                      handleEnvVarChange={handleEnvVarChange}
-                      addEnvVar={addEnvVar}
-                      removeEnvVar={removeEnvVar}
-                    />
-                  ) : selectedMCP ? (
-                    <MCPServerDetails
-                      server={selectedMCP}
-                      enabledTools={
-                        preferences?.enabledMCPTools?.[selectedMCP.id] || []
-                      }
-                      onUpdateEnabledTools={(newEnabled) => {
-                        const newEnabledTools = {
-                          ...preferences?.enabledMCPTools,
-                          [selectedMCP.id]: newEnabled,
-                        };
-                        updatePreferences({ enabledMCPTools: newEnabledTools });
-                      }}
-                      refreshTrigger={toolsRefreshTrigger}
-                    />
-                  ) : null}
-                </div>
+              <div className={`flex-1 p-6 overflow-auto`}>
+                {isEditing ? (
+                  <MCPServerEditor
+                    mcpForm={mcpForm}
+                    setMcpForm={(updater) => setMcpForm((prev) => updater(prev))}
+                    handleArgChange={handleArgChange}
+                    addArg={addArg}
+                    removeArg={removeArg}
+                    handleEnvVarChange={handleEnvVarChange}
+                    addEnvVar={addEnvVar}
+                    removeEnvVar={removeEnvVar}
+                  />
+                ) : selectedMCP ? (
+                  <MCPServerDetails
+                    server={selectedMCP}
+                    enabledTools={preferences?.enabledMCPTools?.[selectedMCP.id] || []}
+                    onUpdateEnabledTools={(newEnabled) => {
+                      const newEnabledTools = {
+                        ...preferences?.enabledMCPTools,
+                        [selectedMCP.id]: newEnabled,
+                      };
+                      updatePreferences({ enabledMCPTools: newEnabledTools });
+                    }}
+                    refreshTrigger={toolsRefreshTrigger}
+                  />
+                ) : null}
+              </div>
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
                 <Settings className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                  No server selected
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Select a server from the list to view its details
-                </p>
+                <h3 className="text-lg font-medium text-muted-foreground mb-2">No server selected</h3>
+                <p className="text-muted-foreground mb-4">Select a server from the list to view its details</p>
               </div>
             </div>
           )}

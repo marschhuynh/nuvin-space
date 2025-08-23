@@ -148,9 +148,7 @@ of the user's intent`,
         return {
           status: 'error',
           type: 'text',
-          result: `task execution failed: ${
-            agentError instanceof Error ? agentError.message : 'Unknown error'
-          }`,
+          result: `task execution failed: ${agentError instanceof Error ? agentError.message : 'Unknown error'}`,
           metadata: {
             taskId,
             description,
@@ -162,18 +160,13 @@ of the user's intent`,
       return {
         status: 'error',
         type: 'text',
-        result: `task tool error: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`,
+        result: `task tool error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   },
 
   validate(parameters) {
-    if (
-      typeof parameters.description !== 'string' ||
-      !parameters.description.trim()
-    ) {
+    if (typeof parameters.description !== 'string' || !parameters.description.trim()) {
       return false;
     }
     if (typeof parameters.prompt !== 'string' || !parameters.prompt.trim()) {

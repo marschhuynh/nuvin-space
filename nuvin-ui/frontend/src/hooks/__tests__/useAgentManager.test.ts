@@ -185,10 +185,7 @@ describe.skip('useAgentManager', () => {
         await result.current.sendMessage('Hello, agent!');
       });
 
-      expect(mockAgentManager.sendMessage).toHaveBeenCalledWith(
-        'Hello, agent!',
-        undefined,
-      );
+      expect(mockAgentManager.sendMessage).toHaveBeenCalledWith('Hello, agent!', undefined);
     });
 
     it('handles loading state correctly', async () => {
@@ -197,9 +194,7 @@ describe.skip('useAgentManager', () => {
         resolvePromise = resolve;
       });
 
-      mockAgentManager.sendMessage.mockReturnValue(
-        messagePromise as Promise<any>,
-      );
+      mockAgentManager.sendMessage.mockReturnValue(messagePromise as Promise<any>);
 
       const { result } = renderHook(() => useAgentManager());
 
@@ -237,9 +232,7 @@ describe.skip('useAgentManager', () => {
       });
 
       if (hookError) {
-        throw new Error(
-          `Hook threw error during execution: ${(hookError as Error).message || String(hookError)}`,
-        );
+        throw new Error(`Hook threw error during execution: ${(hookError as Error).message || String(hookError)}`);
       }
 
       if (!result.current) {

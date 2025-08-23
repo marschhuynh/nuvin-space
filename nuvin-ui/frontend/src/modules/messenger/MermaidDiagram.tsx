@@ -15,11 +15,7 @@ interface FullscreenDiagramProps {
   onClose: () => void;
 }
 
-function FullscreenDiagram({
-  svg,
-  resolvedTheme,
-  onClose,
-}: FullscreenDiagramProps) {
+function FullscreenDiagram({ svg, resolvedTheme, onClose }: FullscreenDiagramProps) {
   const fullscreenRef = useRef<HTMLDivElement>(null);
   const [fullscreenZoom, setFullscreenZoom] = useState(1);
   const [fullscreenPanX, setFullscreenPanX] = useState(0);
@@ -102,18 +98,10 @@ function FullscreenDiagram({
       if (svgElement) {
         svgElement.style.transform = `translate(${fullscreenPanX}px, ${fullscreenPanY}px) scale(${fullscreenZoom})`;
         svgElement.style.transformOrigin = 'center center';
-        svgElement.style.transition = fullscreenIsDragging
-          ? 'none'
-          : 'transform 0.1s ease-out';
+        svgElement.style.transition = fullscreenIsDragging ? 'none' : 'transform 0.1s ease-out';
       }
     }
-  }, [
-    fullscreenZoom,
-    fullscreenPanX,
-    fullscreenPanY,
-    svg,
-    fullscreenIsDragging,
-  ]);
+  }, [fullscreenZoom, fullscreenPanX, fullscreenPanY, svg, fullscreenIsDragging]);
 
   return (
     <div
@@ -466,11 +454,7 @@ export function MermaidDiagram({ chart }: MermaidProps) {
       {/* Fullscreen Modal using Portal */}
       {isFullscreen &&
         createPortal(
-          <FullscreenDiagram
-            svg={svg}
-            resolvedTheme={resolvedTheme}
-            onClose={handleCloseFullscreen}
-          />,
+          <FullscreenDiagram svg={svg} resolvedTheme={resolvedTheme} onClose={handleCloseFullscreen} />,
           document.body,
         )}
     </>

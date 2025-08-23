@@ -1,11 +1,4 @@
-import {
-  useState,
-  type KeyboardEvent,
-  useEffect,
-  useRef,
-  useCallback,
-  memo,
-} from 'react';
+import { useState, type KeyboardEvent, useEffect, useRef, useCallback, memo } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import SendButton from './components/SendButton';
 
@@ -57,10 +50,7 @@ const ChatInput = memo(function ChatInput({
       const maxHeight = 200; // Increased max height proportionally
 
       // Ensure we stay within bounds
-      const newHeight = Math.min(
-        Math.max(scrollHeight + 2, minHeight),
-        maxHeight,
-      );
+      const newHeight = Math.min(Math.max(scrollHeight + 2, minHeight), maxHeight);
 
       // Set the calculated height
       textarea.style.height = `${newHeight}px`;

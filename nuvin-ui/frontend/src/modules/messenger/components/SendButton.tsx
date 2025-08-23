@@ -9,13 +9,7 @@ interface SendProps {
   handleSend: () => void;
 }
 
-export default function SendButton({
-  message,
-  isLoading,
-  isMultiLine,
-  handleStop,
-  handleSend,
-}: SendProps) {
+export default function SendButton({ message, isLoading, isMultiLine, handleStop, handleSend }: SendProps) {
   return (
     <div
       className={`absolute right-4 transition-all duration-200 ${message.trim() || isLoading ? 'opacity-100' : 'opacity-0'} ${
@@ -31,10 +25,7 @@ export default function SendButton({
           onClick={handleStop}
           className="cursor-pointer h-8 w-8 p-0 rounded-full bg-red-100 hover:bg-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/40 stop-button-animate transition-all duration-200"
         >
-          <Square
-            className="h-3 w-3 text-red-600 dark:text-red-400"
-            fill="currentColor"
-          />
+          <Square className="h-3 w-3 text-red-600 dark:text-red-400" fill="currentColor" />
         </Button>
       ) : (
         <Button

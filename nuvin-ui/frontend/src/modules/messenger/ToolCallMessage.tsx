@@ -1,14 +1,4 @@
-import {
-  Wrench,
-  CheckCircle,
-  XCircle,
-  Clock,
-  ChevronDown,
-  ChevronRight,
-  Trash2,
-  Check,
-  Copy,
-} from 'lucide-react';
+import { Wrench, CheckCircle, XCircle, Clock, ChevronDown, ChevronRight, Trash2, Check, Copy } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { ClipboardSetText } from '@/lib/wails-runtime';
 import { useConversationStore } from '@/store/useConversationStore';
@@ -49,8 +39,7 @@ export function ToolCallMessage({
   const [isEditing, setIsEditing] = useState(false);
   const [editArgs, setEditArgs] = useState(JSON.stringify(args, null, 2));
 
-  const { updateMessage, deleteMessage, activeConversationId } =
-    useConversationStore();
+  const { updateMessage, deleteMessage, activeConversationId } = useConversationStore();
 
   const handleCopy = useCallback(async () => {
     try {
@@ -105,15 +94,7 @@ export function ToolCallMessage({
         message: 'Please check your syntax and try again.',
       });
     }
-  }, [
-    activeConversationId,
-    id,
-    editArgs,
-    toolName,
-    result,
-    isExecuting,
-    updateMessage,
-  ]);
+  }, [activeConversationId, id, editArgs, toolName, result, isExecuting, updateMessage]);
 
   const handleCancelEdit = useCallback(() => {
     setIsEditing(false);
@@ -190,9 +171,7 @@ export function ToolCallMessage({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{errorDialog.title}</DialogTitle>
-            {errorDialog.message && (
-              <DialogDescription>{errorDialog.message}</DialogDescription>
-            )}
+            {errorDialog.message && <DialogDescription>{errorDialog.message}</DialogDescription>}
           </DialogHeader>
           <DialogFooter>
             <button
@@ -233,15 +212,11 @@ export function ToolCallMessage({
 
                 {/* Tool name and description */}
                 <div className="flex items-center min-w-0 flex-1 gap-2">
-                  <span className="font-medium text-foreground text-sm flex-shrink-0">
-                    {toolName}
-                  </span>
+                  <span className="font-medium text-foreground text-sm flex-shrink-0">{toolName}</span>
                   {toolDescription && (
                     <>
                       <span className="text-muted-foreground text-xs">-</span>
-                      <span className="text-xs text-muted-foreground truncate">
-                        {toolDescription}
-                      </span>
+                      <span className="text-xs text-muted-foreground truncate">{toolDescription}</span>
                     </>
                   )}
                 </div>
@@ -282,15 +257,11 @@ export function ToolCallMessage({
 
                   {/* Tool name and description */}
                   <div className="flex items-center min-w-0 flex-1 gap-2">
-                    <span className="font-medium text-foreground text-sm flex-shrink-0">
-                      {toolName}
-                    </span>
+                    <span className="font-medium text-foreground text-sm flex-shrink-0">{toolName}</span>
                     {toolDescription && (
                       <>
                         <span className="text-muted-foreground text-xs">-</span>
-                        <span className="text-xs text-muted-foreground truncate">
-                          {toolDescription}
-                        </span>
+                        <span className="text-xs text-muted-foreground truncate">{toolDescription}</span>
                       </>
                     )}
                   </div>
@@ -317,12 +288,8 @@ export function ToolCallMessage({
                 {/* Arguments Section */}
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-foreground">
-                      Arguments
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {Object.keys(args || {}).length} parameters
-                    </span>
+                    <span className="text-sm font-medium text-foreground">Arguments</span>
+                    <span className="text-xs text-muted-foreground">{Object.keys(args || {}).length} parameters</span>
                   </div>
 
                   <div className="mt-2 p-3 bg-muted/50 rounded border border-border">
@@ -352,9 +319,7 @@ export function ToolCallMessage({
                 {result && (
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-foreground">
-                        Result
-                      </span>
+                      <span className="text-sm font-medium text-foreground">Result</span>
                       {result.status === 'success' ? (
                         <CheckCircle className="h-4 w-4 text-green-500" />
                       ) : result.status === 'warning' ? (
@@ -377,9 +342,7 @@ export function ToolCallMessage({
                         {/* Display the actual result content */}
                         {result.result ? (
                           typeof result.result === 'string' ? (
-                            <div className="whitespace-pre-wrap text-xs leading-relaxed">
-                              {result.result}
-                            </div>
+                            <div className="whitespace-pre-wrap text-xs leading-relaxed">{result.result}</div>
                           ) : (
                             <pre className="overflow-auto leading-relaxed font-mono text-xs">
                               {formatJSON(result.result)}
@@ -435,7 +398,7 @@ export function ToolCallMessage({
 
           {/* Control buttons positioned absolutely inside the tool card */}
           <div className="absolute bottom-[-10px] right-2 flex gap-1 opacity-0 group-hover:opacity-100">
-            {(
+            {
               <>
                 <button
                   type="button"
@@ -453,14 +416,10 @@ export function ToolCallMessage({
                   }`}
                   title="Copy tool call"
                 >
-                  {copied ? (
-                    <Check className="h-3 w-3" />
-                  ) : (
-                    <Copy className="h-3 w-3" />
-                  )}
+                  {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                 </button>
               </>
-            )}
+            }
           </div>
         </div>
       </div>
@@ -470,8 +429,7 @@ export function ToolCallMessage({
           <DialogHeader>
             <DialogTitle>Delete tool call</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this tool call? This action cannot
-              be undone.
+              Are you sure you want to delete this tool call? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

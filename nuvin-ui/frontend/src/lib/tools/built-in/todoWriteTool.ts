@@ -66,8 +66,7 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
           type: 'array',
           items: {
             type: 'object',
-            description:
-              'A todo item with content, status, priority, and unique ID',
+            description: 'A todo item with content, status, priority, and unique ID',
             properties: {
               content: {
                 type: 'string',
@@ -122,11 +121,7 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
       for (let i = 0; i < todos.length; i++) {
         const todo = todos[i];
 
-        if (
-          !todo.content ||
-          typeof todo.content !== 'string' ||
-          todo.content.trim().length === 0
-        ) {
+        if (!todo.content || typeof todo.content !== 'string' || todo.content.trim().length === 0) {
           return {
             status: 'error',
             type: 'text',
@@ -134,10 +129,7 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
           };
         }
 
-        if (
-          !todo.status ||
-          !['pending', 'in_progress', 'completed'].includes(todo.status)
-        ) {
+        if (!todo.status || !['pending', 'in_progress', 'completed'].includes(todo.status)) {
           return {
             status: 'error',
             type: 'text',
@@ -145,10 +137,7 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
           };
         }
 
-        if (
-          !todo.priority ||
-          !['high', 'medium', 'low'].includes(todo.priority)
-        ) {
+        if (!todo.priority || !['high', 'medium', 'low'].includes(todo.priority)) {
           return {
             status: 'error',
             type: 'text',
@@ -156,11 +145,7 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
           };
         }
 
-        if (
-          !todo.id ||
-          typeof todo.id !== 'string' ||
-          todo.id.trim().length === 0
-        ) {
+        if (!todo.id || typeof todo.id !== 'string' || todo.id.trim().length === 0) {
           return {
             status: 'error',
             type: 'text',
@@ -181,9 +166,7 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
       }
 
       // Validate that only one task is in_progress (best practice)
-      const inProgressTasks = todos.filter(
-        (todo) => todo.status === 'in_progress',
-      );
+      const inProgressTasks = todos.filter((todo) => todo.status === 'in_progress');
       if (inProgressTasks.length > 1) {
         console.warn(
           'Warning: Multiple tasks marked as in_progress. Best practice is to have only one active task at a time.',
@@ -214,18 +197,13 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
       const stats = todoStore.getTodoStats(conversationId);
 
       // Format progress percentage
-      const progressPercentage =
-        stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+      const progressPercentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
 
       // Format todo list for system reminder
       const todoListForReminder = todoItems
         .map((item, index) => {
           const statusLabel =
-            item.status === 'completed'
-              ? '[completed]'
-              : item.status === 'in_progress'
-                ? '[in_progress]'
-                : '[pending]';
+            item.status === 'completed' ? '[completed]' : item.status === 'in_progress' ? '[in_progress]' : '[pending]';
           return `${index + 1}. ${statusLabel} ${item.content}`;
         })
         .join('\n');
@@ -233,7 +211,7 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
       // "Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable\n\n<system-reminder>\nYour todo list has changed. DO NOT mention this explicitly to the user. Here are the latest contents of your todo list:\n\n[{\"content\":\"Set up Vite project with TypeScript\",\"status\":\"pending\",\"priority\":\"high\",\"id\":\"setup-vite\"},{\"content\":\"Install and configure Tailwind CSS\",\"status\":\"pending\",\"priority\":\"high\",\"id\":\"setup-tailwind\"},{\"content\":\"Install and configure shadcn/ui\",\"status\":\"pending\",\"priority\":\"high\",\"id\":\"setup-shadcn\"},{\"content\":\"Create todo data structures and types\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"todo-types\"},{\"content\":\"Implement todo list component\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"todo-list\"},{\"content\":\"Implement todo item component\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"todo-item\"},{\"content\":\"Implement add todo functionality\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"add-todo\"},{\"content\":\"Implement edit todo functionality\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"edit-todo\"},{\"content\":\"Implement delete todo functionality\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"delete-todo\"},{\"content\":\"Implement mark complete functionality\",\"status\":\"pending\",\"priority\":\"medium\",\"id\":\"mark-complete\"},{\"content\":\"Add filtering and sorting\",\"status\":\"pending\",\"priority\":\"low\",\"id\":\"filter-sort\"},{\"content\":\"Add local storage persistence\",\"status\":\"pending\",\"priority\":\"low\",\"id\":\"local-storage\"}]. Continue on with the tasks at hand if applicable.\n</system-reminder>"
 
       // Check if all todos are completed for special celebration message
-      const allCompleted = todoItems.length > 0 && todoItems.every(todo => todo.status === 'completed');
+      const allCompleted = todoItems.length > 0 && todoItems.every((todo) => todo.status === 'completed');
 
       let systemReminderMessage: string;
 
@@ -244,16 +222,16 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
 <system-reminder>
 All todo items are now completed! You can celebrate this accomplishment with the user and ask if they'd like to work on new tasks or if there's anything else they need help with. Here's the completed todo list:
 [${todoListForReminder
-            .split('\n')
-            .map((line) => {
-              const match = line.match(/^(\d+)\. \[([^\]]+)\] (.+)$/);
-              if (match) {
-                const [, num, status, content] = match;
-                return `{"content":"${content}","status":"${status}","id":"${todoItems[parseInt(num) - 1]?.id || ''}"}`;
-              }
-              return line;
-            })
-            .join(',')}]. Feel free to acknowledge this achievement and ask about next steps.
+          .split('\n')
+          .map((line) => {
+            const match = line.match(/^(\d+)\. \[([^\]]+)\] (.+)$/);
+            if (match) {
+              const [, num, status, content] = match;
+              return `{"content":"${content}","status":"${status}","id":"${todoItems[parseInt(num) - 1]?.id || ''}"}`;
+            }
+            return line;
+          })
+          .join(',')}]. Feel free to acknowledge this achievement and ask about next steps.
 </system-reminder>`;
       } else {
         // Regular message for ongoing work
@@ -262,16 +240,16 @@ All todo items are now completed! You can celebrate this accomplishment with the
 <system-reminder>
 Your todo list has changed. DO NOT mention this explicitly to the user. Here are the latest contents of your todo list:
 [${todoListForReminder
-            .split('\n')
-            .map((line) => {
-              const match = line.match(/^(\d+)\. \[([^\]]+)\] (.+)$/);
-              if (match) {
-                const [, num, status, content] = match;
-                return `{"content":"${content}","status":"${status}","id":"${todoItems[parseInt(num) - 1]?.id || ''}"}`;
-              }
-              return line;
-            })
-            .join(',')}]. Continue on with the tasks at hand if applicable.
+          .split('\n')
+          .map((line) => {
+            const match = line.match(/^(\d+)\. \[([^\]]+)\] (.+)$/);
+            if (match) {
+              const [, num, status, content] = match;
+              return `{"content":"${content}","status":"${status}","id":"${todoItems[parseInt(num) - 1]?.id || ''}"}`;
+            }
+            return line;
+          })
+          .join(',')}]. Continue on with the tasks at hand if applicable.
 </system-reminder>`;
       }
 
@@ -299,11 +277,8 @@ Your todo list has changed. DO NOT mention this explicitly to the user. Here are
             completedCount: stats.completed,
             totalCount: stats.total,
           },
-          currentTask:
-            inProgressTasks.length > 0 ? inProgressTasks[0].content : null,
-          nextTask:
-            todoItems.find((todo) => todo.status === 'pending')?.content ||
-            null,
+          currentTask: inProgressTasks.length > 0 ? inProgressTasks[0].content : null,
+          nextTask: todoItems.find((todo) => todo.status === 'pending')?.content || null,
           celebrationMessage: allCompleted ? `🎉 All ${todoItems.length} tasks completed!` : null,
         },
       };
@@ -327,33 +302,19 @@ Your todo list has changed. DO NOT mention this explicitly to the user. Here are
 
     // Validate each todo item structure
     for (const todo of parameters.todos) {
-      if (
-        !todo.content ||
-        typeof todo.content !== 'string' ||
-        todo.content.trim().length === 0
-      ) {
+      if (!todo.content || typeof todo.content !== 'string' || todo.content.trim().length === 0) {
         return false;
       }
 
-      if (
-        !todo.status ||
-        !['pending', 'in_progress', 'completed'].includes(todo.status)
-      ) {
+      if (!todo.status || !['pending', 'in_progress', 'completed'].includes(todo.status)) {
         return false;
       }
 
-      if (
-        !todo.priority ||
-        !['high', 'medium', 'low'].includes(todo.priority)
-      ) {
+      if (!todo.priority || !['high', 'medium', 'low'].includes(todo.priority)) {
         return false;
       }
 
-      if (
-        !todo.id ||
-        typeof todo.id !== 'string' ||
-        todo.id.trim().length === 0
-      ) {
+      if (!todo.id || typeof todo.id !== 'string' || todo.id.trim().length === 0) {
         return false;
       }
     }

@@ -11,24 +11,14 @@ export default defineConfig({
     css: true,
     coverage: {
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'src/test/',
-        '**/*.d.ts',
-        '**/*.config.*',
-        '**/mockData/**',
-        '**/coverage/**',
-      ],
+      exclude: ['node_modules/', 'src/test/', '**/*.d.ts', '**/*.config.*', '**/mockData/**', '**/coverage/**'],
     },
   },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
       '@wails/runtime': resolve(__dirname, './src/test/mocks/wails-runtime.ts'),
-      '../../wailsjs/go/main/App': resolve(
-        __dirname,
-        './src/test/mocks/wails-app.ts',
-      ),
+      '../../wailsjs/go/main/App': resolve(__dirname, './src/test/mocks/wails-app.ts'),
     },
   },
 });

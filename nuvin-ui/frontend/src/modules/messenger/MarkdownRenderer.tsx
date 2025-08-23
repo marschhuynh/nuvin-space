@@ -22,14 +22,7 @@ interface CodeBlockProps {
   isStreaming?: boolean;
 }
 
-function CodeBlock({
-  children,
-  className,
-  language,
-  content,
-  isStreaming,
-  depth = 0,
-}: CodeBlockProps) {
+function CodeBlock({ children, className, language, content, isStreaming, depth = 0 }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -61,17 +54,8 @@ function CodeBlock({
         <div className="nested-markdown border border-border bg-muted/20 p-4 rounded-lg overflow-hidden">
           <div className="text-foreground text-sm font-medium mb-2 flex items-center justify-between">
             <span>Markdown Content:</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCopy}
-              className="h-6 w-6 p-0 hover:bg-muted"
-            >
-              {copied ? (
-                <Check className="h-3 w-3" />
-              ) : (
-                <Copy className="h-3 w-3" />
-              )}
+            <Button variant="ghost" size="sm" onClick={handleCopy} className="h-6 w-6 p-0 hover:bg-muted">
+              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
             </Button>
           </div>
           <MarkdownRenderer
@@ -87,20 +71,14 @@ function CodeBlock({
 
   // For inline code (no className means it's inline)
   if (!className) {
-    return (
-      <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground">
-        {children}
-      </code>
-    );
+    return <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground">{children}</code>;
   }
 
   // For code blocks with copy functionality
   return (
     <div className="relative group">
       <pre className="bg-muted/30 border border-border rounded-lg p-4 overflow-x-auto mb-3">
-        <code className={`text-sm font-mono ${className || ''}`}>
-          {children}
-        </code>
+        <code className={`text-sm font-mono ${className || ''}`}>{children}</code>
       </pre>
       <Button
         variant="ghost"
@@ -115,12 +93,7 @@ function CodeBlock({
   );
 }
 
-export function MarkdownRenderer({
-  content,
-  className = '',
-  isStreaming = false,
-  depth = 0,
-}: MarkdownRendererProps) {
+export function MarkdownRenderer({ content, className = '', isStreaming = false, depth = 0 }: MarkdownRendererProps) {
   // Memoize content processing for performance
   const processedContent = useMemo(() => {
     return unwrapMarkdownBlocks(content.trim());
@@ -161,45 +134,29 @@ export function MarkdownRenderer({
         </h2>
       ),
       h3: ({ children }: any) => (
-        <h3 className="text-lg font-semibold mb-2 text-foreground whitespace-break-spaces">
-          {children}
-        </h3>
+        <h3 className="text-lg font-semibold mb-2 text-foreground whitespace-break-spaces">{children}</h3>
       ),
       h4: ({ children }: any) => (
-        <h4 className="text-base font-semibold mb-2 text-foreground whitespace-break-spaces">
-          {children}
-        </h4>
+        <h4 className="text-base font-semibold mb-2 text-foreground whitespace-break-spaces">{children}</h4>
       ),
       h5: ({ children }: any) => (
-        <h5 className="text-sm font-semibold mb-2 text-foreground whitespace-break-spaces">
-          {children}
-        </h5>
+        <h5 className="text-sm font-semibold mb-2 text-foreground whitespace-break-spaces">{children}</h5>
       ),
       h6: ({ children }: any) => (
-        <h6 className="text-xs font-semibold mb-2 text-muted-foreground whitespace-break-spaces">
-          {children}
-        </h6>
+        <h6 className="text-xs font-semibold mb-2 text-muted-foreground whitespace-break-spaces">{children}</h6>
       ),
 
       // Enhanced paragraphs
-      p: ({ children }: any) => (
-        <p className="mb-4 leading-relaxed text-foreground">{children}</p>
-      ),
+      p: ({ children }: any) => <p className="mb-4 leading-relaxed text-foreground">{children}</p>,
 
       // Improved lists with theme-aware styling
       ul: ({ children }: any) => (
-        <ul className="mb-4 space-y-1 pl-6 list-disc marker:text-muted-foreground">
-          {children}
-        </ul>
+        <ul className="mb-4 space-y-1 pl-6 list-disc marker:text-muted-foreground">{children}</ul>
       ),
       ol: ({ children }: any) => (
-        <ol className="mb-4 space-y-1 pl-6 list-decimal marker:text-muted-foreground">
-          {children}
-        </ol>
+        <ol className="mb-4 space-y-1 pl-6 list-decimal marker:text-muted-foreground">{children}</ol>
       ),
-      li: ({ children }: any) => (
-        <li className="leading-relaxed text-foreground">{children}</li>
-      ),
+      li: ({ children }: any) => <li className="leading-relaxed text-foreground">{children}</li>,
 
       // Theme-aware blockquotes
       blockquote: ({ children }: any) => (
@@ -214,23 +171,15 @@ export function MarkdownRenderer({
           <table className="min-w-full">{children}</table>
         </div>
       ),
-      thead: ({ children }: any) => (
-        <thead className="bg-muted/30">{children}</thead>
-      ),
-      tbody: ({ children }: any) => (
-        <tbody className="divide-y divide-border">{children}</tbody>
-      ),
-      tr: ({ children }: any) => (
-        <tr className="hover:bg-muted/10 transition-colors">{children}</tr>
-      ),
+      thead: ({ children }: any) => <thead className="bg-muted/30">{children}</thead>,
+      tbody: ({ children }: any) => <tbody className="divide-y divide-border">{children}</tbody>,
+      tr: ({ children }: any) => <tr className="hover:bg-muted/10 transition-colors">{children}</tr>,
       th: ({ children }: any) => (
         <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
           {children}
         </th>
       ),
-      td: ({ children }: any) => (
-        <td className="px-4 py-3 text-sm text-foreground">{children}</td>
-      ),
+      td: ({ children }: any) => <td className="px-4 py-3 text-sm text-foreground">{children}</td>,
 
       // Enhanced links with better hover states
       a: ({ href, children }: any) => (
@@ -248,12 +197,8 @@ export function MarkdownRenderer({
       hr: () => <hr className="my-8 border-border" />,
 
       // Enhanced emphasis
-      strong: ({ children }: any) => (
-        <strong className="font-semibold text-foreground">{children}</strong>
-      ),
-      em: ({ children }: any) => (
-        <em className="italic text-foreground/90">{children}</em>
-      ),
+      strong: ({ children }: any) => <strong className="font-semibold text-foreground">{children}</strong>,
+      em: ({ children }: any) => <em className="italic text-foreground/90">{children}</em>,
     }),
     [isStreaming, depth],
   );

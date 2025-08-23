@@ -8,9 +8,7 @@ import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
  */
 export function useMCPServers() {
   const { preferences } = useUserPreferenceStore();
-  const [serverStatuses, setServerStatuses] = useState<
-    Map<string, ExtendedMCPConfig>
-  >(new Map());
+  const [serverStatuses, setServerStatuses] = useState<Map<string, ExtendedMCPConfig>>(new Map());
 
   // Update server statuses from MCP manager
   const updateServerStatuses = useCallback(() => {
@@ -60,10 +58,7 @@ export function useMCPServers() {
     }
   };
 
-  const updateServer = async (
-    serverId: string,
-    updates: Partial<MCPConfig>,
-  ) => {
+  const updateServer = async (serverId: string, updates: Partial<MCPConfig>) => {
     try {
       await mcpIntegration.updateMCPServer(serverId, updates);
     } catch (error) {
@@ -83,9 +78,7 @@ export function useMCPServers() {
 
   const startServer = async (serverId: string) => {
     const manager = mcpIntegration.getManager();
-    const config = (preferences.mcpServers || []).find(
-      (s) => s.id === serverId,
-    );
+    const config = (preferences.mcpServers || []).find((s) => s.id === serverId);
     if (config) {
       await manager.startServer(config);
     }

@@ -5,19 +5,8 @@ import { Check, ChevronsUpDown } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export interface ComboboxOption<T = any> {
   value: string;
@@ -39,10 +28,7 @@ export interface ComboboxProps<T = any> {
   multiple?: boolean;
   searchable?: boolean;
   clearable?: boolean;
-  renderOption?: (
-    option: ComboboxOption<T>,
-    isSelected: boolean,
-  ) => React.ReactNode;
+  renderOption?: (option: ComboboxOption<T>, isSelected: boolean) => React.ReactNode;
   renderValue?: (option: ComboboxOption<T>) => React.ReactNode;
 }
 
@@ -67,16 +53,10 @@ export function Combobox<T = any>({
 
   const isControlled = controlledValue !== undefined;
   const currentValue = isControlled ? controlledValue : internalValue;
-  const currentValues = multiple
-    ? selectedValues
-    : [currentValue].filter(Boolean);
+  const currentValues = multiple ? selectedValues : [currentValue].filter(Boolean);
 
-  const selectedOption = options.find(
-    (option) => option.value === currentValue,
-  );
-  const selectedOptions = options.filter((option) =>
-    currentValues.includes(option.value),
-  );
+  const selectedOption = options.find((option) => option.value === currentValue);
+  const selectedOptions = options.filter((option) => currentValues.includes(option.value));
 
   const handleSelect = (selectedValue: string) => {
     const option = options.find((opt) => opt.value === selectedValue);
@@ -89,8 +69,7 @@ export function Combobox<T = any>({
       setSelectedValues(newValues);
       onValueChange?.(selectedValue, option);
     } else {
-      const newValue =
-        selectedValue === currentValue && clearable ? '' : selectedValue;
+      const newValue = selectedValue === currentValue && clearable ? '' : selectedValue;
 
       if (!isControlled) {
         setInternalValue(newValue);
@@ -125,10 +104,7 @@ export function Combobox<T = any>({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn(
-            'w-[200px] justify-between min-h-[3rem] shadow-sm',
-            className,
-          )}
+          className={cn('w-[200px] justify-between min-h-[3rem] shadow-sm', className)}
           disabled={disabled}
         >
           {getDisplayText()}
@@ -137,16 +113,12 @@ export function Combobox<T = any>({
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
         <Command>
-          {searchable && (
-            <CommandInput placeholder={searchPlaceholder} className="h-9" />
-          )}
+          {searchable && <CommandInput placeholder={searchPlaceholder} className="h-9" />}
           <CommandList>
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
-                const isSelected = multiple
-                  ? currentValues.includes(option.value)
-                  : currentValue === option.value;
+                const isSelected = multiple ? currentValues.includes(option.value) : currentValue === option.value;
 
                 return (
                   <CommandItem
@@ -157,16 +129,9 @@ export function Combobox<T = any>({
                   >
                     <div className="flex items-center justify-between w-full">
                       <div className="flex-1 min-w-0">
-                        {renderOption
-                          ? renderOption(option, isSelected)
-                          : option.content || option.label}
+                        {renderOption ? renderOption(option, isSelected) : option.content || option.label}
                       </div>
-                      <Check
-                        className={cn(
-                          'ml-2 h-4 w-4 flex-shrink-0',
-                          isSelected ? 'opacity-100' : 'opacity-0',
-                        )}
-                      />
+                      <Check className={cn('ml-2 h-4 w-4 flex-shrink-0', isSelected ? 'opacity-100' : 'opacity-0')} />
                     </div>
                   </CommandItem>
                 );

@@ -19,12 +19,9 @@ export function AgentStatusBar({ activeConversationId }: AgentStatusBarProps) {
   const { getConversationMessages } = useConversationStore();
 
   // State for conversation metrics
-  const [conversationMetrics, setConversationMetrics] =
-    useState<ConversationMetrics | null>(null);
+  const [conversationMetrics, setConversationMetrics] = useState<ConversationMetrics | null>(null);
 
-  const messages = activeConversationId
-    ? getConversationMessages(activeConversationId)
-    : [];
+  const messages = activeConversationId ? getConversationMessages(activeConversationId) : [];
 
   // Update conversation metrics when conversation changes
   useEffect(() => {
@@ -59,10 +56,7 @@ export function AgentStatusBar({ activeConversationId }: AgentStatusBarProps) {
     }
   }, [activeConversationId, messages.forEach]);
 
-  console.log(
-    'Conversation Metrics:',
-    messages?.[messages.length - 1]?.metadata,
-  );
+  console.log('Conversation Metrics:', messages?.[messages.length - 1]?.metadata);
 
   // Format numbers for display
   const formatNumber = (num: number) => {
@@ -83,9 +77,7 @@ export function AgentStatusBar({ activeConversationId }: AgentStatusBarProps) {
         <div className="flex items-center gap-4">
           <div
             className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              isReady
-                ? 'bg-green-500 shadow-sm shadow-green-500/30'
-                : 'bg-red-500 shadow-sm shadow-red-500/30'
+              isReady ? 'bg-green-500 shadow-sm shadow-green-500/30' : 'bg-red-500 shadow-sm shadow-red-500/30'
             }`}
           />
           <span className="text-xs font-medium text-muted-foreground transition-colors duration-200">
@@ -105,25 +97,19 @@ export function AgentStatusBar({ activeConversationId }: AgentStatusBarProps) {
             <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded-md">
               <div className="flex items-center gap-1">
                 <div className="w-1 h-1 bg-orange-400 rounded-full"></div>
-                <span className="text-orange-600 font-medium">
-                  {formatNumber(conversationMetrics.promptTokens)}
-                </span>
+                <span className="text-orange-600 font-medium">{formatNumber(conversationMetrics.promptTokens)}</span>
               </div>
               <span className="text-gray-400">→</span>
               <div className="flex items-center gap-1">
                 <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
-                <span className="text-blue-600 font-medium">
-                  {formatNumber(conversationMetrics.completionTokens)}
-                </span>
+                <span className="text-blue-600 font-medium">{formatNumber(conversationMetrics.completionTokens)}</span>
               </div>
             </div>
 
             {/* Cost Display */}
             <div className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md">
               <div className="w-1 h-1 bg-green-500 rounded-full"></div>
-              <span className="font-medium">
-                {formatCost(conversationMetrics.totalCost)}
-              </span>
+              <span className="font-medium">{formatCost(conversationMetrics.totalCost)}</span>
             </div>
           </div>
         )}

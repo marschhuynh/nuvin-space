@@ -6,13 +6,7 @@ import { OpenAICompatibleProvider } from './openai-compatible-provider';
 import { DeepInfraProvider } from './deepinfra-provider';
 import type { LLMProvider } from './types/base';
 
-export type ProviderType =
-  | 'openrouter'
-  | 'openai'
-  | 'anthropic'
-  | 'github'
-  | 'openai-compatible'
-  | 'deepinfra';
+export type ProviderType = 'openrouter' | 'openai' | 'anthropic' | 'github' | 'openai-compatible' | 'deepinfra';
 
 export interface ProviderConfig {
   type: ProviderType;
@@ -23,9 +17,7 @@ export interface ProviderConfig {
 
 export class ProviderFactory {
   constructor() {
-    throw new Error(
-      'ProviderFactory is a static class and cannot be instantiated.',
-    );
+    throw new Error('ProviderFactory is a static class and cannot be instantiated.');
   }
   static createProvider(config: ProviderConfig): LLMProvider {
     switch (config.type) {
@@ -47,14 +39,7 @@ export class ProviderFactory {
   }
 
   static getProviderTypes(): ProviderType[] {
-    return [
-      'openrouter',
-      'openai',
-      'anthropic',
-      'github',
-      'openai-compatible',
-      'deepinfra',
-    ];
+    return ['openrouter', 'openai', 'anthropic', 'github', 'openai-compatible', 'deepinfra'];
   }
 
   static getProviderDisplayName(type: ProviderType): string {
@@ -71,8 +56,7 @@ export class ProviderFactory {
 
   static getProviderDescription(type: ProviderType): string {
     const descriptions: Record<ProviderType, string> = {
-      openrouter:
-        'Access to 100+ models from various providers through OpenRouter',
+      openrouter: 'Access to 100+ models from various providers through OpenRouter',
       openai: 'Direct access to OpenAI models including GPT-4, GPT-4o, and o1',
       anthropic: 'Access to Claude models by Anthropic',
       github: 'GitHub Copilot models for developers',

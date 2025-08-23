@@ -1,10 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import type { ModelInfo } from '@/lib/providers/types/base';
-import {
-  fetchProviderModels,
-  type ProviderType,
-} from '@/lib/providers/provider-utils';
+import { fetchProviderModels, type ProviderType } from '@/lib/providers/provider-utils';
 import type { ProviderConfig } from '@/types';
 
 // Extended ModelInfo with enabled flag
@@ -30,11 +27,7 @@ interface ModelsState {
   // Actions
   setModels: (providerId: string, models: ModelInfo[]) => void;
   fetchModels: (provider: ProviderConfig) => Promise<ModelInfo[]>;
-  updateModelState: (
-    providerId: string,
-    modelId: string,
-    enabled: boolean,
-  ) => void;
+  updateModelState: (providerId: string, modelId: string, enabled: boolean) => void;
   setLoading: (providerId: string, loading: boolean) => void;
   setError: (providerId: string, error: string | null) => void;
   clearProviderModels: (providerId: string) => void;
@@ -126,8 +119,7 @@ export const useModelsStore = create<ModelsState>()(
 
           return models;
         } catch (error) {
-          const errorMessage =
-            error instanceof Error ? error.message : 'Failed to fetch models';
+          const errorMessage = error instanceof Error ? error.message : 'Failed to fetch models';
 
           // Set error and clear loading state
           set((currentState) => ({
@@ -158,15 +150,12 @@ export const useModelsStore = create<ModelsState>()(
 
       setLoading: (providerId, loading) => {
         return set((state) => {
-          console.log(
-            `Setting loading state for provider ${providerId}: ${loading}`,
-            {
-              loading: {
-                ...state.loading,
-                [providerId]: loading,
-              },
+          console.log(`Setting loading state for provider ${providerId}: ${loading}`, {
+            loading: {
+              ...state.loading,
+              [providerId]: loading,
             },
-          );
+          });
           return {
             ...state,
             loading: {
@@ -237,9 +226,7 @@ export const useModelsStore = create<ModelsState>()(
 
       getEnabledModelsByProviderId: (providerId) => {
         const state = get();
-        return (state.models[providerId] || []).filter(
-          (model) => model.enabled,
-        );
+        return (state.models[providerId] || []).filter((model) => model.enabled);
       },
 
       reset: () =>

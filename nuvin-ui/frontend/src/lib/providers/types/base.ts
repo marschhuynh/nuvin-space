@@ -33,14 +33,10 @@ export interface CompletionParams {
   maxTokens: number;
   topP: number;
   tools?: ToolDefinition[];
-  tool_choice?:
-    | 'auto'
-    | 'none'
-    | { type: 'function'; function: { name: string } };
+  tool_choice?: 'auto' | 'none' | { type: 'function'; function: { name: string } };
 }
 
-export interface StreamingRequestBody
-  extends Omit<CompletionParams, 'maxTokens' | 'topP'> {
+export interface StreamingRequestBody extends Omit<CompletionParams, 'maxTokens' | 'topP'> {
   model: string;
   stream: boolean;
   max_tokens?: number;
@@ -95,17 +91,8 @@ export interface ModelInfo {
 
 export interface LLMProvider {
   readonly type: string;
-  generateCompletion(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): Promise<CompletionResult>;
-  generateCompletionStream?(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): AsyncGenerator<string>;
-  generateCompletionStreamWithTools?(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): AsyncGenerator<StreamChunk>;
+  generateCompletion(params: CompletionParams, signal?: AbortSignal): Promise<CompletionResult>;
+  generateCompletionStream?(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<string>;
+  generateCompletionStreamWithTools?(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<StreamChunk>;
   getModels(): Promise<ModelInfo[]>;
 }

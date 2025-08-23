@@ -25,9 +25,7 @@ export function ToolPermissionDialog() {
     <Dialog open={!!request} onOpenChange={() => resolveRequest('deny')}>
       <DialogContent className="max-w-lg" onInteractOutside={(event) => event.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>
-            Allow tool "{request?.toolName}" to run?
-          </DialogTitle>
+          <DialogTitle>Allow tool "{request?.toolName}" to run?</DialogTitle>
         </DialogHeader>
         {request && (
           <div className="space-y-3 py-1 overflow-hidden">
@@ -37,30 +35,26 @@ export function ToolPermissionDialog() {
                 const isMCP = toolRegistry.isMCPTool(request.toolName);
                 if (isMCP) {
                   const serverId = toolRegistry.getMCPServerIdForTool(request.toolName);
-                  return (
-                    <span>
-                      Source: MCP server{serverId ? ` (${serverId})` : ''}
-                    </span>
-                  );
+                  return <span>Source: MCP server{serverId ? ` (${serverId})` : ''}</span>;
                 }
                 return <span>Source: built-in tool</span>;
               })()}
             </div>
 
             {/* Description */}
-            {(request.toolParams as any).description && <div className="text-sm">
-              <span className="font-medium">What it does: </span>
-              <span className="text-muted-foreground">
-                {(request.toolParams as any).description}
-              </span>
-            </div>}
+            {(request.toolParams as any).description && (
+              <div className="text-sm">
+                <span className="font-medium">What it does: </span>
+                <span className="text-muted-foreground">{(request.toolParams as any).description}</span>
+              </div>
+            )}
 
             {/* Parameters preview */}
             {request.toolParams && Object.keys(request.toolParams).length > 0 && (
               <div>
                 <div className="text-sm font-medium mb-1">Requested parameters</div>
                 <pre className="max-h-40 overflow-auto rounded-md bg-muted p-3 text-xs">
-{JSON.stringify(request.toolParams, null, 2)}
+                  {JSON.stringify(request.toolParams, null, 2)}
                 </pre>
               </div>
             )}

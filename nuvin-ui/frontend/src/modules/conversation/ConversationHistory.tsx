@@ -33,9 +33,7 @@ export function ConversationHistory({
           <div className="flex flex-col items-center justify-center h-32 text-muted-foreground px-4">
             <History className="h-8 w-8 mb-2 opacity-50" />
             <p className="text-sm text-center">No conversations yet</p>
-            <p className="text-xs text-center opacity-75">
-              Click "New Conversation" to get started
-            </p>
+            <p className="text-xs text-center opacity-75">Click "New Conversation" to get started</p>
           </div>
         ) : (
           <div className="pb-4">

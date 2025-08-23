@@ -66,9 +66,7 @@ export function RemoteAgentSettings({
               placeholder="https://example.com/agent"
               className="h-9"
             />
-            <p className="text-xs text-muted-foreground">
-              The base URL of the A2A agent
-            </p>
+            <p className="text-xs text-muted-foreground">The base URL of the A2A agent</p>
           </>
         ) : (
           <div className="px-3 py-2 border rounded-md bg-background text-sm font-mono break-all select-all h-9 flex items-center">

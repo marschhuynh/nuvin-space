@@ -1,11 +1,5 @@
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 
 interface AuthConfig {
@@ -22,14 +16,8 @@ interface AuthenticationSettingsProps {
   onAuthChange: (auth: AuthConfig) => void;
 }
 
-export function AuthenticationSettings({
-  auth,
-  isEditing,
-  onAuthChange,
-}: AuthenticationSettingsProps) {
-  const handleAuthTypeChange = (
-    type: 'bearer' | 'apikey' | 'basic' | 'none',
-  ) => {
+export function AuthenticationSettings({ auth, isEditing, onAuthChange }: AuthenticationSettingsProps) {
+  const handleAuthTypeChange = (type: 'bearer' | 'apikey' | 'basic' | 'none') => {
     onAuthChange({ type });
   };
 
@@ -79,20 +67,14 @@ export function AuthenticationSettings({
 
         {(auth.type === 'bearer' || auth.type === 'apikey') && (
           <div className="space-y-2">
-            <Label htmlFor="authToken">
-              {auth.type === 'bearer' ? 'Bearer Token' : 'API Key'}
-            </Label>
+            <Label htmlFor="authToken">{auth.type === 'bearer' ? 'Bearer Token' : 'API Key'}</Label>
             {isEditing ? (
               <Input
                 id="authToken"
                 type="password"
                 value={auth.token || ''}
                 onChange={(e) => handleTokenChange(e.target.value)}
-                placeholder={
-                  auth.type === 'bearer'
-                    ? 'Enter bearer token'
-                    : 'Enter API key'
-                }
+                placeholder={auth.type === 'bearer' ? 'Enter bearer token' : 'Enter API key'}
               />
             ) : (
               <div className="px-3 py-2 border rounded-md bg-background text-sm h-9 flex items-center">

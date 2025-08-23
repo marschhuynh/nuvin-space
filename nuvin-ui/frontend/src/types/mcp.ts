@@ -107,9 +107,7 @@ export interface MCPResourceContents {
 export interface MCPConnection {
   send(message: JSONRPCRequest | JSONRPCNotification): Promise<void>;
   close(): Promise<void>;
-  onMessage(
-    handler: (message: JSONRPCResponse | JSONRPCNotification) => void,
-  ): void;
+  onMessage(handler: (message: JSONRPCResponse | JSONRPCNotification) => void): void;
   onError(handler: (error: Error) => void): void;
   onClose(handler: () => void): void;
 }

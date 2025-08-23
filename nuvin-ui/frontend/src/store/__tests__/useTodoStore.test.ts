@@ -208,11 +208,7 @@ describe('useTodoStore', () => {
 
     const storedTodos = store.getTodos(conversationId);
     expect(storedTodos).toHaveLength(3);
-    expect(storedTodos.map((t) => t.content)).toEqual([
-      'First todo',
-      'Second todo',
-      'Third todo',
-    ]);
+    expect(storedTodos.map((t) => t.content)).toEqual(['First todo', 'Second todo', 'Third todo']);
   });
 
   it('should provide utility methods for status updates', () => {

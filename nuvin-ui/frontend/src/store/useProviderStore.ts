@@ -7,10 +7,7 @@ interface ProviderState {
   activeProviderId: string;
   addProvider: (provider: ProviderConfig) => void;
   updateProvider: (provider: ProviderConfig) => void;
-  updateActiveModel: (
-    providerId: string,
-    modelConfig: Partial<ModelConfig>,
-  ) => void;
+  updateActiveModel: (providerId: string, modelConfig: Partial<ModelConfig>) => void;
   deleteProvider: (id: string) => void;
   setActiveProvider: (id: string) => void;
   isNameUnique: (name: string, excludeId?: string) => boolean;
@@ -26,20 +23,15 @@ export const useProviderStore = create<ProviderState>()(
     devtools((set, get) => ({
       providers: defaultProviders,
       activeProviderId: 'default',
-      addProvider: (provider) =>
-        set((state) => ({ providers: [...state.providers, provider] })),
+      addProvider: (provider) => set((state) => ({ providers: [...state.providers, provider] })),
       updateProvider: (provider) =>
         set((state) => ({
-          providers: state.providers.map((p) =>
-            p.id === provider.id ? { ...p, ...provider } : p,
-          ),
+          providers: state.providers.map((p) => (p.id === provider.id ? { ...p, ...provider } : p)),
         })),
       updateActiveModel: (providerId, modelConfig) =>
         set((state) => ({
           providers: state.providers.map((p) =>
-            p.id === providerId
-              ? { ...p, activeModel: { ...p.activeModel, ...modelConfig } }
-              : p,
+            p.id === providerId ? { ...p, activeModel: { ...p.activeModel, ...modelConfig } } : p,
           ),
         })),
       deleteProvider: (id) => {
@@ -62,16 +54,10 @@ export const useProviderStore = create<ProviderState>()(
                   useModelsStore.getState().clearProviderModels(id);
                 })
                 .catch((error) => {
-                  console.warn(
-                    'Could not clear models for deleted provider:',
-                    error,
-                  );
+                  console.warn('Could not clear models for deleted provider:', error);
                 });
             } catch (error) {
-              console.warn(
-                'Could not clear models for deleted provider:',
-                error,
-              );
+              console.warn('Could not clear models for deleted provider:', error);
             }
           }, 0);
 
@@ -86,8 +72,7 @@ export const useProviderStore = create<ProviderState>()(
         const providers = get().providers;
         return !providers.some((p) => p.name === name && p.id !== excludeId);
       },
-      reset: () =>
-        set({ providers: defaultProviders, activeProviderId: 'default' }),
+      reset: () => set({ providers: defaultProviders, activeProviderId: 'default' }),
       hasHydrated: false,
       setHasHydrated: (state) => set({ hasHydrated: state }),
     })),

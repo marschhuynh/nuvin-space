@@ -10,12 +10,7 @@ import Messenger from './messenger';
 
 export default function Dashboard() {
   // Use conversation store
-  const {
-    activeConversationId,
-    addConversation,
-    setActiveConversation,
-    deleteConversation,
-  } = useConversationStore();
+  const { activeConversationId, addConversation, setActiveConversation, deleteConversation } = useConversationStore();
 
   const handleNewConversation = useCallback(() => {
     const newConversation: Conversation = {

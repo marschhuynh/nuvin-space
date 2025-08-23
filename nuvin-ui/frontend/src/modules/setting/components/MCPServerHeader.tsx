@@ -37,8 +37,8 @@ export function MCPServerHeader({
           : 'bg-card'
       }`}
     >
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center gap-3'>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <div
             className={`p-1.5 rounded-lg ${
               isCreating
@@ -47,17 +47,13 @@ export function MCPServerHeader({
             }`}
           >
             {isCreating ? (
-              <Plus className='h-5 w-5 text-blue-600 dark:text-blue-400' />
+              <Plus className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             ) : (
-              <Settings className='h-5 w-5 text-blue-600 dark:text-blue-400' />
+              <Settings className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             )}
           </div>
           <div>
-            <h1
-              className={`text-lg font-semibold ${
-                isCreating ? 'text-blue-900 dark:text-blue-100' : ''
-              }`}
-            >
+            <h1 className={`text-lg font-semibold ${isCreating ? 'text-blue-900 dark:text-blue-100' : ''}`}>
               {isCreating
                 ? 'Create New MCP Server'
                 : editingMCP
@@ -66,26 +62,26 @@ export function MCPServerHeader({
             </h1>
           </div>
         </div>
-        <div className='flex gap-2'>
+        <div className="flex gap-2">
           {isEditing ? (
             <>
               {isCreating && (
                 <Button
-                  variant='outline'
-                  size='sm'
+                  variant="outline"
+                  size="sm"
                   onClick={onImportFromClipboard}
-                  className='border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/30'
+                  className="border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/30"
                 >
-                  <Clipboard className='h-4 w-4 mr-1' />
+                  <Clipboard className="h-4 w-4 mr-1" />
                   Import
                 </Button>
               )}
-              <Button variant='outline' size='sm' onClick={onCancelEdit}>
-                <X className='h-4 w-4 mr-1' />
+              <Button variant="outline" size="sm" onClick={onCancelEdit}>
+                <X className="h-4 w-4 mr-1" />
                 Cancel
               </Button>
               <Button
-                size='sm'
+                size="sm"
                 onClick={onSaveInline}
                 disabled={
                   !mcpForm.name ||
@@ -93,31 +89,31 @@ export function MCPServerHeader({
                   (mcpForm.type === 'http' && !mcpForm.url)
                 }
               >
-                <Save className='h-4 w-4 mr-1' />
+                <Save className="h-4 w-4 mr-1" />
                 {editingMCP ? 'Update' : 'Create'}
               </Button>
             </>
           ) : selectedMCP ? (
             <>
-              <Button variant='outline' size='sm' onClick={() => onToggle(selectedMCP.id)}>
+              <Button variant="outline" size="sm" onClick={() => onToggle(selectedMCP.id)}>
                 {selectedMCP.enabled ? (
                   <>
-                    <Pause className='h-4 w-4 mr-1' />
+                    <Pause className="h-4 w-4 mr-1" />
                     Disable
                   </>
                 ) : (
                   <>
-                    <Play className='h-4 w-4 mr-1' />
+                    <Play className="h-4 w-4 mr-1" />
                     Enable
                   </>
                 )}
               </Button>
-              <Button variant='outline' size='sm' onClick={() => onEdit(selectedMCP)}>
-                <Edit className='h-4 w-4 mr-1' />
+              <Button variant="outline" size="sm" onClick={() => onEdit(selectedMCP)}>
+                <Edit className="h-4 w-4 mr-1" />
                 Edit
               </Button>
-              <Button variant='destructive' size='sm' onClick={() => onDelete(selectedMCP.id)}>
-                <Trash2 className='h-4 w-4 mr-1' />
+              <Button variant="destructive" size="sm" onClick={() => onDelete(selectedMCP.id)}>
+                <Trash2 className="h-4 w-4 mr-1" />
                 Delete
               </Button>
             </>
@@ -127,4 +123,3 @@ export function MCPServerHeader({
     </div>
   );
 }
-

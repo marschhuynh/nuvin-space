@@ -17,10 +17,7 @@ export default function Settings() {
   // Handle tab query parameter
   useEffect(() => {
     const tabParam = searchParams.get('tab') as TabType;
-    if (
-      tabParam &&
-      ['general', 'providers', 'agent', 'mcp'].includes(tabParam)
-    ) {
+    if (tabParam && ['general', 'providers', 'agent', 'mcp'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -59,18 +56,9 @@ export default function Settings() {
       {/* Content Area */}
       <div className="flex-1 flex flex-col bg-background">
         <div className="flex-1 h-[calc(100vh-var(--nav-height)-68px)]">
-          {activeTab === 'general' && (
-            <GeneralSettings
-              settings={preferences}
-              onSettingsChange={updatePreferences}
-            />
-          )}
+          {activeTab === 'general' && <GeneralSettings settings={preferences} onSettingsChange={updatePreferences} />}
 
-          {activeTab === 'providers' && (
-            <ProviderSettings
-              onAddProvider={() => setShowProviderModal(true)}
-            />
-          )}
+          {activeTab === 'providers' && <ProviderSettings onAddProvider={() => setShowProviderModal(true)} />}
 
           {activeTab === 'agent' && <AgentSettings />}
 
@@ -81,11 +69,7 @@ export default function Settings() {
       </div>
 
       {/* Modals */}
-      <ProviderModal
-        open={showProviderModal}
-        onOpenChange={setShowProviderModal}
-        mode="add"
-      />
+      <ProviderModal open={showProviderModal} onOpenChange={setShowProviderModal} mode="add" />
     </div>
   );
 }

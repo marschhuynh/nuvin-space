@@ -1,11 +1,6 @@
 import { BaseLLMProvider } from './base-provider';
 import { extractValue } from './utils';
-import type {
-  CompletionParams,
-  CompletionResult,
-  StreamChunk,
-  ModelInfo,
-} from './types/base';
+import type { CompletionParams, CompletionResult, StreamChunk, ModelInfo } from './types/base';
 import type { ChatCompletionResponse } from './types/openrouter';
 
 export class OpenRouterProvider extends BaseLLMProvider {
@@ -19,10 +14,7 @@ export class OpenRouterProvider extends BaseLLMProvider {
     });
   }
 
-  async generateCompletion(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): Promise<CompletionResult> {
+  async generateCompletion(params: CompletionParams, signal?: AbortSignal): Promise<CompletionResult> {
     const startTime = Date.now();
     const requestBody: any = {
       model: params.model,
@@ -50,18 +42,12 @@ export class OpenRouterProvider extends BaseLLMProvider {
 
     const data: ChatCompletionResponse = await response.json();
 
-    const result = this.createCompletionResult<ChatCompletionResponse>(
-      data,
-      startTime,
-    );
+    const result = this.createCompletionResult<ChatCompletionResponse>(data, startTime);
 
     return result;
   }
 
-  async *generateCompletionStream(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): AsyncGenerator<string> {
+  async *generateCompletionStream(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<string> {
     const requestBody: any = {
       model: params.model,
       messages: params.messages,
@@ -136,12 +122,7 @@ export class OpenRouterProvider extends BaseLLMProvider {
 
     const reader = response.body.getReader();
 
-    for await (const chunk of this.parseStreamWithTools(
-      reader,
-      {},
-      signal,
-      startTime,
-    )) {
+    for await (const chunk of this.parseStreamWithTools(reader, {}, signal, startTime)) {
       yield chunk;
     }
   }
@@ -156,14 +137,9 @@ export class OpenRouterProvider extends BaseLLMProvider {
 
     const transformedModels = models.map((model: any): ModelInfo => {
       return this.formatModelInfo(model, {
-        contextLength:
-          model.context_length || model.top_provider?.context_length || 4096,
-        inputCost: model.pricing?.prompt
-          ? parseFloat(model.pricing.prompt) * 1000000
-          : undefined,
-        outputCost: model.pricing?.completion
-          ? parseFloat(model.pricing.completion) * 1000000
-          : undefined,
+        contextLength: model.context_length || model.top_provider?.context_length || 4096,
+        inputCost: model.pricing?.prompt ? parseFloat(model.pricing.prompt) * 1000000 : undefined,
+        outputCost: model.pricing?.completion ? parseFloat(model.pricing.completion) * 1000000 : undefined,
         modality: this.getModality(model),
         inputModalities: this.getInputModalities(model),
         outputModalities: this.getOutputModalities(model),
@@ -175,11 +151,7 @@ export class OpenRouterProvider extends BaseLLMProvider {
   }
 
   private getModality(model: any): string {
-    if (
-      model.capabilities?.includes('vision') ||
-      model.id.includes('vision') ||
-      model.id.includes('gpt-4o')
-    ) {
+    if (model.capabilities?.includes('vision') || model.id.includes('vision') || model.id.includes('gpt-4o')) {
       return 'multimodal';
     }
     return 'text';
@@ -187,11 +159,7 @@ export class OpenRouterProvider extends BaseLLMProvider {
 
   private getInputModalities(model: any): string[] {
     const modalities = ['text'];
-    if (
-      model.capabilities?.includes('vision') ||
-      model.id.includes('vision') ||
-      model.id.includes('gpt-4o')
-    ) {
+    if (model.capabilities?.includes('vision') || model.id.includes('vision') || model.id.includes('gpt-4o')) {
       modalities.push('image');
     }
     if (model.capabilities?.includes('audio') || model.id.includes('audio')) {
@@ -214,15 +182,12 @@ export class OpenRouterProvider extends BaseLLMProvider {
     // For OpenRouter, we need to get model pricing from cache or fetch it
     // For now, return a basic calculation - this could be enhanced to fetch live pricing
     const promptTokens = usage.prompt_tokens || usage.input_tokens || 0;
-    const completionTokens =
-      usage.completion_tokens || usage.output_tokens || 0;
+    const completionTokens = usage.completion_tokens || usage.output_tokens || 0;
 
     // Default rough pricing (per million tokens) - should be replaced with actual model pricing
     const avgInputCost = 0.5; // $0.50 per 1M tokens
     const avgOutputCost = 1.5; // $1.50 per 1M tokens
 
-    return (
-      (promptTokens * avgInputCost + completionTokens * avgOutputCost) / 1000000
-    );
+    return (promptTokens * avgInputCost + completionTokens * avgOutputCost) / 1000000;
   }
 }

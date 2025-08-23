@@ -1,12 +1,6 @@
 import type { AgentSettings, ProviderConfig, Message } from '@/types';
 import { useTodoStore } from '@/store/useTodoStore';
-import {
-  a2aService,
-  type A2AAuthConfig,
-  A2AError,
-  type A2AErrorType,
-  type Task,
-} from '../a2a';
+import { a2aService, type A2AAuthConfig, A2AError, type A2AErrorType, type Task } from '../a2a';
 import { type BaseAgent, LocalAgent, A2AAgent } from '.';
 import { PROVIDER_TYPES } from '../providers/provider-utils';
 import { reminderGenerator } from './reminder-generator';
@@ -26,12 +20,7 @@ export interface SendMessageOptions {
   maxRetries?: number;
   // System reminder options
   includeSystemReminders?: boolean; // Default true
-  skipReminderTypes?: (
-    | 'instruction'
-    | 'todo-status'
-    | 'security'
-    | 'behavioral'
-  )[];
+  skipReminderTypes?: ('instruction' | 'todo-status' | 'security' | 'behavioral')[];
 }
 
 export interface MessageResponse {
@@ -103,7 +92,7 @@ export class AgentManager {
   > = new Map();
 
   private agentInstance: BaseAgent | null = null;
-  private constructor() { }
+  private constructor() {}
 
   static getInstance(): AgentManager {
     if (!AgentManager.instance) {
@@ -140,16 +129,9 @@ export class AgentManager {
         this.agentInstance = null;
         return;
       }
-      this.agentInstance = new LocalAgent(
-        this.activeAgent,
-        this.activeProvider,
-        this.conversationHistory,
-      );
+      this.agentInstance = new LocalAgent(this.activeAgent, this.activeProvider, this.conversationHistory);
     } else if (this.activeAgent.agentType === 'remote') {
-      this.agentInstance = new A2AAgent(
-        this.activeAgent,
-        this.conversationHistory,
-      );
+      this.agentInstance = new A2AAgent(this.activeAgent, this.conversationHistory);
     } else {
       this.agentInstance = null;
     }
@@ -169,10 +151,7 @@ export class AgentManager {
     };
   }
 
-  async sendMessage(
-    content: string,
-    options: SendMessageOptions = {},
-  ): Promise<MessageResponse> {
+  async sendMessage(content: string, options: SendMessageOptions = {}): Promise<MessageResponse> {
     if (!this.activeAgent) {
       throw new Error('No active agent selected');
     }
@@ -189,10 +168,7 @@ export class AgentManager {
       // Enhance message with system reminders if enabled (default true)
       let _content = [content];
       if (options.includeSystemReminders !== false) {
-        const enhancedString = this.enhanceMessageWithReminders(
-          content,
-          options,
-        );
+        const enhancedString = this.enhanceMessageWithReminders(content, options);
         _content = enhancedString;
         console.log(`Enhanced content with reminders:`, _content);
       }
@@ -201,17 +177,14 @@ export class AgentManager {
 
       return response;
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 
       console.error('AgentManager sendMessage error:', error);
 
       // Always call onError if provided to ensure UI gets notified
       if (options.onError) {
         try {
-          options.onError(
-            error instanceof Error ? error : new Error(errorMessage),
-          );
+          options.onError(error instanceof Error ? error : new Error(errorMessage));
         } catch (callbackError) {
           console.error('Error in onError callback:', callbackError);
         }
@@ -225,21 +198,14 @@ export class AgentManager {
   /**
    * Enhance message content with system reminders
    */
-  private enhanceMessageWithReminders(
-    content: string,
-    options: SendMessageOptions,
-  ): string[] {
+  private enhanceMessageWithReminders(content: string, options: SendMessageOptions): string[] {
     try {
       // Get current todo state
       const todoStore = useTodoStore.getState();
-      const todoState = todoStore.getTodoStateForReminders(
-        options.conversationId,
-      );
+      const todoState = todoStore.getTodoStateForReminders(options.conversationId);
 
       // Get conversation history
-      const messageHistory = options.conversationId
-        ? this.getConversationHistory(options.conversationId)
-        : [];
+      const messageHistory = options.conversationId ? this.getConversationHistory(options.conversationId) : [];
 
       return reminderGenerator.enhanceMessageWithReminders(content, {
         messageType: 'user',
@@ -323,13 +289,7 @@ export class AgentManager {
         authConfig = this.createA2AAuthConfig(this.activeAgent);
       }
 
-      return await a2aService.getTask(
-        agentUrl,
-        taskId,
-        authConfig,
-        undefined,
-        options,
-      );
+      return await a2aService.getTask(agentUrl, taskId, authConfig, undefined, options);
     } catch (error) {
       if (error instanceof A2AError) {
         console.error('Failed to get task:', error.getUserMessage());
@@ -356,12 +316,7 @@ export class AgentManager {
         authConfig = this.createA2AAuthConfig(this.activeAgent);
       }
 
-      const task = await a2aService.cancelTask(
-        agentUrl,
-        taskId,
-        authConfig,
-        options,
-      );
+      const task = await a2aService.cancelTask(agentUrl, taskId, authConfig, options);
       return task.status.state === 'cancelled';
     } catch (error) {
       if (error instanceof A2AError) {
@@ -387,10 +342,7 @@ export class AgentManager {
   /**
    * Update agent metrics after a message response
    */
-  updateAgentMetrics(
-    agentId: string,
-    responseMetadata: MessageResponse['metadata'],
-  ): void {
+  updateAgentMetrics(agentId: string, responseMetadata: MessageResponse['metadata']): void {
     if (!responseMetadata) return;
 
     const metrics = this.agentMetrics.get(agentId) || {
@@ -420,9 +372,7 @@ export class AgentManager {
     };
 
     const averageResponseTime =
-      metrics.messagesProcessed > 0
-        ? metrics.totalResponseTime / metrics.messagesProcessed
-        : 0;
+      metrics.messagesProcessed > 0 ? metrics.totalResponseTime / metrics.messagesProcessed : 0;
 
     return {
       id: agent.id,
@@ -471,12 +421,7 @@ export class AgentManager {
       case PROVIDER_TYPES.OpenAI:
         return ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo', 'gpt-3.5-turbo-16k'];
       case PROVIDER_TYPES.Anthropic:
-        return [
-          'claude-3-opus',
-          'claude-3-sonnet',
-          'claude-3-haiku',
-          'claude-2',
-        ];
+        return ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku', 'claude-2'];
       case PROVIDER_TYPES.GitHub:
         return ['gpt-4', 'gpt-3.5-turbo'];
       case PROVIDER_TYPES.OpenRouter:
@@ -520,13 +465,9 @@ export class AgentManager {
       return;
     }
 
-    const messages = conversationStore.getConversationMessages(
-      conversationStore.activeConversationId,
-    );
+    const messages = conversationStore.getConversationMessages(conversationStore.activeConversationId);
     if (messages && messages.length > 0) {
-      this.conversationHistory.set(conversationStore.activeConversationId, [
-        ...messages,
-      ]);
+      this.conversationHistory.set(conversationStore.activeConversationId, [...messages]);
     }
   }
 
@@ -573,10 +514,7 @@ export class AgentManager {
 
     try {
       const authConfig = this.createA2AAuthConfig(agentSettings);
-      const connected = await a2aService.testConnection(
-        agentSettings.url,
-        authConfig,
-      );
+      const connected = await a2aService.testConnection(agentSettings.url, authConfig);
 
       if (connected) {
         return { connected: true };
@@ -584,8 +522,7 @@ export class AgentManager {
         return {
           connected: false,
           error: 'Connection test failed',
-          userMessage:
-            'Unable to connect to the agent. Please verify the URL and authentication settings.',
+          userMessage: 'Unable to connect to the agent. Please verify the URL and authentication settings.',
         };
       }
     } catch (error) {
@@ -601,8 +538,7 @@ export class AgentManager {
       return {
         connected: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        userMessage:
-          'An unexpected error occurred while testing the connection. Please try again.',
+        userMessage: 'An unexpected error occurred while testing the connection. Please try again.',
       };
     }
   }
@@ -626,13 +562,10 @@ export class AgentManager {
   /**
    * Get comprehensive agent status including connection health
    */
-  async getAgentConnectionStatus(
-    agentSettings: AgentSettings,
-  ): Promise<AgentStatus> {
+  async getAgentConnectionStatus(agentSettings: AgentSettings): Promise<AgentStatus> {
     if (agentSettings.agentType === 'local') {
       // For local agents, check if provider is configured
-      const hasProvider =
-        this.activeProvider !== null && this.activeProvider.apiKey !== '';
+      const hasProvider = this.activeProvider !== null && this.activeProvider.apiKey !== '';
       return {
         id: agentSettings.id,
         name: agentSettings.name,
@@ -647,10 +580,7 @@ export class AgentManager {
         const health = a2aService.getConnectionHealth(agentSettings.url);
 
         // Get agent info and capabilities
-        const agentInfo = await a2aService.getAgentInfo(
-          agentSettings.url,
-          authConfig,
-        );
+        const agentInfo = await a2aService.getAgentInfo(agentSettings.url, authConfig);
 
         return {
           id: agentSettings.id,

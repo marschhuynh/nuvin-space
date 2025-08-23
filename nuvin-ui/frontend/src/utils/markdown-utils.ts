@@ -26,11 +26,7 @@ export function unwrapMarkdownBlocks(text: string) {
       // Check if we're closing a block
       if (stack.length > 0) {
         const lastBlock = stack[stack.length - 1];
-        if (
-          backticks.length === lastBlock.backtickCount &&
-          indent === lastBlock.indent &&
-          language === ''
-        ) {
+        if (backticks.length === lastBlock.backtickCount && indent === lastBlock.indent && language === '') {
           // This closes the current block
           const closedBlock = stack.pop();
 

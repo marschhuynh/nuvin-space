@@ -9,8 +9,7 @@ export const randomTool: Tool = {
       properties: {
         type: {
           type: 'string',
-          description:
-            'Type of random generation: "number", "string", "choice", "uuid"',
+          description: 'Type of random generation: "number", "string", "choice", "uuid"',
           enum: ['number', 'string', 'choice', 'uuid'],
         },
         min: {
@@ -29,8 +28,7 @@ export const randomTool: Tool = {
         },
         charset: {
           type: 'string',
-          description:
-            'Character set for random string: "alphanumeric", "alpha", "numeric", "symbols"',
+          description: 'Character set for random string: "alphanumeric", "alpha", "numeric", "symbols"',
           enum: ['alphanumeric', 'alpha', 'numeric', 'symbols'],
         },
         choices: {
@@ -54,15 +52,7 @@ export const randomTool: Tool = {
 
   async execute(parameters) {
     try {
-      const {
-        type,
-        min = 0,
-        max = 100,
-        length = 10,
-        charset = 'alphanumeric',
-        choices,
-        count = 1,
-      } = parameters;
+      const { type, min = 0, max = 100, length = 10, charset = 'alphanumeric', choices, count = 1 } = parameters;
 
       const results = [];
 
@@ -116,10 +106,7 @@ export const randomTool: Tool = {
       return {
         status: 'success',
         type: 'text',
-        result:
-          typeof finalResult === 'string'
-            ? finalResult
-            : JSON.stringify(finalResult),
+        result: typeof finalResult === 'string' ? finalResult : JSON.stringify(finalResult),
         additionalResult: {
           type,
           count,
@@ -149,27 +136,15 @@ export const randomTool: Tool = {
       return false;
     }
 
-    if (
-      type === 'number' &&
-      min !== undefined &&
-      max !== undefined &&
-      min >= max
-    ) {
+    if (type === 'number' && min !== undefined && max !== undefined && min >= max) {
       return false;
     }
 
-    if (
-      type === 'string' &&
-      length !== undefined &&
-      (length < 1 || length > 1000)
-    ) {
+    if (type === 'string' && length !== undefined && (length < 1 || length > 1000)) {
       return false;
     }
 
-    if (
-      type === 'choice' &&
-      (!choices || !Array.isArray(choices) || choices.length === 0)
-    ) {
+    if (type === 'choice' && (!choices || !Array.isArray(choices) || choices.length === 0)) {
       return false;
     }
 
@@ -188,15 +163,13 @@ export const randomTool: Tool = {
 // Helper functions for the random tool
 function generateRandomString(length: number, charset: string): string {
   const charsets = {
-    alphanumeric:
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+    alphanumeric: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
     alpha: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
     numeric: '0123456789',
     symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?',
   };
 
-  const chars =
-    charsets[charset as keyof typeof charsets] || charsets.alphanumeric;
+  const chars = charsets[charset as keyof typeof charsets] || charsets.alphanumeric;
   let result = '';
 
   for (let i = 0; i < length; i++) {

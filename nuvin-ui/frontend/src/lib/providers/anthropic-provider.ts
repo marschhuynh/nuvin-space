@@ -1,11 +1,6 @@
 import { BaseLLMProvider } from './base-provider';
 import { extractValue } from './utils';
-import type {
-  CompletionParams,
-  CompletionResult,
-  StreamChunk,
-  ModelInfo,
-} from './types/base';
+import type { CompletionParams, CompletionResult, StreamChunk, ModelInfo } from './types/base';
 
 export class AnthropicProvider extends BaseLLMProvider {
   constructor(apiKey: string) {
@@ -20,10 +15,7 @@ export class AnthropicProvider extends BaseLLMProvider {
     });
   }
 
-  async generateCompletion(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): Promise<CompletionResult> {
+  async generateCompletion(params: CompletionParams, signal?: AbortSignal): Promise<CompletionResult> {
     const response = await this.makeRequest('/v1/messages', {
       body: {
         model: params.model,
@@ -43,10 +35,7 @@ export class AnthropicProvider extends BaseLLMProvider {
     return this.createCompletionResult(data);
   }
 
-  async *generateCompletionStream(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): AsyncGenerator<string> {
+  async *generateCompletionStream(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<string> {
     const response = await this.makeRequest('/v1/messages', {
       body: {
         model: params.model,

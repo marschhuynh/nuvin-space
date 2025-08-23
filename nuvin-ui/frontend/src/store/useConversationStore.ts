@@ -51,9 +51,7 @@ export const useConversationStore = create<ConversationState>()(
 
       updateConversation: (conversation) =>
         set((state) => ({
-          conversations: state.conversations.map((c) =>
-            c.id === conversation.id ? conversation : c,
-          ),
+          conversations: state.conversations.map((c) => (c.id === conversation.id ? conversation : c)),
         })),
 
       deleteConversation: (id) =>
@@ -63,10 +61,7 @@ export const useConversationStore = create<ConversationState>()(
           return {
             conversations: state.conversations.filter((c) => c.id !== id),
             messages: newMessages,
-            activeConversationId:
-              state.activeConversationId === id
-                ? null
-                : state.activeConversationId,
+            activeConversationId: state.activeConversationId === id ? null : state.activeConversationId,
           };
         }),
 
@@ -83,10 +78,7 @@ export const useConversationStore = create<ConversationState>()(
         set((state) => {
           const newMessages = {
             ...state.messages,
-            [conversationId]: [
-              ...(state.messages[conversationId] || []),
-              newMessage,
-            ],
+            [conversationId]: [...(state.messages[conversationId] || []), newMessage],
           };
 
           // If the message is from the user and the conversation has no summary,
@@ -98,9 +90,7 @@ export const useConversationStore = create<ConversationState>()(
                 ? {
                     ...c,
                     title:
-                      newMessage.content.length > 50
-                        ? `${newMessage.content.substring(0, 50)}...`
-                        : newMessage.content,
+                      newMessage.content.length > 50 ? `${newMessage.content.substring(0, 50)}...` : newMessage.content,
                     summary: newMessage.content,
                   }
                 : c,
@@ -117,9 +107,7 @@ export const useConversationStore = create<ConversationState>()(
         set((state) => ({
           messages: {
             ...state.messages,
-            [conversationId]: (state.messages[conversationId] || []).map((m) =>
-              m.id === message.id ? message : m,
-            ),
+            [conversationId]: (state.messages[conversationId] || []).map((m) => (m.id === message.id ? message : m)),
           },
         })),
 
@@ -127,9 +115,7 @@ export const useConversationStore = create<ConversationState>()(
         set((state) => ({
           messages: {
             ...state.messages,
-            [conversationId]: (state.messages[conversationId] || []).filter(
-              (m) => m.id !== messageId,
-            ),
+            [conversationId]: (state.messages[conversationId] || []).filter((m) => m.id !== messageId),
           },
         })),
 
@@ -144,18 +130,12 @@ export const useConversationStore = create<ConversationState>()(
       // Utility methods
       getActiveConversation: () => {
         const state = get();
-        return (
-          state.conversations.find(
-            (c) => c.id === state.activeConversationId,
-          ) || null
-        );
+        return state.conversations.find((c) => c.id === state.activeConversationId) || null;
       },
 
       getActiveMessages: () => {
         const state = get();
-        return state.activeConversationId
-          ? state.messages[state.activeConversationId] || []
-          : [];
+        return state.activeConversationId ? state.messages[state.activeConversationId] || [] : [];
       },
 
       getConversationMessages: (conversationId) => {

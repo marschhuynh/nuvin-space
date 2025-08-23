@@ -116,10 +116,7 @@ export function MessageList({
   };
 
   return (
-    <div
-      ref={parentRef}
-      className="flex-1 overflow-auto p-6 bg-message-list-background"
-    >
+    <div ref={parentRef} className="flex-1 overflow-auto p-6 bg-message-list-background">
       <div className="max-w-4xl mx-auto">
         {renderMessages()}
         <div ref={messagesEndRef} />

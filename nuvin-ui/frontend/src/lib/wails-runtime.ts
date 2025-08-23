@@ -11,21 +11,21 @@ export function LogError(message: string): void {
 }
 
 export function EventsOn(event: string, callback: (...args: any[]) => void): void {
-  const w = (window as any);
+  const w = window as any;
   if (w && w.wails && w.wails.Events && w.wails.Events.On) {
     w.wails.Events.On(event, (ev: any) => callback(ev?.data ?? ev));
   }
 }
 
 export function EventsOff(event: string): void {
-  const w = (window as any);
+  const w = window as any;
   if (w && w.wails && w.wails.Events && w.wails.Events.Off) {
     w.wails.Events.Off(event);
   }
 }
 
 export async function ClipboardGetText(): Promise<string> {
-  const w = (window as any);
+  const w = window as any;
   if (w && w.wails && w.wails.Clipboard && w.wails.Clipboard.Text) {
     return w.wails.Clipboard.Text();
   }
@@ -33,7 +33,9 @@ export async function ClipboardGetText(): Promise<string> {
     try {
       return await navigator.clipboard.readText();
     } catch {
-      console.warn('Failed to read clipboard contents', { hasRuntime: isWailsEnvironment() });
+      console.warn('Failed to read clipboard contents', {
+        hasRuntime: isWailsEnvironment(),
+      });
       return '';
     }
   }
@@ -41,7 +43,7 @@ export async function ClipboardGetText(): Promise<string> {
 }
 
 export async function ClipboardSetText(text: string): Promise<void> {
-  const w = (window as any);
+  const w = window as any;
   if (w && w.wails && w.wails.Clipboard && w.wails.Clipboard.SetText) {
     await w.wails.Clipboard.SetText(text);
   } else if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {

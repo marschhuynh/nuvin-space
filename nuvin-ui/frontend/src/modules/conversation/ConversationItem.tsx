@@ -9,11 +9,7 @@ interface ConversationItemProps {
   onDelete?: (conversationId: string) => void;
 }
 
-export function ConversationItem({
-  conversation,
-  onClick,
-  onDelete,
-}: ConversationItemProps) {
+export function ConversationItem({ conversation, onClick, onDelete }: ConversationItemProps) {
   const handleClick = () => {
     onClick?.(conversation.id);
   };
@@ -43,9 +39,7 @@ export function ConversationItem({
           </div>
           <div
             className={`text-xs transition-colors duration-200 ${
-              conversation.active
-                ? 'text-muted-foreground/80'
-                : 'text-muted-foreground'
+              conversation.active ? 'text-muted-foreground/80' : 'text-muted-foreground'
             }`}
           >
             {formatRelativeTime(conversation.timestamp)}

@@ -17,20 +17,14 @@ export function SystemPromptSettings({
   return (
     <div className="flex-1 flex flex-col min-h-0 h-full">
       <div className="grid gap-2 mb-2">
-        <Label htmlFor="systemPrompt">
-          {agentType === 'remote' ? 'Instructions' : 'System Prompt'}
-        </Label>
+        <Label htmlFor="systemPrompt">{agentType === 'remote' ? 'Instructions' : 'System Prompt'}</Label>
       </div>
       {isEditing ? (
         <Textarea
           id="systemPrompt"
           value={systemPrompt}
           onChange={(e) => onSystemPromptChange(e.target.value)}
-          placeholder={
-            agentType === 'remote'
-              ? 'Enter instructions for the remote agent...'
-              : 'Enter system prompt...'
-          }
+          placeholder={agentType === 'remote' ? 'Enter instructions for the remote agent...' : 'Enter system prompt...'}
           className="flex-1 resize-none w-full"
         />
       ) : (

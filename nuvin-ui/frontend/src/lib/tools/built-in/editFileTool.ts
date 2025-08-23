@@ -66,15 +66,15 @@ export const editFileTool: Tool = {
       properties: {
         path: {
           type: 'string',
-          description: 'Path of the file to edit'
+          description: 'Path of the file to edit',
         },
         patch: {
           type: 'string',
-          description: 'Unified diff patch to apply'
-        }
+          description: 'Unified diff patch to apply',
+        },
       },
-      required: ['path', 'patch']
-    }
+      required: ['path', 'patch'],
+    },
   },
 
   async execute(parameters) {
@@ -85,29 +85,37 @@ export const editFileTool: Tool = {
         return {
           status: 'error',
           type: 'text',
-          result: 'path parameter is required and must be a string'
+          result: 'path parameter is required and must be a string',
         };
       }
       if (!patch || typeof patch !== 'string') {
         return {
           status: 'error',
           type: 'text',
-          result: 'patch parameter is required and must be a string'
+          result: 'patch parameter is required and must be a string',
         };
       }
 
       const original = await readFile(path);
       const patched = applyPatch(original, patch);
       if (patched === null) {
-        return { status: 'error', type: 'text', result: 'Failed to apply patch' };
+        return {
+          status: 'error',
+          type: 'text',
+          result: 'Failed to apply patch',
+        };
       }
       await writeFile(path, patched);
-      return { status: 'success', type: 'text', result: 'File edited successfully' };
+      return {
+        status: 'success',
+        type: 'text',
+        result: 'File edited successfully',
+      };
     } catch (err) {
       return {
         status: 'error',
         type: 'text',
-        result: `Failed to edit file: ${err instanceof Error ? err.message : err}`
+        result: `Failed to edit file: ${err instanceof Error ? err.message : err}`,
       };
     }
   },
@@ -124,5 +132,5 @@ export const editFileTool: Tool = {
 
   category: 'filesystem',
   version: '1.0.0',
-  author: 'system'
+  author: 'system',
 };

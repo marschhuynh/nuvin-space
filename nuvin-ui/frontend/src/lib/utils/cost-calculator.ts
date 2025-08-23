@@ -31,11 +31,7 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
 /**
  * Calculate the estimated cost for a completion based on token usage
  */
-export function calculateCost(
-  model: string,
-  promptTokens: number = 0,
-  completionTokens: number = 0,
-): number {
+export function calculateCost(model: string, promptTokens: number = 0, completionTokens: number = 0): number {
   const pricing = MODEL_PRICING[model];
   if (!pricing) {
     // Return 0 for unknown models rather than throwing an error

@@ -24,12 +24,7 @@ const CollapsibleContext = React.createContext<{
   onOpenChange: (open: boolean) => void;
 } | null>(null);
 
-export function Collapsible({
-  open,
-  onOpenChange,
-  children,
-  className,
-}: CollapsibleProps) {
+export function Collapsible({ open, onOpenChange, children, className }: CollapsibleProps) {
   return (
     <CollapsibleContext.Provider value={{ open, onOpenChange }}>
       <div className={cn('', className)}>{children}</div>
@@ -37,11 +32,7 @@ export function Collapsible({
   );
 }
 
-export function CollapsibleTrigger({
-  asChild,
-  children,
-  className,
-}: CollapsibleTriggerProps) {
+export function CollapsibleTrigger({ asChild, children, className }: CollapsibleTriggerProps) {
   const context = React.useContext(CollapsibleContext);
 
   if (!context) {
@@ -57,10 +48,7 @@ export function CollapsibleTrigger({
   if (asChild) {
     return React.cloneElement(children as React.ReactElement, {
       onClick: handleClick,
-      className: cn(
-        (children as React.ReactElement).props.className,
-        className,
-      ),
+      className: cn((children as React.ReactElement).props.className, className),
     });
   }
 
@@ -71,10 +59,7 @@ export function CollapsibleTrigger({
   );
 }
 
-export function CollapsibleContent({
-  children,
-  className,
-}: CollapsibleContentProps) {
+export function CollapsibleContent({ children, className }: CollapsibleContentProps) {
   const context = React.useContext(CollapsibleContext);
 
   if (!context) {
@@ -87,11 +72,5 @@ export function CollapsibleContent({
     return null;
   }
 
-  return (
-    <div
-      className={cn('animate-in slide-in-from-top-1 duration-200', className)}
-    >
-      {children}
-    </div>
-  );
+  return <div className={cn('animate-in slide-in-from-top-1 duration-200', className)}>{children}</div>;
 }

@@ -1,9 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { useProviderStore } from '@/store/useProviderStore';
-import {
-  useModelsStore,
-  type ModelInfoWithState,
-} from '@/store/useModelsStore';
+import { useModelsStore, type ModelInfoWithState } from '@/store/useModelsStore';
 import type { ModelConfig } from '@/types';
 
 export interface ActiveModelInfo {
@@ -54,10 +51,7 @@ export function useActiveModel(): ActiveModelInfo {
     // Get current model info
     const modelConfig = activeProvider.activeModel;
     const modelInfo = modelConfig
-      ? providerModels.find(
-          (model) =>
-            model.id === modelConfig.model || model.name === modelConfig.model,
-        )
+      ? providerModels.find((model) => model.id === modelConfig.model || model.name === modelConfig.model)
       : null;
 
     const hasActiveModel = !!modelConfig?.model;
@@ -78,8 +72,7 @@ export function useActiveModel(): ActiveModelInfo {
 
 export function useActiveModelActions() {
   const { updateProvider, activeProviderId } = useProviderStore();
-  const { updateModelState, setModels, setLoading, setError } =
-    useModelsStore();
+  const { updateModelState, setModels, setLoading, setError } = useModelsStore();
 
   const updateActiveModel = useCallback(
     (model: string) => {

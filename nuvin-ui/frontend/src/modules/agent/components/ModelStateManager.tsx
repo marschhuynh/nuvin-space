@@ -3,17 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useModelsStore } from '@/store/useModelsStore';
 import { useProviderStore } from '@/store/useProviderStore';
-import {
-  Eye,
-  EyeOff,
-  Search,
-  RefreshCw,
-  Type,
-  Image,
-  Mic,
-  FileText,
-  Filter,
-} from 'lucide-react';
+import { Eye, EyeOff, Search, RefreshCw, Type, Image, Mic, FileText, Filter } from 'lucide-react';
 import { useActiveModel } from '../hooks/useActiveModel';
 import { ModelsList } from './ModelsList';
 
@@ -96,23 +86,17 @@ export function ModelStateManager() {
             className="h-6 w-6 p-0 flex-shrink-0"
             title="Reload models"
           >
-            <RefreshCw
-              className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`}
-            />
+            <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
-        <p className="text-sm text-muted-foreground">
-          No models available for the current provider.
-        </p>
+        <p className="text-sm text-muted-foreground">No models available for the current provider.</p>
       </div>
     );
   }
 
   const enabledCount = availableModels.filter((model) => model.enabled).length;
   const totalCount = availableModels.length;
-  const filteredEnabledCount = filteredModels.filter(
-    (model) => model.enabled,
-  ).length;
+  const filteredEnabledCount = filteredModels.filter((model) => model.enabled).length;
   const filteredTotalCount = filteredModels.length;
 
   const handleEnableAll = () => {
@@ -136,9 +120,7 @@ export function ModelStateManager() {
             className="h-6 w-6 p-0 flex-shrink-0"
             title="Reload models"
           >
-            <RefreshCw
-              className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`}
-            />
+            <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
         <span className="text-xs text-muted-foreground flex-shrink-1 ml-2">
@@ -188,9 +170,7 @@ export function ModelStateManager() {
               <Button
                 variant={modalityFilter === 'text' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() =>
-                  setModalityFilter(modalityFilter === 'text' ? null : 'text')
-                }
+                onClick={() => setModalityFilter(modalityFilter === 'text' ? null : 'text')}
                 className="h-6 text-[10px] px-2"
               >
                 <Type className="w-3 h-3 mr-1" />
@@ -198,9 +178,7 @@ export function ModelStateManager() {
               <Button
                 variant={modalityFilter === 'image' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() =>
-                  setModalityFilter(modalityFilter === 'image' ? null : 'image')
-                }
+                onClick={() => setModalityFilter(modalityFilter === 'image' ? null : 'image')}
                 className="h-6 text-[10px] px-2"
               >
                 <Image className="w-3 h-3 mr-1" />
@@ -208,9 +186,7 @@ export function ModelStateManager() {
               <Button
                 variant={modalityFilter === 'audio' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() =>
-                  setModalityFilter(modalityFilter === 'audio' ? null : 'audio')
-                }
+                onClick={() => setModalityFilter(modalityFilter === 'audio' ? null : 'audio')}
                 className="h-6 text-[10px] px-2"
               >
                 <Mic className="w-3 h-3 mr-1" />
@@ -218,9 +194,7 @@ export function ModelStateManager() {
               <Button
                 variant={modalityFilter === 'file' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() =>
-                  setModalityFilter(modalityFilter === 'file' ? null : 'file')
-                }
+                onClick={() => setModalityFilter(modalityFilter === 'file' ? null : 'file')}
                 className="h-6 text-[10px] px-2"
               >
                 <FileText className="w-3 h-3 mr-1" />
@@ -264,11 +238,7 @@ export function ModelStateManager() {
         </div>
 
         {/* Individual Model Controls */}
-        <ModelsList
-          models={filteredModels}
-          isLoading={isLoading}
-          searchQuery={searchQuery}
-        />
+        <ModelsList models={filteredModels} isLoading={isLoading} searchQuery={searchQuery} />
       </div>
     </div>
   );

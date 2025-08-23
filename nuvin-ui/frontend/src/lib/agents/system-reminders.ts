@@ -57,16 +57,12 @@ export class SystemReminderGenerator {
 
   generateReminders(context: MessageContext): SystemReminder[] {
     const reminders: SystemReminder[] = [
-      context.messageType === 'user'
-        ? SystemReminderGenerator.CORE_INSTRUCTIONS
-        : null,
+      context.messageType === 'user' ? SystemReminderGenerator.CORE_INSTRUCTIONS : null,
     ].filter(Boolean) as SystemReminder[];
 
     // Todo list status reminders
     if (context.todoListState) {
-      const todoReminder = this.generateTodoStatusReminder(
-        context.todoListState,
-      );
+      const todoReminder = this.generateTodoStatusReminder(context.todoListState);
       if (todoReminder) {
         reminders.push(...todoReminder);
       }
@@ -75,9 +71,7 @@ export class SystemReminderGenerator {
     return reminders;
   }
 
-  private generateTodoStatusReminder(
-    todoState: TodoStateForReminders,
-  ): SystemReminder[] | null {
+  private generateTodoStatusReminder(todoState: TodoStateForReminders): SystemReminder[] | null {
     if (todoState.isEmpty) {
       return [
         {
@@ -138,9 +132,7 @@ export class SystemReminderGenerator {
   /**
    * Get todo state for a specific conversation
    */
-  static getTodoStateForContext(
-    conversationId?: string,
-  ): TodoStateForReminders {
+  static getTodoStateForContext(conversationId?: string): TodoStateForReminders {
     const todoStore = useTodoStore.getState();
     return todoStore.getTodoStateForReminders(conversationId);
   }

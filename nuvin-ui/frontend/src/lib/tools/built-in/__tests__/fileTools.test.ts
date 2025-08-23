@@ -13,7 +13,7 @@ describe('file tools', () => {
     // create new file
     const createRes = await newFileTool.execute({
       path: filePath,
-      content: 'line1\nline2\nline3\n'
+      content: 'line1\nline2\nline3\n',
     });
     expect(createRes.status).toBe('success');
 
@@ -23,7 +23,11 @@ describe('file tools', () => {
     expect(readAll.result).toBe('line1\nline2\nline3\n');
 
     // read lines 2-3
-    const readPartial = await readFileTool.execute({ path: filePath, start: 2, end: 3 });
+    const readPartial = await readFileTool.execute({
+      path: filePath,
+      start: 2,
+      end: 3,
+    });
     expect(readPartial.status).toBe('success');
     expect(readPartial.result).toBe('line2\nline3');
 

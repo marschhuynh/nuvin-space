@@ -1,9 +1,4 @@
-import {
-  a2aService,
-  type A2AAuthConfig,
-  type A2AMessageOptions,
-  A2AError,
-} from '../a2a';
+import { a2aService, type A2AAuthConfig, type A2AMessageOptions, A2AError } from '../a2a';
 import { generateUUID } from '../utils';
 import type { Task, Message as A2AMessage, Part } from '../a2a';
 import type { SendMessageOptions, MessageResponse } from './agent-manager';
@@ -21,10 +16,7 @@ export class A2AAgent extends BaseAgent {
     };
   }
 
-  async sendMessage(
-    contents: string[],
-    options: SendMessageOptions = {},
-  ): Promise<MessageResponse> {
+  async sendMessage(contents: string[], options: SendMessageOptions = {}): Promise<MessageResponse> {
     if (!this.agentSettings.url) {
       throw new Error('No URL configured for remote agent');
     }
@@ -58,12 +50,7 @@ export class A2AAgent extends BaseAgent {
         );
       }
 
-      const response = await a2aService.sendMessage(
-        this.agentSettings.url,
-        content,
-        authConfig,
-        a2aOptions,
-      );
+      const response = await a2aService.sendMessage(this.agentSettings.url, content, authConfig, a2aOptions);
 
       let finalResponse = response;
       if (response.kind === 'task' && response.status.state === 'running') {
@@ -91,8 +78,7 @@ export class A2AAgent extends BaseAgent {
             agentId: this.agentSettings.id,
             responseTime: Date.now() - startTime,
             model: 'A2A Agent',
-            taskId:
-              finalResponse.kind === 'task' ? finalResponse.id : undefined,
+            taskId: finalResponse.kind === 'task' ? finalResponse.id : undefined,
           },
         },
       ]);
@@ -132,10 +118,7 @@ export class A2AAgent extends BaseAgent {
       try {
         const task = await a2aService.getTask(agentUrl, taskId, authConfig);
         if (!task) throw new Error(`Task ${taskId} not found`);
-        if (
-          task.status.state === 'completed' ||
-          ['failed', 'cancelled'].includes(task.status.state)
-        ) {
+        if (task.status.state === 'completed' || ['failed', 'cancelled'].includes(task.status.state)) {
           return task;
         }
         await new Promise((resolve) => setTimeout(resolve, pollInterval));
@@ -188,12 +171,7 @@ export class A2AAgent extends BaseAgent {
     let finalTimestamp = new Date().toISOString();
     let taskId: string | undefined;
 
-    const stream = a2aService.sendMessageStream(
-      this.agentSettings.url,
-      content,
-      authConfig,
-      a2aOptions,
-    );
+    const stream = a2aService.sendMessageStream(this.agentSettings.url, content, authConfig, a2aOptions);
 
     for await (const event of stream) {
       if (event.kind === 'task') {
@@ -281,8 +259,6 @@ export class A2AAgent extends BaseAgent {
   cancel(): void {
     // For A2A agents, cancellation is handled at the service level
     // The AgentManager will handle task cancellation when cancelCurrentRequest is called
-    console.warn(
-      'A2A agent cancellation should be handled via cancelTask method',
-    );
+    console.warn('A2A agent cancellation should be handled via cancelTask method');
   }
 }

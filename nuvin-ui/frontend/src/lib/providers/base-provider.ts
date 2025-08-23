@@ -30,13 +30,7 @@ export interface StreamParseOptions {
   doneMarker?: string;
 }
 
-export type NestedApiResponseData =
-  | Record<string, unknown>
-  | unknown[]
-  | string
-  | number
-  | boolean
-  | null;
+export type NestedApiResponseData = Record<string, unknown> | unknown[] | string | number | boolean | null;
 
 export abstract class BaseLLMProvider implements LLMProvider {
   readonly type: string;
@@ -164,10 +158,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
     const decoder = new TextDecoder();
     let buffer = '';
 
-    const {
-      doneMarker = '[DONE]',
-      processingMarker = ': OPENROUTER PROCESSING',
-    } = options;
+    const { doneMarker = '[DONE]', processingMarker = ': OPENROUTER PROCESSING' } = options;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -203,29 +194,16 @@ export abstract class BaseLLMProvider implements LLMProvider {
             yield data;
           }
         } catch (error) {
-          console.warn(
-            'Failed to parse streaming data:',
-            error,
-            'Line:',
-            trimmed,
-          );
+          console.warn('Failed to parse streaming data:', error, 'Line:', trimmed);
         }
       }
     }
   }
 
-  protected createCompletionResult<T = ChatCompletionResponse>(
-    data: T,
-    startTime?: number,
-  ): CompletionResult {
-    const content =
-      extractValue(data, 'choices.0.message.content') ||
-      extractValue(data, 'content.0.text') ||
-      '';
+  protected createCompletionResult<T = ChatCompletionResponse>(data: T, startTime?: number): CompletionResult {
+    const content = extractValue(data, 'choices.0.message.content') || extractValue(data, 'content.0.text') || '';
 
-    const toolCalls =
-      extractValue(data, 'choices.0.message.tool_calls') ||
-      extractValue(data, 'tool_calls');
+    const toolCalls = extractValue(data, 'choices.0.message.tool_calls') || extractValue(data, 'tool_calls');
 
     const usage: UsageData | undefined = extractValue(data, 'usage');
     const model = extractValue(data, 'model');
@@ -255,19 +233,14 @@ export abstract class BaseLLMProvider implements LLMProvider {
         usage: {
           prompt_tokens: usage.prompt_tokens || usage.input_tokens,
           completion_tokens: usage.completion_tokens || usage.output_tokens,
-          total_tokens:
-            usage.total_tokens ||
-            Number(usage?.input_tokens) + Number(usage?.output_tokens),
+          total_tokens: usage.total_tokens || Number(usage?.input_tokens) + Number(usage?.output_tokens),
         },
       }),
       _metadata: metadata,
     };
   }
 
-  protected calculateCost(
-    usage: UsageData,
-    model?: string,
-  ): number | undefined {
+  protected calculateCost(usage: UsageData, model?: string): number | undefined {
     // This is a basic cost calculation - providers can override this
     // For now, return undefined as costs are provider-specific
     return undefined;
@@ -288,10 +261,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
       lastData = data;
 
       // Handle usage data - OpenRouter sends this in a separate chunk
-      const currentUsage: UsageData | undefined = extractValue(
-        data,
-        options.usagePath || 'usage',
-      );
+      const currentUsage: UsageData | undefined = extractValue(data, options.usagePath || 'usage');
       if (currentUsage) {
         usage = currentUsage;
         // Don't yield content for usage-only chunks, just store the usage
@@ -299,19 +269,13 @@ export abstract class BaseLLMProvider implements LLMProvider {
       }
 
       // Handle text content
-      const content = extractValue(
-        data,
-        options.contentPath || 'choices.0.delta.content',
-      );
+      const content = extractValue(data, options.contentPath || 'choices.0.delta.content');
       if (content) {
         yield { content };
       }
 
       // Handle tool calls
-      const toolCallDeltas = extractValue(
-        data,
-        options.toolCallsPath || 'choices.0.delta.tool_calls',
-      );
+      const toolCallDeltas = extractValue(data, options.toolCallsPath || 'choices.0.delta.tool_calls');
       if (toolCallDeltas) {
         for (const tcDelta of toolCallDeltas) {
           if (tcDelta.index !== undefined) {
@@ -340,10 +304,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
       }
 
       // Check for finish
-      const finishReason = extractValue(
-        data,
-        options.finishReasonPath || 'choices.0.finish_reason',
-      );
+      const finishReason = extractValue(data, options.finishReasonPath || 'choices.0.finish_reason');
       if (finishReason === 'tool_calls' || finishReason === 'stop') {
         hasFinished = true;
       }
@@ -352,18 +313,13 @@ export abstract class BaseLLMProvider implements LLMProvider {
     // After stream ends, yield final chunk with all accumulated data
     if (hasFinished || accumulatedToolCalls.length > 0 || usage) {
       yield {
-        tool_calls:
-          accumulatedToolCalls.length > 0 ? accumulatedToolCalls : undefined,
+        tool_calls: accumulatedToolCalls.length > 0 ? accumulatedToolCalls : undefined,
         finished: true,
         usage: usage
           ? {
               prompt_tokens: usage.prompt_tokens || usage.input_tokens || 0,
-              completion_tokens:
-                usage.completion_tokens || usage.output_tokens || 0,
-              total_tokens:
-                usage.total_tokens ||
-                (usage.prompt_tokens ?? 0) + (usage.completion_tokens ?? 0) ||
-                0,
+              completion_tokens: usage.completion_tokens || usage.output_tokens || 0,
+              total_tokens: usage.total_tokens || (usage.prompt_tokens ?? 0) + (usage.completion_tokens ?? 0) || 0,
             }
           : undefined,
         _metadata: this.createStreamMetadata(lastData, startTime, usage),
@@ -371,11 +327,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
     }
   }
 
-  protected createStreamMetadata(
-    data: any,
-    startTime?: number,
-    usage?: UsageData,
-  ) {
+  protected createStreamMetadata(data: any, startTime?: number, usage?: UsageData) {
     if (!data) return undefined;
 
     const model = extractValue(data, 'model');
@@ -394,24 +346,14 @@ export abstract class BaseLLMProvider implements LLMProvider {
       promptTokens: usage?.prompt_tokens || usage?.input_tokens || 0,
       completionTokens: usage?.completion_tokens || usage?.output_tokens || 0,
       totalTokens:
-        usage?.total_tokens ||
-        (usage
-          ? (usage.prompt_tokens ?? 0) + (usage.completion_tokens ?? 0)
-          : 0) ||
-        0,
+        usage?.total_tokens || (usage ? (usage.prompt_tokens ?? 0) + (usage.completion_tokens ?? 0) : 0) || 0,
       raw: data,
     };
   }
 
-  abstract generateCompletion(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): Promise<CompletionResult>;
+  abstract generateCompletion(params: CompletionParams, signal?: AbortSignal): Promise<CompletionResult>;
 
-  abstract generateCompletionStream(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): AsyncGenerator<string>;
+  abstract generateCompletionStream(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<string>;
 
   abstract generateCompletionStreamWithTools(
     params: CompletionParams,
@@ -420,20 +362,13 @@ export abstract class BaseLLMProvider implements LLMProvider {
 
   abstract getModels(): Promise<ModelInfo[]>;
 
-  protected formatModelInfo(
-    model: any,
-    overrides: Partial<ModelInfo> = {},
-  ): ModelInfo {
+  protected formatModelInfo(model: any, overrides: Partial<ModelInfo> = {}): ModelInfo {
     return {
       id: model.id,
       name: model.name || model.id,
       contextLength: model.context_length || 4096,
-      inputCost: model.pricing?.prompt
-        ? parseFloat(model.pricing.prompt) * 1000000
-        : undefined,
-      outputCost: model.pricing?.completion
-        ? parseFloat(model.pricing.completion) * 1000000
-        : undefined,
+      inputCost: model.pricing?.prompt ? parseFloat(model.pricing.prompt) * 1000000 : undefined,
+      outputCost: model.pricing?.completion ? parseFloat(model.pricing.completion) * 1000000 : undefined,
       modality: 'text',
       inputModalities: ['text'],
       outputModalities: ['text'],

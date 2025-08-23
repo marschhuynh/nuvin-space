@@ -9,13 +9,15 @@ declare global {
           // FS methods
           ReadFile: (path: string) => Promise<string>;
           WriteFile: (req: { path: string; content: string }) => Promise<void>;
-          ListDir: (dir: string) => Promise<Array<{
-            path: string;
-            name: string;
-            isDir: boolean;
-            size: number;
-            modTime: string;
-          }>>;
+          ListDir: (dir: string) => Promise<
+            Array<{
+              path: string;
+              name: string;
+              isDir: boolean;
+              size: number;
+              modTime: string;
+            }>
+          >;
           MkdirAll: (dir: string) => Promise<void>;
           Remove: (path: string, recursive: boolean) => Promise<void>;
           Rename: (oldPath: string, newPath: string) => Promise<void>;

@@ -21,18 +21,9 @@ export function useAgentManager() {
   const [error, setError] = useState<Error | null>(null);
 
   // Get store states and actions
-  const {
-    agents,
-    activeAgentId,
-    setActiveAgent: setStoreActiveAgent,
-  } = useAgentStore();
-  const {
-    providers,
-    activeProviderId,
-    setActiveProvider: setStoreActiveProvider,
-  } = useProviderStore();
-  const { getConversationMessages, activeConversationId } =
-    useConversationStore();
+  const { agents, activeAgentId, setActiveAgent: setStoreActiveAgent } = useAgentStore();
+  const { providers, activeProviderId, setActiveProvider: setStoreActiveProvider } = useProviderStore();
+  const { getConversationMessages, activeConversationId } = useConversationStore();
 
   // Get current active agent and provider
   const activeAgent = useMemo(
@@ -41,8 +32,7 @@ export function useAgentManager() {
   );
 
   const activeProvider = useMemo(
-    () =>
-      providers.find((provider) => provider.id === activeProviderId) || null,
+    () => providers.find((provider) => provider.id === activeProviderId) || null,
     [providers, activeProviderId],
   );
 
@@ -97,10 +87,7 @@ export function useAgentManager() {
 
   // Send message using the agent manager
   const sendMessage = useCallback(
-    async (
-      content: string,
-      options?: SendMessageOptions,
-    ): Promise<MessageResponse> => {
+    async (content: string, options?: SendMessageOptions): Promise<MessageResponse> => {
       if (!activeAgent) {
         throw new Error('No active agent selected');
       }
@@ -127,19 +114,15 @@ export function useAgentManager() {
   );
 
   // Get agent status
-  const getAgentStatus = useCallback(
-    async (agent: AgentSettings): Promise<AgentStatus> => {
-      return await agentManager.getAgentStatus(agent);
-    },
-    [],
-  );
+  const getAgentStatus = useCallback(async (agent: AgentSettings): Promise<AgentStatus> => {
+    return await agentManager.getAgentStatus(agent);
+  }, []);
 
   // Get status of active agent
-  const getActiveAgentStatus =
-    useCallback(async (): Promise<AgentStatus | null> => {
-      if (!activeAgent) return null;
-      return await agentManager.getAgentStatus(activeAgent);
-    }, [activeAgent]);
+  const getActiveAgentStatus = useCallback(async (): Promise<AgentStatus | null> => {
+    if (!activeAgent) return null;
+    return await agentManager.getAgentStatus(activeAgent);
+  }, [activeAgent]);
 
   // Test agent connectivity
   const testAgentConnectivity = useCallback(
@@ -189,11 +172,7 @@ export function useAgentManager() {
     if (!activeAgent) return false;
 
     if (activeAgent.agentType === 'local') {
-      return (
-        activeProvider !== null &&
-        activeProvider.apiKey !== '' &&
-        activeProvider.activeModel !== undefined
-      );
+      return activeProvider !== null && activeProvider.apiKey !== '' && activeProvider.activeModel !== undefined;
     }
 
     if (activeAgent.agentType === 'remote') {
@@ -204,10 +183,7 @@ export function useAgentManager() {
   }, [activeAgent, activeProvider]);
 
   // Get current agent type
-  const agentType = useMemo(
-    () => activeAgent?.agentType || null,
-    [activeAgent],
-  );
+  const agentType = useMemo(() => activeAgent?.agentType || null, [activeAgent]);
 
   // Check if current setup supports streaming
   const supportsStreaming = useMemo(() => {
@@ -300,9 +276,7 @@ export function useAgentStatuses(agents?: AgentSettings[]) {
   const agentsToCheck = agents || storeAgents;
 
   const getStatuses = useCallback(async (): Promise<AgentStatus[]> => {
-    const statusPromises = agentsToCheck.map((agent) =>
-      agentManager.getAgentStatus(agent),
-    );
+    const statusPromises = agentsToCheck.map((agent) => agentManager.getAgentStatus(agent));
 
     return await Promise.all(statusPromises);
   }, [agentsToCheck]);

@@ -65,8 +65,7 @@ export function MCPServerToolsList({
         <div className="flex items-center justify-between">
           <Label>Available Tools</Label>
           <p className="text-xs text-muted-foreground">
-            {filteredTools.length} tools available • {enabledTools.length}{' '}
-            enabled
+            {filteredTools.length} tools available • {enabledTools.length} enabled
           </p>
         </div>
 
@@ -85,9 +84,7 @@ export function MCPServerToolsList({
           <div className="flex-1 overflow-y-auto border rounded-md bg-background max-h-[400px]">
             {filteredTools.length === 0 ? (
               <div className="p-4 text-center text-sm text-muted-foreground">
-                {searchTerm
-                  ? `No tools found matching "${searchTerm}"`
-                  : 'No tools available for this server'}
+                {searchTerm ? `No tools found matching "${searchTerm}"` : 'No tools available for this server'}
               </div>
             ) : (
               <div className="divide-y divide-border">
@@ -115,10 +112,7 @@ export function MCPServerToolsList({
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <label
-                            htmlFor={`tool-${toolName}`}
-                            className="text-sm font-medium cursor-pointer truncate"
-                          >
+                          <label htmlFor={`tool-${toolName}`} className="text-sm font-medium cursor-pointer truncate">
                             {toolName}
                           </label>
                           {!isAvailable && (
@@ -147,9 +141,7 @@ export function MCPServerToolsList({
                         {/* Tool parameters preview */}
                         {schema.inputSchema?.properties && (
                           <div className="mt-2">
-                            <span className="text-xs font-medium text-gray-700 mr-2">
-                              Parameters:
-                            </span>
+                            <span className="text-xs font-medium text-gray-700 mr-2">Parameters:</span>
                             <div className="inline-flex flex-wrap gap-1">
                               {Object.keys(schema.inputSchema.properties)
                                 .slice(0, 3)
@@ -161,12 +153,9 @@ export function MCPServerToolsList({
                                     {param}
                                   </span>
                                 ))}
-                              {Object.keys(schema.inputSchema.properties)
-                                .length > 3 && (
+                              {Object.keys(schema.inputSchema.properties).length > 3 && (
                                 <span className="text-xs px-1.5 py-0.5 bg-muted text-muted-foreground rounded">
-                                  +
-                                  {Object.keys(schema.inputSchema.properties)
-                                    .length - 3}
+                                  +{Object.keys(schema.inputSchema.properties).length - 3}
                                 </span>
                               )}
                             </div>

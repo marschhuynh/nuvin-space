@@ -2,23 +2,8 @@ import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { OpenFileDialogAndRead } from '@wails/services/filedialogservice';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Sun,
-  Moon,
-  Monitor,
-  Droplet,
-  GlassWater,
-  MessageSquare,
-  Eye,
-  Upload,
-} from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Sun, Moon, Monitor, Droplet, GlassWater, MessageSquare, Eye, Upload } from 'lucide-react';
 import type { UserPreferences } from '@/store/useUserPreferenceStore';
 import { useUserPreferenceStore } from '@/store/useUserPreferenceStore';
 import { useProviderStore } from '@/store/useProviderStore';
@@ -31,10 +16,7 @@ interface GeneralSettingsProps {
   onSettingsChange: (settings: Partial<UserPreferences>) => void;
 }
 
-export function GeneralSettings({
-  settings,
-  onSettingsChange,
-}: GeneralSettingsProps) {
+export function GeneralSettings({ settings, onSettingsChange }: GeneralSettingsProps) {
   const { resolvedTheme } = useTheme();
   const [importStatus, setImportStatus] = useState<{
     type: 'success' | 'error' | null;
@@ -171,19 +153,18 @@ export function GeneralSettings({
 
       setImportStatus({
         type: 'success',
-        message: 'Settings imported successfully! The page will refresh to apply changes.'
+        message: 'Settings imported successfully! The page will refresh to apply changes.',
       });
 
       // Refresh the page after a short delay to ensure all stores are updated
       setTimeout(() => {
         window.location.reload();
       }, 2000);
-
     } catch (error) {
       console.error('Failed to import settings:', error);
       setImportStatus({
         type: 'error',
-        message: `Failed to import settings: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Failed to import settings: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
     }
   };
@@ -196,7 +177,7 @@ export function GeneralSettings({
       } else {
         setImportStatus({
           type: 'error',
-          message: 'Please select a valid JSON file'
+          message: 'Please select a valid JSON file',
         });
       }
     }
@@ -219,33 +200,21 @@ export function GeneralSettings({
               <Label htmlFor="theme">Theme</Label>
               <Select
                 value={settings.theme}
-                onValueChange={(
-                  value: 'light' | 'dark' | 'ocean' | 'liquid-glass' | 'system',
-                ) => onSettingsChange({ theme: value })}
+                onValueChange={(value: 'light' | 'dark' | 'ocean' | 'liquid-glass' | 'system') =>
+                  onSettingsChange({ theme: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select theme">
                     <div className="flex items-center gap-2">
-                      {settings.theme === 'light' && (
-                        <Sun className="h-4 w-4" />
-                      )}
-                      {settings.theme === 'dark' && (
-                        <Moon className="h-4 w-4" />
-                      )}
-                      {settings.theme === 'ocean' && (
-                        <Droplet className="h-4 w-4" />
-                      )}
-                      {settings.theme === 'liquid-glass' && (
-                        <GlassWater className="h-4 w-4" />
-                      )}
-                      {settings.theme === 'system' && (
-                        <Monitor className="h-4 w-4" />
-                      )}
+                      {settings.theme === 'light' && <Sun className="h-4 w-4" />}
+                      {settings.theme === 'dark' && <Moon className="h-4 w-4" />}
+                      {settings.theme === 'ocean' && <Droplet className="h-4 w-4" />}
+                      {settings.theme === 'liquid-glass' && <GlassWater className="h-4 w-4" />}
+                      {settings.theme === 'system' && <Monitor className="h-4 w-4" />}
                       <span className="capitalize">{settings.theme}</span>
                       {settings.theme === 'system' && (
-                        <span className="text-muted-foreground text-xs">
-                          ({resolvedTheme})
-                        </span>
+                        <span className="text-muted-foreground text-xs">({resolvedTheme})</span>
                       )}
                     </div>
                   </SelectValue>
@@ -290,19 +259,13 @@ export function GeneralSettings({
               <Label htmlFor="messageMode">Message Mode</Label>
               <Select
                 value={settings.messageMode}
-                onValueChange={(value: 'normal' | 'transparent') =>
-                  onSettingsChange({ messageMode: value })
-                }
+                onValueChange={(value: 'normal' | 'transparent') => onSettingsChange({ messageMode: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select message mode">
                     <div className="flex items-center gap-2">
-                      {settings.messageMode === 'normal' && (
-                        <MessageSquare className="h-4 w-4" />
-                      )}
-                      {settings.messageMode === 'transparent' && (
-                        <Eye className="h-4 w-4" />
-                      )}
+                      {settings.messageMode === 'normal' && <MessageSquare className="h-4 w-4" />}
+                      {settings.messageMode === 'transparent' && <Eye className="h-4 w-4" />}
                       <span className="capitalize">{settings.messageMode}</span>
                     </div>
                   </SelectValue>
@@ -341,11 +304,13 @@ export function GeneralSettings({
 
           {/* Import Status Message */}
           {importStatus.type && (
-            <div className={`p-3 rounded-md text-sm ${
-              importStatus.type === 'success'
-                ? 'bg-green-50 text-green-800 border border-green-200'
-                : 'bg-red-50 text-red-800 border border-red-200'
-            }`}>
+            <div
+              className={`p-3 rounded-md text-sm ${
+                importStatus.type === 'success'
+                  ? 'bg-green-50 text-green-800 border border-green-200'
+                  : 'bg-red-50 text-red-800 border border-red-200'
+              }`}
+            >
               {importStatus.message}
             </div>
           )}
@@ -362,9 +327,7 @@ export function GeneralSettings({
         {/* Application Update Section */}
         <div className="flex items-center justify-between pt-4 border-t">
           <Label className="text-sm font-medium">Application Update</Label>
-          <Button type="button">
-            Check for Updates
-          </Button>
+          <Button type="button">Check for Updates</Button>
         </div>
       </div>
     </div>

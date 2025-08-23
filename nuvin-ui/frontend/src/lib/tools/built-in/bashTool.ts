@@ -70,16 +70,13 @@ export const bashTool: Tool = {
         'killall -9',
       ];
 
-      const isDangerous = dangerousCommands.some((dangerous) =>
-        command.toLowerCase().includes(dangerous),
-      );
+      const isDangerous = dangerousCommands.some((dangerous) => command.toLowerCase().includes(dangerous));
 
       if (isDangerous) {
         return {
           status: 'error',
           type: 'text',
-          result:
-            'Command contains potentially dangerous operations and has been blocked for security reasons',
+          result: 'Command contains potentially dangerous operations and has been blocked for security reasons',
         };
       }
 
@@ -90,9 +87,7 @@ export const bashTool: Tool = {
         description: description || `Execute: ${command}`,
       };
 
-      console.log(
-        `Executing bash command: "${command}" (timeout: ${timeoutSeconds}s)`,
-      );
+      console.log(`Executing bash command: "${command}" (timeout: ${timeoutSeconds}s)`);
 
       // Execute command via Wails backend
       const response = await CommandExecutorExecuteCommand(commandRequest);
@@ -113,15 +108,12 @@ export const bashTool: Tool = {
       // Add truncation warning if needed
       if (response.truncated) {
         additionalResult.warning =
-          (additionalResult.warning ? additionalResult.warning + '. ' : '') +
-          'Output was truncated due to size limits';
+          (additionalResult.warning ? additionalResult.warning + '. ' : '') + 'Output was truncated due to size limits';
       }
 
       // Check if command failed
       if (!response.success) {
-        let errorMessage =
-          response.error ||
-          `Command failed with exit code ${response.exitCode}`;
+        let errorMessage = response.error || `Command failed with exit code ${response.exitCode}`;
 
         // Include stderr in error if available
         if (response.stderr) {
@@ -156,8 +148,7 @@ export const bashTool: Tool = {
       return {
         status: 'error',
         type: 'text',
-        result: `Bash execution error: ${error instanceof Error ? error.message : 'Unknown error'
-          }`,
+        result: `Bash execution error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   },

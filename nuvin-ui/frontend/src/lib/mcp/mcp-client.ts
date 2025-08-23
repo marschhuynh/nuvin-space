@@ -24,9 +24,7 @@ import type {
 class HttpMCPConnection implements MCPConnection {
   private url: string;
   private headers: Record<string, string>;
-  private messageHandler?: (
-    message: JSONRPCResponse | JSONRPCNotification,
-  ) => void;
+  private messageHandler?: (message: JSONRPCResponse | JSONRPCNotification) => void;
   private errorHandler?: (error: Error) => void;
   private closeHandler?: () => void;
   private eventSource?: EventSource;
@@ -202,9 +200,7 @@ class HttpMCPConnection implements MCPConnection {
     }
   }
 
-  onMessage(
-    handler: (message: JSONRPCResponse | JSONRPCNotification) => void,
-  ): void {
+  onMessage(handler: (message: JSONRPCResponse | JSONRPCNotification) => void): void {
     this.messageHandler = handler;
   }
 
@@ -239,17 +235,12 @@ class HttpMCPConnection implements MCPConnection {
         } catch (error) {
           console.error('Failed to parse SSE message:', error);
           if (this.errorHandler) {
-            this.errorHandler(
-              error instanceof Error ? error : new Error(String(error)),
-            );
+            this.errorHandler(error instanceof Error ? error : new Error(String(error)));
           }
         }
       };
     } catch (error) {
-      console.debug(
-        'EventSource not supported or failed to initialize:',
-        error,
-      );
+      console.debug('EventSource not supported or failed to initialize:', error);
       this.eventSource = undefined;
     }
   }
@@ -295,9 +286,7 @@ class HttpMCPConnection implements MCPConnection {
       } catch (error) {
         console.error('Error reading stream:', error);
         if (this.errorHandler) {
-          this.errorHandler(
-            error instanceof Error ? error : new Error(String(error)),
-          );
+          this.errorHandler(error instanceof Error ? error : new Error(String(error)));
         }
       }
     };
@@ -313,9 +302,7 @@ class HttpMCPConnection implements MCPConnection {
           await this.send(item.request);
           item.resolve();
         } catch (error) {
-          item.reject(
-            error instanceof Error ? error : new Error(String(error)),
-          );
+          item.reject(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }
@@ -457,9 +444,7 @@ export class MCPClient {
 
       return response as MCPToolResult;
     } catch (error) {
-      throw new Error(
-        `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      throw new Error(`Tool execution failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -482,9 +467,7 @@ export class MCPClient {
       const response = await this.sendRequest('resources/read', { uri });
       return response as MCPResourceContents;
     } catch (error) {
-      throw new Error(
-        `Resource access failed: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      throw new Error(`Resource access failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -521,9 +504,7 @@ export class MCPClient {
     } else if (this.transportOptions.type === 'http') {
       return this.createHttpConnection();
     } else {
-      throw new Error(
-        `Unsupported transport type: ${this.transportOptions.type}`,
-      );
+      throw new Error(`Unsupported transport type: ${this.transportOptions.type}`);
     }
   }
 
@@ -540,10 +521,7 @@ export class MCPClient {
     // Import Wails transport dynamically to avoid issues if not available
     try {
       const { createWailsMCPConnection } = await import('./wails-transport');
-      const connection = createWailsMCPConnection(
-        this.serverId,
-        this.transportOptions,
-      );
+      const connection = createWailsMCPConnection(this.serverId, this.transportOptions);
       await connection.connect();
       return connection;
     } catch (error) {
@@ -646,16 +624,10 @@ export class MCPClient {
         tools: Array.from(this.tools.values()),
       });
     } catch (error: any) {
-      if (
-        error.message?.includes('Method not found') ||
-        error.message?.includes('-32601')
-      ) {
+      if (error.message?.includes('Method not found') || error.message?.includes('-32601')) {
         console.debug(`Server ${this.serverId} does not support tools`);
       } else {
-        console.warn(
-          `Failed to discover tools for server ${this.serverId}:`,
-          error,
-        );
+        console.warn(`Failed to discover tools for server ${this.serverId}:`, error);
       }
     }
   }
@@ -668,9 +640,7 @@ export class MCPClient {
       // Get resource templates (optional method - not all servers support)
       if (this.serverInfo?.capabilities?.resources?.templates) {
         try {
-          const templatesResponse = await this.sendRequest(
-            'resources/templates/list',
-          );
+          const templatesResponse = await this.sendRequest('resources/templates/list');
           const templates = templatesResponse.resourceTemplates || [];
 
           this.resourceTemplates.clear();
@@ -679,24 +649,14 @@ export class MCPClient {
           }
         } catch (error: any) {
           // Ignore method not found errors for optional endpoints
-          if (
-            error.message?.includes('Method not found') ||
-            error.message?.includes('-32601')
-          ) {
-            console.debug(
-              `Server ${this.serverId} does not support resource templates`,
-            );
+          if (error.message?.includes('Method not found') || error.message?.includes('-32601')) {
+            console.debug(`Server ${this.serverId} does not support resource templates`);
           } else {
-            console.warn(
-              `Failed to discover resource templates for server ${this.serverId}:`,
-              error,
-            );
+            console.warn(`Failed to discover resource templates for server ${this.serverId}:`, error);
           }
         }
       } else {
-        console.debug(
-          `Server ${this.serverId} does not advertise resource template support`,
-        );
+        console.debug(`Server ${this.serverId} does not advertise resource template support`);
       }
 
       // Get resources
@@ -709,16 +669,10 @@ export class MCPClient {
           this.resources.set(resource.uri, resource);
         }
       } catch (error: any) {
-        if (
-          error.message?.includes('Method not found') ||
-          error.message?.includes('-32601')
-        ) {
+        if (error.message?.includes('Method not found') || error.message?.includes('-32601')) {
           console.debug(`Server ${this.serverId} does not support resources`);
         } else {
-          console.warn(
-            `Failed to discover resources for server ${this.serverId}:`,
-            error,
-          );
+          console.warn(`Failed to discover resources for server ${this.serverId}:`, error);
         }
       }
 
@@ -728,10 +682,7 @@ export class MCPClient {
         resources: Array.from(this.resources.values()),
       });
     } catch (error) {
-      console.warn(
-        `Failed to discover resources for server ${this.serverId}:`,
-        error,
-      );
+      console.warn(`Failed to discover resources for server ${this.serverId}:`, error);
     }
   }
 
@@ -781,9 +732,7 @@ export class MCPClient {
     clearTimeout(pending.timeout);
 
     if (response.error) {
-      pending.reject(
-        new Error(`${response.error.message} (${response.error.code})`),
-      );
+      pending.reject(new Error(`${response.error.message} (${response.error.code})`));
     } else {
       pending.resolve(response.result);
     }
@@ -802,10 +751,7 @@ export class MCPClient {
         this.discoverResources();
         break;
       default:
-        console.log(
-          `Received notification: ${notification.method}`,
-          notification.params,
-        );
+        console.log(`Received notification: ${notification.method}`, notification.params);
     }
   }
 

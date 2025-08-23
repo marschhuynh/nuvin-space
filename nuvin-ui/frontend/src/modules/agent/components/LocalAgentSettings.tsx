@@ -1,12 +1,6 @@
 import { Globe, Home } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 
@@ -63,10 +57,7 @@ export function LocalAgentSettings({
           <div className="grid gap-2">
             <Label htmlFor="responseLength">Response Length</Label>
             {isEditing ? (
-              <Select
-                value={responseLength}
-                onValueChange={onResponseLengthChange}
-              >
+              <Select value={responseLength} onValueChange={onResponseLengthChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select response length" />
                 </SelectTrigger>
@@ -150,9 +141,7 @@ export function LocalAgentSettings({
                 min="100"
                 max="8192"
                 value={maxTokens}
-                onChange={(e) =>
-                  onMaxTokensChange(parseInt(e.target.value) || 2048)
-                }
+                onChange={(e) => onMaxTokensChange(parseInt(e.target.value) || 2048)}
               />
             ) : (
               <div className="px-3 py-2 border rounded-md bg-background text-sm select-all h-9 flex items-center">

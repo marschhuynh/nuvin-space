@@ -86,8 +86,7 @@ export const useAgentStore = create<AgentState>()(
     devtools((set) => ({
       agents: defaultAgents,
       activeAgentId: defaultAgents[0].id,
-      addAgent: (agent) =>
-        set((state) => ({ agents: [...state.agents, agent] })),
+      addAgent: (agent) => set((state) => ({ agents: [...state.agents, agent] })),
       updateAgent: (agent) =>
         set((state) => ({
           agents: state.agents.map((a) => (a.id === agent.id ? agent : a)),
@@ -97,8 +96,7 @@ export const useAgentStore = create<AgentState>()(
           agents: state.agents.filter((a) => a.id !== id),
         })),
       setActiveAgent: (id) => set(() => ({ activeAgentId: id })),
-      reset: () =>
-        set({ agents: defaultAgents, activeAgentId: defaultAgents[0].id }),
+      reset: () => set({ agents: defaultAgents, activeAgentId: defaultAgents[0].id }),
     })),
     {
       name: 'agent-storage',

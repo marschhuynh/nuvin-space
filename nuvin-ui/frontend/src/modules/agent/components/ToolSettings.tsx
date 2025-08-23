@@ -11,11 +11,7 @@ interface ToolSettingsProps {
   onToolConfigChange: (config: AgentToolConfig) => void;
 }
 
-export function ToolSettings({
-  toolConfig,
-  isEditing,
-  onToolConfigChange,
-}: ToolSettingsProps) {
+export function ToolSettings({ toolConfig, isEditing, onToolConfigChange }: ToolSettingsProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleToolToggle = (toolName: string, enabled: boolean) => {
@@ -39,9 +35,7 @@ export function ToolSettings({
     .filter(
       (tool) =>
         tool.definition.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tool.definition?.description
-          ?.toLowerCase?.()
-          ?.includes(searchTerm.toLowerCase()) ||
+        tool.definition?.description?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) ||
         tool.category?.toLowerCase?.().includes(searchTerm.toLowerCase()),
     );
 
@@ -58,9 +52,7 @@ export function ToolSettings({
               min="1"
               max="10"
               value={toolConfig.maxConcurrentCalls || 3}
-              onChange={(e) =>
-                handleMaxConcurrentChange(parseInt(e.target.value) || 3)
-              }
+              onChange={(e) => handleMaxConcurrentChange(parseInt(e.target.value) || 3)}
               className="h-9"
             />
           ) : (
@@ -80,9 +72,7 @@ export function ToolSettings({
               max="300000"
               step="1000"
               value={toolConfig.timeoutMs || 30000}
-              onChange={(e) =>
-                handleTimeoutChange(parseInt(e.target.value) || 30000)
-              }
+              onChange={(e) => handleTimeoutChange(parseInt(e.target.value) || 30000)}
               className="h-9"
             />
           ) : (
@@ -122,22 +112,14 @@ export function ToolSettings({
             ) : (
               <div className="divide-y divide-border">
                 {filteredTools.map((tool) => (
-                  <div
-                    key={tool.definition.name}
-                    className="flex gap-2 p-2 hover:bg-muted/50 transition-colors"
-                  >
+                  <div key={tool.definition.name} className="flex gap-2 p-2 hover:bg-muted/50 transition-colors">
                     <input
                       type="checkbox"
                       id={`tool-${tool.definition.name}`}
-                      checked={toolConfig.enabledTools.includes(
-                        tool.definition.name,
-                      )}
+                      checked={toolConfig.enabledTools.includes(tool.definition.name)}
                       onChange={(e) => {
                         if (!isEditing) return;
-                        handleToolToggle(
-                          tool.definition.name,
-                          e.target.checked,
-                        );
+                        handleToolToggle(tool.definition.name, e.target.checked);
                       }}
                       disabled={!isEditing}
                       className="h-4 w-4 shrink-0 mt-1.5"
@@ -148,9 +130,7 @@ export function ToolSettings({
                           htmlFor={`tool-${tool.definition.name}`}
                           className="text-sm font-medium cursor-pointer truncate"
                         >
-                          {tool.category === 'mcp'
-                            ? (tool as any).mcpSchema.name
-                            : tool.definition.name}
+                          {tool.category === 'mcp' ? (tool as any).mcpSchema.name : tool.definition.name}
                         </label>
                         <span className="text-xs text-muted-foreground px-2 py-0.5 bg-muted rounded shrink-0">
                           {tool.category || 'utility'}

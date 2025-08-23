@@ -119,9 +119,7 @@ describe('AgentManager', () => {
     beforeEach(() => {
       // Add messages to conversation history
       mockMessages.forEach((message) => {
-        (agentManager as any).addToConversationHistory(conversationId, [
-          message,
-        ]);
+        (agentManager as any).addToConversationHistory(conversationId, [message]);
       });
     });
 
@@ -156,10 +154,7 @@ describe('AgentManager', () => {
       ];
 
       const userConversationId = 'user-only-conversation';
-      (agentManager as any).addToConversationHistory(
-        userConversationId,
-        userOnlyMessages,
-      );
+      (agentManager as any).addToConversationHistory(userConversationId, userOnlyMessages);
 
       const metrics = agentManager.getConversationMetrics(userConversationId);
 
@@ -181,10 +176,7 @@ describe('AgentManager', () => {
       ];
 
       const noMetaConversationId = 'no-metadata-conversation';
-      (agentManager as any).addToConversationHistory(
-        noMetaConversationId,
-        messagesWithoutMetadata,
-      );
+      (agentManager as any).addToConversationHistory(noMetaConversationId, messagesWithoutMetadata);
 
       const metrics = agentManager.getConversationMetrics(noMetaConversationId);
 
@@ -206,9 +198,7 @@ describe('AgentManager', () => {
     };
 
     it('retrieves conversation history correctly', () => {
-      (agentManager as any).addToConversationHistory(conversationId, [
-        mockMessage,
-      ]);
+      (agentManager as any).addToConversationHistory(conversationId, [mockMessage]);
 
       const history = agentManager.getConversationHistory(conversationId);
       expect(history).toHaveLength(1);
@@ -221,35 +211,23 @@ describe('AgentManager', () => {
     });
 
     it('clears specific conversation history', () => {
-      (agentManager as any).addToConversationHistory(conversationId, [
-        mockMessage,
-      ]);
-      (agentManager as any).addToConversationHistory('other-conversation', [
-        mockMessage,
-      ]);
+      (agentManager as any).addToConversationHistory(conversationId, [mockMessage]);
+      (agentManager as any).addToConversationHistory('other-conversation', [mockMessage]);
 
       agentManager.clearConversationHistory(conversationId);
 
       expect(agentManager.getConversationHistory(conversationId)).toEqual([]);
-      expect(
-        agentManager.getConversationHistory('other-conversation'),
-      ).toHaveLength(1);
+      expect(agentManager.getConversationHistory('other-conversation')).toHaveLength(1);
     });
 
     it('clears all conversation history when no ID provided', () => {
-      (agentManager as any).addToConversationHistory(conversationId, [
-        mockMessage,
-      ]);
-      (agentManager as any).addToConversationHistory('other-conversation', [
-        mockMessage,
-      ]);
+      (agentManager as any).addToConversationHistory(conversationId, [mockMessage]);
+      (agentManager as any).addToConversationHistory('other-conversation', [mockMessage]);
 
       agentManager.clearConversationHistory();
 
       expect(agentManager.getConversationHistory(conversationId)).toEqual([]);
-      expect(agentManager.getConversationHistory('other-conversation')).toEqual(
-        [],
-      );
+      expect(agentManager.getConversationHistory('other-conversation')).toEqual([]);
     });
   });
 

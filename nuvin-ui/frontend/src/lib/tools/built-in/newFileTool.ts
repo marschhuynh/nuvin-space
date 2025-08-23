@@ -10,26 +10,29 @@ export const newFileTool: Tool = {
       properties: {
         path: {
           type: 'string',
-          description: 'Path of the file to create'
+          description: 'Path of the file to create',
         },
         content: {
           type: 'string',
-          description: 'Content to write to the new file'
-        }
+          description: 'Content to write to the new file',
+        },
       },
-      required: ['path', 'content']
-    }
+      required: ['path', 'content'],
+    },
   },
 
   async execute(parameters) {
     try {
-      const { path: filePath, content } = parameters as { path: string; content: string };
+      const { path: filePath, content } = parameters as {
+        path: string;
+        content: string;
+      };
 
       if (!filePath || typeof filePath !== 'string') {
         return {
           status: 'error',
           type: 'text',
-          result: 'path parameter is required and must be a string'
+          result: 'path parameter is required and must be a string',
         };
       }
 
@@ -50,7 +53,7 @@ export const newFileTool: Tool = {
       return {
         status: 'error',
         type: 'text',
-        result: `Failed to create file: ${err instanceof Error ? err.message : err}`
+        result: `Failed to create file: ${err instanceof Error ? err.message : err}`,
       };
     }
   },
@@ -67,5 +70,5 @@ export const newFileTool: Tool = {
 
   category: 'filesystem',
   version: '1.0.0',
-  author: 'system'
+  author: 'system',
 };

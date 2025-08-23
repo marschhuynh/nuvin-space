@@ -42,10 +42,7 @@ export interface ToolExecutionResult {
 // Tool implementation interface
 export interface Tool {
   definition: ToolDefinition;
-  execute: (
-    parameters: Record<string, any>,
-    context?: ToolContext,
-  ) => Promise<ToolExecutionResult>;
+  execute: (parameters: Record<string, any>, context?: ToolContext) => Promise<ToolExecutionResult>;
   validate?: (parameters: Record<string, any>) => boolean;
   category?: string;
   version?: string;

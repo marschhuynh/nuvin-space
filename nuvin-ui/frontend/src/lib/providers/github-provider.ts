@@ -1,10 +1,5 @@
 import { BaseLLMProvider } from './base-provider';
-import type {
-  CompletionParams,
-  CompletionResult,
-  StreamChunk,
-  ModelInfo,
-} from './types/base';
+import type { CompletionParams, CompletionResult, StreamChunk, ModelInfo } from './types/base';
 import { smartFetch } from '../fetch-proxy';
 import { extractValue } from './utils';
 
@@ -60,10 +55,7 @@ export class GithubCopilotProvider extends BaseLLMProvider {
     return response;
   }
 
-  async generateCompletion(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): Promise<CompletionResult> {
+  async generateCompletion(params: CompletionParams, signal?: AbortSignal): Promise<CompletionResult> {
     const response = await this.makeRequest('/chat/completions', {
       body: {
         model: params.model,
@@ -81,10 +73,7 @@ export class GithubCopilotProvider extends BaseLLMProvider {
     return this.createCompletionResult(data);
   }
 
-  async *generateCompletionStream(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): AsyncGenerator<string> {
+  async *generateCompletionStream(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<string> {
     const response = await this.makeRequest('/chat/completions', {
       body: {
         model: params.model,
@@ -149,10 +138,7 @@ export class GithubCopilotProvider extends BaseLLMProvider {
           method: 'GET',
         });
       } catch (error) {
-        console.warn(
-          'Copilot API failed, trying public GitHub Models API:',
-          error,
-        );
+        console.warn('Copilot API failed, trying public GitHub Models API:', error);
         response = await smartFetch(`https://models.github.ai/catalog/models`, {
           method: 'GET',
           headers: {
@@ -163,16 +149,12 @@ export class GithubCopilotProvider extends BaseLLMProvider {
       }
 
       if (!response.ok) {
-        console.warn(
-          `GitHub Models API error: ${response.status}. Returning empty models list.`,
-        );
+        console.warn(`GitHub Models API error: ${response.status}. Returning empty models list.`);
         return [];
       }
 
       const data = await response.json();
-      const models = Array.isArray(data)
-        ? data
-        : data.models || data.data || [];
+      const models = Array.isArray(data) ? data : data.models || data.data || [];
 
       const transformedModels = models
         .map((model: any): ModelInfo => {
@@ -238,24 +220,14 @@ export class GithubCopilotProvider extends BaseLLMProvider {
   }
 
   private getModality(modelId: string): string {
-    if (
-      modelId.includes('gpt-4o') ||
-      modelId.includes('o1') ||
-      modelId.includes('o3') ||
-      modelId.includes('o4')
-    ) {
+    if (modelId.includes('gpt-4o') || modelId.includes('o1') || modelId.includes('o3') || modelId.includes('o4')) {
       return 'multimodal';
     }
     return 'text';
   }
 
   private getInputModalities(modelId: string): string[] {
-    if (
-      modelId.includes('gpt-4o') ||
-      modelId.includes('o1') ||
-      modelId.includes('o3') ||
-      modelId.includes('o4')
-    ) {
+    if (modelId.includes('gpt-4o') || modelId.includes('o1') || modelId.includes('o3') || modelId.includes('o4')) {
       return ['text', 'image'];
     }
     return ['text'];
@@ -268,19 +240,13 @@ export class GithubCopilotProvider extends BaseLLMProvider {
   private sortModelsByPriority(a: ModelInfo, b: ModelInfo): number {
     // Sort by model priority (GPT-4.1 > o4-mini > o3 > o1 > GPT-4o > Jamba > Cohere)
     const getModelPriority = (id: string): number => {
-      if (
-        id.includes('gpt-4.1') &&
-        !id.includes('mini') &&
-        !id.includes('nano')
-      )
-        return 100;
+      if (id.includes('gpt-4.1') && !id.includes('mini') && !id.includes('nano')) return 100;
       if (id.includes('gpt-4.1-mini')) return 95;
       if (id.includes('gpt-4.1-nano')) return 90;
       if (id.includes('o4-mini')) return 85;
       if (id.includes('o3') && !id.includes('mini')) return 80;
       if (id.includes('o3-mini')) return 75;
-      if (id.includes('o1') && !id.includes('mini') && !id.includes('preview'))
-        return 70;
+      if (id.includes('o1') && !id.includes('mini') && !id.includes('preview')) return 70;
       if (id.includes('o1-preview')) return 65;
       if (id.includes('o1-mini')) return 60;
       if (id.includes('gpt-4o') && !id.includes('mini')) return 55;

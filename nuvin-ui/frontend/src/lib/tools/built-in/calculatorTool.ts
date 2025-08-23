@@ -3,15 +3,13 @@ import { Tool } from '@/types/tools';
 export const calculatorTool: Tool = {
   definition: {
     name: 'calculator',
-    description:
-      'Perform mathematical calculations with basic arithmetic operations',
+    description: 'Perform mathematical calculations with basic arithmetic operations',
     parameters: {
       type: 'object',
       properties: {
         expression: {
           type: 'string',
-          description:
-            'Mathematical expression to evaluate (e.g., "2 + 3 * 4", "sqrt(16)", "sin(pi/2)")',
+          description: 'Mathematical expression to evaluate (e.g., "2 + 3 * 4", "sqrt(16)", "sin(pi/2)")',
         },
       },
       required: ['expression'],
@@ -63,16 +61,11 @@ export const calculatorTool: Tool = {
           if (typeof func === 'function') {
             const regex = new RegExp(`\\b${name}\\s*\\(([^)]+)\\)`, 'g');
             processedExpr = processedExpr.replace(regex, (match, args) => {
-              const argValues = args
-                .split(',')
-                .map((arg: string) => evaluateExpression(arg.trim()));
+              const argValues = args.split(',').map((arg: string) => evaluateExpression(arg.trim()));
               return (func as any).apply(null, argValues).toString();
             });
           } else {
-            processedExpr = processedExpr.replace(
-              new RegExp(`\\b${name}\\b`, 'g'),
-              func.toString(),
-            );
+            processedExpr = processedExpr.replace(new RegExp(`\\b${name}\\b`, 'g'), func.toString());
           }
         });
 
@@ -109,10 +102,7 @@ export const calculatorTool: Tool = {
   },
 
   validate(parameters) {
-    return (
-      typeof parameters.expression === 'string' &&
-      parameters.expression.trim().length > 0
-    );
+    return typeof parameters.expression === 'string' && parameters.expression.trim().length > 0;
   },
 
   category: 'utility',

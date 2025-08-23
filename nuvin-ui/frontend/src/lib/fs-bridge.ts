@@ -34,7 +34,11 @@ export async function writeFile(path: string, content: string): Promise<void> {
   }
   if (isNode) {
     const fs = await nodeFs();
-    await fs.mkdir(path.slice(0, Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'))), { recursive: true }).catch(() => { });
+    await fs
+      .mkdir(path.slice(0, Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'))), {
+        recursive: true,
+      })
+      .catch(() => {});
     return fs.writeFile(path, content, 'utf-8') as unknown as Promise<void>;
   }
   throw new Error('Filesystem access requires Wails or Node environment');
@@ -47,10 +51,11 @@ export async function listDir(dir: string): Promise<FileInfo[]> {
   }
   if (isNode) {
     const fs = await nodeFs();
-    const entries = await fs.readdir(dir, { withFileTypes: true }) as any[];
+    const entries = (await fs.readdir(dir, { withFileTypes: true })) as any[];
     const results: FileInfo[] = [];
     for (const e of entries) {
-      const full = dir.endsWith('/') || dir.endsWith('\\') ? dir + e.name : dir + (dir.includes('\\') ? '\\' : '/') + e.name;
+      const full =
+        dir.endsWith('/') || dir.endsWith('\\') ? dir + e.name : dir + (dir.includes('\\') ? '\\' : '/') + e.name;
       const stat = await fs.stat(full);
       results.push({
         path: full,
@@ -102,7 +107,11 @@ export async function rename(oldPath: string, newPath: string): Promise<void> {
   }
   if (isNode) {
     const fs = await nodeFs();
-    await fs.mkdir(newPath.slice(0, Math.max(newPath.lastIndexOf('/'), newPath.lastIndexOf('\\'))), { recursive: true }).catch(() => { });
+    await fs
+      .mkdir(newPath.slice(0, Math.max(newPath.lastIndexOf('/'), newPath.lastIndexOf('\\'))), {
+        recursive: true,
+      })
+      .catch(() => {});
     return fs.rename(oldPath, newPath) as unknown as Promise<void>;
   }
   throw new Error('Filesystem access requires Wails or Node environment');

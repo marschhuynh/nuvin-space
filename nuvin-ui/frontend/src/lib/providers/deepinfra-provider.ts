@@ -1,11 +1,6 @@
 import { BaseLLMProvider } from './base-provider';
 import { extractValue } from './utils';
-import type {
-  ModelInfo,
-  CompletionParams,
-  CompletionResult,
-  StreamChunk,
-} from './types/base';
+import type { ModelInfo, CompletionParams, CompletionResult, StreamChunk } from './types/base';
 
 export class DeepInfraProvider extends BaseLLMProvider {
   constructor(apiKey: string) {
@@ -16,10 +11,7 @@ export class DeepInfraProvider extends BaseLLMProvider {
     });
   }
 
-  async generateCompletion(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): Promise<CompletionResult> {
+  async generateCompletion(params: CompletionParams, signal?: AbortSignal): Promise<CompletionResult> {
     const response = await this.makeRequest('/chat/completions', {
       body: {
         model: params.model,
@@ -37,15 +29,8 @@ export class DeepInfraProvider extends BaseLLMProvider {
     return this.createCompletionResult(data);
   }
 
-  async *generateCompletionStream(
-    params: CompletionParams,
-    signal?: AbortSignal,
-  ): AsyncGenerator<string> {
-    const reader = await this.makeStreamingRequest(
-      '/chat/completions',
-      params,
-      signal,
-    );
+  async *generateCompletionStream(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<string> {
+    const reader = await this.makeStreamingRequest('/chat/completions', params, signal);
 
     for await (const data of this.parseStream(reader, {}, signal)) {
       const content = extractValue(data, 'choices.0.delta.content');
@@ -59,11 +44,7 @@ export class DeepInfraProvider extends BaseLLMProvider {
     params: CompletionParams,
     signal?: AbortSignal,
   ): AsyncGenerator<StreamChunk> {
-    const reader = await this.makeStreamingRequest(
-      '/chat/completions',
-      params,
-      signal,
-    );
+    const reader = await this.makeStreamingRequest('/chat/completions', params, signal);
 
     for await (const chunk of this.parseStreamWithTools(reader, {}, signal)) {
       yield chunk;
@@ -101,8 +82,7 @@ export class DeepInfraProvider extends BaseLLMProvider {
       {
         id: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
         name: 'Llama 3.3 70B Instruct Turbo',
-        description:
-          "Meta's latest Llama 3.3 70B model optimized for instruction following",
+        description: "Meta's latest Llama 3.3 70B model optimized for instruction following",
         contextLength: 128000,
         inputCost: 0.59,
         outputCost: 0.79,
@@ -146,8 +126,7 @@ export class DeepInfraProvider extends BaseLLMProvider {
       {
         id: 'meta-llama/Llama-3.2-90B-Vision-Instruct',
         name: 'Llama 3.2 90B Vision Instruct',
-        description:
-          "Meta's multimodal Llama 3.2 90B model with vision capabilities",
+        description: "Meta's multimodal Llama 3.2 90B model with vision capabilities",
         contextLength: 128000,
         inputCost: 0.59,
         outputCost: 0.79,

@@ -10,21 +10,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Eye,
-  EyeOff,
-  Wifi,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-} from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Eye, EyeOff, Wifi, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useProviderStore } from '@/store/useProviderStore';
 import { fetchGithubCopilotKey } from '@/lib/github';
 import {
@@ -53,19 +40,11 @@ interface ProviderModalProps {
   mode: 'add' | 'edit';
 }
 
-export function ProviderModal({
-  open,
-  onOpenChange,
-  provider = null,
-  mode,
-}: ProviderModalProps) {
-  const { addProvider, updateProvider, isNameUnique, setActiveProvider } =
-    useProviderStore();
+export function ProviderModal({ open, onOpenChange, provider = null, mode }: ProviderModalProps) {
+  const { addProvider, updateProvider, isNameUnique, setActiveProvider } = useProviderStore();
   const { fetchModels, setModels } = useModelsStore();
   const [providerName, setProviderName] = useState('');
-  const [providerType, setProviderType] = useState<PROVIDER_TYPES>(
-    PROVIDER_TYPES.OpenAI,
-  );
+  const [providerType, setProviderType] = useState<PROVIDER_TYPES>(PROVIDER_TYPES.OpenAI);
   const [providerKey, setProviderKey] = useState('');
   const [providerApiUrl, setProviderApiUrl] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
@@ -73,9 +52,7 @@ export function ProviderModal({
   const [nameError, setNameError] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<
-    'idle' | 'success' | 'error'
-  >('idle');
+  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [connectionMessage, setConnectionMessage] = useState('');
 
   useEffect(() => {
@@ -105,9 +82,7 @@ export function ProviderModal({
       setNameError('Name is required');
       return false;
     }
-    if (
-      !isNameUnique(name.trim(), mode === 'edit' ? provider?.id : undefined)
-    ) {
+    if (!isNameUnique(name.trim(), mode === 'edit' ? provider?.id : undefined)) {
       setNameError('Name must be unique');
       return false;
     }
@@ -138,10 +113,7 @@ export function ProviderModal({
         name: providerName.trim(),
         type: providerType,
         apiKey: providerKey,
-        apiUrl:
-          providerType === PROVIDER_TYPES.OpenAICompatible
-            ? providerApiUrl
-            : undefined,
+        apiUrl: providerType === PROVIDER_TYPES.OpenAICompatible ? providerApiUrl : undefined,
         activeModel: provider.activeModel || {
           model: 'gpt-3.5-turbo',
           maxTokens: 2048,
@@ -154,10 +126,7 @@ export function ProviderModal({
         name: providerName.trim(),
         type: providerType as PROVIDER_TYPES,
         apiKey: providerKey,
-        apiUrl:
-          providerType === PROVIDER_TYPES.OpenAICompatible
-            ? providerApiUrl
-            : undefined,
+        apiUrl: providerType === PROVIDER_TYPES.OpenAICompatible ? providerApiUrl : undefined,
         activeModel: {
           model: selectedModel || getDefaultModel(providerType as ProviderType),
           maxTokens: 2048,
@@ -201,11 +170,7 @@ export function ProviderModal({
 
       setProviderKey(token);
 
-      if (
-        providerType === PROVIDER_TYPES.GitHub &&
-        validateName(providerName) &&
-        mode === 'add'
-      ) {
+      if (providerType === PROVIDER_TYPES.GitHub && validateName(providerName) && mode === 'add') {
         const newProviderId = Date.now().toString();
         const newProvider = {
           id: newProviderId,
@@ -229,10 +194,7 @@ export function ProviderModal({
           });
           setModels(newProviderId, fetchedModels);
         } catch (error) {
-          console.error(
-            'Failed to fetch models for new GitHub provider:',
-            error,
-          );
+          console.error('Failed to fetch models for new GitHub provider:', error);
         }
 
         handleClose();
@@ -285,10 +247,7 @@ export function ProviderModal({
         type: providerType as ProviderType,
         apiKey: providerKey,
         name: providerName || 'Test',
-        apiUrl:
-          providerType === PROVIDER_TYPES.OpenAICompatible
-            ? providerApiUrl
-            : undefined,
+        apiUrl: providerType === PROVIDER_TYPES.OpenAICompatible ? providerApiUrl : undefined,
       });
 
       if (testModels && testModels.length > 0) {
@@ -335,14 +294,8 @@ export function ProviderModal({
         }}
       >
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle>
-            {mode === 'add' ? 'Add New Provider' : 'Edit Provider'}
-          </DialogTitle>
-          {mode === 'add' && (
-            <DialogDescription>
-              Add a new AI provider to your configuration.
-            </DialogDescription>
-          )}
+          <DialogTitle>{mode === 'add' ? 'Add New Provider' : 'Edit Provider'}</DialogTitle>
+          {mode === 'add' && <DialogDescription>Add a new AI provider to your configuration.</DialogDescription>}
         </DialogHeader>
         <div className="flex-1 overflow-y-auto">
           <div className="grid gap-4 py-4 px-1">
@@ -362,10 +315,7 @@ export function ProviderModal({
             </div>
             <div className="grid gap-2">
               <Label htmlFor="providerType">Provider Type</Label>
-              <Select
-                value={providerType}
-                onValueChange={handleProviderTypeChange}
-              >
+              <Select value={providerType} onValueChange={handleProviderTypeChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select provider type" />
                 </SelectTrigger>
@@ -388,9 +338,7 @@ export function ProviderModal({
                   onChange={(e) => setProviderApiUrl(e.target.value)}
                   placeholder="https://api.openai.com"
                 />
-                <p className="text-xs text-muted-foreground">
-                  The base URL of your OpenAI-compatible API endpoint
-                </p>
+                <p className="text-xs text-muted-foreground">The base URL of your OpenAI-compatible API endpoint</p>
               </div>
             )}
             <div className="grid gap-2">
@@ -416,11 +364,7 @@ export function ProviderModal({
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowApiKey(!showApiKey)}
                   >
-                    {showApiKey ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
                 {providerType === PROVIDER_TYPES.GitHub && (
@@ -429,15 +373,9 @@ export function ProviderModal({
                     variant="outline"
                     size={mode === 'edit' ? 'sm' : undefined}
                     onClick={handleGithubAuth}
-                    disabled={
-                      isAuthenticating || !providerName || nameError !== ''
-                    }
+                    disabled={isAuthenticating || !providerName || nameError !== ''}
                   >
-                    {isAuthenticating
-                      ? 'Authenticating...'
-                      : mode === 'edit'
-                        ? 'Get Key'
-                        : 'Get Token'}
+                    {isAuthenticating ? 'Authenticating...' : mode === 'edit' ? 'Get Key' : 'Get Token'}
                   </Button>
                 )}
               </div>
@@ -458,13 +396,9 @@ export function ProviderModal({
                   )}
                   <div className="flex-1">
                     <p className="font-medium text-sm">
-                      {connectionStatus === 'success'
-                        ? 'Connection Successful'
-                        : 'Connection Failed'}
+                      {connectionStatus === 'success' ? 'Connection Successful' : 'Connection Failed'}
                     </p>
-                    <p className="text-sm mt-1 opacity-90">
-                      {connectionMessage}
-                    </p>
+                    <p className="text-sm mt-1 opacity-90">{connectionMessage}</p>
                   </div>
                 </div>
               )}
@@ -474,10 +408,8 @@ export function ProviderModal({
                   <div className="flex items-start gap-2">
                     <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                     <p className="text-sm text-blue-800">
-                      Click "Get Token" to authenticate with GitHub and get an
-                      access token. This will be a GitHub API token, not a
-                      Copilot token, as the Copilot API is not publicly
-                      available.
+                      Click "Get Token" to authenticate with GitHub and get an access token. This will be a GitHub API
+                      token, not a Copilot token, as the Copilot API is not publicly available.
                     </p>
                   </div>
                 </div>
@@ -494,9 +426,7 @@ export function ProviderModal({
               disabled={isTestingConnection || !providerKey || !providerType}
               className="flex items-center gap-2"
             >
-              <Wifi
-                className={`h-4 w-4 ${isTestingConnection ? 'animate-pulse' : ''}`}
-              />
+              <Wifi className={`h-4 w-4 ${isTestingConnection ? 'animate-pulse' : ''}`} />
               {isTestingConnection ? 'Testing...' : 'Test Connection'}
             </Button>
             <div className="flex gap-2">

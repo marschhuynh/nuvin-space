@@ -6,23 +6,17 @@ export abstract class BaseAgent {
   constructor(
     protected agentSettings: AgentSettings,
     protected conversationHistory: Map<string, Message[]>,
-  ) { }
+  ) {}
 
   setSettings(agentSettings: AgentSettings) {
     this.agentSettings = agentSettings;
   }
 
-  abstract sendMessage(
-    content: string[],
-    options?: SendMessageOptions,
-  ): Promise<MessageResponse>;
+  abstract sendMessage(content: string[], options?: SendMessageOptions): Promise<MessageResponse>;
 
   abstract cancel(): void;
 
-  async streamMessage(
-    content: string[],
-    options?: SendMessageOptions,
-  ): Promise<MessageResponse> {
+  async streamMessage(content: string[], options?: SendMessageOptions): Promise<MessageResponse> {
     return this.sendMessage(content, options);
   }
 
@@ -96,20 +90,16 @@ export abstract class BaseAgent {
 
     const userMessage: ChatMessage[] = Array.isArray(content)
       ? content.map((msg) => ({
-        role: 'user',
-        content: msg,
-      }))
-      : [
-        {
           role: 'user',
-          content,
-        },
-      ];
+          content: msg,
+        }))
+      : [
+          {
+            role: 'user',
+            content,
+          },
+        ];
 
-    return [
-      { role: 'system', content: this.agentSettings.systemPrompt },
-      ...transformedHistory,
-      ...userMessage,
-    ];
+    return [{ role: 'system', content: this.agentSettings.systemPrompt }, ...transformedHistory, ...userMessage];
   }
 }

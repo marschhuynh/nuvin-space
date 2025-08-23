@@ -3,26 +3,22 @@ import { Tool } from '@/types/tools';
 export const timeTool: Tool = {
   definition: {
     name: 'get_current_time',
-    description:
-      'Get current date and time information in various formats and timezones',
+    description: 'Get current date and time information in various formats and timezones',
     parameters: {
       type: 'object',
       properties: {
         timezone: {
           type: 'string',
-          description:
-            'Timezone identifier (e.g., "UTC", "America/New_York", "Europe/London")',
+          description: 'Timezone identifier (e.g., "UTC", "America/New_York", "Europe/London")',
         },
         format: {
           type: 'string',
-          description:
-            'Output format: "iso", "readable", "timestamp", "custom"',
+          description: 'Output format: "iso", "readable", "timestamp", "custom"',
           enum: ['iso', 'readable', 'timestamp', 'custom'],
         },
         customFormat: {
           type: 'string',
-          description:
-            'Custom date format string (only used when format is "custom")',
+          description: 'Custom date format string (only used when format is "custom")',
         },
       },
     },
@@ -30,11 +26,7 @@ export const timeTool: Tool = {
 
   async execute(parameters) {
     try {
-      const {
-        timezone = 'UTC',
-        format = 'readable',
-        customFormat,
-      } = parameters;
+      const { timezone = 'UTC', format = 'readable', customFormat } = parameters;
 
       const now = new Date();
 
@@ -59,9 +51,7 @@ export const timeTool: Tool = {
           };
 
           timeData.timezone = timezone;
-          timeData.localized = new Intl.DateTimeFormat('en-US', options).format(
-            now,
-          );
+          timeData.localized = new Intl.DateTimeFormat('en-US', options).format(now);
         } catch (error) {
           return {
             status: 'error',
@@ -83,8 +73,7 @@ export const timeTool: Tool = {
             return {
               status: 'error',
               type: 'text',
-              result:
-                'customFormat parameter is required when format is "custom"',
+              result: 'customFormat parameter is required when format is "custom"',
             };
           }
           // Basic custom formatting (simplified)
@@ -114,18 +103,13 @@ export const timeTool: Tool = {
       return {
         status: 'error',
         type: 'text',
-        result: `Time retrieval error: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`,
+        result: `Time retrieval error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   },
 
   validate(parameters) {
-    if (
-      parameters.format &&
-      !['iso', 'readable', 'timestamp', 'custom'].includes(parameters.format)
-    ) {
+    if (parameters.format && !['iso', 'readable', 'timestamp', 'custom'].includes(parameters.format)) {
       return false;
     }
     if (parameters.format === 'custom' && !parameters.customFormat) {

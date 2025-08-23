@@ -224,19 +224,20 @@ describe('LocalAgent - Non-Streaming Messages', () => {
         },
       ];
 
-      mockProvider.generateCompletion
-        .mockResolvedValueOnce(initialResult)
-        .mockResolvedValueOnce(finalResult);
+      mockProvider.generateCompletion.mockResolvedValueOnce(initialResult).mockResolvedValueOnce(finalResult);
 
       mockToolIntegrationService.enhanceCompletionParams.mockImplementation((params) => ({
         ...params,
-        tools: [{
-          type: 'function', function: {
-            name: 'testTool',
-            description: 'Tool description',
-            parameters: {}
-          }
-        }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'testTool',
+              description: 'Tool description',
+              parameters: {},
+            },
+          },
+        ],
       }));
 
       mockToolIntegrationService.processCompletionResult.mockResolvedValue({
@@ -277,7 +278,10 @@ describe('LocalAgent - Non-Streaming Messages', () => {
           {
             id: 'call_1',
             type: 'function',
-            function: { name: 'createFile', arguments: '{"filename": "test.txt"}' },
+            function: {
+              name: 'createFile',
+              arguments: '{"filename": "test.txt"}',
+            },
           },
         ],
       };
@@ -288,7 +292,10 @@ describe('LocalAgent - Non-Streaming Messages', () => {
           {
             id: 'call_2',
             type: 'function',
-            function: { name: 'readFile', arguments: '{"filename": "test.txt"}' },
+            function: {
+              name: 'readFile',
+              arguments: '{"filename": "test.txt"}',
+            },
           },
         ],
       };
@@ -299,7 +306,10 @@ describe('LocalAgent - Non-Streaming Messages', () => {
           {
             id: 'call_3',
             type: 'function',
-            function: { name: 'validateFile', arguments: '{"filename": "test.txt"}' },
+            function: {
+              name: 'validateFile',
+              arguments: '{"filename": "test.txt"}',
+            },
           },
         ],
       };
@@ -325,7 +335,11 @@ describe('LocalAgent - Non-Streaming Messages', () => {
         {
           id: 'call_2',
           name: 'readFile',
-          result: { status: 'success', type: 'text', result: 'File content: Hello World' },
+          result: {
+            status: 'success',
+            type: 'text',
+            result: 'File content: Hello World',
+          },
         },
       ];
 
@@ -346,13 +360,16 @@ describe('LocalAgent - Non-Streaming Messages', () => {
       // Mock enhanceCompletionParams to pass through the actual params
       mockToolIntegrationService.enhanceCompletionParams.mockImplementation((params) => ({
         ...params,
-        tools: [{
-          type: 'function', function: {
-            name: 'fileOps',
-            description: 'Tool description',
-            parameters: {}
-          }
-        }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'fileOps',
+              description: 'Tool description',
+              parameters: {},
+            },
+          },
+        ],
       }));
 
       mockToolIntegrationService.processCompletionResult
@@ -422,13 +439,16 @@ describe('LocalAgent - Non-Streaming Messages', () => {
 
       mockToolIntegrationService.enhanceCompletionParams.mockImplementation((params) => ({
         ...params,
-        tools: [{
-          type: 'function', function: {
-            name: 'recursiveTool',
-            description: 'Tool description',
-            parameters: {}
-          }
-        }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'recursiveTool',
+              description: 'Tool description',
+              parameters: {},
+            },
+          },
+        ],
       }));
 
       mockToolIntegrationService.processCompletionResult.mockResolvedValue({
@@ -469,23 +489,28 @@ describe('LocalAgent - Non-Streaming Messages', () => {
         {
           id: 'call_error',
           name: 'errorTool',
-          result: { status: 'error', type: 'text', result: 'Tool execution failed' },
+          result: {
+            status: 'error',
+            type: 'text',
+            result: 'Tool execution failed',
+          },
         },
       ];
 
-      mockProvider.generateCompletion
-        .mockResolvedValueOnce(resultWithTool)
-        .mockResolvedValueOnce(finalResult);
+      mockProvider.generateCompletion.mockResolvedValueOnce(resultWithTool).mockResolvedValueOnce(finalResult);
 
       mockToolIntegrationService.enhanceCompletionParams.mockImplementation((params) => ({
         ...params,
-        tools: [{
-          type: 'function', function: {
-            name: 'errorTool',
-            description: 'Tool description',
-            parameters: {}
-          }
-        }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'errorTool',
+              description: 'Tool description',
+              parameters: {},
+            },
+          },
+        ],
       }));
 
       mockToolIntegrationService.processCompletionResult.mockResolvedValue({
@@ -533,7 +558,7 @@ describe('LocalAgent - Non-Streaming Messages', () => {
         agent.sendMessage(['Test message'], {
           conversationId: 'test-conv',
           onError: onErrorMock,
-        })
+        }),
       ).rejects.toThrow('Provider connection failed');
 
       expect(onErrorMock).toHaveBeenCalledWith(providerError);
@@ -632,9 +657,7 @@ describe('LocalAgent - Non-Streaming Messages', () => {
         },
       ];
 
-      mockProvider.generateCompletion
-        .mockResolvedValueOnce(initialResult)
-        .mockResolvedValueOnce(finalResult);
+      mockProvider.generateCompletion.mockResolvedValueOnce(initialResult).mockResolvedValueOnce(finalResult);
 
       mockToolIntegrationService.enhanceCompletionParams.mockReturnValue({
         messages: [{ role: 'user', content: 'Use tool' }],
@@ -642,13 +665,16 @@ describe('LocalAgent - Non-Streaming Messages', () => {
         temperature: 0.7,
         maxTokens: 4000,
         topP: 0.9,
-        tools: [{
-          type: 'function', function: {
-            name: 'testTool',
-            description: 'Tool description',
-            parameters: {}
-          }
-        }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'testTool',
+              description: 'Tool description',
+              parameters: {},
+            },
+          },
+        ],
       });
 
       mockToolIntegrationService.processCompletionResult.mockResolvedValue({

@@ -88,31 +88,39 @@ describe('LocalAgent - Recursive Tool Calls', () => {
       const steps = [
         {
           result: createMockCompletionResult('Creating project structure', [
-            createMockToolCall('call_1', 'createFile', { name: 'package.json' })
+            createMockToolCall('call_1', 'createFile', {
+              name: 'package.json',
+            }),
           ]),
           toolResults: [createMockToolResult('call_1', 'createFile', 'package.json created')],
         },
         {
           result: createMockCompletionResult('Reading package.json to validate', [
-            createMockToolCall('call_2', 'readFile', { name: 'package.json' })
+            createMockToolCall('call_2', 'readFile', {
+              name: 'package.json',
+            }),
           ]),
           toolResults: [createMockToolResult('call_2', 'readFile', '{"name": "test-project"}')],
         },
         {
           result: createMockCompletionResult('Validating package.json structure', [
-            createMockToolCall('call_3', 'validateFile', { name: 'package.json' })
+            createMockToolCall('call_3', 'validateFile', {
+              name: 'package.json',
+            }),
           ]),
           toolResults: [createMockToolResult('call_3', 'validateFile', 'Valid JSON structure')],
         },
         {
           result: createMockCompletionResult('Creating README based on package.json', [
-            createMockToolCall('call_4', 'createFile', { name: 'README.md' })
+            createMockToolCall('call_4', 'createFile', { name: 'README.md' }),
           ]),
           toolResults: [createMockToolResult('call_4', 'createFile', 'README.md created')],
         },
         {
           result: createMockCompletionResult('Generating final project report', [
-            createMockToolCall('call_5', 'generateReport', { files: ['package.json', 'README.md'] })
+            createMockToolCall('call_5', 'generateReport', {
+              files: ['package.json', 'README.md'],
+            }),
           ]),
           toolResults: [createMockToolResult('call_5', 'generateReport', 'Project setup complete')],
         },
@@ -121,11 +129,11 @@ describe('LocalAgent - Recursive Tool Calls', () => {
       const finalResult = createMockCompletionResult(
         'Project setup completed successfully with all files created and validated',
         undefined,
-        { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 }
+        { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
       );
 
       // Setup mock responses
-      steps.forEach(step => {
+      steps.forEach((step) => {
         mockProvider.generateCompletion.mockResolvedValueOnce(step.result);
         mockToolIntegrationService.processCompletionResult.mockResolvedValueOnce({
           result: step.result,
@@ -138,7 +146,16 @@ describe('LocalAgent - Recursive Tool Calls', () => {
 
       mockToolIntegrationService.enhanceCompletionParams.mockImplementation((params) => ({
         ...params,
-        tools: [{ type: 'function', function: { name: 'fileOps', description: 'Tool description', parameters: {} } }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'fileOps',
+              description: 'Tool description',
+              parameters: {},
+            },
+          },
+        ],
       }));
 
       const onAdditionalMessageMock = vi.fn();
@@ -155,7 +172,7 @@ describe('LocalAgent - Recursive Tool Calls', () => {
       expect(response.content).toBe('Project setup completed successfully with all files created and validated');
 
       // Verify tool execution order
-      const toolNames = onAdditionalMessageMock.mock.calls.map(call => call[0].toolCall?.name);
+      const toolNames = onAdditionalMessageMock.mock.calls.map((call) => call[0].toolCall?.name);
       expect(toolNames).toEqual(['createFile', 'readFile', 'validateFile', 'createFile', 'generateReport']);
     });
 
@@ -168,7 +185,9 @@ describe('LocalAgent - Recursive Tool Calls', () => {
       ]);
 
       const analysisResult = createMockCompletionResult('Analyzing all files', [
-        createMockToolCall('call_4', 'generateReport', { files: ['file1.txt', 'file2.txt', 'file3.txt'] })
+        createMockToolCall('call_4', 'generateReport', {
+          files: ['file1.txt', 'file2.txt', 'file3.txt'],
+        }),
       ]);
 
       const finalResult = createMockCompletionResult('Analysis complete: All files processed successfully');
@@ -179,9 +198,7 @@ describe('LocalAgent - Recursive Tool Calls', () => {
         createMockToolResult('call_3', 'readFile', 'Content of file3'),
       ];
 
-      const reportToolResult = [
-        createMockToolResult('call_4', 'generateReport', 'Analysis report generated'),
-      ];
+      const reportToolResult = [createMockToolResult('call_4', 'generateReport', 'Analysis report generated')];
 
       mockProvider.generateCompletion
         .mockResolvedValueOnce(multiToolResult)
@@ -206,7 +223,16 @@ describe('LocalAgent - Recursive Tool Calls', () => {
         temperature: 0.7,
         maxTokens: 4000,
         topP: 0.9,
-        tools: [{ type: 'function', function: { name: 'fileOps', description: 'Tool description', parameters: {} } }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'fileOps',
+              description: 'Tool description',
+              parameters: {},
+            },
+          },
+        ],
       });
 
       const onAdditionalMessageMock = vi.fn();
@@ -223,7 +249,7 @@ describe('LocalAgent - Recursive Tool Calls', () => {
       expect(response.content).toBe('Analysis complete: All files processed successfully');
 
       // Verify all tools were executed
-      const toolNames = onAdditionalMessageMock.mock.calls.map(call => call[0].toolCall?.name);
+      const toolNames = onAdditionalMessageMock.mock.calls.map((call) => call[0].toolCall?.name);
       expect(toolNames).toEqual(['readFile', 'readFile', 'readFile', 'generateReport']);
     });
 
@@ -245,13 +271,15 @@ describe('LocalAgent - Recursive Tool Calls', () => {
         {
           id: 'call_2',
           name: 'readFile',
-          result: { status: 'error' as const, type: 'text' as const, result: 'File not found' },
+          result: {
+            status: 'error' as const,
+            type: 'text' as const,
+            result: 'File not found',
+          },
         },
       ];
 
-      const step2ToolResults = [
-        createMockToolResult('call_3', 'createFile', 'File created successfully'),
-      ];
+      const step2ToolResults = [createMockToolResult('call_3', 'createFile', 'File created successfully')];
 
       mockProvider.generateCompletion
         .mockResolvedValueOnce(step1Result)
@@ -276,7 +304,16 @@ describe('LocalAgent - Recursive Tool Calls', () => {
         temperature: 0.7,
         maxTokens: 4000,
         topP: 0.9,
-        tools: [{ type: 'function', function: { name: 'fileOps', description: 'Tool description', parameters: {} } }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'fileOps',
+              description: 'Tool description',
+              parameters: {},
+            },
+          },
+        ],
       });
 
       const onAdditionalMessageMock = vi.fn();
@@ -310,13 +347,13 @@ describe('LocalAgent - Recursive Tool Calls', () => {
 
       // Create a chain of 3 recursive tool calls
       for (let i = 0; i < recursionDepth; i++) {
-        results.push(createMockCompletionResult(`Step ${i + 1}`, [
-          createMockToolCall(`call_${i + 1}`, 'processStep', { step: i + 1 })
-        ]));
+        results.push(
+          createMockCompletionResult(`Step ${i + 1}`, [
+            createMockToolCall(`call_${i + 1}`, 'processStep', { step: i + 1 }),
+          ]),
+        );
 
-        toolResults.push([
-          createMockToolResult(`call_${i + 1}`, 'processStep', `Step ${i + 1} completed`)
-        ]);
+        toolResults.push([createMockToolResult(`call_${i + 1}`, 'processStep', `Step ${i + 1} completed`)]);
       }
 
       const finalResult = createMockCompletionResult('All steps completed successfully');
@@ -335,7 +372,16 @@ describe('LocalAgent - Recursive Tool Calls', () => {
 
       mockToolIntegrationService.enhanceCompletionParams.mockImplementation((params) => ({
         ...params,
-        tools: [{ type: 'function', function: { name: 'processStep', description: 'Tool description', parameters: {} } }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'processStep',
+              description: 'Tool description',
+              parameters: {},
+            },
+          },
+        ],
       }));
 
       // Act
@@ -353,7 +399,7 @@ describe('LocalAgent - Recursive Tool Calls', () => {
       expect(calls.length).toBe(4);
 
       // Each call should have some messages
-      calls.forEach(call => {
+      calls.forEach((call) => {
         expect(call[0].messages.length).toBeGreaterThan(0);
       });
     });
@@ -369,7 +415,16 @@ describe('LocalAgent - Recursive Tool Calls', () => {
 
       mockToolIntegrationService.enhanceCompletionParams.mockImplementation((params) => ({
         ...params,
-        tools: [{ type: 'function', function: { name: 'emptyTool', description: 'Tool description', parameters: {} } }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'emptyTool',
+              description: 'Tool description',
+              parameters: {},
+            },
+          },
+        ],
       }));
 
       // Act
@@ -412,7 +467,16 @@ describe('LocalAgent - Recursive Tool Calls', () => {
         temperature: 0.7,
         maxTokens: 4000,
         topP: 0.9,
-        tools: [{ type: 'function', function: { name: 'testTool', description: 'Tool description', parameters: {} } }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'testTool',
+              description: 'Tool description',
+              parameters: {},
+            },
+          },
+        ],
       });
 
       // Act

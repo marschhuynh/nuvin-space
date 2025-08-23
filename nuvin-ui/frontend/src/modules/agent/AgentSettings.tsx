@@ -1,16 +1,4 @@
-import {
-  Plus,
-  Bot,
-  Globe,
-  Home,
-  Clock,
-  CheckCircle,
-  Circle,
-  Edit,
-  Trash2,
-  Save,
-  X,
-} from 'lucide-react';
+import { Plus, Bot, Globe, Home, Clock, CheckCircle, Circle, Edit, Trash2, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAgentStore } from '@/store/useAgentStore';
 import { useState, useEffect } from 'react';
@@ -28,21 +16,13 @@ import { SystemPromptSettings } from './components/SystemPromptSettings';
 type ResponseLength = 'short' | 'medium' | 'long';
 type AgentType = 'local' | 'remote';
 
-export function EmptyAgentSelected({
-  handleCreateAgent,
-}: {
-  handleCreateAgent: () => void;
-}) {
+export function EmptyAgentSelected({ handleCreateAgent }: { handleCreateAgent: () => void }) {
   return (
     <div className="flex-1 flex items-center justify-center">
       <div className="text-center">
         <Bot className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-muted-foreground mb-2">
-          No agent selected
-        </h3>
-        <p className="text-muted-foreground mb-4">
-          Select an agent from the list to edit its configuration
-        </p>
+        <h3 className="text-lg font-medium text-muted-foreground mb-2">No agent selected</h3>
+        <p className="text-muted-foreground mb-4">Select an agent from the list to edit its configuration</p>
         <Button onClick={handleCreateAgent}>
           <Plus className="h-4 w-4 mr-2" />
           Create New Agent
@@ -54,16 +34,12 @@ export function EmptyAgentSelected({
 
 export function AgentSettings() {
   const { agents, deleteAgent, addAgent, updateAgent } = useAgentStore();
-  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(
-    agents[0]?.id || null,
-  );
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(agents[0]?.id || null);
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   const [testingConnection, setTestingConnection] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<
-    'idle' | 'success' | 'error' | 'warning'
-  >('idle');
+  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error' | 'warning'>('idle');
 
   const [agentData, setAgentData] = useState<{
     name: string;
@@ -114,10 +90,7 @@ export function AgentSettings() {
     if (selectedAgent && !isCreating) {
       setAgentData({
         name: selectedAgent.name,
-        responseLength:
-          selectedAgent.responseLength === 'detailed'
-            ? 'long'
-            : selectedAgent.responseLength,
+        responseLength: selectedAgent.responseLength === 'detailed' ? 'long' : selectedAgent.responseLength,
         temperature: selectedAgent.temperature,
         topP: selectedAgent.topP,
         maxTokens: selectedAgent.maxTokens,
@@ -151,9 +124,7 @@ export function AgentSettings() {
     // If we deleted the selected agent, select another one
     if (selectedAgentId === agentId) {
       const remainingAgents = agents.filter((a) => a.id !== agentId);
-      setSelectedAgentId(
-        remainingAgents.length > 0 ? remainingAgents[0].id : null,
-      );
+      setSelectedAgentId(remainingAgents.length > 0 ? remainingAgents[0].id : null);
     }
   };
 
@@ -194,10 +165,7 @@ export function AgentSettings() {
       // Reload agent data
       setAgentData({
         name: selectedAgent.name,
-        responseLength:
-          selectedAgent.responseLength === 'detailed'
-            ? 'long'
-            : selectedAgent.responseLength,
+        responseLength: selectedAgent.responseLength === 'detailed' ? 'long' : selectedAgent.responseLength,
         temperature: selectedAgent.temperature,
         topP: selectedAgent.topP,
         maxTokens: selectedAgent.maxTokens,
@@ -262,10 +230,7 @@ export function AgentSettings() {
             }
           : undefined;
 
-      const isConnected = await a2aService.testConnection(
-        agentData.url,
-        authConfig,
-      );
+      const isConnected = await a2aService.testConnection(agentData.url, authConfig);
       LogInfo(`isConnected: ${isConnected}`);
 
       if (isConnected) {
@@ -289,8 +254,7 @@ export function AgentSettings() {
 
   const isFormValid =
     agentData.name.trim() &&
-    (agentData.agentType === 'local' ||
-      (agentData.agentType === 'remote' && agentData.url.trim()));
+    (agentData.agentType === 'local' || (agentData.agentType === 'remote' && agentData.url.trim()));
 
   return (
     <div className="flex h-full">
@@ -301,9 +265,7 @@ export function AgentSettings() {
           <div className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-muted-foreground" />
             <h2 className="text-lg font-semibold">Agents</h2>
-            <span className="px-2 py-1 rounded text-xs bg-muted text-muted-foreground">
-              {agents.length}
-            </span>
+            <span className="px-2 py-1 rounded text-xs bg-muted text-muted-foreground">{agents.length}</span>
           </div>
           <Button
             size="sm"
@@ -335,9 +297,7 @@ export function AgentSettings() {
           {isCreating && (
             <div className="mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                  Creating New Agent
-                </span>
+                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Creating New Agent</span>
               </div>
               <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
                 Fill out the form to create your new agent
@@ -348,12 +308,8 @@ export function AgentSettings() {
           {agents.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Bot className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="font-medium text-muted-foreground mb-2">
-                No agents yet
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Create your first AI agent to get started
-              </p>
+              <h3 className="font-medium text-muted-foreground mb-2">No agents yet</h3>
+              <p className="text-sm text-muted-foreground mb-4">Create your first AI agent to get started</p>
               <Button onClick={handleCreateAgent}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add New Agent
@@ -400,9 +356,7 @@ export function AgentSettings() {
                     <span>{agent.responseLength} responses</span>
                   </div>
                   {agent.agentType === 'remote' && agent.url && (
-                    <div className="text-xs text-muted-foreground mt-1 font-mono truncate">
-                      {agent.url}
-                    </div>
+                    <div className="text-xs text-muted-foreground mt-1 font-mono truncate">{agent.url}</div>
                   )}
                 </button>
               ))}
@@ -443,33 +397,19 @@ export function AgentSettings() {
                     )}
                   </div>
                   <div>
-                    <h1
-                      className={`text-lg font-semibold ${
-                        isCreating ? 'text-blue-900 dark:text-blue-100' : ''
-                      }`}
-                    >
-                      {isCreating
-                        ? 'Create New Agent'
-                        : `${isEditing ? 'Edit' : ''} ${selectedAgent?.name}`}
+                    <h1 className={`text-lg font-semibold ${isCreating ? 'text-blue-900 dark:text-blue-100' : ''}`}>
+                      {isCreating ? 'Create New Agent' : `${isEditing ? 'Edit' : ''} ${selectedAgent?.name}`}
                     </h1>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   {isEditing && (
                     <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleCancelEdit}
-                      >
+                      <Button variant="outline" size="sm" onClick={handleCancelEdit}>
                         <X className="h-4 w-4 mr-1" />
                         Cancel
                       </Button>
-                      <Button
-                        size="sm"
-                        onClick={handleSaveAgent}
-                        disabled={!isFormValid}
-                      >
+                      <Button size="sm" onClick={handleSaveAgent} disabled={!isFormValid}>
                         <Save className="h-4 w-4 mr-1" />
                         {isCreating ? 'Create' : 'Save'}
                       </Button>
@@ -477,19 +417,11 @@ export function AgentSettings() {
                   )}
                   {!isEditing && selectedAgent && (
                     <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleEditAgent}
-                      >
+                      <Button variant="outline" size="sm" onClick={handleEditAgent}>
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteAgent(selectedAgent.id)}
-                      >
+                      <Button variant="destructive" size="sm" onClick={() => handleDeleteAgent(selectedAgent.id)}>
                         <Trash2 className="h-4 w-4 mr-1" />
                         Delete
                       </Button>
@@ -509,28 +441,16 @@ export function AgentSettings() {
                     name={agentData.name}
                     agentType={agentData.agentType}
                     isEditing={isEditing}
-                    onNameChange={(name) =>
-                      setAgentData({ ...agentData, name })
-                    }
-                    onAgentTypeChange={(agentType) =>
-                      setAgentData({ ...agentData, agentType })
-                    }
+                    onNameChange={(name) => setAgentData({ ...agentData, name })}
+                    onAgentTypeChange={(agentType) => setAgentData({ ...agentData, agentType })}
                     responseLength={agentData.responseLength}
                     temperature={agentData.temperature}
                     topP={agentData.topP}
                     maxTokens={agentData.maxTokens}
-                    onResponseLengthChange={(responseLength) =>
-                      setAgentData({ ...agentData, responseLength })
-                    }
-                    onTemperatureChange={(temperature) =>
-                      setAgentData({ ...agentData, temperature })
-                    }
-                    onTopPChange={(topP) =>
-                      setAgentData({ ...agentData, topP })
-                    }
-                    onMaxTokensChange={(maxTokens) =>
-                      setAgentData({ ...agentData, maxTokens })
-                    }
+                    onResponseLengthChange={(responseLength) => setAgentData({ ...agentData, responseLength })}
+                    onTemperatureChange={(temperature) => setAgentData({ ...agentData, temperature })}
+                    onTopPChange={(topP) => setAgentData({ ...agentData, topP })}
+                    onMaxTokensChange={(maxTokens) => setAgentData({ ...agentData, maxTokens })}
                   />
                 )}
 
@@ -554,9 +474,7 @@ export function AgentSettings() {
                   <AuthenticationSettings
                     auth={agentData.auth}
                     isEditing={isEditing}
-                    onAuthChange={(auth) =>
-                      setAgentData({ ...agentData, auth })
-                    }
+                    onAuthChange={(auth) => setAgentData({ ...agentData, auth })}
                   />
                 )}
 
@@ -565,9 +483,7 @@ export function AgentSettings() {
                   <ToolSettings
                     toolConfig={agentData.toolConfig}
                     isEditing={isEditing}
-                    onToolConfigChange={(toolConfig) =>
-                      setAgentData({ ...agentData, toolConfig })
-                    }
+                    onToolConfigChange={(toolConfig) => setAgentData({ ...agentData, toolConfig })}
                   />
                 )}
               </div>
@@ -577,9 +493,7 @@ export function AgentSettings() {
                   systemPrompt={agentData.systemPrompt}
                   agentType={agentData.agentType}
                   isEditing={isEditing}
-                  onSystemPromptChange={(systemPrompt) =>
-                    setAgentData({ ...agentData, systemPrompt })
-                  }
+                  onSystemPromptChange={(systemPrompt) => setAgentData({ ...agentData, systemPrompt })}
                 />
               </div>
             </div>
