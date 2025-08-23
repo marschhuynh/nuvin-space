@@ -157,6 +157,23 @@ export function AgentConfiguration({ onConfigChange }: AgentConfigurationProps) 
         </div>
 
         <div className="space-y-6">
+          {/* Setup Status Indicator */}
+          {(!activeProvider || !activeProvider.apiKey || !activeAgentId) && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-blue-900 mb-1">Setup Required</p>
+                  <p className="text-blue-700">
+                    {!activeProvider || !activeProvider.apiKey
+                      ? 'Add a provider first, then select an agent'
+                      : 'Select an AI agent to start chatting'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Agent Selection */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">
@@ -171,30 +188,56 @@ export function AgentConfiguration({ onConfigChange }: AgentConfigurationProps) 
                 <Settings className="h-4 w-4" />
               </Button>
             </div>
-            <Select value={activeAgentId} onValueChange={handleAgentChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose your AI assistant" />
-              </SelectTrigger>
-              <SelectContent>
-                {agents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id}>
-                    <div className="flex items-center gap-2">
-                      {agent.agentType === 'remote' ? (
-                        <Globe className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <Home className="h-4 w-4 text-muted-foreground" />
-                      )}
-                      <span>{agent.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+            {agents.length === 0 ? (
+              <div className="p-3 border border-dashed border-muted-foreground/25 rounded-lg bg-muted/10">
+                <div className="text-center">
+                  <Bot className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground mb-2">No agents available</p>
+                  <Button size="sm" onClick={() => navigate('/settings?tab=agent')} className="h-7 px-3 text-xs">
+                    Create Agent
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Select value={activeAgentId} onValueChange={handleAgentChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose your AI assistant" />
+                </SelectTrigger>
+                <SelectContent>
+                  {agents.map((agent) => (
+                    <SelectItem key={agent.id} value={agent.id}>
+                      <div className="flex items-center gap-2">
+                        {agent.agentType === 'remote' ? (
+                          <Globe className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Home className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <span>{agent.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {/* Model Configuration - Only show for local agents */}
           {selectedAgent?.agentType === 'local' && (
             <div className="space-y-6">
+              {/* Provider Status */}
+              {!activeProvider && (
+                <div className="p-3 border border-dashed border-yellow-300 rounded-lg bg-yellow-50">
+                  <div className="text-center">
+                    <Settings className="w-6 h-6 text-yellow-600 mx-auto mb-2" />
+                    <p className="text-sm text-yellow-800 mb-2">No provider configured</p>
+                    <Button size="sm" onClick={handleNavigateToProviderSettings} className="h-7 px-3 text-xs">
+                      Add Provider
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Model Selection */}
               {activeProvider && (
                 <div className="space-y-1">

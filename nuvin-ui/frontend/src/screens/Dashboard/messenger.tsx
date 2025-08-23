@@ -1,7 +1,8 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { useAgentManager } from '@/hooks';
 import { generateUUID, formatErrorMessage } from '@/lib/utils';
-import { useConversationStore } from '@/store';
+import { useConversationStore, useProviderStore } from '@/store';
 import type { Message } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Plus, MessageCircle } from 'lucide-react';
@@ -11,7 +12,9 @@ import { MessageListPaginated } from '@/modules/messenger/MessageListPaginated';
 import { ChatInput } from '../../modules/messenger';
 
 export default function Messenger() {
+  const navigate = useNavigate();
   const { activeAgent, activeProvider, isReady, agentType, sendMessage, cancelRequest } = useAgentManager();
+  const { providers } = useProviderStore();
 
   // Use conversation store
   const {
@@ -366,76 +369,223 @@ export default function Messenger() {
   const hasNoConversations = conversations.length === 0;
 
   // Instructional view component
-  const NoConversationsView = () => (
-    <div
-      className="flex-1 flex flex-col items-center p-8 text-center"
-      style={{ justifyContent: 'center', transform: 'translateY(-20%)' }}
-    >
-      <div className="max-w-lg mx-auto flex flex-col items-center" style={{ gap: '1.618rem' }}>
-        <div
-          className="bg-gray-100 rounded-full flex items-center justify-center"
-          style={{
-            width: '4.5rem',
-            height: '4.5rem',
-          }}
-        >
-          <MessageCircle
-            className="text-gray-400"
-            style={{
-              width: '2.5rem',
-              height: '2.5rem',
-            }}
-          />
-        </div>
-        <div style={{ gap: '1rem' }} className="flex flex-col">
-          <h3
-            className="font-semibold text-gray-900"
-            style={{
-              fontSize: '1.618rem',
-              lineHeight: '2rem',
-            }}
-          >
-            Welcome to Nuvin Space
-          </h3>
-          <p
-            className="text-gray-600 max-w-sm"
-            style={{
-              fontSize: '1rem',
-              lineHeight: '1.5rem',
-              marginBottom: '0.5rem',
-            }}
-          >
-            Start your first conversation with an AI agent. Click the button below to begin chatting.
-          </p>
-        </div>
-        <div className="flex flex-col items-center" style={{ gap: '0.75rem' }}>
-          <Button
-            onClick={handleNewConversation}
-            className="flex items-center gap-2 px-6 py-3"
-            disabled={!isReady}
-            style={{
-              fontSize: '1rem',
-              minWidth: '12.944rem',
-            }}
-          >
-            <Plus className="w-4 h-4" />
-            Start New Conversation
-          </Button>
-          {!isReady && (
-            <p
-              className="text-gray-500"
+  const NoConversationsView = () => {
+    // Check setup status
+    const hasProviders = providers.length > 0;
+    const hasValidProvider = activeProvider && activeProvider.apiKey && activeProvider.activeModel;
+    const hasSelectedAgent = activeAgent;
+
+    // Determine setup step
+    const getSetupStep = () => {
+      if (!hasProviders) return 1;
+      if (!hasValidProvider) return 2;
+      if (!hasSelectedAgent) return 3;
+      return 4;
+    };
+
+    const currentStep = getSetupStep();
+
+    return (
+      <div
+        className="flex-1 flex flex-col items-center p-8 text-center"
+        style={{ justifyContent: 'center', transform: 'translateY(-20%)' }}
+      >
+        <div className="max-w-2xl mx-auto flex flex-col items-center" style={{ gap: '2rem' }}>
+          {/* Welcome Header */}
+          <div className="flex flex-col items-center" style={{ gap: '1rem' }}>
+            <div
+              className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center shadow-sm"
               style={{
-                fontSize: '0.875rem',
-                lineHeight: '1.25rem',
+                width: '5rem',
+                height: '5rem',
               }}
             >
-              Configure an agent and provider in the sidebar to get started.
+              <MessageCircle
+                className="text-blue-600"
+                style={{
+                  width: '2.5rem',
+                  height: '2.5rem',
+                }}
+              />
+            </div>
+            <div className="flex flex-col" style={{ gap: '0.5rem' }}>
+              <h3
+                className="font-semibold text-gray-900"
+                style={{
+                  fontSize: '1.75rem',
+                  lineHeight: '2.25rem',
+                }}
+              >
+                Welcome to Nuvin Space
+              </h3>
+              <p className="text-gray-600" style={{ fontSize: '1.125rem' }}>
+                Your AI agent management hub
+              </p>
+            </div>
+          </div>
+
+          {/* Setup Steps */}
+          <div className="w-full max-w-lg">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <h4 className="font-medium text-gray-900 mb-4 text-left">Let's get you set up in 3 simple steps:</h4>
+
+              <div className="space-y-4">
+                {/* Step 1: Add Provider */}
+                <div
+                  className={`flex items-start gap-3 p-3 rounded-lg transition-all ${
+                    currentStep === 1 ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
+                  }`}
+                >
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${
+                      currentStep > 1
+                        ? 'bg-green-500 text-white'
+                        : currentStep === 1
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-300 text-gray-600'
+                    }`}
+                  >
+                    {currentStep > 1 ? '✓' : '1'}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-medium text-gray-900">Add an AI Provider</p>
+                    <p className="text-sm text-gray-600 mt-1">Configure OpenAI, Anthropic, or another AI service</p>
+                    {currentStep === 1 && (
+                      <Button
+                        onClick={() => navigate('/settings?tab=providers')}
+                        className="mt-2 h-8 px-3 text-sm"
+                        size="sm"
+                      >
+                        Add Provider
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Step 2: Configure Provider */}
+                <div
+                  className={`flex items-start gap-3 p-3 rounded-lg transition-all ${
+                    currentStep === 2 ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
+                  }`}
+                >
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${
+                      currentStep > 2
+                        ? 'bg-green-500 text-white'
+                        : currentStep === 2
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-300 text-gray-600'
+                    }`}
+                  >
+                    {currentStep > 2 ? '✓' : '2'}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-medium text-gray-900">Set API Key & Model</p>
+                    <p className="text-sm text-gray-600 mt-1">Enter your API key and choose a model</p>
+                    {currentStep === 2 && (
+                      <Button
+                        onClick={() => navigate('/settings?tab=providers')}
+                        className="mt-2 h-8 px-3 text-sm"
+                        size="sm"
+                      >
+                        Configure Provider
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Step 3: Select Agent */}
+                <div
+                  className={`flex items-start gap-3 p-3 rounded-lg transition-all ${
+                    currentStep === 3 ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
+                  }`}
+                >
+                  <div
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ${
+                      currentStep > 3
+                        ? 'bg-green-500 text-white'
+                        : currentStep === 3
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-300 text-gray-600'
+                    }`}
+                  >
+                    {currentStep > 3 ? '✓' : '3'}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-medium text-gray-900">Choose an AI Agent</p>
+                    <p className="text-sm text-gray-600 mt-1">Select from pre-configured agents or create your own</p>
+                    {currentStep === 3 && hasValidProvider && (
+                      <div className="mt-2 text-sm text-blue-600 font-medium">
+                        → Use the "Agent Configuration" panel on the right
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Success State */}
+              {currentStep === 4 && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs">✓</span>
+                    </div>
+                    <p className="font-medium text-green-800">All set! You're ready to chat.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <div className="flex flex-col items-center" style={{ gap: '1rem' }}>
+            <Button
+              onClick={handleNewConversation}
+              className={`flex items-center gap-2 px-6 py-3 transition-all ${
+                !isReady ? 'opacity-50' : 'hover:shadow-lg'
+              }`}
+              disabled={!isReady}
+              style={{
+                fontSize: '1rem',
+                minWidth: '12.944rem',
+              }}
+            >
+              <Plus className="w-4 h-4" />
+              {isReady ? 'Start Your First Conversation' : 'Complete Setup First'}
+            </Button>
+
+            {!isReady && (
+              <div className="flex flex-col items-center gap-2">
+                <p className="text-sm text-gray-500">Complete the steps above to get started</p>
+                {/* Quick setup shortcuts */}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/settings?tab=providers')}
+                    className="h-7 px-2 text-xs"
+                  >
+                    Quick Setup
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Help Text */}
+          <div className="max-w-md mx-auto">
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Need help? Check out the{' '}
+              <Button variant="link" className="h-auto p-0 text-xs underline">
+                documentation
+              </Button>{' '}
+              or start with our recommended providers like OpenAI or Anthropic.
             </p>
-          )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-gray-100 min-w-[300px]">

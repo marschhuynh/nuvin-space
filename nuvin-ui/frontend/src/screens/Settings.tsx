@@ -10,17 +10,33 @@ import { ToolDebugger } from '@/components/debug/ToolDebugger';
 type TabType = 'general' | 'providers' | 'agent' | 'mcp' | 'debug';
 
 export default function Settings() {
-  const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<TabType>('general');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab') as TabType;
+  const [activeTab, setActiveTab] = useState<TabType>(tabParam ?? 'general');
   const [showProviderModal, setShowProviderModal] = useState(false);
 
-  // Handle tab query parameter
   useEffect(() => {
     const tabParam = searchParams.get('tab') as TabType;
-    if (tabParam && ['general', 'providers', 'agent', 'mcp'].includes(tabParam)) {
+    const validTabs: TabType[] = ['general', 'providers', 'agent', 'mcp', 'debug'];
+
+    if (tabParam && validTabs.includes(tabParam)) {
       setActiveTab(tabParam);
+    } else {
+      setActiveTab('general');
+      if (!tabParam) {
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.set('tab', 'general');
+        setSearchParams(newSearchParams, { replace: true });
+      }
     }
-  }, [searchParams]);
+  }, [searchParams, setSearchParams]);
+
+  const handleTabChange = (tabId: TabType) => {
+    setActiveTab(tabId);
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('tab', tabId);
+    setSearchParams(newSearchParams);
+  };
 
   const { preferences, updatePreferences } = useUserPreferenceStore();
 
@@ -44,7 +60,7 @@ export default function Settings() {
                 key={tab.id}
                 variant={activeTab === tab.id ? 'default' : 'ghost'}
                 className="w-full justify-start"
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
               >
                 {tab.label}
               </Button>

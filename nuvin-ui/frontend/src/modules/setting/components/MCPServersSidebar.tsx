@@ -22,7 +22,7 @@ export function MCPServersSidebar({
   onCancelCreate,
 }: MCPServersSidebarProps) {
   return (
-    <div className="flex flex-col min-w-48 w-64 border-r bg-card">
+    <div className="flex flex-col min-w-48 w-70 border-r bg-card">
       <div className="flex justify-between items-center p-4 border-b">
         <div className="flex items-center gap-2">
           <Settings className="h-5 w-5 text-muted-foreground" />

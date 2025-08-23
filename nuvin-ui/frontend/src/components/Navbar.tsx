@@ -42,7 +42,7 @@ export function Navbar(props: NavbarProps) {
               variant={location.pathname === '/settings' ? 'default' : 'ghost'}
               size="sm"
               className="h-8 px-3 gap-2"
-              onClick={() => navigate('/settings')}
+              onClick={() => navigate('/settings?tab=general')}
             >
               <Settings className="h-4 w-4" />
               <span>Settings</span>

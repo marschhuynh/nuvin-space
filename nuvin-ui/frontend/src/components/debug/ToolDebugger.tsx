@@ -56,7 +56,7 @@ export function ToolDebugger() {
   }
 
   return (
-    <Card className="w-full h-full flex flex-col">
+    <Card className="w-full h-full flex flex-col border-0">
       <CardHeader className="flex-shrink-0">
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center">

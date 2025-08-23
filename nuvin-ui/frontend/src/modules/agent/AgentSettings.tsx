@@ -16,17 +16,12 @@ import { SystemPromptSettings } from './components/SystemPromptSettings';
 type ResponseLength = 'short' | 'medium' | 'long';
 type AgentType = 'local' | 'remote';
 
-export function EmptyAgentSelected({ handleCreateAgent }: { handleCreateAgent: () => void }) {
+export function EmptyAgentSelected() {
   return (
     <div className="flex-1 flex items-center justify-center">
       <div className="text-center">
         <Bot className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
         <h3 className="text-lg font-medium text-muted-foreground mb-2">No agent selected</h3>
-        <p className="text-muted-foreground mb-4">Select an agent from the list to edit its configuration</p>
-        <Button onClick={handleCreateAgent}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create New Agent
-        </Button>
       </div>
     </div>
   );
@@ -259,7 +254,7 @@ export function AgentSettings() {
   return (
     <div className="flex h-full">
       {/* Left Panel - Agent List */}
-      <div className="flex flex-col min-w-48 w-64 border-r bg-card">
+      <div className="flex flex-col min-w-48 w-70 border-r bg-card">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b">
           <div className="flex items-center gap-2">
@@ -499,7 +494,7 @@ export function AgentSettings() {
             </div>
           </>
         ) : (
-          <EmptyAgentSelected handleCreateAgent={handleCreateAgent} />
+          <EmptyAgentSelected />
         )}
       </div>
     </div>
