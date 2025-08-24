@@ -9,7 +9,7 @@ import type {
 import type { ToolCall, ToolCallResult, AgentToolConfig, ToolContext } from '@/types/tools';
 import { toolRegistry } from './tool-registry';
 import { reminderGenerator } from '../agents/reminder-generator';
-import { useToolPermissionStore } from '@/store';
+import { useToolPermissionStore, useConversationStore } from '@/store';
 
 export class ToolIntegrationService {
   /**
@@ -121,12 +121,22 @@ export class ToolIntegrationService {
     });
 
     const store = useToolPermissionStore.getState();
+    const conversationStore = useConversationStore.getState();
     const convoId = context.sessionId || 'default';
     const allowedCalls: ToolCall[] = [];
     const deniedResults: ToolCallResult[] = [];
 
+    // Check if yolo mode is enabled for this conversation
+    const isYoloModeEnabled = conversationStore.isYoloModeEnabled(convoId);
+
     for (const call of toolCalls) {
       if (store.isToolAllowed(convoId, call.name)) {
+        allowedCalls.push(call);
+        continue;
+      }
+
+      // If yolo mode is enabled, automatically allow all tool calls
+      if (isYoloModeEnabled) {
         allowedCalls.push(call);
         continue;
       }

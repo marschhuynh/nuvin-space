@@ -1,6 +1,9 @@
 import { useState, type KeyboardEvent, useEffect, useRef, useCallback, memo } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import SendButton from './components/SendButton';
+import { Switch } from '@/components/ui/switch';
+import { useConversationStore } from '@/store';
+import { Zap } from 'lucide-react';
 
 interface ChatInputProps {
   onSendMessage?: (message: string) => void;
@@ -18,6 +21,9 @@ const ChatInput = memo(function ChatInput({
   const [message, setMessage] = useState('');
   const [isMultiLine, setIsMultiLine] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Conversation store for yolo mode
+  const { activeConversationId, isYoloModeEnabled, toggleYoloMode } = useConversationStore();
 
   const handleSend = () => {
     if (message.trim() && !disabled) {
@@ -105,8 +111,21 @@ const ChatInput = memo(function ChatInput({
           />
         </div>
 
-        <div className="flex justify-between text-xs text-muted-foreground mt-2">
+        <div className="flex justify-between items-center text-xs text-muted-foreground mt-2">
           <span>Press Shift + Enter for new line</span>
+          
+          {/* Yolo Mode Toggle */}
+          {activeConversationId && (
+            <div className="flex items-center gap-2 text-orange-600">
+              <Zap className="w-3 h-3" />
+              <span className="font-medium">Yolo Mode</span>
+              <Switch
+                checked={isYoloModeEnabled(activeConversationId)}
+                onCheckedChange={() => toggleYoloMode(activeConversationId)}
+                className="scale-75"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

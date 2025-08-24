@@ -19,6 +19,10 @@ interface ConversationState {
   deleteMessage: (conversationId: string, messageId: string) => void;
   clearMessages: (conversationId: string) => void;
 
+  // Yolo mode actions
+  toggleYoloMode: (conversationId: string) => void;
+  isYoloModeEnabled: (conversationId: string) => boolean;
+
   // Utility methods
   getActiveConversation: () => Conversation | null;
   getActiveMessages: () => Message[];
@@ -126,6 +130,20 @@ export const useConversationStore = create<ConversationState>()(
             [conversationId]: [],
           },
         })),
+
+      // Yolo mode actions
+      toggleYoloMode: (conversationId) =>
+        set((state) => ({
+          conversations: state.conversations.map((c) =>
+            c.id === conversationId ? { ...c, yoloMode: !c.yoloMode } : c,
+          ),
+        })),
+
+      isYoloModeEnabled: (conversationId) => {
+        const state = get();
+        const conversation = state.conversations.find((c) => c.id === conversationId);
+        return conversation?.yoloMode || false;
+      },
 
       // Utility methods
       getActiveConversation: () => {

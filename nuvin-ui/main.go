@@ -41,6 +41,7 @@ func main() {
 		Assets: application.AssetOptions{
 			Handler: application.BundledAssetFileServer(assets),
 		},
+		Logger:   NewFilteredLogger().Logger,
 		LogLevel: slog.LevelInfo,
 		Services: []application.Service{
 			application.NewService(svc),
