@@ -21,7 +21,7 @@ const ChatInput = memo(function ChatInput({
   const [message, setMessage] = useState('');
   const [isMultiLine, setIsMultiLine] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
+
   // Conversation store for yolo mode
   const { activeConversationId, isYoloModeEnabled, toggleYoloMode } = useConversationStore();
 
@@ -87,35 +87,35 @@ const ChatInput = memo(function ChatInput({
   const isLoading = disabled; // Loading state when disabled
 
   return (
-    <div className="border-t border-border p-6 bg-background">
-      <div className="max-w-4xl mx-auto">
-        <div className="relative">
-          <Textarea
-            ref={textareaRef}
-            value={message}
-            onChange={handleMessageChange}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            disabled={disabled}
-            className="resize-none focus-visible:ring-0 shadow-sm pr-16 py-4 px-4 bg-background border focus-visible:border-gray-400 transition-all duration-200 chat-input-textarea overflow-auto text-base placeholder:text-gray-400/60 focus:placeholder:text-gray-300/50"
-            rows={1}
-          />
+    <div className="p-6 bg-message-list-background">
+      {activeConversationId && (
+        <div className="max-w-4xl mx-auto">
+          <div className="relative">
+            <Textarea
+              ref={textareaRef}
+              value={message}
+              onChange={handleMessageChange}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              disabled={disabled}
+              className="resize-none focus-visible:ring-0 shadow-sm pr-16 py-4 px-4 bg-background border focus-visible:border-gray-400 transition-all duration-200 chat-input-textarea overflow-auto text-base placeholder:text-gray-400/60 focus:placeholder:text-gray-300/50"
+              rows={1}
+            />
 
-          {/* Send button */}
-          <SendButton
-            message={message}
-            isLoading={isLoading}
-            isMultiLine={isMultiLine}
-            handleStop={handleStop}
-            handleSend={handleSend}
-          />
-        </div>
+            {/* Send button */}
+            <SendButton
+              message={message}
+              isLoading={isLoading}
+              isMultiLine={isMultiLine}
+              handleStop={handleStop}
+              handleSend={handleSend}
+            />
+          </div>
 
-        <div className="flex justify-between items-center text-xs text-muted-foreground mt-2">
-          <span>Press Shift + Enter for new line</span>
-          
-          {/* Yolo Mode Toggle */}
-          {activeConversationId && (
+          <div className="flex justify-between items-center text-xs text-muted-foreground mt-2 h-6">
+            <span>Press Shift + Enter for new line</span>
+
+            {/* Yolo Mode Toggle */}
             <div className="flex items-center gap-2 text-orange-600">
               <Zap className="w-3 h-3" />
               <span className="font-medium">Yolo Mode</span>
@@ -125,9 +125,9 @@ const ChatInput = memo(function ChatInput({
                 className="scale-75"
               />
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 });
