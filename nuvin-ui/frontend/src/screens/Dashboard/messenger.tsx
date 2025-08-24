@@ -12,7 +12,6 @@ import { ChatInput } from '../../modules/messenger';
 export default function Messenger() {
   const { activeAgent, isReady, sendMessage, cancelRequest } = useAgentManager();
 
-  // Use conversation store
   const {
     conversations,
     activeConversationId,
@@ -25,17 +24,13 @@ export default function Messenger() {
     addConversation,
   } = useConversationStore();
 
-  // State for loading status
   const [isLoading, setIsLoading] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // State for streaming message per conversation
   const [streamingStates, setStreamingStates] = useState<Record<string, { messageId: string; content: string }>>({});
 
-  // Get current conversation messages
   const storeMessages = getActiveMessages();
 
-  // Get current conversation's streaming state
   const currentStreamingState = activeConversationId ? streamingStates[activeConversationId] : undefined;
   const streamingMessageId = currentStreamingState?.messageId || null;
   const streamingContent = currentStreamingState?.content || '';
@@ -44,10 +39,8 @@ export default function Messenger() {
     if (!streamingMessageId) {
       setIsLoading(false);
     }
-    // console.log('currentStreamingState:', currentStreamingState);
   }, [streamingMessageId]);
 
-  // Helper to summarize conversation using the active agent
   const summarizeConversation = useCallback(
     async (conversationId: string) => {
       const messages = getConversationMessages(conversationId);
@@ -356,31 +349,40 @@ export default function Messenger() {
     addConversation(newConversation);
   }, [addConversation]);
 
-  // Check if there are no conversations
-  const hasNoConversations = conversations.length === 0;
-
   return (
     <div className="flex-1 flex flex-col bg-message-list-background min-w-[300px]">
-      {hasNoConversations || !activeConversationId ? (
+      {!isReady ? (
+        // Show setup guide when not ready
         <NoConversationsView newConversation={handleNewConversation} />
+      ) : activeConversationId ? (
+        // Show conversation when there's an active one
+        <>
+          <MessageListPaginated
+            messages={messages}
+            isLoading={isLoading}
+            streamingMessageId={streamingMessageId}
+            initialLoadCount={15}
+            loadMoreCount={15}
+            conversationId={activeConversationId ?? undefined}
+          />
+          <ChatInput
+            onSendMessage={handleSendMessage}
+            onStop={handleStopGeneration}
+            disabled={isLoading || !isReady}
+            placeholder="Type your message here..."
+          />
+        </>
       ) : (
-        <MessageListPaginated
-          messages={messages}
-          isLoading={isLoading}
-          streamingMessageId={streamingMessageId}
-          initialLoadCount={15}
-          loadMoreCount={15}
-          conversationId={activeConversationId ?? undefined}
+        // Show centered chat input when ready but no active conversation
+        <ChatInput
+          onSendMessage={handleSendMessage}
+          onStop={handleStopGeneration}
+          disabled={isLoading || !isReady}
+          placeholder="Type your message to start a new conversation..."
+          showWithoutConversation={true}
+          centered={true}
         />
       )}
-
-      {/* Always show ChatInput */}
-      <ChatInput
-        onSendMessage={handleSendMessage}
-        onStop={handleStopGeneration}
-        disabled={isLoading || !isReady}
-        placeholder={!isReady ? 'Configure an agent and provider to start chatting...' : 'Type your message here...'}
-      />
     </div>
   );
 }

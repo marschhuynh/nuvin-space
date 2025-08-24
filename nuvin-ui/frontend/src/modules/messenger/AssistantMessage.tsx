@@ -1,5 +1,5 @@
 import { Cpu, Copy, Check, FileText, Edit, Trash2, Save, X } from 'lucide-react';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { ClipboardSetText } from '@/lib/wails-runtime';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { useConversationStore } from '@/store/useConversationStore';
@@ -27,6 +27,10 @@ export function AssistantMessage({ id, content, isStreaming = false, messageMode
   const [showRaw, setShowRaw] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(content);
+  const [contentHeight, setContentHeight] = useState<number | null>(null);
+  const [contentWidth, setContentWidth] = useState<number | null>(null);
+
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const { updateMessage, deleteMessage, activeConversationId } = useConversationStore();
 
@@ -57,6 +61,13 @@ export function AssistantMessage({ id, content, isStreaming = false, messageMode
   }, []);
 
   const handleEdit = useCallback(() => {
+    // Capture current content height and width before switching to edit mode
+    if (contentRef.current) {
+      const height = contentRef.current.offsetHeight;
+      const width = contentRef.current.offsetWidth;
+      setContentHeight(height);
+      setContentWidth(width);
+    }
     setIsEditing(true);
     setEditContent(content);
   }, [content]);
@@ -71,11 +82,15 @@ export function AssistantMessage({ id, content, isStreaming = false, messageMode
       });
     }
     setIsEditing(false);
+    setContentHeight(null);
+    setContentWidth(null);
   }, [activeConversationId, id, editContent, content, updateMessage]);
 
   const handleCancelEdit = useCallback(() => {
     setIsEditing(false);
     setEditContent(content);
+    setContentHeight(null);
+    setContentWidth(null);
   }, [content]);
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -119,9 +134,7 @@ export function AssistantMessage({ id, content, isStreaming = false, messageMode
       </div>
 
       {/* Message bubble container with metadata */}
-      <div
-        className={`relative ${isEditing ? 'w-full min-w-[600px]' : 'max-w-[70%]'} min-w-30 transition-all duration-300`}
-      >
+      <div className={`relative max-w-[70%] min-w-30 transition-all duration-300`}>
         {/* Message bubble */}
         <div
           className={`rounded-lg overflow-visible transition-all duration-300 ${isTransparentMode ? 'px-4' : 'p-4'} relative ${
@@ -135,11 +148,15 @@ export function AssistantMessage({ id, content, isStreaming = false, messageMode
           {/* Metadata positioned absolutely inside the message */}
 
           {isEditing ? (
-            // Edit mode
             <Textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
-              className="w-full min-h-[120px] bg-transparent text-foreground placeholder-muted-foreground rounded-md p-3 text-sm font-sans resize-y leading-relaxed"
+              className="w-full bg-transparent text-foreground placeholder-muted-foreground rounded-md p-3 text-sm font-sans resize-y leading-relaxed"
+              style={{
+                minHeight: contentHeight ? `${Math.max(contentHeight, 120)}px` : '120px',
+                height: contentHeight ? `${Math.max(contentHeight, 120)}px` : 'auto',
+                width: contentWidth ? `${contentWidth}px` : 'auto',
+              }}
               placeholder="Edit assistant message..."
               autoFocus
               onKeyDown={(e) => {
@@ -156,7 +173,7 @@ export function AssistantMessage({ id, content, isStreaming = false, messageMode
             <pre className="text-sm whitespace-pre-wrap font-sans">{content.trim()}</pre>
           ) : (
             // Rendered view
-            <div className="text-sm relative">
+            <div ref={contentRef} className="text-sm relative">
               {/* Render clean content */}
               <MarkdownRenderer
                 content={cleanContent}

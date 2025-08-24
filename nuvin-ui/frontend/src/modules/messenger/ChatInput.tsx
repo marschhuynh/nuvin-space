@@ -10,6 +10,8 @@ interface ChatInputProps {
   onStop?: () => void;
   disabled?: boolean;
   placeholder?: string;
+  showWithoutConversation?: boolean;
+  centered?: boolean;
 }
 
 const ChatInput = memo(function ChatInput({
@@ -17,6 +19,8 @@ const ChatInput = memo(function ChatInput({
   onStop,
   disabled = false,
   placeholder = 'Type your message here...',
+  showWithoutConversation = false,
+  centered = false,
 }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const [isMultiLine, setIsMultiLine] = useState(false);
@@ -55,13 +59,10 @@ const ChatInput = memo(function ChatInput({
       const minHeight = 58; // Increased min height for more padding
       const maxHeight = 200; // Increased max height proportionally
 
-      // Ensure we stay within bounds
       const newHeight = Math.min(Math.max(scrollHeight + 2, minHeight), maxHeight);
 
-      // Set the calculated height
       textarea.style.height = `${newHeight}px`;
 
-      // Determine if we're in multi-line mode (height greater than single line)
       setIsMultiLine(newHeight > minHeight);
     }
   }, []);
@@ -79,27 +80,29 @@ const ChatInput = memo(function ChatInput({
     autoResize();
   }, [message]);
 
-  // Auto-resize on component mount
   useEffect(() => {
     autoResize();
   }, [autoResize]);
 
-  // Auto-focus the textarea when component mounts
   useEffect(() => {
-    if (textareaRef.current && !disabled) {
+    if (textareaRef.current) {
       textareaRef.current.focus();
     }
-  }, [disabled]);
+  });
 
   const isLoading = disabled; // Loading state when disabled
 
-  if (!activeConversationId) {
+  if (!activeConversationId && !showWithoutConversation) {
     return null;
   }
 
+  const containerClass = centered
+    ? 'flex-1 flex flex-col justify-center items-center px-8'
+    : 'p-6 bg-message-list-background';
+
   return (
-    <div className="p-6 bg-message-list-background">
-      <div className="max-w-4xl mx-auto">
+    <div className={containerClass}>
+      <div className={centered ? 'w-full max-w-4xl' : 'max-w-4xl mx-auto'}>
         <div className="relative">
           <Textarea
             ref={textareaRef}
@@ -108,11 +111,10 @@ const ChatInput = memo(function ChatInput({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
-            className="resize-none focus-visible:ring-0 shadow-sm pr-16 py-4 px-4 bg-background border focus-visible:border-gray-400 transition-all duration-200 chat-input-textarea overflow-auto text-base placeholder:text-gray-400/60 focus:placeholder:text-gray-300/50"
+            className="resize-none focus-visible:ring-0 shadow-none py-4 px-4 bg-background border focus-visible:border-gray-400 transition-all duration-200 chat-input-textarea overflow-auto text-base placeholder:text-gray-400/60 focus:placeholder:text-gray-300/50 pr-12"
             rows={1}
           />
 
-          {/* Send button */}
           <SendButton
             message={message}
             isLoading={isLoading}
@@ -124,15 +126,17 @@ const ChatInput = memo(function ChatInput({
 
         <div className="flex justify-between items-center text-xs text-muted-foreground mt-2 h-6">
           <span>Press Shift + Enter for new line</span>
-          <div className="flex items-center gap-2 text-orange-600">
-            <Zap className="w-3 h-3" />
-            <span className="font-medium">Yolo Mode</span>
-            <Switch
-              checked={isYoloModeEnabled(activeConversationId)}
-              onCheckedChange={() => toggleYoloMode(activeConversationId)}
-              className="scale-75"
-            />
-          </div>
+          {activeConversationId && (
+            <div className="flex items-center gap-2 text-orange-600">
+              <Zap className="w-3 h-3" />
+              <span className="font-medium">Yolo Mode</span>
+              <Switch
+                checked={isYoloModeEnabled(activeConversationId)}
+                onCheckedChange={() => toggleYoloMode(activeConversationId)}
+                className="scale-75"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

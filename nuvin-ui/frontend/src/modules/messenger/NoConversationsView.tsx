@@ -49,7 +49,7 @@ export const NoConversationsView = ({ newConversation }: { newConversation: () =
 
         {/* Setup Steps */}
         <div className="w-full max-w-lg">
-          <div className="bg-background text-primary-background rounded-xl border border-gray-200 shadow-sm p-6">
+          <div className="text-primary-background p-6">
             <h4 className="font-medium mb-4 text-left">Let's get you set up in 3 simple steps:</h4>
 
             <div className="space-y-4">
@@ -145,18 +145,6 @@ export const NoConversationsView = ({ newConversation }: { newConversation: () =
                 </div>
               </div>
             </div>
-
-            {/* Success State */}
-            {currentStep === 4 && (
-              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs">✓</span>
-                  </div>
-                  <p className="font-medium text-green-400 text-primary-background">All set! You're ready to chat.</p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 

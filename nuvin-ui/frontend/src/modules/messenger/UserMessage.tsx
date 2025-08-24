@@ -1,5 +1,5 @@
 import { User, Copy, Check, Edit, Trash2, Save, X } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { ClipboardSetText } from '@/lib/wails-runtime';
 import { useConversationStore } from '@/store/useConversationStore';
 import { Textarea } from '@/components';
@@ -23,7 +23,11 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(content);
+  const [contentHeight, setContentHeight] = useState<number | null>(null);
+  const [contentWidth, setContentWidth] = useState<number | null>(null);
   const trimmedContent = content.trim();
+
+  const contentRef = useRef<HTMLPreElement>(null);
 
   const { updateMessage, deleteMessage, activeConversationId } = useConversationStore();
 
@@ -42,6 +46,13 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
   }, [trimmedContent]);
 
   const handleEdit = useCallback(() => {
+    // Capture current content height and width before switching to edit mode
+    if (contentRef.current) {
+      const height = contentRef.current.offsetHeight;
+      const width = contentRef.current.offsetWidth;
+      setContentHeight(height);
+      setContentWidth(width);
+    }
     setIsEditing(true);
     setEditContent(content);
   }, [content]);
@@ -56,11 +67,15 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
       });
     }
     setIsEditing(false);
+    setContentHeight(null);
+    setContentWidth(null);
   }, [activeConversationId, id, editContent, content, updateMessage]);
 
   const handleCancelEdit = useCallback(() => {
     setIsEditing(false);
     setEditContent(content);
+    setContentHeight(null);
+    setContentWidth(null);
   }, [content]);
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -90,7 +105,7 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
     <>
       {/* Message bubble */}
       <div
-        className={`relative ${isEditing ? 'w-full' : 'max-w-[70%]'} overflow-visible transition-all duration-300 ${
+        className={`relative max-w-[70%] overflow-visible transition-all duration-300 ${
           messageMode === 'transparent'
             ? 'text-foreground'
             : 'rounded-lg p-4 bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-primary/20 shadow-primary/20 hover:shadow-sm shadow-xxs border'
@@ -100,7 +115,12 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
           <Textarea
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
-            className="w-full min-h-[80px] bg-transparent text-primary-foreground placeholder-primary-foreground/70 border-none outline-none resize-y text-sm font-sans leading-relaxed"
+            className="bg-transparent text-primary-foreground placeholder-primary-foreground/70 border-none outline-none resize-y text-sm font-sans leading-relaxed"
+            style={{
+              minHeight: contentHeight ? `${Math.max(contentHeight, 80)}px` : '80px',
+              height: contentHeight ? `${Math.max(contentHeight, 80)}px` : 'auto',
+              width: contentWidth ? `${contentWidth}px` : 'auto',
+            }}
             placeholder="Edit your message..."
             autoFocus
             onKeyDown={(e) => {
@@ -113,7 +133,9 @@ export function UserMessage({ id, content, messageMode }: UserMessageProps) {
             }}
           />
         ) : (
-          <pre className="text-sm whitespace-pre-wrap font-sans">{trimmedContent}</pre>
+          <pre ref={contentRef} className="text-sm whitespace-pre-wrap font-sans">
+            {trimmedContent}
+          </pre>
         )}
 
         {/* Controls positioned absolutely inside the message bubble */}

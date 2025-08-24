@@ -1,5 +1,18 @@
-import { Wrench, CheckCircle, XCircle, Clock, ChevronDown, ChevronRight, Trash2, Check, Copy } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import {
+  Wrench,
+  CheckCircle,
+  XCircle,
+  Clock,
+  ChevronDown,
+  ChevronRight,
+  Trash2,
+  Check,
+  Copy,
+  Edit,
+  Save,
+  X,
+} from 'lucide-react';
+import { useState, useCallback, useRef } from 'react';
 import { ClipboardSetText } from '@/lib/wails-runtime';
 import { useConversationStore } from '@/store/useConversationStore';
 import {
@@ -47,6 +60,9 @@ export function ToolCallMessage({
   const [showToolDetail, setShowToolDetail] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editArgs, setEditArgs] = useState(JSON.stringify(args, null, 2));
+  const [contentHeight, setContentHeight] = useState<number | null>(null);
+
+  const contentRef = useRef<HTMLPreElement>(null);
 
   const { updateMessage, deleteMessage, activeConversationId } = useConversationStore();
 
@@ -96,6 +112,7 @@ export function ToolCallMessage({
         });
       }
       setIsEditing(false);
+      setContentHeight(null);
     } catch (_error) {
       setErrorDialog({
         open: true,
@@ -108,6 +125,7 @@ export function ToolCallMessage({
   const handleCancelEdit = useCallback(() => {
     setIsEditing(false);
     setEditArgs(JSON.stringify(args, null, 2));
+    setContentHeight(null);
   }, [args]);
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -312,7 +330,11 @@ export function ToolCallMessage({
                       <textarea
                         value={editArgs}
                         onChange={(e) => setEditArgs(e.target.value)}
-                        className="w-full min-h-[120px] bg-transparent text-foreground placeholder-muted-foreground border border-border rounded-md p-2 text-xs font-mono resize-y leading-relaxed"
+                        className="w-full bg-transparent text-foreground placeholder-muted-foreground border border-border rounded-md p-2 text-xs font-mono resize-y leading-relaxed"
+                        style={{
+                          minHeight: contentHeight ? `${Math.max(contentHeight, 120)}px` : '120px',
+                          height: contentHeight ? `${Math.max(contentHeight, 120)}px` : 'auto',
+                        }}
                         placeholder="Edit tool arguments (JSON format)..."
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && e.ctrlKey) {
@@ -324,7 +346,7 @@ export function ToolCallMessage({
                         }}
                       />
                     ) : (
-                      <pre className="text-xs text-foreground overflow-auto leading-relaxed font-mono">
+                      <pre ref={contentRef} className="text-xs text-foreground overflow-auto leading-relaxed font-mono">
                         {formatJSON(args)}
                       </pre>
                     )}
