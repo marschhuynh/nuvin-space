@@ -99,6 +99,8 @@ export function AssistantMessage({ id, content, isStreaming = false, messageMode
 
   if (cleanContent.length === 0) return null;
 
+  const isTransparentMode = messageMode === 'transparent';
+
   return (
     <>
       {/* Assistant avatar */}
@@ -117,11 +119,13 @@ export function AssistantMessage({ id, content, isStreaming = false, messageMode
       </div>
 
       {/* Message bubble container with metadata */}
-      <div className={`relative ${isEditing ? 'w-full min-w-[600px]' : 'max-w-[70%]'} transition-all duration-300`}>
+      <div
+        className={`relative ${isEditing ? 'w-full min-w-[600px]' : 'max-w-[70%]'} min-w-30 transition-all duration-300`}
+      >
         {/* Message bubble */}
         <div
-          className={`rounded-lg overflow-visible transition-all duration-300 p-4 relative ${
-            messageMode === 'transparent'
+          className={`rounded-lg overflow-visible transition-all duration-300 ${isTransparentMode ? 'px-4' : 'p-4'} relative ${
+            isTransparentMode
               ? 'text-foreground'
               : isStreaming
                 ? 'bg-gradient-to-br from-card to-card/80 border-border/50 shadow-md border'
