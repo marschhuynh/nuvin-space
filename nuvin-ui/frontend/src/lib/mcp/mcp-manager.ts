@@ -7,6 +7,8 @@ import type {
   MCPTransportOptions,
 } from '@/types/mcp';
 import { MCPClient } from './mcp-client';
+import * as MCPToolsService from '@wails/services/mcptoolsservice';
+import { isWailsEnvironment } from '@/lib/wails-runtime';
 import { type MCPTool, createMCPTools } from './mcp-tool';
 
 /**
@@ -59,6 +61,17 @@ export class MCPManager {
     this.configs.set(serverId, extendedConfig);
 
     try {
+      // Guard: stdio transport requires Wails Go backend. Skip with clear status when unavailable.
+      if (config.type === 'stdio' && !isWailsEnvironment()) {
+        const reason =
+          'Wails Go backend not available. Run via `wails3 dev` or disable stdio MCP servers in browser dev.';
+        console.warn(`MCP server '${serverId}' cannot start (stdio) outside Wails runtime: ${reason}`);
+        extendedConfig.status = 'error';
+        extendedConfig.lastError = reason;
+        this.configs.set(serverId, extendedConfig);
+        return;
+      }
+
       // Create MCP client with appropriate transport options
       const transportOptions: MCPTransportOptions =
         config.type === 'http'
@@ -169,10 +182,8 @@ export class MCPManager {
    */
   async stopAllServers(): Promise<void> {
     try {
-      // Stop all backend processes first
-      if (window.go?.main?.App?.StopAllMCPServers) {
-        await window.go.main.App.StopAllMCPServers();
-      }
+      // Stop all backend processes first (Wails v3 bindings)
+      await MCPToolsService.StopAllMCPServers();
     } catch (error) {
       console.warn('Failed to stop backend MCP servers:', error);
     }

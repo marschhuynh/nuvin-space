@@ -5,7 +5,8 @@ import type {
   JSONRPCNotification,
   MCPTransportOptions,
 } from '@/types/mcp';
-// Wails runtime is injected globally in Wails v2
+import { EventsOn, EventsOff, isWailsEnvironment } from '../wails-runtime';
+import * as MCPToolsService from '@wails/services/mcptoolsservice';
 declare global {
   interface Window {
     runtime?: {
@@ -16,6 +17,19 @@ declare global {
 }
 
 // Note: Wails Go functions are declared in src/lib/github.ts
+
+// Debug toggle: localStorage.MCP_DEBUG = '1' or window.__MCP_DEBUG__ = true
+function mcpDebugEnabled(): boolean {
+  try {
+    if (typeof window !== 'undefined' && (window as any).__MCP_DEBUG__) return true;
+    return typeof localStorage !== 'undefined' && localStorage.getItem('MCP_DEBUG') === '1';
+  } catch {
+    return false;
+  }
+}
+function mcpDebug(...args: any[]) {
+  if (mcpDebugEnabled()) console.debug('[MCP-Wails]', ...args);
+}
 
 /**
  * Wails-based MCP transport that uses Go backend for process spawning
@@ -33,25 +47,49 @@ export class WailsMCPConnection implements MCPConnection {
   ) {
     this.serverId = serverId;
     this.setupEventListeners();
+    mcpDebug('WailsMCPConnection constructed', { serverId });
   }
 
   async connect(): Promise<void> {
-    if (!window.go?.main?.App) {
+    if (!isWailsEnvironment()) {
       throw new Error('Wails Go backend not available');
     }
 
     try {
+      // If a process with this serverId is already running (e.g., after hot reload), attach instead of starting.
+      try {
+        const status = await MCPToolsService.GetMCPServerStatus();
+        if (status && status[this.serverId] === 'running') {
+          mcpDebug('connect: server already running, attaching', this.serverId);
+          this.isConnected = true;
+          return;
+        }
+      } catch {
+        // ignore status probe failures
+      }
+
+      mcpDebug('connect -> StartMCPServer', {
+        serverId: this.serverId,
+        command: this.options.command,
+        args: this.options.args,
+      });
       const request = {
         id: this.serverId,
         command: this.options.command,
         args: this.options.args || [],
         env: this.options.env || {},
-      };
+      } as any;
 
-      await window.go.main.App.StartMCPServer(request);
+      await MCPToolsService.StartMCPServer(request);
       this.isConnected = true;
-      console.log(`MCP server ${this.serverId} started successfully`);
+      mcpDebug('connect <- started');
     } catch (error) {
+      const message = String(error);
+      if (message.includes('already running')) {
+        mcpDebug('connect: StartMCPServer reports already running, attaching');
+        this.isConnected = true;
+        return;
+      }
       throw new Error(`Failed to start MCP server: ${error}`);
     }
   }
@@ -62,9 +100,8 @@ export class WailsMCPConnection implements MCPConnection {
     }
 
     try {
-      if (window.go?.main?.App) {
-        await window.go.main.App.StopMCPServer(this.serverId);
-      }
+      mcpDebug('close -> StopMCPServer', this.serverId);
+      await MCPToolsService.StopMCPServer(this.serverId);
       this.isConnected = false;
       this.cleanupEventListeners();
 
@@ -86,12 +123,9 @@ export class WailsMCPConnection implements MCPConnection {
       throw new Error('Connection not established');
     }
 
-    if (!window.go?.main?.App) {
-      throw new Error('Wails Go backend not available');
-    }
-
     try {
-      await window.go.main.App.SendMCPMessage(this.serverId, message);
+      mcpDebug('send ->', 'id' in message ? (message as any).id : (message as any).method);
+      await MCPToolsService.SendMCPMessage(this.serverId, message as any);
     } catch (error) {
       throw new Error(`Failed to send message: ${error}`);
     }
@@ -114,28 +148,41 @@ export class WailsMCPConnection implements MCPConnection {
   }
 
   private setupEventListeners(): void {
-    if (!window.runtime) {
-      console.warn('Wails runtime not available, event listening disabled');
-      return;
-    }
+    // Test event listener to verify Wails3 event system is working
+    EventsOn('test-event', (data: any) => {
+      console.log('[DEBUG] Received test-event:', data);
+    });
 
     // Listen for MCP messages from the Go backend
-    window.runtime.EventsOn('mcp-message', (data: any) => {
-      if (data.serverId === this.serverId) {
+    EventsOn('mcp-message', (data: any) => {
+      console.log('[DEBUG] Raw mcp-message event received:', data);
+
+      // Handle array-wrapped data from Wails3
+      const eventData = Array.isArray(data) ? data[0] : data;
+
+      if (eventData.serverId === this.serverId) {
+        mcpDebug('event <- mcp-message', eventData?.message?.id ?? '(notify)');
         for (const handler of this.messageHandlers) {
           try {
-            handler(data.message);
+            handler(eventData.message);
           } catch (error) {
             console.error('Error in message handler:', error);
           }
         }
+      } else {
+        console.log('[DEBUG] mcp-message ignored - serverId mismatch:', {
+          eventServerId: eventData.serverId,
+          thisServerId: this.serverId,
+        });
       }
     });
 
     // Listen for MCP server errors
-    window.runtime.EventsOn('mcp-server-error', (data: any) => {
-      if (data.serverId === this.serverId) {
-        const error = new Error(data.error || 'MCP server error');
+    EventsOn('mcp-server-error', (data: any) => {
+      const eventData = Array.isArray(data) ? data[0] : data;
+      if (eventData.serverId === this.serverId) {
+        const error = new Error(eventData.error || 'MCP server error');
+        mcpDebug('event <- mcp-server-error', error.message);
         for (const handler of this.errorHandlers) {
           try {
             handler(error);
@@ -147,9 +194,11 @@ export class WailsMCPConnection implements MCPConnection {
     });
 
     // Listen for MCP server stopped events
-    window.runtime.EventsOn('mcp-server-stopped', (data: any) => {
-      if (data.serverId === this.serverId) {
+    EventsOn('mcp-server-stopped', (data: any) => {
+      const eventData = Array.isArray(data) ? data[0] : data;
+      if (eventData.serverId === this.serverId) {
         this.isConnected = false;
+        mcpDebug('event <- mcp-server-stopped');
         for (const handler of this.closeHandlers) {
           try {
             handler();
@@ -161,30 +210,28 @@ export class WailsMCPConnection implements MCPConnection {
     });
 
     // Listen for stdout/stderr for debugging
-    window.runtime.EventsOn('mcp-stdout', (data: any) => {
-      if (data.serverId === this.serverId) {
-        console.log(`MCP ${this.serverId} stdout:`, data.data);
+    EventsOn('mcp-stdout', (data: any) => {
+      const eventData = Array.isArray(data) ? data[0] : data;
+      if (eventData.serverId === this.serverId) {
+        mcpDebug('stdout <-', eventData.data);
       }
     });
 
-    window.runtime.EventsOn('mcp-stderr', (data: any) => {
-      if (data.serverId === this.serverId) {
-        console.warn(`MCP ${this.serverId} stderr:`, data.data);
+    EventsOn('mcp-stderr', (data: any) => {
+      const eventData = Array.isArray(data) ? data[0] : data;
+      if (eventData.serverId === this.serverId) {
+        mcpDebug('stderr <-', eventData.data);
       }
     });
   }
 
   private cleanupEventListeners(): void {
-    if (!window.runtime) {
-      return;
-    }
-
     // Clean up event listeners
-    window.runtime.EventsOff('mcp-message');
-    window.runtime.EventsOff('mcp-server-error');
-    window.runtime.EventsOff('mcp-server-stopped');
-    window.runtime.EventsOff('mcp-stdout');
-    window.runtime.EventsOff('mcp-stderr');
+    EventsOff('mcp-message');
+    EventsOff('mcp-server-error');
+    EventsOff('mcp-server-stopped');
+    EventsOff('mcp-stdout');
+    EventsOff('mcp-stderr');
   }
 }
 

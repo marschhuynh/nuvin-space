@@ -1,3 +1,5 @@
+import { Events, Clipboard } from '@wailsio/runtime';
+
 export function isWailsEnvironment(): boolean {
   return Boolean((window as any).wails);
 }
@@ -11,23 +13,20 @@ export function LogError(message: string): void {
 }
 
 export function EventsOn(event: string, callback: (...args: any[]) => void): void {
-  const w = window as any;
-  if (w?.wails?.Events?.On) {
-    w.wails.Events.On(event, (ev: any) => callback(ev?.data ?? ev));
+  if (Events.On) {
+    Events.On(event, (ev: any) => callback(ev?.data ?? ev));
   }
 }
 
 export function EventsOff(event: string): void {
-  const w = window as any;
-  if (w?.wails?.Events?.Off) {
-    w.wails.Events.Off(event);
+  if (Events.Off) {
+    Events.Off(event);
   }
 }
 
 export async function ClipboardGetText(): Promise<string> {
-  const w = window as any;
-  if (w?.wails?.Clipboard?.Text) {
-    return w.wails.Clipboard.Text();
+  if (Clipboard.Text) {
+    return Clipboard.Text();
   }
   if (typeof navigator !== 'undefined' && navigator.clipboard?.readText) {
     try {
@@ -43,9 +42,8 @@ export async function ClipboardGetText(): Promise<string> {
 }
 
 export async function ClipboardSetText(text: string): Promise<void> {
-  const w = window as any;
-  if (w?.wails?.Clipboard?.SetText) {
-    await w.wails.Clipboard.SetText(text);
+  if (Clipboard?.SetText) {
+    await Clipboard.SetText(text);
   } else if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(text);
   }

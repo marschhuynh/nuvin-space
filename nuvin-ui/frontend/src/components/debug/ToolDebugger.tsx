@@ -3,9 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toolRegistry } from '@/lib/tools/tool-registry';
+import { mcpManager } from '@/lib/mcp/mcp-manager';
 import { toolIntegrationService } from '@/lib/tools/tool-integration-service';
 import { useAgentStore } from '@/store/useAgentStore';
 import { RefreshCw, Bug } from 'lucide-react';
+import { isWailsEnvironment } from '@/lib/wails-runtime';
 
 export function ToolDebugger() {
   const [debugInfo, setDebugInfo] = useState<any>(null);
@@ -17,6 +19,19 @@ export function ToolDebugger() {
     const info = {
       timestamp: new Date().toISOString(),
       selectedAgent: selectedAgent?.name || 'None',
+      runtime: {
+        wailsGoAvailable: isWailsEnvironment(),
+        wailsRuntimeAvailable: isWailsEnvironment(),
+        mcpDebug: (() => {
+          try {
+            // @ts-ignore
+            if ((window as any).__MCP_DEBUG__) return true;
+            return localStorage.getItem('MCP_DEBUG') === '1';
+          } catch {
+            return false;
+          }
+        })(),
+      },
       toolRegistry: {
         totalTools: toolRegistry.getToolCount(),
         builtInTools: toolRegistry.getBuiltInTools().map((t) => t.definition.name),
@@ -24,8 +39,21 @@ export function ToolDebugger() {
           name: t.definition.name,
           serverId: t.getServerId(),
           available: t.isAvailable(),
+          schema: t.definition,
         })),
         mcpServers: toolRegistry.getMCPServerIds(),
+      },
+      mcp: {
+        stats: mcpManager.getStats(),
+        servers: mcpManager.getAllServerConfigs().map((c) => ({
+          id: c.id,
+          name: c.name,
+          type: c.type,
+          status: c.status,
+          lastError: c.lastError || null,
+          toolCount: c.toolCount,
+          resourceCount: c.resourceCount,
+        })),
       },
       agentTools: {
         configuredTools: selectedAgent?.toolConfig?.enabledTools || [],
@@ -63,10 +91,25 @@ export function ToolDebugger() {
             <Bug className="w-5 h-5 mr-2" />
             Tool Debug Information
           </span>
-          <Button onClick={refreshDebugInfo} size="sm" variant="outline">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={refreshDebugInfo} size="sm" variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+            <Button
+              size="sm"
+              variant={debugInfo?.runtime?.mcpDebug ? 'default' : 'outline'}
+              onClick={() => {
+                try {
+                  const enabled = localStorage.getItem('MCP_DEBUG') === '1';
+                  localStorage.setItem('MCP_DEBUG', enabled ? '0' : '1');
+                } catch {}
+                refreshDebugInfo();
+              }}
+            >
+              {debugInfo?.runtime?.mcpDebug ? 'Disable MCP Debug' : 'Enable MCP Debug'}
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 flex-1 overflow-y-auto">
@@ -74,6 +117,22 @@ export function ToolDebugger() {
         <div>
           <h4 className="font-medium text-sm mb-2">Selected Agent</h4>
           <Badge variant="outline">{debugInfo.selectedAgent}</Badge>
+        </div>
+
+        {/* Runtime Info */}
+        <div>
+          <h4 className="font-medium text-sm mb-2">Runtime</h4>
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div>
+              Wails Go: <Badge>{debugInfo.runtime.wailsGoAvailable ? 'yes' : 'no'}</Badge>
+            </div>
+            <div>
+              Wails Runtime: <Badge>{debugInfo.runtime.wailsRuntimeAvailable ? 'yes' : 'no'}</Badge>
+            </div>
+            <div>
+              MCP Debug: <Badge>{debugInfo.runtime.mcpDebug ? 'on' : 'off'}</Badge>
+            </div>
+          </div>
         </div>
 
         {/* Tool Registry Info */}
@@ -104,18 +163,50 @@ export function ToolDebugger() {
         {/* MCP Tools */}
         <div>
           <h4 className="font-medium text-sm mb-2">MCP Tools ({debugInfo.toolRegistry.mcpTools.length})</h4>
-          <div className="space-y-1 max-h-40 overflow-y-auto pr-2">
+          <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
             {debugInfo.toolRegistry.mcpTools.map((tool: any) => (
-              <div key={tool.name} className="flex items-center space-x-2">
-                <Badge variant={tool.available ? 'default' : 'secondary'} className="text-xs">
-                  {tool.name}
-                </Badge>
-                <span className="text-xs text-gray-500">({tool.serverId})</span>
-                {tool.available && (
-                  <Badge variant="outline" className="text-xs">
-                    Available
+              <div key={tool.name} className="border rounded p-2 bg-gray-50 dark:bg-gray-800">
+                <div className="flex items-center space-x-2 mb-1">
+                  <Badge variant={tool.available ? 'default' : 'secondary'} className="text-xs">
+                    {tool.name}
                   </Badge>
-                )}
+                  <span className="text-xs text-gray-500">({tool.serverId})</span>
+                  {tool.available && (
+                    <Badge variant="outline" className="text-xs">
+                      Available
+                    </Badge>
+                  )}
+                </div>
+                <details className="text-xs">
+                  <summary className="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline">
+                    Show Schema
+                  </summary>
+                  <pre className="mt-1 p-2 bg-white dark:bg-gray-900 rounded text-xs overflow-auto max-h-40 border">
+                    {JSON.stringify(tool.schema, null, 2)}
+                  </pre>
+                </details>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* MCP Servers */}
+        <div>
+          <h4 className="font-medium text-sm mb-2">MCP Servers ({debugInfo.mcp.servers.length})</h4>
+          <div className="space-y-1 max-h-40 overflow-y-auto pr-2">
+            {debugInfo.mcp.servers.map((s: any) => (
+              <div key={s.id} className="flex items-center gap-2 text-xs">
+                <Badge variant="outline">{s.name}</Badge>
+                <span className="text-gray-500">{s.type}</span>
+                <Badge
+                  variant={s.status === 'connected' ? 'default' : s.status === 'error' ? 'destructive' : 'secondary'}
+                >
+                  {s.status}
+                </Badge>
+                {s.lastError && <span className="text-red-500 truncate">{s.lastError}</span>}
+                <span className="text-gray-500">
+                  tools:{s.toolCount} res:{s.resourceCount}
+                </span>
               </div>
             ))}
           </div>

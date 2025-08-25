@@ -18,6 +18,19 @@ import type {
   MCPClientInfo,
 } from '@/types/mcp';
 
+// Lightweight debug toggle: set localStorage.MCP_DEBUG = '1' to enable
+function mcpDebugEnabled(): boolean {
+  try {
+    if (typeof window !== 'undefined' && (window as any).__MCP_DEBUG__) return true;
+    return typeof localStorage !== 'undefined' && localStorage.getItem('MCP_DEBUG') === '1';
+  } catch {
+    return false;
+  }
+}
+function mcpDebug(...args: any[]) {
+  if (mcpDebugEnabled()) console.debug('[MCP]', ...args);
+}
+
 /**
  * HTTP-based MCP connection implementation following Streamable HTTP transport spec
  */
@@ -44,6 +57,7 @@ class HttpMCPConnection implements MCPConnection {
       'MCP-Protocol-Version': '2025-06-18',
       ...headers,
     };
+    mcpDebug('HttpMCPConnection: constructed with URL', url);
   }
 
   async connect(): Promise<void> {
@@ -53,6 +67,7 @@ class HttpMCPConnection implements MCPConnection {
 
     return new Promise((resolve, reject) => {
       try {
+        mcpDebug('HttpMCPConnection.connect: opening SSE stream to', this.url);
         // Streamable HTTP transport: Use the MCP endpoint directly for SSE
         // First, try to open a GET SSE stream for server-initiated messages
         this.setupEventSource();
@@ -68,6 +83,7 @@ class HttpMCPConnection implements MCPConnection {
             this.isConnected = true;
             // Process any queued requests
             this.processRequestQueue();
+            mcpDebug('HttpMCPConnection.connect: SSE open');
             resolve();
           };
 
@@ -78,6 +94,7 @@ class HttpMCPConnection implements MCPConnection {
               // Fallback: connection without SSE stream
               this.isConnected = true;
               this.processRequestQueue();
+              mcpDebug('HttpMCPConnection.connect: SSE failed, using POST-only');
               resolve();
             } else {
               this.isConnected = false;
@@ -91,6 +108,7 @@ class HttpMCPConnection implements MCPConnection {
           clearTimeout(timeout);
           this.isConnected = true;
           this.processRequestQueue();
+          mcpDebug('HttpMCPConnection.connect: no SSE, POST-only mode');
           resolve();
         }
       } catch (error) {
@@ -108,6 +126,7 @@ class HttpMCPConnection implements MCPConnection {
     }
 
     try {
+      mcpDebug('HTTP send ->', 'method' in message ? message.method : '(notification)');
       const headers = { ...this.headers };
 
       // Add session ID header if we have one
@@ -148,10 +167,12 @@ class HttpMCPConnection implements MCPConnection {
       const contentType = response.headers.get('content-type');
       if (contentType?.includes('text/event-stream')) {
         // Server initiated SSE stream for this request
+        mcpDebug('HTTP response: streaming');
         this.handleResponseStream(response);
       } else if (contentType?.includes('application/json')) {
         // Single JSON response
         const jsonResponse = await response.json();
+        mcpDebug('HTTP response: json', jsonResponse?.id ?? '(no id)');
         if (this.messageHandler) {
           this.messageHandler(jsonResponse);
         }
@@ -160,6 +181,7 @@ class HttpMCPConnection implements MCPConnection {
         return;
       }
     } catch (error) {
+      mcpDebug('HTTP send error:', error);
       throw error instanceof Error ? error : new Error(String(error));
     }
   }
@@ -229,6 +251,7 @@ class HttpMCPConnection implements MCPConnection {
       this.eventSource.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
+          mcpDebug('SSE <- message', message?.id ?? '(notify)');
           if (this.messageHandler) {
             this.messageHandler(message);
           }
@@ -274,6 +297,7 @@ class HttpMCPConnection implements MCPConnection {
               try {
                 const jsonData = line.substring(6);
                 const message = JSON.parse(jsonData);
+                mcpDebug('Stream <- message', message?.id ?? '(notify)');
                 if (this.messageHandler) {
                   this.messageHandler(message);
                 }
@@ -334,6 +358,7 @@ export class MCPClient {
   constructor(serverId: string, transportOptions: MCPTransportOptions) {
     this.serverId = serverId;
     this.transportOptions = transportOptions;
+    mcpDebug('MCPClient constructed', { serverId, transport: transportOptions.type });
   }
 
   /**
@@ -345,8 +370,10 @@ export class MCPClient {
     }
 
     try {
+      mcpDebug('MCPClient.connect: creating connection');
       this.connection = await this.createConnection();
       this.setupEventHandlers();
+      mcpDebug('MCPClient.connect: initializing protocol');
       await this.initialize();
       this.initialized = true;
 
@@ -359,7 +386,9 @@ export class MCPClient {
         serverId: this.serverId,
         serverInfo: this.serverInfo,
       });
+      mcpDebug('MCPClient.connect: connected');
     } catch (error) {
+      mcpDebug('MCPClient.connect error:', error);
       this.emitEvent({
         type: 'error',
         serverId: this.serverId,
@@ -437,14 +466,82 @@ export class MCPClient {
     }
 
     try {
+      // Debug logging to see what arguments are being passed
+      console.log(`[DEBUG] MCP tool call: ${toolCall.name}`, toolCall.arguments);
+
+      // Check for wcgw tools and fix parameter format if needed
+      const processedArguments = this.processToolArguments(toolCall.name, toolCall.arguments || {});
+      console.log(`[DEBUG] Processed arguments:`, processedArguments);
+
       const response = await this.sendRequest('tools/call', {
         name: toolCall.name,
-        arguments: toolCall.arguments || {},
+        arguments: processedArguments,
       });
 
       return response as MCPToolResult;
     } catch (error) {
       throw new Error(`Tool execution failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Process and normalize tool arguments - converts JSON strings to objects based on schema
+   */
+  private processToolArguments(toolName: string, args: Record<string, any>): Record<string, any> {
+    const tool = this.tools.get(toolName);
+    if (!tool || !tool.inputSchema || !tool.inputSchema.properties) {
+      return args;
+    }
+
+    const processed = { ...args };
+    const schema = tool.inputSchema;
+
+    // Recursively process arguments based on their expected types
+    this.processArgumentsRecursively(processed, schema.properties);
+
+    return processed;
+  }
+
+  /**
+   * Recursively process arguments, converting JSON strings to objects where schema expects objects
+   */
+  private processArgumentsRecursively(args: Record<string, any>, schemaProperties: Record<string, any>): void {
+    for (const [key, propSchema] of Object.entries(schemaProperties)) {
+      if (key in args) {
+        const value = args[key];
+
+        // If schema expects an object but we have a string, try to parse it
+        if (propSchema.type === 'object' && typeof value === 'string') {
+          try {
+            const parsed = JSON.parse(value);
+            if (typeof parsed === 'object' && parsed !== null) {
+              args[key] = parsed;
+              console.log(`[DEBUG] Converted JSON string parameter '${key}' to object:`, parsed);
+            }
+          } catch (error) {
+            console.warn(`Failed to parse JSON string parameter '${key}':`, error);
+          }
+        }
+
+        // If we have an object and schema has nested properties, recurse
+        else if (propSchema.type === 'object' && typeof value === 'object' && value !== null && propSchema.properties) {
+          this.processArgumentsRecursively(value, propSchema.properties);
+        }
+
+        // Handle arrays of objects
+        else if (
+          propSchema.type === 'array' &&
+          Array.isArray(value) &&
+          propSchema.items?.type === 'object' &&
+          propSchema.items.properties
+        ) {
+          for (let item of value) {
+            if (typeof item === 'object' && item !== null) {
+              this.processArgumentsRecursively(item, propSchema.items.properties);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -500,8 +597,10 @@ export class MCPClient {
    */
   private async createConnection(): Promise<MCPConnection> {
     if (this.transportOptions.type === 'stdio') {
+      mcpDebug('createConnection: stdio');
       return this.createStdioConnection();
     } else if (this.transportOptions.type === 'http') {
+      mcpDebug('createConnection: http');
       return this.createHttpConnection();
     } else {
       throw new Error(`Unsupported transport type: ${this.transportOptions.type}`);
@@ -521,10 +620,12 @@ export class MCPClient {
     // Import Wails transport dynamically to avoid issues if not available
     try {
       const { createWailsMCPConnection } = await import('./wails-transport');
+      mcpDebug('createStdioConnection: spawning via Wails', { command, args });
       const connection = createWailsMCPConnection(this.serverId, this.transportOptions);
       await connection.connect();
       return connection;
     } catch (error) {
+      mcpDebug('createStdioConnection error:', error);
       throw new Error(
         `Failed to create Wails stdio connection: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -553,6 +654,7 @@ export class MCPClient {
     if (!this.connection) return;
 
     this.connection.onMessage((message) => {
+      mcpDebug('onMessage <-', 'id' in message ? (message as any).id : (message as any).method);
       if ('id' in message) {
         // This is a response
         this.handleResponse(message as JSONRPCResponse);
@@ -563,6 +665,7 @@ export class MCPClient {
     });
 
     this.connection.onError((error) => {
+      mcpDebug('onError <-', error);
       this.emitEvent({
         type: 'error',
         serverId: this.serverId,
@@ -571,6 +674,7 @@ export class MCPClient {
     });
 
     this.connection.onClose(() => {
+      mcpDebug('onClose');
       this.emitEvent({
         type: 'disconnected',
         serverId: this.serverId,
@@ -601,8 +705,14 @@ export class MCPClient {
       clientInfo,
     };
 
+    mcpDebug('initialize ->');
     const result = await this.sendRequest('initialize', params);
     this.serverInfo = (result as MCPInitializeResult).serverInfo;
+    mcpDebug('initialize <-', this.serverInfo?.name, this.serverInfo?.version);
+
+    // Send notifications/initialized notification as required by MCP protocol
+    await this.sendNotification('notifications/initialized', {});
+    mcpDebug('notifications/initialized ->');
   }
 
   /**
@@ -610,6 +720,7 @@ export class MCPClient {
    */
   private async discoverTools(): Promise<void> {
     try {
+      mcpDebug('tools/list ->');
       const response = await this.sendRequest('tools/list');
       const tools = response.tools || [];
 
@@ -640,6 +751,7 @@ export class MCPClient {
       // Get resource templates (optional method - not all servers support)
       if (this.serverInfo?.capabilities?.resources?.templates) {
         try {
+          mcpDebug('resources/templates/list ->');
           const templatesResponse = await this.sendRequest('resources/templates/list');
           const templates = templatesResponse.resourceTemplates || [];
 
@@ -661,6 +773,7 @@ export class MCPClient {
 
       // Get resources
       try {
+        mcpDebug('resources/list ->');
         const resourcesResponse = await this.sendRequest('resources/list');
         const resources = resourcesResponse.resources || [];
 
@@ -710,9 +823,11 @@ export class MCPClient {
 
       this.pendingRequests.set(id, { resolve, reject, timeout });
 
+      mcpDebug('send ->', method, id);
       this.connection?.send(request).catch((error) => {
         this.pendingRequests.delete(id);
         clearTimeout(timeout);
+        mcpDebug('send error <-', method, error);
         reject(error);
       });
     });
@@ -722,6 +837,7 @@ export class MCPClient {
    * Handle JSON-RPC response
    */
   private handleResponse(response: JSONRPCResponse): void {
+    mcpDebug('response <-', response.id, response.error ? 'error' : 'ok');
     const pending = this.pendingRequests.get(response.id);
     if (!pending) {
       console.warn(`Received response for unknown request ID: ${response.id}`);
@@ -736,6 +852,24 @@ export class MCPClient {
     } else {
       pending.resolve(response.result);
     }
+  }
+
+  /**
+   * Send a notification to the MCP server (no response expected)
+   */
+  private async sendNotification(method: string, params?: any): Promise<void> {
+    if (!this.connection) {
+      throw new Error('Not connected');
+    }
+
+    const notification: JSONRPCNotification = {
+      jsonrpc: '2.0',
+      method,
+      params,
+    };
+
+    mcpDebug('send notification ->', method);
+    await this.connection.send(notification);
   }
 
   /**

@@ -124,7 +124,10 @@ export class MCPTool implements Tool {
    * Convert MCP tool schema to internal ToolDefinition format
    */
   private convertMCPSchemaToToolDefinition(mcpSchema: MCPToolSchema): ToolDefinition {
-    const convertedProperties = this.convertMCPProperties(mcpSchema.inputSchema.properties || {});
+    const convertedProperties = this.convertMCPProperties(
+      mcpSchema.inputSchema.properties || {},
+      mcpSchema.inputSchema,
+    );
 
     // Validate the converted schema
     for (const [key, prop] of Object.entries(convertedProperties)) {
@@ -145,11 +148,11 @@ export class MCPTool implements Tool {
   /**
    * Convert MCP schema properties to internal format
    */
-  private convertMCPProperties(mcpProperties: Record<string, any>): Record<string, any> {
+  private convertMCPProperties(mcpProperties: Record<string, any>, rootSchema?: any): Record<string, any> {
     const converted: Record<string, any> = {};
 
     for (const [name, prop] of Object.entries(mcpProperties)) {
-      converted[name] = this.convertMCPProperty(prop);
+      converted[name] = this.convertMCPProperty(prop, rootSchema);
     }
 
     return converted;
@@ -177,10 +180,54 @@ export class MCPTool implements Tool {
   /**
    * Convert individual MCP property to internal format
    */
-  private convertMCPProperty(mcpProp: any): any {
+  private convertMCPProperty(mcpProp: any, rootSchema?: any): any {
+    // Handle $ref references first
+    if (mcpProp.$ref && rootSchema && rootSchema.$defs) {
+      const refPath = mcpProp.$ref.replace('#/', '').split('/');
+      let resolved = rootSchema;
+
+      for (const segment of refPath) {
+        if (resolved && typeof resolved === 'object' && segment in resolved) {
+          resolved = resolved[segment];
+        } else {
+          console.warn(`Failed to resolve $ref: ${mcpProp.$ref}`);
+          resolved = null;
+          break;
+        }
+      }
+
+      if (resolved && typeof resolved === 'object') {
+        // Recursively convert the resolved schema
+        return this.convertMCPProperty(resolved, rootSchema);
+      }
+    }
+
+    // Handle anyOf unions (pick first non-null type)
+    if (mcpProp.anyOf && Array.isArray(mcpProp.anyOf)) {
+      const nonNullType = mcpProp.anyOf.find((option: any) => option.type && option.type !== 'null');
+      if (nonNullType) {
+        return this.convertMCPProperty(nonNullType, rootSchema);
+      }
+    }
+
+    // Determine the type, preserving number types
+    let propType = mcpProp.type;
+    if (!propType) {
+      // If no type specified, try to infer from other properties
+      if (mcpProp.properties) {
+        propType = 'object';
+      } else if (mcpProp.items) {
+        propType = 'array';
+      } else if (mcpProp.enum) {
+        propType = typeof mcpProp.enum[0] === 'number' ? 'number' : 'string';
+      } else {
+        propType = 'string'; // fallback
+      }
+    }
+
     // Handle different MCP property formats and convert to internal format
     const converted: any = {
-      type: mcpProp.type || 'string',
+      type: propType,
       description: mcpProp.description || '',
     };
 
@@ -190,15 +237,18 @@ export class MCPTool implements Tool {
     if (mcpProp.maximum !== undefined) converted.maximum = mcpProp.maximum;
     if (mcpProp.minLength !== undefined) converted.minLength = mcpProp.minLength;
     if (mcpProp.maxLength !== undefined) converted.maxLength = mcpProp.maxLength;
+    if (mcpProp.items) converted.items = mcpProp.items;
+    if (mcpProp.additionalProperties !== undefined) converted.additionalProperties = mcpProp.additionalProperties;
+    if (mcpProp.required) converted.required = mcpProp.required;
 
     // Handle nested objects and arrays
     if (mcpProp.type === 'object' && mcpProp.properties) {
-      converted.properties = this.convertMCPProperties(mcpProp.properties);
+      converted.properties = this.convertMCPProperties(mcpProp.properties, rootSchema);
     }
     if (mcpProp.type === 'array') {
       // JSON Schema requires 'items' property for arrays
       if (mcpProp.items) {
-        converted.items = this.convertMCPProperty(mcpProp.items);
+        converted.items = this.convertMCPProperty(mcpProp.items, rootSchema);
       } else {
         // Fallback to generic schema if items not specified
         converted.items = {

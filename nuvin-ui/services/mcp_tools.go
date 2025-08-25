@@ -180,7 +180,7 @@ func (s *MCPToolsService) StopMCPServer(serverID string) error {
 
 	// Wait for the process to finish or force kill after timeout
 	go func() {
-		time.Sleep(5 * time.Second)
+		time.Sleep(10 * time.Second)
 		if process.Cmd.Process != nil {
 			runtime.LogWarning(s.ctx, fmt.Sprintf("Force killing MCP server %s", serverID))
 			process.Cmd.Process.Kill()
@@ -236,13 +236,15 @@ func (s *MCPToolsService) SendMCPMessage(serverID string, message MCPMessage) er
 		return fmt.Errorf("failed to marshal message: %v", err)
 	}
 
-	// Send message with newline
-	_, err = process.Stdin.Write(append(jsonData, '\n'))
-	if err != nil {
+	// Send as plain JSON with newline (NDJSON format)
+	// Some MCP servers (like Context7) don't support Content-Length framing
+	payload := append(jsonData, '\n')
+
+	if _, err := process.Stdin.Write(payload); err != nil {
 		return fmt.Errorf("failed to send message: %v", err)
 	}
 
-	runtime.LogDebug(s.ctx, fmt.Sprintf("Sent MCP message to %s: %s", serverID, string(jsonData)))
+	runtime.LogInfo(s.ctx, fmt.Sprintf("Sent MCP message to %s: %s", serverID, string(jsonData)))
 	return nil
 }
 
@@ -285,32 +287,57 @@ func (s *MCPToolsService) monitorMCPProcess(process *MCPProcess) {
 
 // forwardMCPStdout forwards stdout from MCP server to frontend
 func (s *MCPToolsService) forwardMCPStdout(process *MCPProcess) {
-	scanner := bufio.NewScanner(process.Stdout)
-	for scanner.Scan() {
-		line := scanner.Text()
-		runtime.LogDebug(s.ctx, fmt.Sprintf("MCP %s stdout: %s", process.ID, line))
+	reader := bufio.NewReader(process.Stdout)
+
+	runtime.LogInfo(s.ctx, fmt.Sprintf("Starting stdout forwarding for MCP server %s", process.ID))
+	
+	// Test event emission to verify Wails3 event system
+	runtime.EventsEmit(s.ctx, "test-event", map[string]interface{}{
+		"message": "Test event from MCP stdout forwarding",
+		"serverId": process.ID,
+		"timestamp": fmt.Sprintf("%d", time.Now().Unix()),
+	})
+
+	// Simplified approach: read line by line and try to parse as JSON
+	// This handles both NDJSON and framed formats more reliably
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			if err == io.EOF {
+				runtime.LogInfo(s.ctx, fmt.Sprintf("MCP %s stdout EOF - process ended", process.ID))
+				return
+			}
+			runtime.LogError(s.ctx, fmt.Sprintf("Error reading MCP %s stdout line: %v", process.ID, err))
+			return
+		}
+
+		line = strings.TrimRight(line, "\r\n")
+		if line == "" {
+			// Skip empty lines
+			continue
+		}
+
+		runtime.LogInfo(s.ctx, fmt.Sprintf("MCP %s stdout: %s", process.ID, line))
 
 		// Try to parse as JSON-RPC message
 		var message MCPMessage
-		if err := json.Unmarshal([]byte(line), &message); err == nil {
-			// Forward JSON-RPC message to frontend
+		if err := json.Unmarshal([]byte(line), &message); err == nil && (message.Method != "" || message.ID != nil || message.Result != nil || message.Error != nil) {
+			runtime.LogInfo(s.ctx, fmt.Sprintf("Emitting mcp-message for %s: %+v", process.ID, message))
 			runtime.EventsEmit(s.ctx, "mcp-message", map[string]interface{}{
 				"serverId": process.ID,
 				"message":  message,
 			})
 		} else {
-			// Forward raw output
+			// Not a JSON-RPC message, emit as stdout
+			runtime.LogInfo(s.ctx, fmt.Sprintf("Emitting mcp-stdout for %s (not JSON-RPC): %s", process.ID, line))
 			runtime.EventsEmit(s.ctx, "mcp-stdout", map[string]interface{}{
 				"serverId": process.ID,
 				"data":     line,
 			})
 		}
 	}
-
-	if err := scanner.Err(); err != nil {
-		runtime.LogError(s.ctx, fmt.Sprintf("Error reading MCP %s stdout: %v", process.ID, err))
-	}
 }
+
 
 // forwardMCPStderr forwards stderr from MCP server to frontend
 func (s *MCPToolsService) forwardMCPStderr(process *MCPProcess) {
