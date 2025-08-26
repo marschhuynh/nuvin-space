@@ -19,9 +19,9 @@ interface ConversationState {
   deleteMessage: (conversationId: string, messageId: string) => void;
   clearMessages: (conversationId: string) => void;
 
-  // Yolo mode actions
-  toggleYoloMode: (conversationId: string) => void;
-  isYoloModeEnabled: (conversationId: string) => boolean;
+  // Sudo mode actions
+  toggleSudoMode: (conversationId: string) => void;
+  isSudoModeEnabled: (conversationId: string) => boolean;
 
   // Utility methods
   getActiveConversation: () => Conversation | null;
@@ -92,11 +92,11 @@ export const useConversationStore = create<ConversationState>()(
             updatedConversations = state.conversations.map((c) =>
               c.id === conversationId && !c.summary
                 ? {
-                    ...c,
-                    title:
-                      newMessage.content.length > 50 ? `${newMessage.content.substring(0, 50)}...` : newMessage.content,
-                    summary: newMessage.content,
-                  }
+                  ...c,
+                  title:
+                    newMessage.content.length > 50 ? `${newMessage.content.substring(0, 50)}...` : newMessage.content,
+                  summary: newMessage.content,
+                }
                 : c,
             );
           }
@@ -131,18 +131,18 @@ export const useConversationStore = create<ConversationState>()(
           },
         })),
 
-      // Yolo mode actions
-      toggleYoloMode: (conversationId) =>
+      // Sudo mode actions
+      toggleSudoMode: (conversationId) =>
         set((state) => ({
           conversations: state.conversations.map((c) =>
-            c.id === conversationId ? { ...c, yoloMode: !c.yoloMode } : c,
+            c.id === conversationId ? { ...c, sudoMode: !c.sudoMode } : c,
           ),
         })),
 
-      isYoloModeEnabled: (conversationId) => {
+      isSudoModeEnabled: (conversationId) => {
         const state = get();
         const conversation = state.conversations.find((c) => c.id === conversationId);
-        return conversation?.yoloMode || false;
+        return conversation?.sudoMode || false;
       },
 
       // Utility methods

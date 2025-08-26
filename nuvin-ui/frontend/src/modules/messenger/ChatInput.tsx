@@ -26,8 +26,8 @@ const ChatInput = memo(function ChatInput({
   const [isMultiLine, setIsMultiLine] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Conversation store for yolo mode
-  const { activeConversationId, isYoloModeEnabled, toggleYoloMode } = useConversationStore();
+  // Conversation store for sudo mode
+  const { activeConversationId, isSudoModeEnabled, toggleSudoMode } = useConversationStore();
 
   const handleSend = () => {
     if (message.trim() && !disabled) {
@@ -129,10 +129,10 @@ const ChatInput = memo(function ChatInput({
           {activeConversationId && (
             <div className="flex items-center gap-2 text-orange-600">
               <Zap className="w-3 h-3" />
-              <span className="font-medium">Yolo Mode</span>
+              <span className="font-medium">Sudo Mode</span>
               <Switch
-                checked={isYoloModeEnabled(activeConversationId)}
-                onCheckedChange={() => toggleYoloMode(activeConversationId)}
+                checked={isSudoModeEnabled(activeConversationId)}
+                onCheckedChange={() => toggleSudoMode(activeConversationId)}
                 className="scale-75"
               />
             </div>

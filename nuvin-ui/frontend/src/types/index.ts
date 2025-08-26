@@ -52,7 +52,7 @@ export interface Conversation {
   timestamp: string;
   active?: boolean;
   summary?: string;
-  yoloMode?: boolean; // Allow agent to run tools without asking for permission
+  sudoMode?: boolean; // Allow agent to run tools without asking for permission
 }
 
 export interface ModelConfig {

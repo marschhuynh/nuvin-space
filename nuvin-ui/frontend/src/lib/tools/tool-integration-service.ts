@@ -126,8 +126,8 @@ export class ToolIntegrationService {
     const allowedCalls: ToolCall[] = [];
     const deniedResults: ToolCallResult[] = [];
 
-    // Check if yolo mode is enabled for this conversation
-    const isYoloModeEnabled = conversationStore.isYoloModeEnabled(convoId);
+    // Check if sudo mode is enabled for this conversation
+    const isSudoModeEnabled = conversationStore.isSudoModeEnabled(convoId);
 
     for (const call of toolCalls) {
       if (store.isToolAllowed(convoId, call.name)) {
@@ -135,8 +135,8 @@ export class ToolIntegrationService {
         continue;
       }
 
-      // If yolo mode is enabled, automatically allow all tool calls
-      if (isYoloModeEnabled) {
+      // If sudo mode is enabled, automatically allow all tool calls
+      if (isSudoModeEnabled) {
         allowedCalls.push(call);
         continue;
       }

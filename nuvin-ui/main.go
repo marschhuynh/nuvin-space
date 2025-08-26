@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"embed"
 	"log/slog"
 
@@ -17,11 +16,7 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
-//go:embed icons/AppIcons/Assets.xcassets/AppIcon.appiconset/32.png
-var iconFS embed.FS
-
 func main() {
-	svc := NewApp()
 	debugSvc := NewDebug()
 
 	// Create standalone service instances
@@ -32,6 +27,7 @@ func main() {
 	fileDialogService := services.NewFileDialogService()
 	fileToolsService := services.NewFileToolsService()
 	mcpToolsService := services.NewMCPToolsService()
+	updateService := services.NewUpdateService()
 
 	app := application.New(application.Options{
 		Name:        "Nuvin Space",
@@ -45,8 +41,8 @@ func main() {
 		Logger:   NewFilteredLogger().Logger,
 		LogLevel: slog.LevelInfo,
 		Services: []application.Service{
-			application.NewService(svc),
 			application.NewService(debugSvc),
+			application.NewService(updateService),
 			application.NewService(httpProxyService),
 			application.NewService(githubOAuthService),
 			application.NewService(commandExecutorService),
@@ -68,13 +64,9 @@ func main() {
 		DevToolsEnabled:  false,
 	})
 
-	// Initialise v3 compat helpers
+	// Initialize v3 compat helpers
 	compat.Init(app, win)
 
-	// Call legacy startup path (services will be initialized by Wails via OnStartup)
-	svc.startup(context.Background())
-
-	// Run the app
 	if err := app.Run(); err != nil {
 		println("Error:", err.Error())
 	}

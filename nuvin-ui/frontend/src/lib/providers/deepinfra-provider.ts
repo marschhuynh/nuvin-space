@@ -67,7 +67,7 @@ export class DeepInfraProvider extends BaseLLMProvider {
   async getModels(): Promise<ModelInfo[]> {
     // DeepInfra doesn't provide a models endpoint like OpenAI
     // Instead, we'll return a curated list of popular models available on DeepInfra
-    const popularModels: ModelInfo[] = [
+    const popularModels: Array<Omit<ModelInfo, 'providerId'>> = [
       {
         id: 'moonshotai/Kimi-K2-Instruct',
         name: 'Kimi K2 Instruct',
@@ -191,6 +191,8 @@ export class DeepInfraProvider extends BaseLLMProvider {
       },
     ];
 
-    return this.sortModels(popularModels);
+    // Ensure required providerId is present for each model
+    const withProvider = popularModels.map((m) => ({ ...m, providerId: this.type }));
+    return this.sortModels(withProvider);
   }
 }

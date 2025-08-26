@@ -135,7 +135,7 @@ export class MCPTool implements Tool {
     }
 
     return {
-      name: `mcp_${this.serverId}_${mcpSchema.name}`, // Prefix to avoid naming conflicts
+      name: this.buildShortUniqueName(mcpSchema.name),
       description: `${mcpSchema.description} (from MCP server: ${this.serverId})`,
       parameters: {
         type: 'object',
@@ -143,6 +143,46 @@ export class MCPTool implements Tool {
         required: mcpSchema.inputSchema.required || [],
       },
     };
+  }
+
+  /**
+   * Build a short but unique tool name for MCP tools.
+   * Format: m_<srv>_<tool> where
+   *  - <srv> is a 5-6 char base36 hash of the serverId
+   *  - <tool> is a truncated, sanitized original tool name with a 4-char hash suffix
+   * This keeps names short, readable, and collision-resistant while satisfying
+   * the registry's name character constraints.
+   */
+  private buildShortUniqueName(originalToolName: string): string {
+    const srv = this.shortHashBase36(this.serverId).slice(0, 6);
+    const sanitized = this.sanitizeName(originalToolName);
+    const shortPart = sanitized.slice(0, 16) || 'tool';
+    const uniq = this.shortHashBase36(originalToolName).slice(0, 4);
+    return `m_${srv}_${shortPart}_${uniq}`;
+  }
+
+  /**
+   * Sanitize a name to [a-zA-Z0-9_]+, replacing other chars with underscores.
+   */
+  private sanitizeName(name: string): string {
+    // Replace non-alphanumeric characters with underscore and collapse repeats
+    return name
+      .replace(/[^a-zA-Z0-9_]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .replace(/_{2,}/g, '_');
+  }
+
+  /**
+   * Deterministic short hash using djb2, returned as lowercase base36 string.
+   */
+  private shortHashBase36(str: string): string {
+    let hash = 5381 >>> 0; // ensure uint32
+    for (let i = 0; i < str.length; i++) {
+      hash = (((hash << 5) + hash) ^ str.charCodeAt(i)) >>> 0; // djb2 xor variant
+    }
+    // Convert to base36 for compactness, pad to at least 6 chars
+    const base = hash.toString(36);
+    return base.padStart(6, '0');
   }
 
   /**
@@ -406,6 +446,11 @@ export function isMCPTool(tool: Tool): tool is MCPTool {
  * Helper function to extract server ID from MCP tool name
  */
 export function extractServerIdFromMCPToolName(toolName: string): string | null {
-  const match = toolName.match(/^mcp_([^_]+)_/);
-  return match ? match[1] : null;
+  // Legacy pattern: mcp_<serverId>_<toolName>
+  const legacy = toolName.match(/^mcp_([^_]+)_/);
+  if (legacy) return legacy[1];
+
+  // New short pattern: m_<srvHash>_<shortName>_<toolHash>
+  // Server ID is no longer recoverable from the tool name; return null.
+  return null;
 }

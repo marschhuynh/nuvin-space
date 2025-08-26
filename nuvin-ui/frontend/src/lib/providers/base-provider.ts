@@ -364,6 +364,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
   protected formatModelInfo(model: any, overrides: Partial<ModelInfo> = {}): ModelInfo {
     return {
       id: model.id,
+      providerId: this.type,
       name: model.name || model.id,
       contextLength: model.context_length || 4096,
       inputCost: model.pricing?.prompt ? parseFloat(model.pricing.prompt) * 1000000 : undefined,
