@@ -14,6 +14,7 @@ export class MCPTool implements Tool {
   private mcpClient: MCPClient;
   private mcpSchema: MCPToolSchema;
   private serverId: string;
+  private injectedParameters: Set<string> = new Set();
 
   constructor(mcpClient: MCPClient, mcpSchema: MCPToolSchema, serverId: string) {
     this.mcpClient = mcpClient;
@@ -39,10 +40,16 @@ export class MCPTool implements Tool {
         };
       }
 
+      // Filter out only the parameters that we injected (not originally part of the MCP tool schema)
+      const filteredParameters = { ...parameters };
+      for (const injectedParam of this.injectedParameters) {
+        delete filteredParameters[injectedParam];
+      }
+
       // Create MCP tool call
       const toolCall: MCPToolCall = {
         name: this.mcpSchema.name,
-        arguments: parameters,
+        arguments: filteredParameters,
       };
 
       // Execute the tool via MCP client
@@ -128,6 +135,17 @@ export class MCPTool implements Tool {
       mcpSchema.inputSchema.properties || {},
       mcpSchema.inputSchema,
     );
+
+    // Inject description parameter for ALL MCP tools if it doesn't already exist
+    if (!convertedProperties.description) {
+      convertedProperties.description = {
+        type: 'string',
+        description:
+          "Clear, concise description of what this command does in 5-10 words. Examples:\nInput: ls\nOutput: Lists files in current directory\n\nInput: git status\nOutput: Shows working tree status\n\nInput: npm install\nOutput: Installs package dependencies\n\nInput: mkdir foo\nOutput: Creates directory 'foo'",
+      };
+      // Track that we injected this parameter so we can filter it out during execution
+      this.injectedParameters.add('description');
+    }
 
     // Validate the converted schema
     for (const [key, prop] of Object.entries(convertedProperties)) {

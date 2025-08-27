@@ -2,6 +2,7 @@ import { Wrench, CheckCircle, XCircle, Clock, ChevronDown, ChevronRight, Trash2,
 import { useState, useCallback, useRef } from 'react';
 import { ClipboardSetText } from '@/lib/browser-runtime';
 import { useConversationStore } from '@/store/useConversationStore';
+import { mcpManager } from '@/lib/mcp/mcp-manager';
 import {
   Dialog,
   DialogContent,
@@ -176,7 +177,38 @@ export function ToolCallMessage({
     return null;
   };
 
+  // Helper to get MCP server name from metadata
+  const getMcpServerName = () => {
+    if (result?.metadata?.serverId) {
+      const serverId = result.metadata.serverId;
+      const serverConfig = mcpManager.getServerConfig(serverId);
+      return serverConfig?.name || 'MCP';
+    }
+    return null;
+  };
+
+  // Helper to get display tool name (prefer mcpToolName if available)
+  const getDisplayToolName = () => {
+    return result?.metadata?.mcpToolName || toolName;
+  };
+
+  // Helper to get result preview for second line
+  const getResultPreview = () => {
+    if (!result?.result) return null;
+
+    if (typeof result.result === 'string') {
+      // Take first line and limit length
+      const firstLine = result.result.split('\n')[0];
+      return firstLine.length > 100 ? `${firstLine.slice(0, 100)}...` : firstLine;
+    }
+
+    return 'JSON result';
+  };
+
   const toolDescription = getToolDescription();
+  const mcpServerName = getMcpServerName();
+  const displayToolName = getDisplayToolName();
+  const resultPreview = getResultPreview();
 
   return (
     <>
@@ -215,10 +247,11 @@ export function ToolCallMessage({
           }
         >
           {!showToolDetail ? (
-            /* Compact linear view: collapse icon > tool name > status text */
+            /* Compact linear view: 2-line friendly layout */
             <div className="px-3 py-2.5">
+              {/* First line: collapse icon > status icon > tool name > MCP name (if MCP tool) */}
               <div className="flex items-center gap-3">
-                {/* Collapse controls - moved to leftmost */}
+                {/* Collapse controls */}
                 <button
                   type="button"
                   onClick={() => setShowToolDetail(!showToolDetail)}
@@ -230,40 +263,32 @@ export function ToolCallMessage({
                 {/* Status icon */}
                 {getStatusIcon()}
 
-                {/* Tool name and description */}
-                <div className="flex items-center min-w-0 flex-1 gap-2">
-                  <span className="font-medium text-foreground text-sm flex-shrink-0">{toolName}</span>
-                  {toolDescription && (
-                    <>
-                      <span className="text-muted-foreground text-xs">-</span>
-                      <span className="text-xs text-muted-foreground truncate">{toolDescription}</span>
-                    </>
-                  )}
-                </div>
+                {/* Tool name */}
+                <span className="font-medium text-foreground text-sm flex-shrink-0">{displayToolName}</span>
 
-                {/* Status text - moved to rightmost */}
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-medium ml-auto flex-shrink-0 ${
-                    isExecuting
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
-                      : result?.status === 'success'
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'
-                        : result?.status === 'error'
-                          ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'
-                          : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  {getStatusText()}
-                </span>
+                {/* MCP server name (if MCP tool) */}
+                {mcpServerName && (
+                  <span className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 ml-auto flex-shrink-0">
+                    {mcpServerName}
+                  </span>
+                )}
               </div>
+
+              {/* Second line: tool description or result preview */}
+              {(toolDescription || resultPreview) && (
+                <div className="mt-1 ml-8 flex items-center">
+                  <span className="text-xs text-muted-foreground truncate">{toolDescription || resultPreview}</span>
+                </div>
+              )}
             </div>
           ) : (
             /* Expanded view */
             <>
-              {/* Header */}
+              {/* Header - consistent with compact mode */}
               <div className="px-3 py-2.5 border-b border-border/50">
+                {/* First line: collapse icon > status icon > tool name > MCP name (if MCP tool) */}
                 <div className="flex items-center gap-3">
-                  {/* Collapse controls - moved to leftmost */}
+                  {/* Collapse controls */}
                   <button
                     type="button"
                     onClick={() => setShowToolDetail(!showToolDetail)}
@@ -275,32 +300,23 @@ export function ToolCallMessage({
                   {/* Status icon */}
                   {getStatusIcon()}
 
-                  {/* Tool name and description */}
-                  <div className="flex items-center min-w-0 flex-1 gap-2">
-                    <span className="font-medium text-foreground text-sm flex-shrink-0">{toolName}</span>
-                    {toolDescription && (
-                      <>
-                        <span className="text-muted-foreground text-xs">-</span>
-                        <span className="text-xs text-muted-foreground truncate">{toolDescription}</span>
-                      </>
-                    )}
-                  </div>
+                  {/* Tool name */}
+                  <span className="font-medium text-foreground text-sm flex-shrink-0">{displayToolName}</span>
 
-                  {/* Status text - moved to rightmost */}
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ml-auto flex-shrink-0 ${
-                      isExecuting
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
-                        : result?.status === 'success'
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'
-                          : result?.status === 'error'
-                            ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'
-                            : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {getStatusText()}
-                  </span>
+                  {/* MCP server name (if MCP tool) */}
+                  {mcpServerName && (
+                    <span className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 ml-auto flex-shrink-0">
+                      {mcpServerName}
+                    </span>
+                  )}
                 </div>
+
+                {/* Second line: tool description or result preview */}
+                {(toolDescription || resultPreview) && (
+                  <div className="mt-1 ml-8 flex items-center">
+                    <span className="text-xs text-muted-foreground truncate">{toolDescription || resultPreview}</span>
+                  </div>
+                )}
               </div>
 
               {/* Content */}
