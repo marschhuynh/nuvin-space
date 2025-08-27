@@ -38,21 +38,10 @@ export function AgentConfiguration({ onConfigChange }: AgentConfigurationProps) 
     setActiveAgent(agentId);
   };
 
-  // Helper function to find which provider a model belongs to
-  const findProviderForModel = useCallback((modelId: string) => {
-    const { models } = useModelsStore.getState();
-    for (const [providerId, providerModels] of Object.entries(models)) {
-      if (providerModels.some((model) => model.id === modelId)) {
-        return providerId;
-      }
-    }
-    return null;
-  }, []);
-
   const handleModelChange = useCallback(
-    (modelId: string) => {
+    (_modelId: string) => {
       // Find which provider this model belongs to
-      const targetProviderId = findProviderForModel(modelId);
+      const [targetProviderId, modelId] = _modelId.split(':');
 
       if (!targetProviderId) {
         console.error('Could not find provider for model:', modelId);
@@ -81,7 +70,7 @@ export function AgentConfiguration({ onConfigChange }: AgentConfigurationProps) 
       };
       updateProvider(updatedProvider);
     },
-    [providers, activeProviderId, setActiveProvider, updateProvider, findProviderForModel],
+    [providers, activeProviderId, setActiveProvider, updateProvider],
   );
 
   const handleNavigateToProviderSettings = () => {
@@ -128,7 +117,7 @@ export function AgentConfiguration({ onConfigChange }: AgentConfigurationProps) 
       return {
         value: `${model.providerId}:${model.id}`,
         label: model.id,
-        searchContent: `${model.name} ${provider} ${modelName} ${contextInfo} ${costInfo}`,
+        searchContent: `${model.name} ${provider} ${modelName} ${contextInfo} ${costInfo} ${model.providerId}:${model.id}`,
         data: model,
         content: (
           <div className="flex flex-col gap-1 py-1">
