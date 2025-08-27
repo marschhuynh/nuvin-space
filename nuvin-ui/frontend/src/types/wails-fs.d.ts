@@ -1,6 +1,8 @@
 // Augment Wails window.go typings for FS bridge
 export {}; // ensure this file is treated as a module
 
+import { GitHubTokenResponse } from './index';
+
 declare global {
   interface Window {
     go?: {
@@ -24,7 +26,7 @@ declare global {
           PathExists: (path: string) => Promise<boolean>;
 
           // Existing app methods used elsewhere
-          FetchGithubCopilotKey: () => Promise<string>;
+          FetchGithubCopilotKey: () => Promise<GitHubTokenResponse>;
           Greet: (name: string) => Promise<string>;
           StartMCPServer: (request: any) => Promise<any>;
           StopMCPServer: (serverId: string) => Promise<any>;

@@ -27,6 +27,7 @@ export type {
   FetchResponse,
   FileInfo,
   FileWriteRequest,
+  GitHubTokenResponse,
   MCPMessage,
   MCPRequest,
 } from './models.js';

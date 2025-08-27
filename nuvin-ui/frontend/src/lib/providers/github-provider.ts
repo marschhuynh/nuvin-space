@@ -1,13 +1,15 @@
 import { BaseLLMProvider } from './base-provider';
 import type { CompletionParams, CompletionResult, StreamChunk, ModelInfo } from './types/base';
-import { smartFetch } from '../fetch-proxy';
+import type { ChatCompletionResponse } from './types/openrouter'; // GitHub uses similar response format
 import { extractValue } from './utils';
+import { validateAndCleanGitHubToken } from '../github';
 
 export class GithubCopilotProvider extends BaseLLMProvider {
   constructor(apiKey: string) {
+    const cleanApiKey = validateAndCleanGitHubToken(apiKey);
     super({
       providerName: 'GitHub',
-      apiKey,
+      apiKey: cleanApiKey,
       apiUrl: 'https://api.githubcopilot.com',
     });
   }
@@ -15,52 +17,10 @@ export class GithubCopilotProvider extends BaseLLMProvider {
   protected getCommonHeaders(): Record<string, string> {
     return {
       ...super.getCommonHeaders(),
-      accept: 'application/json',
-      authorization: `Bearer ${this.apiKey}`,
       'editor-version': 'vscode/1.100.3',
       'editor-plugin-version': 'GitHub.copilot/1.330.0',
       'user-agent': 'GithubCopilot/1.330.0',
     };
-  }
-
-  protected async makeRequest(
-    endpoint: string,
-    options: {
-      method?: string;
-      body?: any;
-      signal?: AbortSignal;
-      headers?: Record<string, string>;
-    } = {},
-  ): Promise<Response> {
-    const url = `${this.apiUrl}${endpoint}`;
-    const headers = { ...this.getCommonHeaders(), ...options.headers } as Record<string, string>;
-
-    // If this is a streaming request, prefer SSE accept header and mark init as streaming
-    const isStreaming = Boolean(options.body && options.body.stream === true);
-    if (isStreaming) {
-      headers.accept = 'text/event-stream';
-    }
-
-    const response = await smartFetch(url, {
-      method: options.method || 'POST',
-      headers,
-      body: options.body ? JSON.stringify(options.body) : undefined,
-      signal: options.signal,
-      // Hint to our proxy that this request expects streaming semantics
-      ...(isStreaming ? { stream: true } : {}),
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      if (response.status === 403) {
-        throw new Error(
-          `GitHub Copilot API access denied. Please ensure you have a valid GitHub Copilot subscription and the correct authentication token. Status: ${response.status}`,
-        );
-      }
-      throw new Error(`GitHub Copilot API error: ${response.status} - ${text}`);
-    }
-
-    return response;
   }
 
   async generateCompletion(params: CompletionParams, signal?: AbortSignal): Promise<CompletionResult> {
@@ -74,11 +34,14 @@ export class GithubCopilotProvider extends BaseLLMProvider {
       stream: false,
     };
 
+    // Only add tools if they exist and are not empty
     if (params.tools && params.tools.length > 0) {
       requestBody.tools = params.tools;
-      if (params.tool_choice) {
-        requestBody.tool_choice = params.tool_choice;
-      }
+    }
+
+    // Only add tool_choice if tools are present
+    if (params.tool_choice && params.tools && params.tools.length > 0) {
+      requestBody.tool_choice = params.tool_choice;
     }
 
     const response = await this.makeRequest('/chat/completions', {
@@ -86,8 +49,11 @@ export class GithubCopilotProvider extends BaseLLMProvider {
       signal,
     });
 
-    const data = await response.json();
-    return this.createCompletionResult(data, startTime);
+    const data: ChatCompletionResponse = await response.json();
+
+    const result = this.createCompletionResult<ChatCompletionResponse>(data, startTime);
+
+    return result;
   }
 
   async *generateCompletionStream(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<string> {
@@ -100,11 +66,14 @@ export class GithubCopilotProvider extends BaseLLMProvider {
       stream: true,
     };
 
+    // Only add tools if they exist and are not empty
     if (params.tools && params.tools.length > 0) {
       requestBody.tools = params.tools;
-      if (params.tool_choice) {
-        requestBody.tool_choice = params.tool_choice;
-      }
+    }
+
+    // Only add tool_choice if tools are present
+    if (params.tool_choice && params.tools && params.tools.length > 0) {
+      requestBody.tool_choice = params.tool_choice;
     }
 
     const response = await this.makeRequest('/chat/completions', {
@@ -112,10 +81,11 @@ export class GithubCopilotProvider extends BaseLLMProvider {
       signal,
     });
 
-    const reader = response.body?.getReader();
-    if (!reader) {
+    if (!response.body) {
       throw new Error('No response body for streaming');
     }
+
+    const reader = response.body.getReader();
 
     for await (const data of this.parseStream(reader, {}, signal)) {
       const content = extractValue(data, 'choices.0.delta.content');
@@ -130,6 +100,7 @@ export class GithubCopilotProvider extends BaseLLMProvider {
     signal?: AbortSignal,
   ): AsyncGenerator<StreamChunk> {
     const startTime = Date.now();
+
     const requestBody: any = {
       model: params.model,
       messages: params.messages,
@@ -139,11 +110,14 @@ export class GithubCopilotProvider extends BaseLLMProvider {
       stream: true,
     };
 
+    // Only add tools if they exist and are not empty
     if (params.tools && params.tools.length > 0) {
       requestBody.tools = params.tools;
-      if (params.tool_choice) {
-        requestBody.tool_choice = params.tool_choice;
-      }
+    }
+
+    // Only add tool_choice if tools are present
+    if (params.tool_choice && params.tools && params.tools.length > 0) {
+      requestBody.tool_choice = params.tool_choice;
     }
 
     const response = await this.makeRequest('/chat/completions', {
@@ -151,10 +125,11 @@ export class GithubCopilotProvider extends BaseLLMProvider {
       signal,
     });
 
-    const reader = response.body?.getReader();
-    if (!reader) {
+    if (!response.body) {
       throw new Error('No response body for streaming');
     }
+
+    const reader = response.body.getReader();
 
     for await (const chunk of this.parseStreamWithTools(reader, {}, signal, startTime)) {
       yield chunk;
@@ -162,72 +137,26 @@ export class GithubCopilotProvider extends BaseLLMProvider {
   }
 
   async getModels(): Promise<ModelInfo[]> {
-    try {
-      // Try Copilot API first, fallback to public GitHub Models API
-      let response: Response;
-      try {
-        response = await this.makeRequest('/models', {
-          method: 'GET',
-        });
-      } catch (error) {
-        console.warn('Copilot API failed, trying public GitHub Models API:', error);
-        response = await smartFetch(`https://models.github.ai/catalog/models`, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${this.apiKey}`,
-            'X-GitHub-Api-Version': '2022-11-28',
-          },
-        });
-      }
+    const response = await this.makeRequest('/models', {
+      method: 'GET',
+    });
 
-      if (!response.ok) {
-        console.warn(`GitHub Models API error: ${response.status}. Returning empty models list.`);
-        return [];
-      }
+    const data = await response.json();
+    const models = data.data || [];
 
-      const data = await response.json();
-      const models = Array.isArray(data) ? data : data.models || data.data || [];
-
-      const transformedModels = models.map((model: any): ModelInfo => {
-        const id = model.id || model.model_id || model.name;
-        const base = id ? { id } : model;
-        return this.formatModelInfo(base, {
-          name: model.name || this.getModelDisplayName(id),
-          contextLength: this.getContextLength(id),
-          inputCost: 0,
-          outputCost: 0,
-          modality: this.getModality(id),
-          inputModalities: this.getInputModalities(id),
-          outputModalities: this.getOutputModalities(id),
-        });
+    const transformedModels = models.map((model: any): ModelInfo => {
+      return this.formatModelInfo(model, {
+        contextLength: this.getContextLength(model.id),
+        inputCost: 0, // GitHub Copilot subscription covers usage
+        outputCost: 0,
+        modality: this.getModality(model.id),
+        inputModalities: this.getInputModalities(model.id),
+        outputModalities: this.getOutputModalities(model.id),
+        supportedParameters: model.supported_parameters || [],
       });
+    });
 
-      return this.sortModels(transformedModels);
-    } catch (error) {
-      console.error('Failed to fetch GitHub models:', error);
-      return [];
-    }
-  }
-
-  private getModelDisplayName(modelId: string): string {
-    const nameMap: Record<string, string> = {
-      'openai/gpt-4.1': 'OpenAI GPT-4.1',
-      'openai/gpt-4.1-mini': 'OpenAI GPT-4.1 Mini',
-      'openai/gpt-4.1-nano': 'OpenAI GPT-4.1 Nano',
-      'openai/gpt-4o': 'OpenAI GPT-4o',
-      'openai/gpt-4o-mini': 'OpenAI GPT-4o Mini',
-      'openai/o1': 'OpenAI o1',
-      'openai/o1-mini': 'OpenAI o1-mini',
-      'openai/o1-preview': 'OpenAI o1-preview',
-      'openai/o3': 'OpenAI o3',
-      'openai/o3-mini': 'OpenAI o3-mini',
-      'openai/o4-mini': 'OpenAI o4-mini',
-      'ai21-labs/ai21-jamba-1.5-large': 'AI21 Jamba 1.5 Large',
-      'ai21-labs/ai21-jamba-1.5-mini': 'AI21 Jamba 1.5 Mini',
-      'cohere/cohere-command-a': 'Cohere Command A',
-      'cohere/cohere-command-r-08-2024': 'Cohere Command R',
-    };
-    return nameMap[modelId] || modelId;
+    return this.sortModels(transformedModels);
   }
 
   private getContextLength(modelId: string): number {
@@ -252,25 +181,28 @@ export class GithubCopilotProvider extends BaseLLMProvider {
   }
 
   private getModality(modelId: string): string {
-    if (modelId.includes('gpt-4o') || modelId.includes('o1') || modelId.includes('o3') || modelId.includes('o4')) {
+    if (modelId?.includes('gpt-4o') || modelId?.includes('o1') || modelId?.includes('o3') || modelId?.includes('o4')) {
       return 'multimodal';
     }
     return 'text';
   }
 
   private getInputModalities(modelId: string): string[] {
-    if (modelId.includes('gpt-4o') || modelId.includes('o1') || modelId.includes('o3') || modelId.includes('o4')) {
-      return ['text', 'image'];
+    const modalities = ['text'];
+    if (modelId?.includes('gpt-4o') || modelId?.includes('o1') || modelId?.includes('o3') || modelId?.includes('o4')) {
+      modalities.push('image');
     }
-    return ['text'];
+    return modalities;
   }
 
   private getOutputModalities(_modelId: string): string[] {
     return ['text'];
   }
 
-  protected calculateCost(): number | undefined {
-    // Copilot subscription covers usage; treat incremental cost as zero
+  protected calculateCost(usage: any, model?: string): number | undefined {
+    if (!usage || !model) return undefined;
+
+    // GitHub Copilot subscription covers usage - treat as zero cost
     return 0;
   }
 }

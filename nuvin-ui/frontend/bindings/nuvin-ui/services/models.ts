@@ -82,6 +82,11 @@ export interface FileWriteRequest {
   content: string;
 }
 
+export interface GitHubTokenResponse {
+  accessToken: string;
+  apiKey: string;
+}
+
 /**
  * MCPMessage represents a JSON-RPC message
  */

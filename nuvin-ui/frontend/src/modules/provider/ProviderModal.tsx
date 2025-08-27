@@ -162,13 +162,14 @@ export function ProviderModal({ open, onOpenChange, provider = null, mode }: Pro
   const handleGithubAuth = async () => {
     setIsAuthenticating(true);
     try {
-      const token = await fetchGithubCopilotKey();
-      if (!token) {
-        console.error('Failed to get GitHub token');
+      const tokens = await fetchGithubCopilotKey();
+      if (!tokens) {
+        console.error('Failed to get GitHub tokens');
         return;
       }
 
-      setProviderKey(token);
+      // Set the API key (for model calls) in the UI
+      setProviderKey(tokens.apiKey);
 
       if (providerType === PROVIDER_TYPES.GitHub && validateName(providerName) && mode === 'add') {
         const newProviderId = Date.now().toString();
@@ -176,7 +177,8 @@ export function ProviderModal({ open, onOpenChange, provider = null, mode }: Pro
           id: newProviderId,
           name: providerName.trim(),
           type: PROVIDER_TYPES.GitHub,
-          apiKey: token,
+          apiKey: tokens.apiKey.trim(), // For model API calls - trim whitespace
+          accessToken: tokens.accessToken.trim(), // For GitHub API calls - trim whitespace
           activeModel: {
             model: selectedModel || getDefaultModel(PROVIDER_TYPES.GitHub),
             maxTokens: 2048,
@@ -189,7 +191,7 @@ export function ProviderModal({ open, onOpenChange, provider = null, mode }: Pro
         try {
           const fetchedModels = await fetchProviderModels({
             type: PROVIDER_TYPES.GitHub,
-            apiKey: token,
+            apiKey: tokens.apiKey,
             name: providerName.trim(),
           });
           setModels(newProviderId, fetchedModels);
@@ -369,6 +371,7 @@ export function ProviderModal({ open, onOpenChange, provider = null, mode }: Pro
                 </div>
                 {providerType === PROVIDER_TYPES.GitHub && (
                   <Button
+                    className="h-full"
                     type="button"
                     variant="outline"
                     size={mode === 'edit' ? 'sm' : undefined}

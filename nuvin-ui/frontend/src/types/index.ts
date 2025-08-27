@@ -87,6 +87,11 @@ export interface AgentConfig {
   agents: AgentSettings[];
 }
 
+export interface GitHubTokenResponse {
+  accessToken: string;
+  apiKey: string;
+}
+
 export interface ProviderConfig {
   id: string;
   name: string; // Custom name for the provider instance
@@ -94,6 +99,7 @@ export interface ProviderConfig {
   apiKey: string;
   apiUrl?: string;
   activeModel: ModelConfig;
+  accessToken?: string; // For providers like GitHub that need both access token and API key
 }
 
 export interface AgentSettings {
