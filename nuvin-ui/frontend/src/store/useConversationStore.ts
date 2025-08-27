@@ -92,11 +92,11 @@ export const useConversationStore = create<ConversationState>()(
             updatedConversations = state.conversations.map((c) =>
               c.id === conversationId && !c.summary
                 ? {
-                  ...c,
-                  title:
-                    newMessage.content.length > 50 ? `${newMessage.content.substring(0, 50)}...` : newMessage.content,
-                  summary: newMessage.content,
-                }
+                    ...c,
+                    title:
+                      newMessage.content.length > 50 ? `${newMessage.content.substring(0, 50)}...` : newMessage.content,
+                    summary: newMessage.content,
+                  }
                 : c,
             );
           }

@@ -146,6 +146,7 @@ func (s *GitHubOAuthService) FetchGithubCopilotKey() string {
 		}
 
 		runtime.LogInfo(s.ctx, fmt.Sprintf("Token response: status=%d, error=%s, hasToken=%t", tokenResp.StatusCode, tokenData.Error, tokenData.AccessToken != ""))
+		runtime.LogInfo(s.ctx, fmt.Sprintf("Access token response: status=%s", tokenData.AccessToken))
 
 		if tokenData.Error != "" {
 			if tokenData.Error == "authorization_pending" {

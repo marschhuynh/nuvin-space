@@ -158,8 +158,8 @@ func (s *HTTPProxyService) FetchProxy(fetchReq FetchRequest) FetchResponse {
 		}
 		runtime.LogInfo(s.ctx, fmt.Sprintf("Starting %s stream [%s] for %s", streamType, streamID[:8], fetchReq.URL))
 
-		// Start streaming in a goroutine
-		go s.streamingService.StreamResponse(streamID, resp.Body)
+    // Start streaming in a goroutine
+    go s.streamingService.streamResponse(streamID, resp.Body)
 
 		return FetchResponse{
 			Status:     resp.StatusCode,

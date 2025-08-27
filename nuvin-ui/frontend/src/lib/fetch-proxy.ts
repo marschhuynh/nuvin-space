@@ -88,7 +88,17 @@ class ProxyResponse implements Response {
         console.log(`[${streamId.substring(0, 8)}] Stream started, listening for chunks`);
 
         const eventName = `fetch-stream-chunk:${streamId}`;
-        const handleChunk = (chunk: StreamChunk) => {
+        const handleChunk = (raw: any) => {
+          // Handle case where raw is an array containing the chunk data
+          const chunkData = Array.isArray(raw) ? raw[0] : raw;
+          // Normalize possible casing from Go -> JS bridge
+          const chunk: StreamChunk = {
+            streamId: chunkData?.streamId ?? chunkData?.StreamID ?? chunkData?.streamID,
+            data: chunkData?.data ?? chunkData?.Data,
+            done: chunkData?.done ?? chunkData?.Done,
+            error: chunkData?.error ?? chunkData?.Error,
+          };
+
           if (chunk.streamId !== streamId) return;
 
           console.log(`[${streamId.substring(0, 8)}] Received chunk:`, {
@@ -227,6 +237,14 @@ export async function fetchProxy(
     }
   }
 
+  // Strip hop-by-hop or problematic headers that can break proxying/decompression
+  for (const key of Object.keys(headers)) {
+    const lower = key.toLowerCase();
+    if (lower === 'accept-encoding' || lower === 'content-length' || lower === 'connection' || lower === 'host') {
+      delete headers[key];
+    }
+  }
+
   // Handle body
   let body: string | undefined;
   if (init?.body) {
@@ -264,12 +282,12 @@ export async function fetchProxy(
   try {
     const response: FetchResponse = useServer
       ? await (
-        await nativeFetch(`${SERVER_BASE_URL}/fetch`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(fetchRequest),
-        })
-      ).json()
+          await nativeFetch(`${SERVER_BASE_URL}/fetch`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fetchRequest),
+          })
+        ).json()
       : await HTTPProxyFetchProxy(fetchRequest);
 
     if (response.error) {
@@ -285,7 +303,7 @@ export async function fetchProxy(
     });
 
     return new ProxyResponse(
-      response.body,
+      response.body || '',
       {
         status: response.status,
         statusText: response.statusText,

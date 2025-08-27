@@ -63,8 +63,7 @@ export const useModelsStore = create<ModelsState>()(
             ...state.errors,
             [providerId]: null,
           },
-        })
-        ),
+        })),
 
       fetchModels: async (provider) => {
         // Set loading state immediately

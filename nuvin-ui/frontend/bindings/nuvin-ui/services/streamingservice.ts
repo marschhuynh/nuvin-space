@@ -8,22 +8,11 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wailsio/runtime";
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: Unused imports
-import * as io$0 from "../../io/models.js";
+import { Call as $Call, CancellablePromise as $CancellablePromise } from '@wailsio/runtime';
 
 /**
  * OnStartup initializes the streaming service
  */
 export function OnStartup(): $CancellablePromise<void> {
-    return $Call.ByID(1025963888);
-}
-
-/**
- * StreamResponse handles streaming response data via Wails events
- */
-export function StreamResponse(streamID: string, body: io$0.ReadCloser): $CancellablePromise<void> {
-    return $Call.ByID(2651789913, streamID, body);
+  return $Call.ByID(1025963888);
 }

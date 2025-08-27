@@ -38,7 +38,7 @@ export async function writeFile(path: string, content: string): Promise<void> {
       .mkdir(path.slice(0, Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'))), {
         recursive: true,
       })
-      .catch(() => { });
+      .catch(() => {});
     return fs.writeFile(path, content, 'utf-8') as unknown as Promise<void>;
   }
   throw new Error('Filesystem access requires Wails or Node environment');
@@ -111,7 +111,7 @@ export async function rename(oldPath: string, newPath: string): Promise<void> {
       .mkdir(newPath.slice(0, Math.max(newPath.lastIndexOf('/'), newPath.lastIndexOf('\\'))), {
         recursive: true,
       })
-      .catch(() => { });
+      .catch(() => {});
     return fs.rename(oldPath, newPath) as unknown as Promise<void>;
   }
   throw new Error('Filesystem access requires Wails or Node environment');

@@ -16,10 +16,10 @@ export class GithubCopilotProvider extends BaseLLMProvider {
     return {
       ...super.getCommonHeaders(),
       accept: 'application/json',
+      authorization: `Bearer ${this.apiKey}`,
       'editor-version': 'vscode/1.100.3',
       'editor-plugin-version': 'GitHub.copilot/1.330.0',
       'user-agent': 'GithubCopilot/1.330.0',
-      'accept-encoding': 'gzip,deflate,br',
     };
   }
 
@@ -33,13 +33,21 @@ export class GithubCopilotProvider extends BaseLLMProvider {
     } = {},
   ): Promise<Response> {
     const url = `${this.apiUrl}${endpoint}`;
-    const headers = { ...this.getCommonHeaders(), ...options.headers };
+    const headers = { ...this.getCommonHeaders(), ...options.headers } as Record<string, string>;
+
+    // If this is a streaming request, prefer SSE accept header and mark init as streaming
+    const isStreaming = Boolean(options.body && options.body.stream === true);
+    if (isStreaming) {
+      headers.accept = 'text/event-stream';
+    }
 
     const response = await smartFetch(url, {
       method: options.method || 'POST',
       headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
       signal: options.signal,
+      // Hint to our proxy that this request expects streaming semantics
+      ...(isStreaming ? { stream: true } : {}),
     });
 
     if (!response.ok) {
@@ -56,35 +64,51 @@ export class GithubCopilotProvider extends BaseLLMProvider {
   }
 
   async generateCompletion(params: CompletionParams, signal?: AbortSignal): Promise<CompletionResult> {
+    const startTime = Date.now();
+    const requestBody: any = {
+      model: params.model,
+      messages: params.messages,
+      temperature: params.temperature,
+      max_tokens: params.maxTokens,
+      top_p: params.topP,
+      stream: false,
+    };
+
+    if (params.tools && params.tools.length > 0) {
+      requestBody.tools = params.tools;
+      if (params.tool_choice) {
+        requestBody.tool_choice = params.tool_choice;
+      }
+    }
+
     const response = await this.makeRequest('/chat/completions', {
-      body: {
-        model: params.model,
-        messages: params.messages,
-        temperature: params.temperature,
-        max_tokens: params.maxTokens,
-        top_p: params.topP,
-        ...(params.tools && { tools: params.tools }),
-        ...(params.tool_choice && { tool_choice: params.tool_choice }),
-      },
+      body: requestBody,
       signal,
     });
 
     const data = await response.json();
-    return this.createCompletionResult(data);
+    return this.createCompletionResult(data, startTime);
   }
 
   async *generateCompletionStream(params: CompletionParams, signal?: AbortSignal): AsyncGenerator<string> {
+    const requestBody: any = {
+      model: params.model,
+      messages: params.messages,
+      temperature: params.temperature,
+      max_tokens: params.maxTokens,
+      top_p: params.topP,
+      stream: true,
+    };
+
+    if (params.tools && params.tools.length > 0) {
+      requestBody.tools = params.tools;
+      if (params.tool_choice) {
+        requestBody.tool_choice = params.tool_choice;
+      }
+    }
+
     const response = await this.makeRequest('/chat/completions', {
-      body: {
-        model: params.model,
-        messages: params.messages,
-        temperature: params.temperature,
-        max_tokens: params.maxTokens,
-        top_p: params.topP,
-        stream: true,
-        ...(params.tools && { tools: params.tools }),
-        ...(params.tool_choice && { tool_choice: params.tool_choice }),
-      },
+      body: requestBody,
       signal,
     });
 
@@ -105,17 +129,25 @@ export class GithubCopilotProvider extends BaseLLMProvider {
     params: CompletionParams,
     signal?: AbortSignal,
   ): AsyncGenerator<StreamChunk> {
+    const startTime = Date.now();
+    const requestBody: any = {
+      model: params.model,
+      messages: params.messages,
+      temperature: params.temperature,
+      max_tokens: params.maxTokens,
+      top_p: params.topP,
+      stream: true,
+    };
+
+    if (params.tools && params.tools.length > 0) {
+      requestBody.tools = params.tools;
+      if (params.tool_choice) {
+        requestBody.tool_choice = params.tool_choice;
+      }
+    }
+
     const response = await this.makeRequest('/chat/completions', {
-      body: {
-        model: params.model,
-        messages: params.messages,
-        temperature: params.temperature,
-        max_tokens: params.maxTokens,
-        top_p: params.topP,
-        stream: true,
-        ...(params.tools && { tools: params.tools }),
-        ...(params.tool_choice && { tool_choice: params.tool_choice }),
-      },
+      body: requestBody,
       signal,
     });
 
@@ -124,7 +156,7 @@ export class GithubCopilotProvider extends BaseLLMProvider {
       throw new Error('No response body for streaming');
     }
 
-    for await (const chunk of this.parseStreamWithTools(reader, {}, signal)) {
+    for await (const chunk of this.parseStreamWithTools(reader, {}, signal, startTime)) {
       yield chunk;
     }
   }
@@ -156,20 +188,21 @@ export class GithubCopilotProvider extends BaseLLMProvider {
       const data = await response.json();
       const models = Array.isArray(data) ? data : data.models || data.data || [];
 
-      const transformedModels = models
-        .map((model: any): ModelInfo => {
-          return this.formatModelInfo(model, {
-            name: model.name || this.getModelDisplayName(model.id),
-            contextLength: this.getContextLength(model.id),
-            inputCost: 0, // No additional cost through Copilot subscription
-            outputCost: 0,
-            modality: this.getModality(model.id),
-            inputModalities: this.getInputModalities(model.id),
-            outputModalities: this.getOutputModalities(model.id),
-          });
-        })
+      const transformedModels = models.map((model: any): ModelInfo => {
+        const id = model.id || model.model_id || model.name;
+        const base = id ? { id } : model;
+        return this.formatModelInfo(base, {
+          name: model.name || this.getModelDisplayName(id),
+          contextLength: this.getContextLength(id),
+          inputCost: 0,
+          outputCost: 0,
+          modality: this.getModality(id),
+          inputModalities: this.getInputModalities(id),
+          outputModalities: this.getOutputModalities(id),
+        });
+      });
 
-      return transformedModels;
+      return this.sortModels(transformedModels);
     } catch (error) {
       console.error('Failed to fetch GitHub models:', error);
       return [];
@@ -234,5 +267,10 @@ export class GithubCopilotProvider extends BaseLLMProvider {
 
   private getOutputModalities(_modelId: string): string[] {
     return ['text'];
+  }
+
+  protected calculateCost(): number | undefined {
+    // Copilot subscription covers usage; treat incremental cost as zero
+    return 0;
   }
 }
