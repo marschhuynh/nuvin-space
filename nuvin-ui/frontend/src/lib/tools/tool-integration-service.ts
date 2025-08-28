@@ -162,13 +162,13 @@ export class ToolIntegrationService {
 
     // Execute allowed tool calls
     const maxConcurrent = agentToolConfig?.maxConcurrentCalls || 3;
-    
+
     // Create enhanced context with agent tool config for per-execution timeout
     const enhancedContext: ToolContext = {
       ...context,
       agentToolConfig,
     };
-    
+
     const executedResults =
       allowedCalls.length > 0 ? await toolRegistry.executeToolCalls(allowedCalls, enhancedContext, maxConcurrent) : [];
 

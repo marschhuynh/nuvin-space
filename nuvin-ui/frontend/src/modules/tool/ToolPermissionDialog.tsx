@@ -32,12 +32,12 @@ export function ToolPermissionDialog() {
       }
       return tool.definition.description || null;
     }
-    
+
     // Fallback to description from parameters
     if (toolParams?.description && typeof toolParams.description === 'string') {
       return toolParams.description;
     }
-    
+
     return null;
   };
 

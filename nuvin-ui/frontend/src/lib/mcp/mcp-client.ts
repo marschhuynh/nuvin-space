@@ -355,7 +355,11 @@ export class MCPClient {
   private initialized = false;
   private serverInfo: any = null;
 
-  constructor(serverId: string, transportOptions: MCPTransportOptions, private timeoutMs: number = 30000) {
+  constructor(
+    serverId: string,
+    transportOptions: MCPTransportOptions,
+    private timeoutMs: number = 30000,
+  ) {
     this.serverId = serverId;
     this.transportOptions = transportOptions;
     mcpDebug('MCPClient constructed', { serverId, transport: transportOptions.type });
@@ -473,10 +477,14 @@ export class MCPClient {
       const processedArguments = this.processToolArguments(toolCall.name, toolCall.arguments || {});
       console.log(`[DEBUG] Processed arguments:`, processedArguments);
 
-      const response = await this.sendRequest('tools/call', {
-        name: toolCall.name,
-        arguments: processedArguments,
-      }, timeoutMs);
+      const response = await this.sendRequest(
+        'tools/call',
+        {
+          name: toolCall.name,
+          arguments: processedArguments,
+        },
+        timeoutMs,
+      );
 
       return response as MCPToolResult;
     } catch (error) {
@@ -574,7 +582,6 @@ export class MCPClient {
   getResourceTemplates(): MCPResourceTemplate[] {
     return Array.from(this.resourceTemplates.values());
   }
-
 
   /**
    * Add event handler

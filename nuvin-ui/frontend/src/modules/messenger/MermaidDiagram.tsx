@@ -370,17 +370,34 @@ export function MermaidDiagram({ chart }: MermaidProps) {
         console.warn = () => {};
 
         try {
-          // Render the diagram with cleaned chart
           const { svg: renderedSvg } = await mermaid.render(id, cleanChart);
-          setSvg(renderedSvg);
-          setError('');
+
+          if (
+            renderedSvg.includes('Syntax error') ||
+            renderedSvg.includes('Parse error') ||
+            renderedSvg.includes('Error:') ||
+            renderedSvg.includes('mermaid version') ||
+            renderedSvg.includes('aria-roledescription="error"')
+          ) {
+            console.warn('Mermaid rendering produced error content');
+            setError('Invalid mermaid syntax');
+            setSvg('');
+          } else {
+            setSvg(renderedSvg);
+            setError('');
+          }
         } catch (err) {
           console.warn('Mermaid rendering error:', err);
           setError('Rendering failed');
+          setSvg('');
         } finally {
           // Restore console methods
           console.error = originalError;
           console.warn = originalWarn;
+
+          // Clean up any error divs that Mermaid may have injected into the DOM
+          const errorDivs = document.querySelectorAll(`div[id^="d${id}"]`);
+          errorDivs.forEach((div) => div.remove());
         }
       } catch (err) {
         console.warn('Mermaid rendering error:', err);
@@ -395,6 +412,19 @@ export function MermaidDiagram({ chart }: MermaidProps) {
       setError('Empty chart');
     }
   }, [chart, resolvedTheme]);
+
+  // Cleanup effect to remove any stray mermaid error divs
+  useEffect(() => {
+    return () => {
+      // Clean up any remaining mermaid error divs when component unmounts
+      const strayDivs = document.querySelectorAll('div[id^="dmermaid-"]');
+      strayDivs.forEach((div) => {
+        if (div.innerHTML.includes('Syntax error') || div.innerHTML.includes('error-text')) {
+          div.remove();
+        }
+      });
+    };
+  }, []);
 
   const handleFullscreen = useCallback(() => {
     setIsFullscreen(true);
