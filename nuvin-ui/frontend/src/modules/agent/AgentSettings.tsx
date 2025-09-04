@@ -428,7 +428,7 @@ export function AgentSettings() {
             </div>
 
             {/* Agent Form - Tabbed Layout */}
-            <div className={'flex-1 min-h-0 p-6 overflow-hidden'}>
+            <div className={'flex-1 min-h-0 p-4 overflow-hidden'}>
               <Tabs defaultValue="general" className="h-full flex flex-col">
                 <TabsList className="w-fit">
                   <TabsTrigger value="general">General</TabsTrigger>
@@ -452,9 +452,7 @@ export function AgentSettings() {
                           temperature={agentData.temperature}
                           topP={agentData.topP}
                           maxTokens={agentData.maxTokens}
-                          onResponseLengthChange={(responseLength) =>
-                            setAgentData({ ...agentData, responseLength })
-                          }
+                          onResponseLengthChange={(responseLength) => setAgentData({ ...agentData, responseLength })}
                           onTemperatureChange={(temperature) => setAgentData({ ...agentData, temperature })}
                           onTopPChange={(topP) => setAgentData({ ...agentData, topP })}
                           onMaxTokensChange={(maxTokens) => setAgentData({ ...agentData, maxTokens })}
@@ -462,25 +460,21 @@ export function AgentSettings() {
                       )}
 
                       {agentData.agentType === 'remote' && (
-                        <>
-                          <LocalAgentSettings
-                            name={agentData.name}
-                            agentType={agentData.agentType}
-                            isEditing={isEditing}
-                            onNameChange={(name) => setAgentData({ ...agentData, name })}
-                            onAgentTypeChange={(agentType) => setAgentData({ ...agentData, agentType })}
-                            responseLength={agentData.responseLength}
-                            temperature={agentData.temperature}
-                            topP={agentData.topP}
-                            maxTokens={agentData.maxTokens}
-                            onResponseLengthChange={(responseLength) =>
-                              setAgentData({ ...agentData, responseLength })
-                            }
-                            onTemperatureChange={(temperature) => setAgentData({ ...agentData, temperature })}
-                            onTopPChange={(topP) => setAgentData({ ...agentData, topP })}
-                            onMaxTokensChange={(maxTokens) => setAgentData({ ...agentData, maxTokens })}
-                          />
-                        </>
+                        <LocalAgentSettings
+                          name={agentData.name}
+                          agentType={agentData.agentType}
+                          isEditing={isEditing}
+                          onNameChange={(name) => setAgentData({ ...agentData, name })}
+                          onAgentTypeChange={(agentType) => setAgentData({ ...agentData, agentType })}
+                          responseLength={agentData.responseLength}
+                          temperature={agentData.temperature}
+                          topP={agentData.topP}
+                          maxTokens={agentData.maxTokens}
+                          onResponseLengthChange={(responseLength) => setAgentData({ ...agentData, responseLength })}
+                          onTemperatureChange={(temperature) => setAgentData({ ...agentData, temperature })}
+                          onTopPChange={(topP) => setAgentData({ ...agentData, topP })}
+                          onMaxTokensChange={(maxTokens) => setAgentData({ ...agentData, maxTokens })}
+                        />
                       )}
                     </div>
 
