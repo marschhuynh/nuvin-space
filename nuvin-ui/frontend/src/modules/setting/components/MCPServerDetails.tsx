@@ -16,7 +16,7 @@ export function MCPServerDetails({
   refreshTrigger,
 }: MCPServerDetailsProps) {
   return (
-    <div className="space-y-6">
+    <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div className="grid gap-2">
@@ -104,22 +104,16 @@ export function MCPServerDetails({
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="rounded-lg">
-          <MCPServerToolsList
-            server={server}
-            enabledTools={enabledTools}
-            onToolToggle={(toolName, enabled) => {
-              const newEnabled = enabled
-                ? [...enabledTools, toolName]
-                : enabledTools.filter((name) => name !== toolName);
-              onUpdateEnabledTools(newEnabled);
-            }}
-            isEditing
-            refreshTrigger={refreshTrigger}
-          />
-        </div>
-      </div>
-    </div>
+      <MCPServerToolsList
+        server={server}
+        enabledTools={enabledTools}
+        onToolToggle={(toolName, enabled) => {
+          const newEnabled = enabled ? [...enabledTools, toolName] : enabledTools.filter((name) => name !== toolName);
+          onUpdateEnabledTools(newEnabled);
+        }}
+        isEditing
+        refreshTrigger={refreshTrigger}
+      />
+    </>
   );
 }

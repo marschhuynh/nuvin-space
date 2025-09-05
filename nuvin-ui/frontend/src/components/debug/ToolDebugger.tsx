@@ -148,7 +148,7 @@ export function ToolDebugger() {
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 flex-1 overflow-y-auto">
+      <CardContent className="space-y-4 flex-1 overflow-auto">
         {/* Selected Agent */}
         <div>
           <h4 className="font-medium text-sm mb-2">Selected Agent</h4>
@@ -192,36 +192,6 @@ export function ToolDebugger() {
               <Badge key={tool} variant="secondary" className="text-xs">
                 {tool}
               </Badge>
-            ))}
-          </div>
-        </div>
-
-        {/* MCP Tools */}
-        <div>
-          <h4 className="font-medium text-sm mb-2">MCP Tools ({debugInfo.toolRegistry.mcpTools.length})</h4>
-          <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-            {debugInfo.toolRegistry.mcpTools.map((tool) => (
-              <div key={tool.name} className="border rounded p-2 bg-gray-50 dark:bg-gray-800">
-                <div className="flex items-center space-x-2 mb-1">
-                  <Badge variant={tool.available ? 'default' : 'secondary'} className="text-xs">
-                    {tool.name}
-                  </Badge>
-                  <span className="text-xs text-gray-500">({tool.serverId})</span>
-                  {tool.available && (
-                    <Badge variant="outline" className="text-xs">
-                      Available
-                    </Badge>
-                  )}
-                </div>
-                <details className="text-xs">
-                  <summary className="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline">
-                    Show Schema
-                  </summary>
-                  <pre className="mt-1 p-2 bg-white dark:bg-gray-900 rounded text-xs overflow-auto max-h-40 border">
-                    {JSON.stringify(tool.schema, null, 2)}
-                  </pre>
-                </details>
-              </div>
             ))}
           </div>
         </div>
@@ -280,13 +250,42 @@ export function ToolDebugger() {
           </div>
         </div>
 
+        {/* MCP Tools */}
+        <div className="flex flex-col">
+          <h4 className="font-medium text-sm mb-2">MCP Tools ({debugInfo.toolRegistry.mcpTools.length})</h4>
+          <div className="space-y-2 overflow-y-auto pr-2">
+            {debugInfo.toolRegistry.mcpTools.map((tool) => (
+              <div key={tool.name} className="border rounded p-2 bg-gray-50 dark:bg-gray-800">
+                <div className="flex items-center space-x-2 mb-1">
+                  <Badge variant={tool.available ? 'default' : 'secondary'} className="text-xs">
+                    {tool.name}
+                  </Badge>
+                  <span className="text-xs text-gray-500">({tool.serverId})</span>
+                  {tool.available && (
+                    <Badge variant="outline" className="text-xs">
+                      Available
+                    </Badge>
+                  )}
+                </div>
+                <details className="text-xs">
+                  <summary className="cursor-pointer text-blue-600 dark:text-blue-400 hover:underline">
+                    Show Schema
+                  </summary>
+                  <pre className="mt-1 p-2 bg-white dark:bg-gray-900 rounded text-xs overflow-auto max-h-40 border">
+                    {JSON.stringify(tool.schema, null, 2)}
+                  </pre>
+                </details>
+              </div>
+            ))}
+          </div>
+        </div>
         {/* Raw Debug Data */}
-        <div className="text-xs">
+        {/* <div className="text-xs">
           <h4 className="font-medium text-sm mb-2">Raw Debug Data</h4>
           <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded text-xs overflow-auto flex-1 border border-gray-200 dark:border-gray-700 min-h-[300px]">
             {JSON.stringify(debugInfo, null, 2)}
           </pre>
-        </div>
+        </div> */}
       </CardContent>
     </Card>
   );

@@ -428,7 +428,7 @@ export function AgentSettings() {
             </div>
 
             {/* Agent Form - Tabbed Layout */}
-            <div className={'flex-1 min-h-0 p-4 overflow-hidden'}>
+            <div className={'flex-1 min-h-0 p-4'}>
               <Tabs defaultValue="general" className="h-full flex flex-col">
                 <TabsList className="w-fit">
                   <TabsTrigger value="general">General</TabsTrigger>

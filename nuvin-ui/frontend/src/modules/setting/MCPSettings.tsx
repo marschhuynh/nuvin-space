@@ -90,7 +90,6 @@ export function MCPSettings() {
       const serverConfig = parsed.mcpServers[serverKey];
       console.log('Processing server:', serverKey, serverConfig);
 
-      // Determine server type based on configuration
       const hasUrl = serverConfig.url && serverConfig.url.trim() !== '';
       const hasCommand = serverConfig.command && serverConfig.command.trim() !== '';
       console.log('Server analysis - hasUrl:', hasUrl, 'hasCommand:', hasCommand);
@@ -347,7 +346,7 @@ export function MCPSettings() {
               />
 
               {/* Server Details Content */}
-              <div className={`flex-1 p-6 overflow-auto`}>
+              <div className={`flex flex-col flex-1 p-4 overflow-hidden space-y-4`}>
                 {isEditing ? (
                   <MCPServerEditor
                     mcpForm={mcpForm}

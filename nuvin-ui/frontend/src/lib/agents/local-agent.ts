@@ -715,7 +715,7 @@ class ToolExecutor {
       const parameters = originalToolCall ? JSON.parse(originalToolCall.function.arguments || '{}') : {};
 
       // Read timing from tool result metadata (measured at execution level)
-      const timingMeta = (toolCallResult.result && toolCallResult.result.metadata) || {} as any;
+      const timingMeta = (toolCallResult.result && toolCallResult.result.metadata) || ({} as any);
       const startedAt: string | undefined = timingMeta.startedAt;
       const completedAt: string | undefined = timingMeta.completedAt;
       const durationMs: number | undefined = timingMeta.durationMs;
