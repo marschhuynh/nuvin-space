@@ -50,6 +50,8 @@ export function Combobox<T = unknown>({
   const [open, setOpen] = React.useState(false);
   const [internalValue, setInternalValue] = React.useState('');
   const [selectedValues, setSelectedValues] = React.useState<string[]>([]);
+  const [searchValue, setSearchValue] = React.useState('');
+  const instanceId = React.useId();
 
   const isControlled = controlledValue !== undefined;
   const currentValue = isControlled ? controlledValue : internalValue;
@@ -97,12 +99,21 @@ export function Combobox<T = unknown>({
     return placeholder;
   };
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (nextOpen) {
+      const listEl = document.querySelector(
+        `[data-combobox-instance="${instanceId}"] [data-slot="command-list"]`,
+      ) as HTMLElement | null;
+      if (listEl) listEl.scrollTop = 0;
+    }
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          role="combobox"
           aria-expanded={open}
           className={cn('w-[200px] justify-between min-h-[3rem] shadow-sm', className)}
           disabled={disabled}
@@ -111,9 +122,23 @@ export function Combobox<T = unknown>({
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0">
+      <PopoverContent data-combobox-instance={instanceId} className="w-[400px] p-0">
         <Command>
-          {searchable && <CommandInput placeholder={searchPlaceholder} className="h-9" />}
+          {searchable && (
+            <CommandInput
+              placeholder={searchPlaceholder}
+              className="h-9"
+              onValueChange={(val) => {
+                setSearchValue(val);
+                // Scroll the list to top on search change
+                const listEl = document.querySelector(
+                  `[data-combobox-instance="${instanceId}"] [data-slot="command-list"]`,
+                ) as HTMLElement | null;
+                if (listEl) listEl.scrollTop = 0;
+              }}
+              value={searchValue}
+            />
+          )}
           <CommandList>
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>

@@ -348,9 +348,7 @@ export function AgentSettings() {
                     </div>
                     {getStatusIcon(agent.status)}
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>{agent.responseLength} responses</span>
-                  </div>
+                  {/* Removed response length display */}
                   {agent.agentType === 'remote' && agent.url && (
                     <div className="text-xs text-muted-foreground mt-1 font-mono truncate">{agent.url}</div>
                   )}
@@ -448,11 +446,9 @@ export function AgentSettings() {
                           isEditing={isEditing}
                           onNameChange={(name) => setAgentData({ ...agentData, name })}
                           onAgentTypeChange={(agentType) => setAgentData({ ...agentData, agentType })}
-                          responseLength={agentData.responseLength}
                           temperature={agentData.temperature}
                           topP={agentData.topP}
                           maxTokens={agentData.maxTokens}
-                          onResponseLengthChange={(responseLength) => setAgentData({ ...agentData, responseLength })}
                           onTemperatureChange={(temperature) => setAgentData({ ...agentData, temperature })}
                           onTopPChange={(topP) => setAgentData({ ...agentData, topP })}
                           onMaxTokensChange={(maxTokens) => setAgentData({ ...agentData, maxTokens })}
@@ -466,11 +462,9 @@ export function AgentSettings() {
                           isEditing={isEditing}
                           onNameChange={(name) => setAgentData({ ...agentData, name })}
                           onAgentTypeChange={(agentType) => setAgentData({ ...agentData, agentType })}
-                          responseLength={agentData.responseLength}
                           temperature={agentData.temperature}
                           topP={agentData.topP}
                           maxTokens={agentData.maxTokens}
-                          onResponseLengthChange={(responseLength) => setAgentData({ ...agentData, responseLength })}
                           onTemperatureChange={(temperature) => setAgentData({ ...agentData, temperature })}
                           onTopPChange={(topP) => setAgentData({ ...agentData, topP })}
                           onMaxTokensChange={(maxTokens) => setAgentData({ ...agentData, maxTokens })}

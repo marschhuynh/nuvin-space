@@ -8,12 +8,10 @@ interface LocalAgentSettingsProps {
   agentType: 'local' | 'remote';
   onNameChange: (name: string) => void;
   onAgentTypeChange: (type: 'local' | 'remote') => void;
-  responseLength: 'short' | 'medium' | 'long';
   temperature: number;
   topP: number;
   maxTokens: number;
   isEditing: boolean;
-  onResponseLengthChange: (length: 'short' | 'medium' | 'long') => void;
   onTemperatureChange: (temp: number) => void;
   onTopPChange: (topP: number) => void;
   onMaxTokensChange: (tokens: number) => void;

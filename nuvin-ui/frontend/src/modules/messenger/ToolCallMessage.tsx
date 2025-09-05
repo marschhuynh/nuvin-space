@@ -264,9 +264,9 @@ export function ToolCallMessage({
           }
         >
           {/* Header - consistent with compact mode */}
-          <div className="px-3 py-2.5 border-b border-border/50 relative">
+          <div className="pt-3 px-2 py-2 border-b border-border/50 relative">
             {/* First line: collapse icon > status icon > tool name > MCP name (if MCP tool) */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
               {/* Collapse controls */}
               <button
                 type="button"
@@ -279,8 +279,13 @@ export function ToolCallMessage({
               {/* Status icon */}
               {getStatusIcon()}
 
-              {/* Tool name */}
-              <span className="font-medium text-foreground text-sm flex-shrink-0">{displayToolName}</span>
+              <div className="flex items-center">
+                {/* Tool name */}
+                <span className="font-medium text-foreground text-sm flex-shrink-0">{displayToolName}</span>
+
+                {/* Total run time (bottom-right) */}
+                {runtimeText && <span className="ml-2 text-[10px] text-muted-foreground">{runtimeText}</span>}
+              </div>
 
               {/* MCP server name (if MCP tool) */}
               {mcpServerName && (
@@ -295,13 +300,6 @@ export function ToolCallMessage({
               {(toolDescription || resultPreview) && (
                 <div className="ml-8 flex flex-1 items-center overflow-hidden">
                   <span className="text-xs text-muted-foreground truncate">{toolDescription || resultPreview}</span>
-                </div>
-              )}
-
-              {/* Total run time (bottom-right) */}
-              {runtimeText && (
-                <div className="flex ml-auto">
-                  <span className="text-[10px] text-muted-foreground">{runtimeText}</span>
                 </div>
               )}
             </div>
