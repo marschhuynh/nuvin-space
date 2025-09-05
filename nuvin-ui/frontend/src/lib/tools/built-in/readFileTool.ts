@@ -1,6 +1,6 @@
 import type { Tool } from '@/types/tools';
 import { readFile } from '@/lib/fs-bridge';
-import { isAbsolutePath } from './utils'
+import { isAbsolutePath } from './utils';
 
 export const readFileTool: Tool = {
   definition: {

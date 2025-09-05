@@ -1,6 +1,6 @@
 import type { Tool } from '@/types/tools';
 import { readFile, writeFile } from '@/lib/fs-bridge';
-import { isAbsolutePath } from './utils'
+import { isAbsolutePath } from './utils';
 
 function applyPatch(original: string, patch: string): string | null {
   const origLines = original.split('\n');

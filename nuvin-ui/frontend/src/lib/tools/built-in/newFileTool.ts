@@ -1,6 +1,6 @@
 import type { Tool } from '@/types/tools';
 import { mkdirAll, pathExists, writeFile, getFsRuntime } from '@/lib/fs-bridge';
-import { isAbsolutePath } from './utils'
+import { isAbsolutePath } from './utils';
 
 export const newFileTool: Tool = {
   definition: {
