@@ -10,4 +10,3 @@ export const Clipboard = {
 };
 
 export default { Events, Clipboard };
-
