@@ -37,7 +37,7 @@ console.clear();
 const useOpenRouter = Boolean(cli.flags.openrouter || process.env.OPENROUTER_API_KEY);
 const useGithub = Boolean(!useOpenRouter && (cli.flags.github || process.env.GITHUB_COPILOT_API_KEY || process.env.GITHUB_ACCESS_TOKEN));
 
-render(
+const {waitUntilExit} = render(
   <App
     useOpenRouter={useOpenRouter}
     useGithub={useGithub}
@@ -46,6 +46,10 @@ render(
   />,
   {
     exitOnCtrlC: true,
-    patchConsole: true
+    patchConsole: true,
   }
 );
+
+waitUntilExit().then(() => {
+  process.exit(0);
+});

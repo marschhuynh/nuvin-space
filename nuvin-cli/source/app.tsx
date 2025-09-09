@@ -1,29 +1,30 @@
-import React, {useEffect, useRef, useState, useMemo} from 'react';
-import {Box, Text, useApp, useInput} from 'ink';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { Box, Text, useApp, useInput } from 'ink';
+import SelectInput from 'ink-select-input';
 import TextInput from 'ink-text-input';
 import Spinner from 'ink-spinner';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import {prompt} from './prompt.js';
+import { prompt } from './prompt.js';
 
 // Core imports from the monorepo
-import {AgentOrchestrator} from '../../nuvin-core/orchestrator.js';
-import {SimpleContextBuilder} from '../../nuvin-core/context.js';
-import {InMemoryMemory, PersistedMemory, JsonFileMemoryPersistence} from '../../nuvin-core/persistent/index.js';
-import type {Message} from '../../nuvin-core/ports.js';
-import {SimpleId} from '../../nuvin-core/id.js';
-import {SystemClock} from '../../nuvin-core/clock.js';
-import {SimpleCost} from '../../nuvin-core/cost.js';
-import {NoopReminders} from '../../nuvin-core/reminders.js';
-import {ToolRegistry} from '../../nuvin-core/tools.js';
-import {EchoLLM, GithubLLM, OpenRouterLLM} from '../../nuvin-core/llm-providers/index.js';
-import {MCPToolPort, CoreMCPClient} from '../../nuvin-core/mcp/index.js';
-import {CompositeToolPort} from '../../nuvin-core/tools-composite.js';
-import {loadMCPConfig} from '../../nuvin-core/config.js';
-import {PersistingConsoleEventPort} from '../../nuvin-core/events.js';
-import type {TodoItem as StoreTodo} from '../../nuvin-core/todo-store.js';
-import type {AgentEvent} from '../../nuvin-core/ports.js';
-import {AgentEventTypes } from '../../nuvin-core/ports.js';
+import { AgentOrchestrator } from '../../nuvin-core/orchestrator.js';
+import { SimpleContextBuilder } from '../../nuvin-core/context.js';
+import { InMemoryMemory, PersistedMemory, JsonFileMemoryPersistence } from '../../nuvin-core/persistent/index.js';
+import type { Message, MemoryPort, ToolCall } from '../../nuvin-core/ports.js';
+import { SimpleId } from '../../nuvin-core/id.js';
+import { SystemClock } from '../../nuvin-core/clock.js';
+import { SimpleCost } from '../../nuvin-core/cost.js';
+import { NoopReminders } from '../../nuvin-core/reminders.js';
+import { ToolRegistry } from '../../nuvin-core/tools.js';
+import { EchoLLM, GithubLLM, OpenRouterLLM } from '../../nuvin-core/llm-providers/index.js';
+import { MCPToolPort, CoreMCPClient } from '../../nuvin-core/mcp/index.js';
+import { CompositeToolPort } from '../../nuvin-core/tools-composite.js';
+import { loadMCPConfig } from '../../nuvin-core/config.js';
+import { PersistingConsoleEventPort } from '../../nuvin-core/events.js';
+import type { TodoItem as StoreTodo } from '../../nuvin-core/todo-store.js';
+import type { AgentEvent } from '../../nuvin-core/ports.js';
+import { AgentEventTypes } from '../../nuvin-core/ports.js';
 
 
 type Props = {
@@ -57,7 +58,7 @@ class UIEventPort extends PersistingConsoleEventPort {
     private appendLine: (line: MessageLine) => void,
     private appendAssistantChunk: (delta: string) => void,
     private setLastMetadata: (metadata: any) => void,
-    opts: {filename: string}
+    opts: { filename: string }
   ) {
     super({ filename: opts.filename });
   }
@@ -90,15 +91,6 @@ class UIEventPort extends PersistingConsoleEventPort {
         const tool = event.result;
         const statusIcon = tool.status === 'success' ? '[+]' : '[!]';
         const duration = tool.durationMs !== undefined ? ` (${tool.durationMs}ms)` : '';
-
-        // Format the actual result content
-        // if (tool.result) {
-        //   if (tool.type === 'json' && typeof tool.result === 'object') {
-        //     resultContent = ` -> ${JSON.stringify(tool.result)}`;
-        //   } else {
-        //     resultContent = ` -> ${String(tool.result)}`;
-        //   }
-        // }
 
         this.appendLine({
           id: crypto.randomUUID(),
@@ -174,24 +166,29 @@ class UIEventPort extends PersistingConsoleEventPort {
   }
 }
 
-export default function App({useOpenRouter = false, useGithub = false, memPersist = false, mcpConfigPath}: Props) {
-  const {exit} = useApp();
+export default function App({ useOpenRouter = false, useGithub = false, memPersist = false, mcpConfigPath }: Props) {
+  const { exit } = useApp();
   const [lines, setLines] = useState<MessageLine[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string>('Initializing...');
   const orchestratorRef = useRef<AgentOrchestrator | null>(null);
+  const memoryRef = useRef<MemoryPort<Message> | null>(null);
   const mcpClientsRef = useRef<CoreMCPClient[]>([]);
   const [provider, setProvider] = useState<'OpenRouter' | 'GitHub' | 'Echo'>('Echo');
   const [model, setModel] = useState<string>('demo-echo');
   const [lastMetadata, setLastMetadata] = useState<any>(null);
   const [showToolParams, setShowToolParams] = useState<boolean>(false);
+  const [showCommandMenu, setShowCommandMenu] = useState<boolean>(false);
 
   // Handle keyboard shortcuts
-  useInput((input, key) => {
+  useInput((_, key) => {
     if (key.tab && key.shift) {
       // Shift+Tab to toggle tool parameters
       setShowToolParams(prev => !prev);
+    }
+    if (key.escape && showCommandMenu) {
+      setShowCommandMenu(false);
     }
   });
 
@@ -216,8 +213,8 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
     (async () => {
       // Ensure session directory exists
       try {
-        fs.mkdirSync(sessionDir, {recursive: true});
-      } catch {}
+        fs.mkdirSync(sessionDir, { recursive: true });
+      } catch { }
 
       // Provider selection
       const selectedProvider = useOpenRouter ? 'OpenRouter' : useGithub ? 'GitHub' : 'Echo';
@@ -226,25 +223,28 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
       const llm = useOpenRouter
         ? new OpenRouterLLM(String(process.env.OPENROUTER_API_KEY || ''))
         : useGithub
-        ? new GithubLLM({
+          ? new GithubLLM({
             apiKey: process.env.GITHUB_COPILOT_API_KEY || undefined,
             accessToken: process.env.GITHUB_ACCESS_TOKEN || undefined,
           })
-        : new EchoLLM();
+          : new EchoLLM();
 
       const resolvedModel = useOpenRouter
         ? process.env.OPENROUTER_MODEL || 'openai/gpt-4.1'
         : useGithub
-        ? process.env.GITHUB_MODEL || 'gpt-4.1'
-        : 'demo-echo';
+          ? process.env.GITHUB_MODEL || 'gpt-4.1'
+          : 'demo-echo';
       setModel(resolvedModel);
 
       // Memory (per-session if persisted)
       const memory = memPersist
         ? new PersistedMemory<Message>(
-            new JsonFileMemoryPersistence<Message>(path.join(sessionDir, '.nuvin_history.json')),
-          )
+          new JsonFileMemoryPersistence<Message>(path.join(sessionDir, '.nuvin_history.json')),
+        )
         : new InMemoryMemory<Message>();
+
+      // expose memory for commands like /clear
+      memoryRef.current = memory;
 
       // Tools: local and optional MCP (persist tool names and todos under session dir)
       const toolsMemory = new PersistedMemory<string>(
@@ -253,7 +253,7 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
       const todosMemory = new PersistedMemory<StoreTodo>(
         new JsonFileMemoryPersistence<StoreTodo>(path.join(sessionDir, '.nuvin_todos.json')),
       );
-      const localTools = new ToolRegistry({toolsMemory, todoMemory: todosMemory});
+      const localTools = new ToolRegistry({ toolsMemory, todoMemory: todosMemory });
 
       let toolsPort: ToolRegistry | CompositeToolPort = localTools;
       const enabledTools: string[] = ['todo_write', 'web_search', 'web_fetch'];
@@ -263,7 +263,7 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
       try {
         const cfg = await loadMCPConfig(configPath);
         if (cfg?.mcpServers) {
-          for (const [serverId, serverCfg] of Object.entries(cfg.mcpServers)) {
+          for (const [serverId, serverCfg] of Object.entries(cfg.mcpServers )) {
             try {
               let client: CoreMCPClient | null = null;
               const timeoutMs = serverCfg.timeoutMs || 30000; // Default 30 seconds
@@ -279,7 +279,7 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
                   command: serverCfg.command,
                   args: serverCfg.args,
                   env: serverCfg.env,
-                  stderr: 'ignore',
+                  stderr: 'pipe',
                 }, timeoutMs);
               }
               if (!client) {
@@ -293,7 +293,7 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
                 continue;
               }
               const prefix = serverCfg.prefix || `mcp_${serverId}_`;
-              const port = new MCPToolPort(client, {prefix});
+              const port = new MCPToolPort(client, { prefix });
               await port.init();
               const exposed = port.getExposedToolNames();
 
@@ -320,7 +320,7 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
 
             } catch (err: unknown) {
               const message = typeof err === 'object' && err !== null && 'message' in err
-                ? (err as {message?: string}).message ?? 'Unknown error'
+                ? (err as { message?: string }).message ?? 'Unknown error'
                 : String(err);
               handleError(`Failed to initialize MCP server '${serverId}': ${message}`);
             }
@@ -328,7 +328,7 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
         }
       } catch (err: unknown) {
         const message = typeof err === 'object' && err !== null && 'message' in err
-          ? (err as {message?: string}).message ?? 'Unknown error'
+          ? (err as { message?: string }).message ?? 'Unknown error'
           : String(err);
         handleError(`Failed to load MCP config from ${configPath}: ${message}`);
       }
@@ -384,6 +384,26 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
   }, [useOpenRouter, useGithub, memPersist, mcpConfigPath]);
 
   const appendLine = (line: MessageLine) => setLines(prev => [...prev, line]);
+  const handleInputChange = (val: string) => {
+    setInput(val);
+    setShowCommandMenu(val.startsWith('/'));
+  };
+  const commandItems = useMemo(() => (
+    [
+      { label: '/clear — Clear chat history', value: '/clear' },
+      { label: '/exit — Exit the app', value: '/exit' },
+    ]
+  ), []);
+  const filteredCommandItems = useMemo(() => {
+    if (!input || !input.startsWith('/')) return commandItems;
+    const q = input.slice(1).toLowerCase();
+    if (!q) return commandItems;
+    return commandItems.filter(it => it.value.slice(1).toLowerCase().startsWith(q) || it.label.toLowerCase().includes(q));
+  }, [input, commandItems]);
+  const handleCommandSelect = (item: { label: string; value: string }) => {
+    setInput(item.value + ' ');
+    setShowCommandMenu(false);
+  };
   const appendAssistantChunk = (delta: string) =>
     setLines(prev => {
       if (prev.length === 0) return [...prev, {
@@ -421,7 +441,7 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
           appendLine({
             id: crypto.randomUUID(),
             type: 'info',
-            content: `✅ MCP server ${index + 1} disconnected`,
+            content: `MCP server ${index + 1} disconnected`,
             metadata: { timestamp: new Date().toISOString() },
             color: 'green'
           });
@@ -430,7 +450,7 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
           appendLine({
             id: crypto.randomUUID(),
             type: 'error',
-            content: `⚠️ Error disconnecting MCP server ${index + 1}: ${message}`,
+            content: `Error disconnecting MCP server ${index + 1}: ${message}`,
             metadata: { timestamp: new Date().toISOString() },
             color: 'yellow'
           });
@@ -444,17 +464,52 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
 
   const handleSlashCommand = async (command: string, args: string): Promise<boolean> => {
     switch (command) {
-      case '/exit':
-        appendLine({
-          id: crypto.randomUUID(),
-          type: 'info',
-          content: 'Goodbye!',
-          metadata: { timestamp: new Date().toISOString() },
-          color: 'cyan'
-        });
-        await cleanup();
-        exit();
+      case '/exit': {
+        (async () => {
+          appendLine({
+            id: crypto.randomUUID(),
+            type: 'info',
+            content: 'Cleaning up resources...',
+            metadata: { timestamp: new Date().toISOString() },
+            color: 'cyan'
+          });
+          await cleanup();
+          appendLine({
+            id: crypto.randomUUID(),
+            type: 'info',
+            content: 'Cleanup complete. Exiting now.',
+            metadata: { timestamp: new Date().toISOString() },
+            color: 'cyan'
+          });
+          exit();
+        })();
         return true;
+      }
+
+      case '/clear': {
+        try {
+          // Clear in-memory chat UI
+          setLines([]);
+          setLastMetadata(null);
+
+          // Clear conversation memory for this session (conversationId: 'cli')
+          await memoryRef.current?.delete('cli');
+
+          // Optionally clear the terminal buffer for a clean look
+          // (kept non-blocking and tolerant across terminals)
+          try { console.clear(); } catch {}
+
+          // Show a brief status in footer via status state
+          setStatus('Chat history cleared');
+          // Reset status after a short delay to avoid confusion
+          setTimeout(() => setStatus('Ready'), 500);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          handleError(`Failed to clear chat: ${message}`);
+        }
+        return true;
+      }
+
 
       default:
         appendLine({
@@ -467,7 +522,7 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
         appendLine({
           id: crypto.randomUUID(),
           type: 'info',
-          content: 'Available commands: /exit',
+          content: 'Available commands: /clear, /exit',
           metadata: { timestamp: new Date().toISOString() },
           color: 'gray'
         });
@@ -493,6 +548,7 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
         color: 'cyan'
       });
       setInput('');
+      setShowCommandMenu(false);
 
       const handled = await handleSlashCommand(command, args);
       if (handled) return;
@@ -527,9 +583,9 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
 
       // The orchestrator will emit events that our UIEventPort will handle
       // No need to manually display content - events will drive the UI updates
-      await orch.send(trimmed, {conversationId: 'cli', stream: true});
+      await orch.send(trimmed, { conversationId: 'cli', stream: true });
     } catch (err: unknown) {
-      const message = typeof err === 'object' && err !== null && 'message' in err ? (err as {message?: string}).message : String(err);
+      const message = typeof err === 'object' && err !== null && 'message' in err ? (err as { message?: string }).message : String(err);
       handleError(message);
     } finally {
       setBusy(false);
@@ -544,7 +600,7 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
           {lines.length === 0 ? (
             <Box flexDirection="column" alignItems="center" justifyContent="center" minHeight={8}>
               <Text color="gray" dimColor>💬 Welcome! Type your message below to start chatting.</Text>
-              <Text color="gray" dimColor>   Commands: '/exit' to quit, or 'exit'/'quit', Ctrl+C to force quit</Text>
+              <Text color="gray" dimColor>   Commands: type '/' to show menu; '/clear' to clear chat; '/exit' to quit; or 'exit'/'quit', Ctrl+C to force quit</Text>
               {provider === 'Echo' && (
                 <Text color="yellow" dimColor>   Try: '!reverse hello world' or '!wc count these words'</Text>
               )}
@@ -555,26 +611,32 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
               switch (l.type) {
                 case 'user':
                   return (
-                    <Box key={l.id || i} marginTop={1} flexDirection="row">
-                      <Text color="white" bold flexShrink={0}>● </Text>
-                      <Text flexShrink={1}>{l.content.startsWith('> ') ? l.content.substring(2) : l.content}</Text>
+                    <Box key={l.id || i} flexDirection="row" marginTop={1}>
+                      <Box flexShrink={0}>
+                        <Text color="white" bold>● </Text>
+                      </Box>
+                      <Text>{l.content.startsWith('> ') ? l.content.substring(2) : l.content}</Text>
                     </Box>
                   );
 
                 case 'assistant':
                   return (
-                    <Box key={l.id || i} marginTop={1} flexDirection="row">
-                      <Text color="green" bold flexShrink={0}>● </Text>
-                      <Text flexShrink={1}>{l.content.startsWith('assistant: ') ? l.content.substring(11) : l.content}</Text>
+                    <Box key={l.id || i} flexDirection="row" marginTop={1}>
+                      <Box flexShrink={0}>
+                        <Text color="green" bold>● </Text>
+                      </Box>
+                      <Text>{l.content.startsWith('assistant: ') ? l.content.substring(11) : l.content}</Text>
                     </Box>
                   );
 
                 case 'tool':
                   return (
-                    <Box key={l.id || i} marginTop={1} flexDirection="column">
+                    <Box key={l.id || i} flexDirection="column" marginTop={1}>
                       <Box flexDirection="row">
-                        <Text color="blue" bold flexShrink={0}>● </Text>
-                        <Text flexShrink={1}>{l.content}</Text>
+                        <Box flexShrink={0}>
+                          <Text color="blue" bold>● </Text>
+                        </Box>
+                        <Text>{l.content}</Text>
                       </Box>
                       {showToolParams && l.metadata?.toolCalls && l.metadata.toolCalls.map((tc, tcIndex) => (
                         <Box key={tcIndex} marginLeft={2} flexDirection="column">
@@ -589,8 +651,10 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
                   return (
                     <Box key={l.id || i} marginLeft={2} flexDirection="column">
                       <Box flexDirection="row">
-                        <Text color={l.color as any} flexShrink={0}>  </Text>
-                        <Text color={l.color as any} flexShrink={1}>{l.content}</Text>
+                        <Box flexShrink={0}>
+                          <Text color={l.color as any}>  </Text>
+                        </Box>
+                        <Text color={l.color as any}>{l.content}</Text>
                       </Box>
                       {showToolParams && l.metadata?.toolResult && (
                         <Box marginLeft={2} flexDirection="column">
@@ -607,7 +671,7 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
                           <Text color="gray">      Full Result:</Text>
                           <Text color="gray" wrap="wrap">        {typeof l.metadata.toolResult.result === 'object'
                             ? JSON.stringify(l.metadata.toolResult.result, null, 2).split('\n').map((line, idx) =>
-                                idx === 0 ? line : `        ${line}`).join('\n')
+                              idx === 0 ? line : `        ${line}`).join('\n')
                             : String(l.metadata.toolResult.result)}</Text>
                         </Box>
                       )}
@@ -617,24 +681,30 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
                 case 'error':
                   return (
                     <Box key={l.id || i} flexDirection="row">
-                      <Text color="red" bold flexShrink={0}>● </Text>
-                      <Text flexShrink={1}>{l.content}</Text>
+                      <Box flexShrink={0}>
+                        <Text color="red" bold>● </Text>
+                      </Box>
+                      <Text>{l.content}</Text>
                     </Box>
                   );
 
                 case 'info':
                   return (
                     <Box key={l.id || i} flexDirection="row">
-                      <Text color={l.color as any || 'gray'} bold flexShrink={0}>● </Text>
-                      <Text color={l.color as any} flexShrink={1}>{l.content}</Text>
+                      <Box flexShrink={0}>
+                        <Text color={l.color as any || 'gray'} bold>● </Text>
+                      </Box>
+                      <Text color={l.color as any}>{l.content}</Text>
                     </Box>
                   );
 
                 case 'system':
                   return (
                     <Box key={l.id || i} flexDirection="row">
-                      <Text color="yellow" bold flexShrink={0}>● </Text>
-                      <Text flexShrink={1}>{l.content}</Text>
+                      <Box flexShrink={0}>
+                        <Text color="yellow" bold>● </Text>
+                      </Box>
+                      <Text>{l.content}</Text>
                     </Box>
                   );
 
@@ -658,14 +728,27 @@ export default function App({useOpenRouter = false, useGithub = false, memPersis
             <Text color="gray">Processing your request...</Text>
           </Box>
         ) : (
-          <Box>
-            <Text color="green" bold>{'>'} </Text>
-            <TextInput
-              value={input}
-              onChange={setInput}
-              onSubmit={handleSubmit}
-              placeholder="Type your message..."
-            />
+          <Box flexDirection="column">
+            <Box>
+              <Text color="green" bold>{'>'} </Text>
+              <TextInput
+                value={input}
+                onChange={handleInputChange}
+                onSubmit={handleSubmit}
+                placeholder="Type your message..."
+                focus={!showCommandMenu}
+              />
+            </Box>
+            {showCommandMenu && (
+              <Box marginLeft={2} marginTop={0} flexDirection="column">
+                <Text color="gray">Commands</Text>
+                <SelectInput
+                  items={filteredCommandItems as any}
+                  isFocused={showCommandMenu}
+                  onSelect={(item: any) => handleCommandSelect(item)}
+                />
+              </Box>
+            )}
           </Box>
         )}
       </Box>

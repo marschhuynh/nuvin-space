@@ -150,25 +150,7 @@ export class CoreMCPClient {
       setTimeout(() => reject(new Error(`MCP tool call timed out after ${this.timeoutMs}ms`)), this.timeoutMs);
     });
 
-    const result = await Promise.race([requestPromise, timeoutPromise]);
-    
-    // Show tool result if it exists and has content
-    if (result.content && Array.isArray(result.content) && result.content.length > 0) {
-      console.log(`[MCP Tool Result] ${call.name}:`);
-      result.content.forEach((item, index) => {
-        if (typeof item === 'object' && item !== null) {
-          if ('text' in item) {
-            console.log(`  ${index + 1}. ${item.text}`);
-          } else {
-            console.log(`  ${index + 1}. ${JSON.stringify(item, null, 2)}`);
-          }
-        } else {
-          console.log(`  ${index + 1}. ${String(item)}`);
-        }
-      });
-    }
-
-    return result;
+    return await Promise.race([requestPromise, timeoutPromise]);
   }
 }
 

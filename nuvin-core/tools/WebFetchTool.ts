@@ -24,9 +24,10 @@ export class WebFetchTool implements FunctionTool<{url: string}> {
     try {
       const res = await fetch(target, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; NuvinBot/1.0; +https://github.com/nuvin-space)',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
         },
       });
+      console.log('Fetched', target, res.status);
       const text = await res.text();
       return {status: 'success', type: 'text', result: text};
     } catch (error: any) {
