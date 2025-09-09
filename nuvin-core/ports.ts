@@ -11,7 +11,7 @@ export type ToolCall = {
 };
 
 export type ChatMessage = {
-  role: 'system' | 'user' | 'assistant' | 'tool';
+  role: typeof MessageRoles.System | typeof MessageRoles.User | typeof MessageRoles.Assistant | typeof MessageRoles.Tool;
   content: string | null;
   tool_calls?: ToolCall[];
   tool_call_id?: string;
@@ -50,7 +50,7 @@ export type CompletionResult = {
 // Internal domain types
 export type Message = {
   id: string;
-  role: 'user' | 'assistant' | 'tool';
+  role: typeof MessageRoles.User | typeof MessageRoles.Assistant | typeof MessageRoles.Tool;
   content: string | null;
   timestamp?: string;
   // When role is 'assistant' and it invoked tools
@@ -63,7 +63,7 @@ export type Message = {
 export type MessageResponse = {
   id: string;
   content: string;
-  role: 'assistant' | 'tool';
+  role: typeof MessageRoles.Assistant | typeof MessageRoles.Tool;
   timestamp: string;
   metadata?: {
     model?: string;
@@ -81,13 +81,17 @@ export type MessageResponse = {
 export type SendMessageOptions = {
   conversationId?: string;
   stream?: boolean;
-  onChunk?: (chunk: string) => void;
-  onAdditionalMessage?: (message: MessageResponse) => void;
 };
 
 // Ports (interfaces) the orchestrator depends upon
 export interface LLMPort {
   generateCompletion(params: CompletionParams, signal?: AbortSignal): Promise<CompletionResult>;
+  // Optional streaming support. Implementers may choose not to support it.
+  streamCompletion?(
+    params: CompletionParams,
+    handlers?: { onChunk?: (delta: string) => void; onToolCallDelta?: (tc: ToolCall) => void },
+    signal?: AbortSignal,
+  ): Promise<CompletionResult>;
 }
 
 export type ToolDefinition = {
@@ -104,6 +108,7 @@ export type ToolExecutionResult = {
   type: 'text' | 'json';
   result: string | object;
   metadata?: Record<string, unknown>;
+  durationMs?: number;
 };
 
 export interface ToolPort {
@@ -163,9 +168,27 @@ export type AgentConfig = {
 };
 
 // Eventing for orchestrator external communication
+export const MessageRoles = {
+  System: 'system',
+  User: 'user',
+  Assistant: 'assistant',
+  Tool: 'tool',
+} as const;
+
+export const AgentEventTypes = {
+  MessageStarted: 'message_started',
+  ToolCalls: 'tool_calls',
+  ToolResult: 'tool_result',
+  AssistantChunk: 'assistant_chunk',
+  AssistantMessage: 'assistant_message',
+  MemoryAppended: 'memory_appended',
+  Done: 'done',
+  Error: 'error',
+} as const;
+
 export type AgentEvent =
   | {
-      type: 'message_started';
+      type: typeof AgentEventTypes.MessageStarted;
       conversationId: string;
       messageId: string;
       userContent: string;
@@ -173,37 +196,43 @@ export type AgentEvent =
       toolNames: string[];
     }
   | {
-      type: 'tool_calls';
+      type: typeof AgentEventTypes.ToolCalls;
       conversationId: string;
       messageId: string;
       toolCalls: ToolCall[];
     }
   | {
-      type: 'tool_result';
+      type: typeof AgentEventTypes.ToolResult;
       conversationId: string;
       messageId: string;
       result: ToolExecutionResult;
     }
   | {
-    type: 'assistant_message';
-    conversationId: string;
-    messageId: string;
-    content: string | null;
-  }
+      type: typeof AgentEventTypes.AssistantChunk;
+      conversationId: string;
+      messageId: string;
+      delta: string;
+    }
   | {
-      type: 'memory_appended';
+      type: typeof AgentEventTypes.AssistantMessage;
+      conversationId: string;
+      messageId: string;
+      content: string | null;
+    }
+  | {
+      type: typeof AgentEventTypes.MemoryAppended;
       conversationId: string;
       delta: Message[];
     }
   | {
-      type: 'done';
+      type: typeof AgentEventTypes.Done;
       conversationId: string;
       messageId: string;
       responseTimeMs: number;
       usage?: UsageData;
     }
   | {
-      type: 'error';
+      type: typeof AgentEventTypes.Error;
       conversationId: string;
       messageId?: string;
       error: string;

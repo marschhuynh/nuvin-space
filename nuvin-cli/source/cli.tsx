@@ -6,6 +6,7 @@ import App from './app.js';
 
 const cli = meow(
   `
+  Sample: I want go get information about the current system, the info include, current time, type of os, how much disk space left, saperating each work into a task and collect the result for me
   Usage
     $ nuvin-cli-app [options]
 

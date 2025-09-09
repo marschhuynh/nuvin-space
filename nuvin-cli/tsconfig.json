@@ -3,5 +3,6 @@
 	"compilerOptions": {
 		"outDir": "dist"
 	},
+	"moduleResolution": "nodenext",
 	"include": ["source"]
 }

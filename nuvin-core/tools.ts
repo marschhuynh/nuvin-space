@@ -1,5 +1,5 @@
 import type { ToolDefinition, ToolExecutionResult, ToolInvocation, ToolPort, MemoryPort } from './ports';
-import { PersistedMemory, JsonFileMemoryPersistence } from './memory';
+import { PersistedMemory, JsonFileMemoryPersistence } from './persistent';
 import { TodoStore, type TodoItem as StoreTodo } from './todo-store';
 import { TodoWriteTool } from './tools/TodoWriteTool';
 import type { FunctionTool } from './tools/types';
@@ -64,17 +64,19 @@ export class ToolRegistry implements ToolPort {
       const batch = calls.slice(i, i + maxConcurrent);
       const batchResults = await Promise.all(
         batch.map(async (c) => {
+          const startTime = performance.now();
           const impl = this.tools.get(c.name);
           if (!impl) {
-            return { id: c.id, name: c.name, status: 'error' as const, type: 'text' as const, result: `Tool '${c.name}' not found` };
+            const durationMs = Math.round(performance.now() - startTime);
+            return { id: c.id, name: c.name, status: 'error' as const, type: 'text' as const, result: `Tool '${c.name}' not found`, durationMs };
           }
           const r = await impl.execute(c.parameters || {}, context);
-          return { ...r, id: c.id, name: c.name };
+          const durationMs = Math.round(performance.now() - startTime);
+          return { ...r, id: c.id, name: c.name, durationMs };
         }),
       );
       results.push(...batchResults);
     }
-    console.log('Tool execution results:', results);
     return results;
   }
 }

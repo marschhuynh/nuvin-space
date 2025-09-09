@@ -18,6 +18,7 @@ import type {
   ToolPort,
   ToolCall,
 } from './ports';
+import { AgentEventTypes, MessageRoles } from './ports';
 
 export class AgentOrchestrator {
   constructor(
@@ -53,7 +54,7 @@ export class AgentOrchestrator {
 
     // Emit start
     await this.deps.events?.emit({
-      type: 'message_started',
+      type: AgentEventTypes.MessageStarted,
       conversationId: convo,
       messageId: msgId,
       userContent: content,
@@ -71,18 +72,45 @@ export class AgentOrchestrator {
       tool_choice: toolDefs.length ? 'auto' : 'none',
     };
 
-    let result: CompletionResult = await this.deps.llm.generateCompletion(params);
+    // Choose streaming or regular path
+    let result: CompletionResult;
+    if (opts.stream && typeof (this.deps.llm as any).streamCompletion === 'function') {
+      // Stream chunks via events while assembling the final result
+      result = await (this.deps.llm as any).streamCompletion(
+        params,
+        {
+          onChunk: async (delta: string) => {
+            await this.deps.events?.emit({
+              type: AgentEventTypes.AssistantChunk,
+              conversationId: convo,
+              messageId: msgId,
+              delta,
+            });
+          },
+        },
+      );
+    } else {
+      result = await this.deps.llm.generateCompletion(params);
+    }
     const allToolResults: ToolExecutionResult[] = [];
     let depth = 0;
     const maxDepth = 10;
     const accumulatedMessages: ChatMessage[] = [...providerMsgs];
     const turnHistory: Message[] = [];
 
-    console.debug('[orchestrator] LLM result:', result);
-
     // Tool-calling loop
     while (result.tool_calls?.length && depth < maxDepth) {
-      await this.deps.events?.emit({ type: 'tool_calls', conversationId: convo, messageId: msgId, toolCalls: result.tool_calls });
+      // Emit pre-tool content if present
+      if (result.content && result.content.trim()) {
+        await this.deps.events?.emit({
+          type: AgentEventTypes.AssistantMessage,
+          conversationId: convo,
+          messageId: msgId,
+          content: result.content
+        });
+      }
+
+      await this.deps.events?.emit({ type: AgentEventTypes.ToolCalls, conversationId: convo, messageId: msgId, toolCalls: result.tool_calls });
       const invocations = this.toInvocations(result.tool_calls);
       const toolResults = await this.deps.tools.executeToolCalls(
         invocations,
@@ -98,11 +126,27 @@ export class AgentOrchestrator {
         const content = tr.status === 'error' ? String(tr.result) : typeof tr.result === 'string' ? tr.result : JSON.stringify(tr.result);
         accumulatedMessages.push({ role: 'tool', content, tool_call_id: tr.id, name: tr.name });
         turnHistory.push({ id: tr.id, role: 'tool', content, timestamp: this.deps.clock.iso(), tool_call_id: tr.id, name: tr.name });
-        await this.deps.events?.emit({ type: 'tool_result', conversationId: convo, messageId: msgId, result: tr });
+        await this.deps.events?.emit({ type: AgentEventTypes.ToolResult, conversationId: convo, messageId: msgId, result: tr });
       }
 
-      // Follow-up completion
-      result = await this.deps.llm.generateCompletion({ ...params, messages: accumulatedMessages });
+      // Follow-up completion: stream if supported and requested
+      if (opts.stream && typeof (this.deps.llm as any).streamCompletion === 'function') {
+        result = await (this.deps.llm as any).streamCompletion(
+          { ...params, messages: accumulatedMessages },
+          {
+            onChunk: async (delta: string) => {
+              await this.deps.events?.emit({
+                type: AgentEventTypes.AssistantChunk,
+                conversationId: convo,
+                messageId: msgId,
+                delta,
+              });
+            },
+          },
+        );
+      } else {
+        result = await this.deps.llm.generateCompletion({ ...params, messages: accumulatedMessages });
+      }
       depth++;
     }
 
@@ -117,13 +161,20 @@ export class AgentOrchestrator {
     // Persist the exact assistant tool_calls and tool outputs sequence from this turn
     for (const m of turnHistory) newHistory.push({ ...m, timestamp });
     newHistory.push({ id: msgId, role: 'assistant', content: result.content, timestamp });
-    await this.deps.events?.emit({ type: 'assistant_message', conversationId: convo, messageId: msgId, content: result.content });
+
+    // Only emit final assistant message if it wasn't already emitted (when no tool calls or final content is different)
+    const shouldEmitFinalMessage = !allToolResults.length ||
+      (result.content && result.content.trim() && !turnHistory.some(m => m.role === 'assistant' && m.content === result.content));
+
+    if (shouldEmitFinalMessage) {
+      await this.deps.events?.emit({ type: AgentEventTypes.AssistantMessage, conversationId: convo, messageId: msgId, content: result.content });
+    }
 
     // Build response
     const resp: MessageResponse = {
       id: msgId,
       content: result.content,
-      role: 'assistant',
+      role: MessageRoles.Assistant,
       timestamp,
       metadata: {
         model: this.cfg.model,
@@ -140,9 +191,9 @@ export class AgentOrchestrator {
 
 
     await this.deps.memory.append(convo, newHistory);
-    await this.deps.events?.emit({ type: 'memory_appended', conversationId: convo, delta: newHistory });
+    await this.deps.events?.emit({ type: AgentEventTypes.MemoryAppended, conversationId: convo, delta: newHistory });
 
-    await this.deps.events?.emit({ type: 'done', conversationId: convo, messageId: msgId, responseTimeMs: t1 - t0, usage: result.usage });
+    await this.deps.events?.emit({ type: AgentEventTypes.Done, conversationId: convo, messageId: msgId, responseTimeMs: t1 - t0, usage: result.usage });
 
     return resp;
   }

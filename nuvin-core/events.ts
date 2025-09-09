@@ -1,6 +1,6 @@
-import type { AgentEvent, EventPort } from './ports';
-import type { MemoryPort } from './ports';
-import { PersistedMemory, JsonFileMemoryPersistence } from './memory';
+import type { AgentEvent, EventPort, MemoryPort } from './ports';
+import { AgentEventTypes } from './ports';
+import { PersistedMemory, JsonFileMemoryPersistence } from './persistent/index.js';
 
 export class NoopEventPort implements EventPort {
   emit(_event: AgentEvent): void {}
@@ -18,7 +18,7 @@ export class ConsoleEventPort implements EventPort {
     try {
       // Keep logs compact but useful
       switch (event.type) {
-        case 'message_started':
+        case AgentEventTypes.MessageStarted:
           console.log('[agent] start', {
             convo: event.conversationId,
             id: event.messageId,
@@ -26,22 +26,22 @@ export class ConsoleEventPort implements EventPort {
             content: event.userContent,
           });
           break;
-        case 'tool_calls':
+        case AgentEventTypes.ToolCalls:
           console.log('[agent] tool_calls', event.toolCalls);
           break;
-        case 'tool_result':
+        case AgentEventTypes.ToolResult:
           console.log('[agent] tool_result', event.result);
           break;
-        case 'assistant_message':
+        case AgentEventTypes.AssistantMessage:
           console.log('[agent] assistant', event.content);
           break;
-        case 'memory_appended':
+        case AgentEventTypes.MemoryAppended:
           console.log('[agent] memory+ =', event.delta.length);
           break;
-        case 'done':
+        case AgentEventTypes.Done:
           console.log('[agent] done', { ms: event.responseTimeMs, usage: event.usage });
           break;
-        case 'error':
+        case AgentEventTypes.Error:
           console.warn('[agent] error', event.error);
           break;
       }
@@ -63,9 +63,6 @@ export class PersistingConsoleEventPort implements EventPort {
   }
 
   async emit(event: AgentEvent): Promise<void> {
-    // Always log to console
-    // this.console.emit(event);
-    // Persist per conversation
     try {
       const key = event.conversationId || 'default';
       const existing = await this.memory.get(key);

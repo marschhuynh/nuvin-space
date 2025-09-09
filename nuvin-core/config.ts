@@ -1,4 +1,4 @@
-import { JsonFileMemoryPersistence } from './memory';
+import { JsonFileMemoryPersistence } from './persistent/index.js';
 
 export type MCPServerConfig = {
   command?: string;
@@ -10,6 +10,8 @@ export type MCPServerConfig = {
   headers?: Record<string, string>;
   // Optional tool name prefix override (defaults to mcp_<serverId>_)
   prefix?: string;
+  // Optional timeout for MCP operations in milliseconds (default: 30000)
+  timeoutMs?: number;
 };
 
 export type MCPConfig = {
