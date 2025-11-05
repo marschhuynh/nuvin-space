@@ -1,0 +1,169 @@
+Initial Configuration Setup Screen Design
+=========================================
+
+STEP 1: Provider Selection
+---------------------------
+
+                                                Welcome to
+                                                ███╗   ██╗ ██╗   ██╗ ██╗   ██╗ ██╗ ███╗   ██╗
+                                                ██╔██╗ ██║ ██║   ██║ ██║   ██║ ██║ ██╔██╗ ██║
+                                                ██║╚██╗██║ ██║   ██║ ╚██╗ ██╔╝ ██║ ██║╚██╗██║
+                                                ██║ ╚████║ ╚██████╔╝  ╚████╔╝  ██║ ██║ ╚████║
+                                                ╚═╝  ╚═══╝  ╚═════╝    ╚═══╝   ╚═╝ ╚═╝  ╚═══╝
+                                                                                      v0.16.2
+
+                                                    ⚙️  Initial Setup
+                                            Let's get you started. Choose your AI provider:
+
+                ╭────────────────────────────────────────────────────────────────────╮
+                │                                                                    │
+                │  ▶ OpenRouter                                                     │
+                │     Access multiple AI models through one API                     │
+                │                                                                    │
+                │    Anthropic                                                      │
+                │     Claude AI models (Sonnet, Opus)                               │
+                │                                                                    │
+                │    GitHub Copilot                                                 │
+                │     Use GitHub Copilot models                                     │
+                │                                                                    │
+                │    Zai                                                            │
+                │     Zai AI platform                                               │
+                │                                                                    │
+                │    Echo (Demo)                                                    │
+                │     Demo mode - echoes back your messages                         │
+                │                                                                    │
+                ╰────────────────────────────────────────────────────────────────────╯
+
+                                       Use ↑↓ to navigate, Enter to select
+
+
+STEP 2: Authentication (for non-echo providers)
+------------------------------------------------
+
+                                                Welcome to
+                                                ███╗   ██╗ ██╗   ██╗ ██╗   ██╗ ██╗ ███╗   ██╗
+                                                ██╔██╗ ██║ ██║   ██║ ██║   ██║ ██║ ██╔██╗ ██║
+                                                ██║╚██╗██║ ██║   ██║ ╚██╗ ██╔╝ ██║ ██║╚██╗██║
+                                                ██║ ╚████║ ╚██████╔╝  ╚████╔╝  ██║ ██║ ╚████║
+                                                ╚═╝  ╚═══╝  ╚═════╝    ╚═══╝   ╚═╝ ╚═╝  ╚═══╝
+                                                                                      v0.16.2
+
+                                                     🔐  Authentication
+                                              Enter your OpenRouter API Key:
+
+                ╭────────────────────────────────────────────────────────────────────╮
+                │                                                                    │
+                │  OpenRouter                                                       │
+                │                                                                    │
+                │  OpenRouter API Key:                                              │
+                │  ************************************************************     │
+                │                                                                    │
+                │  Get your API key from https://openrouter.ai/keys                 │
+                │                                                                    │
+                ╰────────────────────────────────────────────────────────────────────╯
+
+                                      Enter to continue • Ctrl+C to exit
+
+
+STEP 3: Model Selection
+------------------------
+
+                                                Welcome to
+                                                ███╗   ██╗ ██╗   ██╗ ██╗   ██╗ ██╗ ███╗   ██╗
+                                                ██╔██╗ ██║ ██║   ██║ ██║   ██║ ██║ ██╔██╗ ██║
+                                                ██║╚██╗██║ ██║   ██║ ╚██╗ ██╔╝ ██║ ██║╚██╗██║
+                                                ██║ ╚████║ ╚██████╔╝  ╚████╔╝  ██║ ██║ ╚████║
+                                                ╚═╝  ╚═══╝  ╚═════╝    ╚═══╝   ╚═╝ ╚═╝  ╚═══╝
+                                                                                      v0.16.2
+
+                                                     🤖  Select Model
+                                          Choose a model for your conversations:
+
+                ╭────────────────────────────────────────────────────────────────────╮
+                │                                                                    │
+                │  OpenRouter                                                       │
+                │                                                                    │
+                │  ▶ openai/gpt-4o                                                  │
+                │    openai/gpt-4o-mini                                             │
+                │    anthropic/claude-sonnet-4                                      │
+                │                                                                    │
+                ╰────────────────────────────────────────────────────────────────────╯
+
+                                      Use ↑↓ to navigate, Enter to confirm
+
+
+STEP 4: Complete
+----------------
+
+                                                Welcome to
+                                                ███╗   ██╗ ██╗   ██╗ ██╗   ██╗ ██╗ ███╗   ██╗
+                                                ██╔██╗ ██║ ██║   ██║ ██║   ██║ ██║ ██╔██╗ ██║
+                                                ██║╚██╗██║ ██║   ██║ ╚██╗ ██╔╝ ██║ ██║╚██╗██║
+                                                ██║ ╚████║ ╚██████╔╝  ╚████╔╝  ██║ ██║ ╚████║
+                                                ╚═╝  ╚═══╝  ╚═════╝    ╚═══╝   ╚═╝ ╚═╝  ╚═══╝
+                                                                                      v0.16.2
+
+                                                    ✅  Setup Complete
+                                           Configuration saved! Starting Nuvin...
+
+                                     Configuration saved successfully!
+
+
+Features
+--------
+1. Interactive provider selection using arrow keys
+2. Secure password-masked input for API keys
+3. Helpful links for obtaining credentials
+4. Model selection with provider-specific options
+5. Auto-saves to ~/.nuvin-cli/config.yaml
+6. Skips auth step for Echo (demo) provider
+7. Automatically transitions to main app after setup
+
+Supported Providers
+------------------
+1. **OpenRouter** - Multiple models (GPT-4o, Claude Sonnet, etc.)
+2. **Anthropic** - Direct Claude API (Sonnet 4.5, Opus 4)
+3. **GitHub Copilot** - GitHub-hosted models
+4. **Zai** - Enterprise AI platform (GLM models)
+5. **Echo** - Demo mode for testing
+
+Configuration Saved
+-------------------
+The setup creates: ~/.nuvin-cli/config.yaml
+
+Example config after setup:
+```yaml
+activeProvider: openrouter
+model: openai/gpt-4o
+providers:
+  openrouter:
+    token: sk-or-v1-xxxxx...
+```
+
+Or for Anthropic:
+```yaml
+activeProvider: anthropic
+model: claude-sonnet-4-5-20250929
+providers:
+  anthropic:
+    token: sk-ant-xxxxx...
+```
+
+Detection Logic
+---------------
+The initial setup screen is shown when:
+1. No activeProvider is set, OR
+2. activeProvider is set but:
+   - Not 'echo' AND
+   - No token/apiKey found in:
+     - providers.[activeProvider].token
+     - providers.[activeProvider].apiKey
+     - tokens.[activeProvider]
+     - Global apiKey
+
+Skip Setup
+----------
+Users can still skip the setup by:
+1. Using --provider and --api-key CLI flags
+2. Setting environment variables (OPENROUTER_API_KEY, etc.)
+3. Creating config file manually before running

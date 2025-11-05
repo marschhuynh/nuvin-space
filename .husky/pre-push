@@ -1,0 +1,5 @@
+# Run formatting before commit
+pnpm format
+
+# Run build before push
+pnpm build

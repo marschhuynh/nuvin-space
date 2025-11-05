@@ -1,0 +1,7 @@
+node_modules
+dist
+.history
+.env
+.npmrc
+.releaserc.json.backup
+prebuilds

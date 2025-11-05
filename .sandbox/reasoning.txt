@@ -1,0 +1,958 @@
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "\n", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "Okay", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " the", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " user", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " is", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " asking", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " what", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " I", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " can", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " do", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " Let", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " me", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " check", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " the", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " system", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " prompt", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " to", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " recall", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " my", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " capabilities", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".\n\n", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "I", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "'m", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " Nu", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "vin", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " an", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " interactive", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " CLI", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " assistant", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " for", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " software", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " engineering", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " I", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " can", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " help", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " with", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " security", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " analysis", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " detection", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " rules", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " vulnerability", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " explanations", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " hard", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "ening", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " tools", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " monitoring", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " setups", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " and", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " security", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " documentation", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " But", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " I", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " have", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " to", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " stick", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " to", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " defensive", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " security", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " only", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "\u2014", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "no", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " creating", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " anything", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " that", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " could", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " enable", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " abuse", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".\n\n", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "Looking", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " at", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " the", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " tools", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " available", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ":", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " bash", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "_tool", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " dir", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "_ls", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " file", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "_new", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " file", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "_edit", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " file", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "_read", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " todo", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "_write", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " web", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "_search", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " web", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "_fetch", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " assign", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "_task", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " So", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " I", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " can", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " execute", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " shell", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " commands", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " list", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " files", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+: ping - 2025-11-03 17:54:50.237792+00:00
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " create", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " and", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " edit", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " files", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " read", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " files", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " manage", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " todos", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " search", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " the", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " web", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " fetch", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " web", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " pages", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " and", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " delegate", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " to", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " specialist", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " agents", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".\n\n", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "I", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " need", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " to", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " mention", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " the", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " key", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " points", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " conc", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "is", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "ely", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " The", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " user", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " probably", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " wants", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " a", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " brief", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " overview", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " of", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " my", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " functions", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " Let", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " me", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " structure", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " it", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " as", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " a", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " list", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " of", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " main", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " capabilities", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " without", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " getting", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " too", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " detailed", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " Should", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " note", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " the", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " defensive", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " security", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " scope", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " first", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " Then", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " list", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " examples", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " like", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " writing", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " security", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " rules", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " explaining", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " vulnerabilities", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " code", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " assistance", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " test", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " generation", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " etc", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".\n\n", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "Also", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " need", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " to", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " mention", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " available", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " specialist", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " agents", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " like", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " code", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "-review", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "er", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " commit", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "-special", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "ist", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " etc", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".,", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " but", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " maybe", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " keep", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " it", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " high", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "-level", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " Avoid", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " technical", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " j", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "argon", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " unless", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " necessary", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " Keep", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " the", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " response", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " under", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " ", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "4", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " lines", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " as", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " per", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " output", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " rules", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".\n\n", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "Wait", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " the", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " user", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "'s", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " question", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " is", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " \"", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "what", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " you", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " can", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " do", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "\".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " They", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " might", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " be", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " new", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " so", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " I", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " should", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " be", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " clear", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " and", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " direct", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " Make", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " sure", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " to", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " highlight", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " my", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " main", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " functions", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " and", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " the", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " tools", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " available", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " But", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " remember", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " the", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " response", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " must", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " be", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " concise", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "\u2014", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "max", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " ", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "4", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " lines", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " Let", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " me", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " draft", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ":\n\n", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "I", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " assist", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " with", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " defensive", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " security", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " tasks", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ":", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " writing", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " detection", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " rules", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " (", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "Sigma", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "/Y", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "ARA", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "),", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " explaining", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " vulnerabilities", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " hard", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "ening", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " code", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " and", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " security", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " tool", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "ing", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " I", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " can", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " read", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "/edit", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " files", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " execute", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " safe", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " shell", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " commands", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " manage", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " tasks", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " and", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " delegate", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " to", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " specialists", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " (", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "code", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "-review", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "er", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " commit", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "-special", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "ist", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " etc", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".)", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " for", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " code", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " reviews", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " testing", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " and", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " documentation", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".\n\n", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "Check", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " character", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " count", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " Maybe", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " split", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " into", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " two", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " lines", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " Ensure", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " no", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " markdown", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " Avoid", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " mentioning", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " tools", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " by", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " name", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " but", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " describe", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+: ping - 2025-11-03 17:55:05.238308+00:00
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " capabilities", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " Yes", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ",", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " that", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " should", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " fit", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " within", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " ", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": "4", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": " lines", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": null, "reasoning_content": ".\n", "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "\n\n", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "I", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " assist", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " with", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " defensive", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " security", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " tasks", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": ":", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " writing", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " detection", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " rules", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " (", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "Sigma", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "/Y", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "ARA", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "),", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " explaining", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " vulnerabilities", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": ",", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " hard", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "ening", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " code", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": ",", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " and", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " security", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " tool", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "ing", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": ".", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " I", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " can", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " read", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "/edit", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " files", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": ",", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " execute", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " safe", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " shell", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " commands", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": ",", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " manage", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " tasks", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": ",", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " and", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " delegate", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " to", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " specialists", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " (", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "code", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "-review", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "er", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": ",", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " commit", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "-special", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "ist", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": ",", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " etc", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": ".)", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " for", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " code", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " reviews", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": ",", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " testing", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": ",", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " and", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": " documentation", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": ".", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": null}], "usage": null}
+
+data: {"id": "chatcmpl-RMsZllhto27OrdHVKl0uqbd4", "object": "chat.completion.chunk", "created": 1762192475, "model": "Qwen/Qwen3-235B-A22B-Thinking-2507", "choices": [{"index": 0, "delta": {"role": "assistant", "content": "", "reasoning_content": null, "tool_calls": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 5080, "total_tokens": 5556, "completion_tokens": 476, "estimated_cost": 0.0029044, "prompt_tokens_details": null}}
+
+data: [DONE]
+

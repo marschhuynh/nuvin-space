@@ -1,0 +1,24 @@
+{
+	"compilerOptions": {
+		"target": "es2020",
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"outDir": "dist",
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"skipLibCheck": true,
+		"strict": false,
+		"noImplicitAny": false,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"jsx": "react-jsx",
+		"resolveJsonModule": true,
+		"declaration": false,
+		"forceConsistentCasingInFileNames": false,
+		"isolatedModules": true,
+		"allowJs": true,
+		"checkJs": false
+	},
+	"include": ["source/**/*"],
+	"exclude": ["node_modules", "dist"]
+}

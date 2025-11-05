@@ -1,0 +1,49 @@
+{
+	"name": "@nuvin/nuvin-core",
+	"version": "0.0.0",
+	"description": "",
+	"private": false,
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"type": "module",
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"dev": "tsup --watch",
+		"build": "node scripts/build.js",
+		"clean": "rm -rf dist",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"prepack": "rm -rf dist && pnpm run build",
+		"format": "pnpm exec biome format --changed --no-errors-on-unmatched --write ."
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"keywords": [],
+	"author": "Marsch Huynh <marsch.huynh@gmail.com>",
+	"license": "Apache-2.0",
+	"dependencies": {
+		"@ai-sdk/anthropic": "^2.0.30",
+		"@modelcontextprotocol/sdk": "^1.18.0",
+		"ai": "^5.0.76",
+		"cheerio": "^1.1.2",
+		"turndown": "^7.2.1",
+		"yaml": "^2.6.1"
+	},
+	"devDependencies": {
+		"@sindresorhus/tsconfig": "^3.0.1",
+		"@types/turndown": "^5.0.5",
+		"javascript-obfuscator": "^4.1.1",
+		"tsup": "^8.5.0",
+		"typescript": "^5.0.3",
+		"vitest": "^3.2.4"
+	}
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@2.3.0/schema.json",
+  "changelog": [
+    "./changelog-config.js",
+    {
+      "repo": "marschhuynh/nuvin-space"
+    }
+  ],
+  "commit": false,
+  "linked": [],
+  "fixed": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "bumpVersionsWithWorkspaceProtocolOnly": true,
+  "ignore": []
+}

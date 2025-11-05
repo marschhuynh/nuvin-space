@@ -1,0 +1,6 @@
+v22.11.0
+prefer-workspace-packages = true
+link-workspace-packages = true
+save-workspace-protocol = true
+shared-workspace-lockfile = true
+ignore-scripts=false

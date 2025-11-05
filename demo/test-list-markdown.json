@@ -1,0 +1,10 @@
+{
+  "cli": [
+    {
+      "id": "msg-1",
+      "role": "assistant", 
+      "content": "Here are some text formatting examples:\n\n- **This is bold text**\n- *This is italic text*\n- ***This is bold and italic***",
+      "timestamp": "2025-01-09T10:00:00.000Z"
+    }
+  ]
+}

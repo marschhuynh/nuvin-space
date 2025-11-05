@@ -1,0 +1,258 @@
+# IMPROVED WELCOME SCREEN DESIGN PROPOSAL
+# Version: 2.0
+# Date: 2025-10-13
+
+## Design Philosophy
+- Modern, clean aesthetics with better visual hierarchy
+- Improved spacing and breathing room
+- Enhanced readability through better grouping
+- Professional polish while maintaining terminal constraints
+- Better use of color to guide attention
+- Clearer call-to-action for new users
+
+## ASCII Art Options
+
+### Option A: Refined Block Letters (Current Enhanced)
+───────────────────────────────────────────────────────────────────────────────
+
+                                  NUVIN
+                        Your AI-Powered Terminal Assistant
+
+                            Version 0.13.1 • Ready
+
+───────────────────────────────────────────────────────────────────────────────
+
+
+### Option B: Modern Minimalist
+───────────────────────────────────────────────────────────────────────────────
+
+                              ┌─┐  ┬ ┬  ┬  ┬  ┬  ┌┐┌
+                              │ │  │ │  │  │  │  │││
+                              │ │  │ │  │  │  │  │││
+                              │ │  │ │  └──┴──┘  │││
+                              └─┘  └─┘           └┘└
+                                                  
+                         Your AI-Powered Terminal Assistant
+                                Version 0.13.1
+
+───────────────────────────────────────────────────────────────────────────────
+
+
+### Option C: Box Drawing Style (Recommended)
+───────────────────────────────────────────────────────────────────────────────
+
+                          ╔╗╔╦╗╦  ╦╦ ╦╦╔╗╔
+                          ║║║║║╚╗╔╝║ ║║║║║
+                          ╝╚╝╚╝ ╚╝ ╚═╝╩╝╚╝
+                                  
+                   Your AI-Powered Terminal Assistant
+                            Version 0.13.1
+
+───────────────────────────────────────────────────────────────────────────────
+
+
+## Layout Design
+
+### Full Screen Layout (Recommended)
+───────────────────────────────────────────────────────────────────────────────
+
+                          ╔╗╔╦╗╦  ╦╦ ╦╦╔╗╔
+                          ║║║║║╚╗╔╝║ ║║║║║
+                          ╝╚╝╚╝ ╚╝ ╚═╝╩╝╚╝
+                                  
+                   Your AI-Powered Terminal Assistant
+                            Version 0.13.1
+
+───────────────────────────────────────────────────────────────────────────────
+
+  ┌─ QUICK START ────────────────────────┐  ┌─ RECENT ACTIVITY ──────────────┐
+  │                                       │  │                                 │
+  │  Essential Commands                   │  │  11h ago  Fixed vim mode bug    │
+  │                                       │  │  11h ago  Updated docs          │
+  │  • /help      Show all commands      │  │  12h ago  Added new feature     │
+  │  • /mcp       Manage MCP servers     │  │  12h ago  Code review session   │
+  │  • /model     Switch AI model        │  │  12h ago  Refactored UI         │
+  │  • /history   Browse past chats      │  │                                 │
+  │  • /docs      Open documentation     │  │  No previous activity           │
+  │                                       │  │                                 │
+  │  Keyboard Shortcuts                   │  └─────────────────────────────────┘
+  │                                       │
+  │  • Ctrl+C     Cancel/Exit            │  ┌─ TIPS ─────────────────────────┐
+  │  • ↑/↓        Navigate history       │  │                                 │
+  │  • Tab        Autocomplete           │  │  💡 Pro tip: Use /mcp to        │
+  │  • Ctrl+D     Send EOF               │  │     connect to MCP servers      │
+  │                                       │  │     for extended capabilities   │
+  └───────────────────────────────────────┘  └─────────────────────────────────┘
+
+
+  ❯ Type your message or /help for commands...
+
+────────────────────────────────────────────────────────────────────────────────
+  zai • claude-sonnet-4 • Thinking: OFF • Approval: ON
+
+───────────────────────────────────────────────────────────────────────────────
+
+
+### Compact Layout (For smaller terminals)
+───────────────────────────────────────────────────────────────────────────────
+
+            ╔╗╔╦╗╦  ╦╦ ╦╦╔╗╔  v0.13.1
+            ║║║║║╚╗╔╝║ ║║║║║
+            ╝╚╝╚╝ ╚╝ ╚═╝╩╝╚╝
+
+     Your AI-Powered Terminal Assistant
+
+─────────────────────────────────────────
+
+  Commands: /help /mcp /model /history
+  
+  Recent: 11h ago • Fixed vim mode bug
+          11h ago • Updated documentation
+
+─────────────────────────────────────────
+
+  ❯ Start typing...
+
+  zai • claude-4 • Ready
+
+───────────────────────────────────────────────────────────────────────────────
+
+
+## Color Scheme Recommendations
+
+Based on theme.ts analysis:
+
+1. **Logo/Branding**
+   - Use gradient: cyan → green (#00d9ff → #1baf6a)
+   - Or solid cyan for better terminal compatibility
+
+2. **Tagline**
+   - Color: gray (#6c6c6c) with dimColor
+   - Creates hierarchy separation from logo
+
+3. **Section Headers** (Quick Start, Recent Activity, Tips)
+   - Color: cyan (#00d9ff) - theme.welcome.title
+   - Bold text for emphasis
+   - Consider using box-drawing characters for dividers
+
+4. **Command List**
+   - Command names: green (#1baf6a) - theme.input.prompt
+   - Descriptions: gray (#6c6c6c) - theme.welcome.subtitle
+   - Use consistent indentation (2-3 spaces)
+
+5. **Keyboard Shortcuts**
+   - Shortcut keys: yellow (#eaff00) - theme.help.keyBinding
+   - Action description: gray
+
+6. **Recent Activity**
+   - Timestamps: gray with dimColor
+   - Messages: white/default text
+   - Empty state: dimmed gray
+
+7. **Tips Section**
+   - Icon: yellow (warm, attention-grabbing)
+   - Text: gray for readability
+
+8. **Borders**
+   - Use theme.welcome.hint (#44475a) for subtle borders
+   - Consider single-line box drawing for cleaner look
+
+9. **Input Prompt**
+   - Prompt symbol: green (#1baf6a)
+   - Placeholder: gray with dimColor
+
+10. **Footer Status Bar**
+    - Provider: yellow (#eaff00)
+    - Model: gray
+    - Status indicators: gray
+    - Use bullet separators (•) instead of pipes
+
+
+## Key Improvements
+
+### 1. Visual Hierarchy
+   - Clearer separation between logo, content, and input
+   - Better use of whitespace and grouping
+   - Consistent spacing between sections
+
+### 2. Information Architecture
+   - Grouped related information (commands, shortcuts, tips)
+   - Added keyboard shortcuts for power users
+   - Tips section for contextual help
+   - Better empty states
+
+### 3. Typography & Layout
+   - Lighter logo that doesnt dominate
+   - Consistent bullet usage (•) instead of mixed styles
+   - Aligned columns with proper padding
+   - Better use of box-drawing characters
+
+### 4. Accessibility
+   - Better contrast ratios
+   - Clearer visual grouping
+   - Screen-reader friendly structure
+   - Works in 16-color terminals
+
+### 5. Professional Polish
+   - Refined tagline placement
+   - Consistent use of separators
+   - Better footer design with bullet separators
+   - Cleaner borders with unified style
+
+### 6. Responsive Design
+   - Compact layout option for small terminals
+   - Graceful degradation
+   - Dynamic width adjustment for activity messages
+
+
+## Terminal Compatibility Matrix
+
+| Feature              | 16 Color | 256 Color | TrueColor | Notes                    |
+|---------------------|----------|-----------|-----------|--------------------------|
+| Logo gradient       | ✓        | ✓         | ✓         | Falls back to solid cyan |
+| Box characters      | ✓        | ✓         | ✓         | UTF-8 required           |
+| Color scheme        | ✓        | ✓         | ✓         | Uses ANSI base colors    |
+| Layout              | ✓        | ✓         | ✓         | Terminal width aware     |
+| Bullets (•)         | ✓        | ✓         | ✓         | UTF-8 required           |
+
+
+## Implementation Checklist
+
+- [ ] Create new logo component with smaller footprint
+- [ ] Implement responsive layout (switches at 100 cols)
+- [ ] Add keyboard shortcuts section
+- [ ] Add tips/pro-tip section with rotation
+- [ ] Improve empty state for recent activity
+- [ ] Update color mappings per recommendations
+- [ ] Add better spacing/padding system
+- [ ] Implement dynamic truncation based on terminal width
+- [ ] Add version number to logo line for compact view
+- [ ] Update footer with bullet separators
+- [ ] Test in 16, 256, and TrueColor terminals
+- [ ] Test with small terminal widths (< 80 cols)
+- [ ] Verify screen reader compatibility
+
+
+## Design Tokens
+
+\`\`\`typescript
+// Recommended spacing system
+const SPACING = {
+  xs: 0,
+  sm: 1,
+  md: 2,
+  lg: 3,
+  xl: 4,
+};
+
+// Border style recommendations
+const BORDER_STYLE = 'single'; // or 'round' for softer look
+
+// Layout breakpoints
+const BREAKPOINTS = {
+  compact: 80,
+  standard: 100,
+  wide: 140,
+};
+\`\`\`
+

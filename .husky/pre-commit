@@ -1,0 +1,2 @@
+# Run formatting before commit
+pnpm format

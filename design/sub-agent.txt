@@ -1,0 +1,8 @@
+» [Code Reviewer]
+  │  file_read (10ms)
+  │  file_write (10ms)
+  │  file_read (10ms)
+  │  todo_write (10ms)
+  ├─ success
+  │  Specialist agent "researcher" completed task.
+  └─ Done in 67171ms
