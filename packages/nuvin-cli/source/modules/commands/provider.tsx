@@ -1,6 +1,6 @@
 import type React from 'react';
 import { createContext, useContext } from 'react';
-import { commandRegistry } from '../commands/registry.js';
+import { commandRegistry } from './registry.js';
 
 interface CommandContextValue {
   registry: typeof commandRegistry;

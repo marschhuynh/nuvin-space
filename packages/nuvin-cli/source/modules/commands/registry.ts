@@ -1,6 +1,5 @@
-import { eventBus } from '../../services/EventBus.js';
 import type { MemoryPort, Message } from '@nuvin/nuvin-core';
-
+import { eventBus } from '../../services/EventBus.js';
 import type { OrchestratorManager } from '../../services/OrchestratorManager.js';
 import type {
   CommandDefinition,
@@ -78,7 +77,7 @@ export class CommandRegistry implements ICommandRegistry {
         if (command.handler) {
           const parts = input.trim().split(/\s+/);
           const hasArgs = parts.length > 1;
-          
+
           if (hasArgs) {
             await command.handler(context);
             if (command.afterInvoke) {
@@ -87,7 +86,7 @@ export class CommandRegistry implements ICommandRegistry {
             return { success: true, commandId };
           }
         }
-        
+
         // Show component if no handler or no arguments
         this.setActive(commandId, context);
         return { success: true, commandId };

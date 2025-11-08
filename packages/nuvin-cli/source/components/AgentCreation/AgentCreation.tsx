@@ -1,4 +1,5 @@
 import type React from 'react';
+import type { AgentTemplate } from '@nuvin/nuvin-core';
 import { useAgentCreationState } from './useAgentCreationState.js';
 import { useAgentCreationKeyboard } from './useAgentCreationKeyboard.js';
 import { AgentDescriptionInput } from './AgentDescriptionInput.js';
@@ -6,9 +7,8 @@ import { AgentPreview } from './AgentPreview.js';
 import { AgentForm } from './AgentForm.js';
 import { AgentLoading } from './AgentLoading.js';
 import { AgentError } from './AgentError.js';
-import type { AgentTemplate } from '@nuvin/nuvin-core';
 
-interface AgentInputProps {
+interface AgentCreationProps {
   visible: boolean;
   onGenerate: (description: string) => void;
   onCancel: () => void;
@@ -23,7 +23,7 @@ interface AgentInputProps {
   navigationSource?: 'agent-config' | 'direct';
 }
 
-export const AgentInput: React.FC<AgentInputProps> = ({
+export const AgentCreation: React.FC<AgentCreationProps> = ({
   visible,
   onGenerate,
   onCancel,
@@ -34,7 +34,6 @@ export const AgentInput: React.FC<AgentInputProps> = ({
   error,
   preview,
   mode = 'create',
-  navigationSource,
 }) => {
   const state = useAgentCreationState(mode, preview, onUpdatePreview, onConfirm);
 
@@ -118,4 +117,4 @@ export const AgentInput: React.FC<AgentInputProps> = ({
   );
 };
 
-export default AgentInput;
+export default AgentCreation;

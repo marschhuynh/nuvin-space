@@ -21,7 +21,15 @@ const LOGO = `Welcome to
 ██║ ╚████║ ╚██████╔╝  ╚████╔╝  ██║ ██║ ╚████║
 ╚═╝  ╚═══╝  ╚═════╝    ╚═══╝   ╚═╝ ╚═╝  ╚═══╝`;
 
-type SetupStep = 'provider' | 'auth-method' | 'auth-input' | 'auth-device-flow' | 'auth-oauth' | 'model' | 'loading-models' | 'complete';
+type SetupStep =
+  | 'provider'
+  | 'auth-method'
+  | 'auth-input'
+  | 'auth-device-flow'
+  | 'auth-oauth'
+  | 'model'
+  | 'loading-models'
+  | 'complete';
 
 interface SelectItem {
   value: string;
@@ -37,10 +45,6 @@ interface SelectInputItemProps {
   key: string;
   description?: string;
 }
-
-
-
-
 
 const AUTH_METHOD_LABELS: Record<AuthMethod, string> = {
   'device-flow': 'Device Flow Login (Recommended)',
@@ -349,9 +353,7 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
         <Box flexDirection="column" alignItems="center" marginTop={1}>
           <SelectInput
             items={PROVIDER_OPTIONS.map((p) => {
-              const [label, description] = p.label.includes(' - ') 
-                ? p.label.split(' - ', 2) 
-                : [p.label, ''];
+              const [label, description] = p.label.includes(' - ') ? p.label.split(' - ', 2) : [p.label, ''];
               return {
                 key: p.value,
                 value: p.value,

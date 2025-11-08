@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createSimpleDiff } from '../source/components/shared/FileDiffView.js';
+import { createSimpleDiff } from '../source/components/FileDiffView.js';
 
 describe('FileDiffView', () => {
   it('should create diff with unique segments', () => {

@@ -83,7 +83,7 @@ const cli = meow(
     • ZAI_API_KEY - ZAI authentication
     • DEEPINFRA_API_KEY - DeepInfra authentication
     • GITHUB_ACCESS_TOKEN - GitHub Models authentication
-    
+
     You can also use --api-key flag or config files for authentication.
 
   Configuration Examples

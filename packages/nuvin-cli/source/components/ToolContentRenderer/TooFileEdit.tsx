@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { ToolCall } from '@nuvin/nuvin-core';
 import { Box, Text } from 'ink';
-import { FileDiffView, type LineNumbers } from '../shared/FileDiffView.js';
+import { FileDiffView, type LineNumbers } from '../FileDiffView.js';
 import type { EnrichedToolCall } from '../../utils/enrichToolCalls.js';
 import { useStdoutDimensions } from '../../hooks/index.js';
 

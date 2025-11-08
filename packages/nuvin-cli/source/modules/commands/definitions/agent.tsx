@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Text, useInput } from 'ink';
-import type { AgentTemplate, ToolPort, AgentAwareToolPort, OrchestratorAwareToolPort } from '@nuvin/nuvin-core';
+import type { AgentTemplate, ToolPort, AgentAwareToolPort } from '@nuvin/nuvin-core';
 import { AppModal } from '../../../components/AppModal.js';
-import AgentModal, { type AgentInfo } from '../../../components/agent-modal/AgentModal.js';
+import AgentModal, { type AgentInfo } from '../../../components/AgentModal/AgentModal.js';
 import type { CommandRegistry, CommandComponentProps } from '../types.js';
 import { useTheme } from '../../../contexts/ThemeContext.js';
 import { AgentCreator } from '../../../services/AgentCreator.js';
-import AgentInput from '../../../components/agent-creation/AgentInput.js';
+import AgentCreation from '../../../components/AgentCreation/AgentCreation.js';
 
 // Navigation state types
 type NavigationSource = 'agent-config' | 'direct' | null;
@@ -44,38 +44,35 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
   });
 
   // Helper functions for clean state transitions
-  const transitionToEdit = useCallback(
-    (agentId: string, source: NavigationSource, selectedAgentIndex: number) => {
-      setNavigationState({
-        activeView: 'edit',
-        navigationSource: source,
-        preservedState:
-          source === 'agent-config'
-            ? {
-                selectedAgentId: agentId,
-                selectedAgentIndex,
-              }
-            : null,
-      });
-    },
-    [],
-  );
+  const transitionToEdit = useCallback((agentId: string, source: NavigationSource, selectedAgentIndex: number) => {
+    setNavigationState({
+      activeView: 'edit',
+      navigationSource: source,
+      preservedState:
+        source === 'agent-config'
+          ? {
+              selectedAgentId: agentId,
+              selectedAgentIndex,
+            }
+          : null,
+    });
+  }, []);
 
   const transitionToConfig = useCallback(() => {
-    setNavigationState((prev) => ({
+    setNavigationState(() => ({
       activeView: 'config',
       navigationSource: null,
       preservedState: null,
     }));
   }, []);
 
-  const transitionToNone = useCallback(() => {
-    setNavigationState({
-      activeView: 'none',
-      navigationSource: null,
-      preservedState: null,
-    });
-  }, []);
+  // const transitionToNone = useCallback(() => {
+  //   setNavigationState({
+  //     activeView: 'none',
+  //     navigationSource: null,
+  //     preservedState: null,
+  //   });
+  // }, []);
 
   useInput(
     (_input, key) => {
@@ -451,7 +448,8 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
 
                 // Find the index of the edited agent (use new ID if renamed)
                 const editedAgentIndex = agentInfos.findIndex((a) => a.id === newId);
-                const selectedIndex = editedAgentIndex >= 0 ? editedAgentIndex : navigationState.preservedState?.selectedAgentIndex ?? 0;
+                const selectedIndex =
+                  editedAgentIndex >= 0 ? editedAgentIndex : (navigationState.preservedState?.selectedAgentIndex ?? 0);
 
                 // Update navigation state to preserve selection on edited agent
                 setNavigationState({
@@ -568,13 +566,23 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
         setCreationLoading(false);
       }
     },
-    [context.config, context.orchestrator, creationPreview, editingAgentId, loadAgents, navigationState.navigationSource, transitionToConfig, transitionToNone],
+    [
+      context.config,
+      context.orchestrator,
+      creationPreview,
+      editingAgentId,
+      loadAgents,
+      navigationState.navigationSource,
+      transitionToConfig,
+      deactivate,
+      navigationState.preservedState?.selectedAgentIndex,
+    ],
   );
 
   // Show creation input if in creation mode
   if (creationMode) {
     return (
-      <AgentInput
+      <AgentCreation
         visible={true}
         mode={editingAgentId ? 'edit' : 'create'}
         onGenerate={handleCreationSubmit}
@@ -654,8 +662,5 @@ export function registerAgentCommand(registry: CommandRegistry) {
     description: 'Configure and manage specialist agents.',
     category: 'config',
     component: AgentCommandComponent,
-    onExit({ eventBus }) {
-      eventBus.emit('ui:agent:close', undefined);
-    },
   });
 }

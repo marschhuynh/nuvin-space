@@ -4,7 +4,7 @@ import { Markdown } from './Markdown.js';
 import type { ToolCall } from '@nuvin/nuvin-core';
 import type { MessageLine as MessageLineType } from '../adapters/index.js';
 import { useTheme } from '../contexts/ThemeContext.js';
-import { ToolCallViewer } from './tool-render/index.js';
+import { ToolCallViewer } from './ToolCallViewer/index.js';
 import { SubAgentActivity } from './SubAgentActivity.js';
 import type { SubAgentState } from '../utils/eventProcessor.js';
 import { useStreamingMarkdown } from '../hooks/index.js';

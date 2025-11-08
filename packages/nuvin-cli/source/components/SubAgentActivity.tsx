@@ -3,7 +3,7 @@ import { Box, Text } from 'ink';
 import type { ToolCall, ToolExecutionResult } from '@nuvin/nuvin-core';
 import type { MessageLine as MessageLineType } from '../adapters/index.js';
 import { useTheme } from '../contexts/ThemeContext.js';
-import { ToolResultView } from './tool-results/ToolResultView.js';
+import { ToolResultView } from './ToolResultView/ToolResultView.js';
 import { useStdoutDimensions } from '../hooks/useStdoutDimensions.js';
 import { ToolTimer } from './ToolTimer.js';
 

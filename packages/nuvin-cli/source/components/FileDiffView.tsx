@@ -1,5 +1,5 @@
 import { Box, Text } from 'ink';
-import { useStdoutDimensions } from '../../hooks';
+import { useStdoutDimensions } from '../hooks';
 
 export type DiffSegment = {
   text: string;

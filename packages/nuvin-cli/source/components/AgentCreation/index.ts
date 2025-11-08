@@ -1,4 +1,4 @@
-export { AgentInput } from './AgentInput.js';
+export { AgentCreation } from './AgentCreation.js';
 export { useAgentCreationState } from './useAgentCreationState.js';
 export { useAgentCreationKeyboard } from './useAgentCreationKeyboard.js';
 export { ToolSelectInput } from './ToolSelectInput.js';
