@@ -17,13 +17,13 @@ import {
   SimpleCost,
   NoopReminders,
   ToolRegistry,
-  EchoLLM,
   CompositeToolPort,
   AgentRegistry,
   AgentFilePersistence,
   generateFolderTree,
   ConversationStore,
   ConversationContext,
+  type LLMFactory as LLMFactoryCore,
   type AgentConfig,
   type Message,
   type ToolPort,
@@ -228,8 +228,37 @@ export class OrchestratorManager {
       // Wait for agents to finish loading before building system prompt
       await agentRegistry.waitForLoad();
 
-      const localTools = new ToolRegistry({ agentRegistry });
-      const agentTools: ToolPort = localTools;
+      const toolRegistry = new ToolRegistry({ agentRegistry });
+      const agentTools: ToolPort = toolRegistry;
+
+      // Create LLM factory adapter for sub-agents
+      const llmFactoryAdapter: LLMFactoryCore = {
+        createLLM: (config) => {
+          // If provider is specified, check if it has auth configured
+          let provider: ProviderKey | undefined;
+
+          if (config.provider) {
+            const requestedProvider = config.provider as ProviderKey;
+            const currentConfig = this.getCurrentConfig();
+            const providerConfig = currentConfig.config.providers?.[requestedProvider];
+
+            // Check if provider has auth configured
+            const hasAuth =
+              providerConfig?.auth && Array.isArray(providerConfig.auth) && providerConfig.auth.length > 0;
+
+            if (hasAuth) {
+              provider = requestedProvider;
+            }
+          }
+
+          // Fallback to active provider if requested provider has no auth or no provider specified
+          if (!provider) {
+            provider = this.getCurrentConfig().config.activeProvider || 'echo';
+          }
+
+          return this.llmFactory.createLLM(provider, { httpLogFile });
+        },
+      };
 
       const mcpManager = new MCPServerManager({
         configPath: options.mcpConfigPath,
@@ -301,8 +330,17 @@ export class OrchestratorManager {
       const orchestrator = new AgentOrchestrator(agentConfig, agentDeps);
 
       // Initialize AssignTool with orchestrator dependencies
-      if (localTools?.setOrchestrator) {
-        localTools.setOrchestrator(agentConfig, llm, agentTools);
+      if (toolRegistry?.setOrchestrator) {
+        // Config resolver provides fresh config values for sub-agents
+        const configResolver = () => {
+          const fresh = this.getCurrentConfig();
+          return {
+            model: fresh.model,
+            reasoningEffort: fresh.reasoningEffort,
+          };
+        };
+        
+        toolRegistry.setOrchestrator(agentConfig, agentTools, llmFactoryAdapter, configResolver);
       }
 
       // Note: Enabled agents configuration will be loaded and set by the /agent command

@@ -16,7 +16,6 @@ export type AgentTemplate = {
   // LLM Configuration (optional - inherits from delegating agent if not specified)
   provider?: string; // LLM provider (e.g., "openrouter", "github")
   model?: string; // Model name (e.g., "gpt-4", "claude-3-sonnet")
-  apiKey?: string; // Optional API key override
 
   // Sampling parameters (optional - inherits if not specified)
   temperature?: number; // Default temperature (defaults to 0.7)

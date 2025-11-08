@@ -26,6 +26,8 @@ export type {
   MemoryPort,
   MetadataPort,
   LLMPort,
+  LLMFactory,
+  LLMConfig,
   AgentEvent,
   ToolCall,
   ToolExecutionResult,
@@ -33,6 +35,8 @@ export type {
   UserMessagePayload,
   ToolApprovalDecision,
   SendMessageOptions,
+  AgentAwareToolPort,
+  OrchestratorAwareToolPort,
 } from './ports.js';
 export { AgentEventTypes, ToolPort, AgentConfig } from './ports.js';
 
@@ -59,7 +63,8 @@ export {
   DefaultDelegationResultFormatter,
   AgentManagerCommandRunner,
 } from './delegation/index.js';
-export type { DelegationService, AgentCatalog } from './delegation/index.js';
+export type { DelegationService, AgentCatalog, DelegationServiceConfig } from './delegation/index.js';
+export { DelegationServiceFactory, LLMResolver } from './delegation/index.js';
 
 // LLM providers
 export { EchoLLM, GithubLLM, OpenRouterLLM, DeepInfraLLM, ZaiLLM, AnthropicLLM, AnthropicAISDKLLM } from './llm-providers/index.js';

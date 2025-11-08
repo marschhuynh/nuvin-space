@@ -4,6 +4,72 @@ import { registerThinkingCommand } from '../source/modules/commands/definitions/
 import { ConfigManager } from '../source/config/manager.js';
 import type { TypedEventBus } from '../source/services/EventBus.js';
 
+vi.mock('node:fs', () => {
+  const mockFs: Record<string, string> = {};
+
+  const promises = {
+    mkdir: vi.fn(async () => {}),
+    writeFile: vi.fn(async (filePath: string, content: string) => {
+      mockFs[filePath] = content;
+    }),
+    readFile: vi.fn(async (filePath: string) => {
+      if (!(filePath in mockFs)) {
+        const error = new Error(`ENOENT: no such file or directory, open '${filePath}'`) as NodeJS.ErrnoException;
+        error.code = 'ENOENT';
+        throw error;
+      }
+      return mockFs[filePath];
+    }),
+  };
+
+  return {
+    default: {
+      existsSync: vi.fn((filePath: string) => filePath in mockFs),
+      readFileSync: vi.fn((filePath: string) => {
+        if (!(filePath in mockFs)) {
+          const error = new Error(`ENOENT: no such file or directory, open '${filePath}'`) as NodeJS.ErrnoException;
+          error.code = 'ENOENT';
+          throw error;
+        }
+        return mockFs[filePath];
+      }),
+      writeFileSync: vi.fn((filePath: string, content: string) => {
+        mockFs[filePath] = content;
+      }),
+      mkdirSync: vi.fn(() => {}),
+      rmSync: vi.fn(() => {}),
+      readdirSync: vi.fn(() => []),
+      promises,
+    },
+    existsSync: vi.fn((filePath: string) => filePath in mockFs),
+    readFileSync: vi.fn((filePath: string) => {
+      if (!(filePath in mockFs)) {
+        const error = new Error(`ENOENT: no such file or directory, open '${filePath}'`) as NodeJS.ErrnoException;
+        error.code = 'ENOENT';
+        throw error;
+      }
+      return mockFs[filePath];
+    }),
+    writeFileSync: vi.fn((filePath: string, content: string) => {
+      mockFs[filePath] = content;
+    }),
+    mkdirSync: vi.fn(() => {}),
+    rmSync: vi.fn(() => {}),
+    readdirSync: vi.fn(() => []),
+    promises,
+    __mockFs: mockFs,
+  };
+});
+
+vi.mock('node:os', () => ({
+  default: {
+    homedir: () => '/mock-home',
+    tmpdir: () => '/mock-tmp',
+  },
+  homedir: () => '/mock-home',
+  tmpdir: () => '/mock-tmp',
+}));
+
 type EventHandler = (...args: unknown[]) => void;
 
 const createMockEventBus = (): TypedEventBus & { getCapturedEvents: () => Array<{ event: string; data: any }> } => {

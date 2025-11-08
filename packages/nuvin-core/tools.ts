@@ -3,9 +3,12 @@ import type {
   ToolExecutionResult,
   ToolInvocation,
   ToolPort,
+  AgentAwareToolPort,
+  OrchestratorAwareToolPort,
   MemoryPort,
   AgentConfig,
   LLMPort,
+  LLMFactory,
 } from './ports.js';
 import { InMemoryMemory } from './persistent/index.js';
 import { TodoStore, type TodoItem as StoreTodo } from './todo-store.js';
@@ -20,18 +23,13 @@ import { BashTool } from './tools/BashTool.js';
 import { DirLsTool } from './tools/DirLsTool.js';
 import { AgentRegistry } from './agent-registry.js';
 import { AssignTool } from './tools/AssignTool.js';
-import {
-  AgentManagerCommandRunner,
-  DefaultDelegationPolicy,
-  DefaultDelegationResultFormatter,
-  DefaultDelegationService,
-  DefaultSpecialistAgentFactory,
-} from './delegation/index.js';
+import { AgentManagerCommandRunner, DelegationServiceFactory } from './delegation/index.js';
 
-export class ToolRegistry implements ToolPort {
-  private tools = new Map<string, FunctionTool<any, any>>();
+export class ToolRegistry implements ToolPort, AgentAwareToolPort, OrchestratorAwareToolPort {
+  private tools = new Map<string, FunctionTool>();
   private toolsMemory?: MemoryPort<string>;
   private agentRegistry: AgentRegistry;
+  private delegationServiceFactory?: DelegationServiceFactory;
   private assignTool?: AssignTool;
   private enabledAgentsConfig: Record<string, boolean> = {};
 
@@ -39,13 +37,15 @@ export class ToolRegistry implements ToolPort {
     todoMemory?: MemoryPort<StoreTodo>;
     toolsMemory?: MemoryPort<string>;
     agentRegistry?: AgentRegistry;
+    delegationServiceFactory?: DelegationServiceFactory;
   }) {
     this.toolsMemory = opts?.toolsMemory || new InMemoryMemory();
     this.agentRegistry = opts?.agentRegistry || new AgentRegistry();
+    this.delegationServiceFactory = opts?.delegationServiceFactory;
 
     const todoStore = new TodoStore(opts?.todoMemory || new InMemoryMemory());
 
-    const toolInstances: FunctionTool<any, any>[] = [
+    const toolInstances: FunctionTool<unknown, unknown>[] = [
       new TodoWriteTool(todoStore),
       new WebSearchTool(),
       new WebFetchTool(),
@@ -87,27 +87,26 @@ export class ToolRegistry implements ToolPort {
   /**
    * Initialize AssignTool with orchestrator dependencies (lazy initialization)
    */
-  setOrchestrator(config: AgentConfig, llm: LLMPort, tools: ToolPort): void {
-    const delegationService = new DefaultDelegationService(
-      this.agentRegistry,
-      new DefaultDelegationPolicy(),
-      new DefaultSpecialistAgentFactory({
-        agentListProvider: () =>
-          this.agentRegistry
-            .list()
-            .filter(
-              (agent) =>
-                typeof agent.id === 'string' && typeof agent.name === 'string' && typeof agent.description === 'string',
-            )
-            .map((agent) => ({
-              id: agent.id as string,
-              name: agent.name as string,
-              description: agent.description as string,
-            })),
-      }),
-      new AgentManagerCommandRunner(config, llm, tools),
-      new DefaultDelegationResultFormatter(),
-    );
+  setOrchestrator(config: AgentConfig, tools: ToolPort, llmFactory?: LLMFactory, configResolver?: () => Partial<AgentConfig>): void {
+    const commandRunner = new AgentManagerCommandRunner(config, tools, llmFactory, configResolver);
+
+    const factory = this.delegationServiceFactory ?? new DelegationServiceFactory();
+    const delegationService = factory.create({
+      agentRegistry: this.agentRegistry,
+      commandRunner,
+      agentListProvider: () =>
+        this.agentRegistry
+          .list()
+          .filter(
+            (agent) =>
+              typeof agent.id === 'string' && typeof agent.name === 'string' && typeof agent.description === 'string',
+          )
+          .map((agent) => ({
+            id: agent.id,
+            name: agent.name,
+            description: agent.description,
+          })),
+    });
 
     delegationService.setEnabledAgents(this.enabledAgentsConfig);
 

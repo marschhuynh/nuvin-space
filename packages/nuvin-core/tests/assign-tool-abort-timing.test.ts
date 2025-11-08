@@ -9,7 +9,7 @@ import {
   AgentManagerCommandRunner,
   DefaultDelegationResultFormatter,
 } from '../delegation/index.js';
-import type { LLMPort, ToolPort, AgentConfig, CompletionResult, ToolDefinition } from '../ports.js';
+import type { LLMPort, ToolPort, AgentConfig, CompletionResult, ToolDefinition, LLMFactory } from '../ports.js';
 
 describe('AssignTool - Abort Timing Tests', () => {
   let mockLLM: LLMPort;
@@ -17,6 +17,7 @@ describe('AssignTool - Abort Timing Tests', () => {
   let delegatingConfig: AgentConfig;
   let assignTool: AssignTool;
   let agentRegistry: AgentRegistry;
+  let mockFactory: LLMFactory;
 
   beforeEach(() => {
     // Mock LLM that takes time to respond
@@ -42,6 +43,10 @@ describe('AssignTool - Abort Timing Tests', () => {
         },
       ] as ToolDefinition[]),
       executeToolCalls: vi.fn().mockResolvedValue([]),
+    };
+
+    mockFactory = {
+      createLLM: vi.fn().mockReturnValue(mockLLM),
     };
 
     delegatingConfig = {
@@ -75,7 +80,7 @@ describe('AssignTool - Abort Timing Tests', () => {
             description: a.description as string,
           })),
       }),
-      new AgentManagerCommandRunner(delegatingConfig, mockLLM, mockTools),
+      new AgentManagerCommandRunner(delegatingConfig, mockTools, mockFactory),
       new DefaultDelegationResultFormatter(),
     );
 

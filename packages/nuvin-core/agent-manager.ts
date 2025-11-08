@@ -1,5 +1,6 @@
-import type { AgentConfig, LLMPort, ToolPort, Message, MessageResponse, AgentEvent } from './ports.js';
+import type { AgentConfig, LLMPort, ToolPort, Message, MessageResponse, AgentEvent, LLMFactory } from './ports.js';
 import { AgentEventTypes } from './ports.js';
+import { LLMResolver } from './delegation/LLMResolver.js';
 import type { SpecialistAgentConfig, SpecialistAgentResult } from './agent-types.js';
 import { AgentOrchestrator } from './orchestrator.js';
 import { SimpleContextBuilder } from './context.js';
@@ -16,15 +17,21 @@ const MAX_DELEGATION_DEPTH = 3;
  * AgentManager - coordinates specialist agent execution for task delegation
  */
 export class AgentManager {
+  private llmResolver: LLMResolver | null = null;
   private activeAgents = new Map<string, AgentOrchestrator>();
   private eventCollectors = new Map<string, AgentEvent[]>();
 
   constructor(
     private delegatingConfig: AgentConfig,
-    private delegatingLLM: LLMPort,
     private delegatingTools: ToolPort,
+    private llmFactory?: LLMFactory,
     private eventCallback?: (event: AgentEvent) => void,
-  ) {}
+    private configResolver?: () => Partial<AgentConfig>,
+  ) {
+    if (llmFactory) {
+      this.llmResolver = new LLMResolver(llmFactory);
+    }
+  }
 
   /**
    * Create and execute a specialist agent for a specific task
@@ -115,18 +122,21 @@ export class AgentManager {
       },
     };
 
+    // Get fresh config values if resolver is available
+    const freshConfig = this.configResolver?.() ?? {};
+    
     // Create specialist agent config
     const specialistConfig: AgentConfig = {
       id: agentId,
       systemPrompt: config.systemPrompt,
       temperature: config.temperature ?? this.delegatingConfig.temperature,
       topP: config.topP ?? this.delegatingConfig.topP,
-      model: config.model ?? this.delegatingConfig.model,
+      model: config.model ?? freshConfig.model ?? this.delegatingConfig.model,
       maxTokens: config.maxTokens ?? this.delegatingConfig.maxTokens,
       enabledTools: config.tools,
       maxToolConcurrency: this.delegatingConfig.maxToolConcurrency,
       requireToolApproval: false, // Specialists run autonomously
-      reasoningEffort: this.delegatingConfig.reasoningEffort,
+      reasoningEffort: freshConfig.reasoningEffort ?? this.delegatingConfig.reasoningEffort,
     };
 
     // Determine which LLM to use
@@ -228,19 +238,13 @@ export class AgentManager {
   }
 
   /**
-   * Resolve which LLM to use (reuse delegating LLM or create new one)
+   * Resolve which LLM to use - creates fresh LLM instance via factory
    */
   private resolveLLM(config: SpecialistAgentConfig): LLMPort {
-    // If no provider/model override, reuse delegating LLM
-    if (!config.provider && !config.model) {
-      return this.delegatingLLM;
+    if (!this.llmResolver) {
+      throw new Error('AgentManager requires LLMFactory to create sub-agents. Please provide llmFactory in constructor.');
     }
-
-    // If only model is different but same provider, we still need to use the delegating LLM
-    // since we can't easily create a new LLM instance here without knowing the provider type
-    // For now, just reuse the delegating LLM - provider/model overrides would need
-    // to be handled at a higher level (OrchestratorManager)
-    return this.delegatingLLM;
+    return this.llmResolver.resolve(config);
   }
 
   /**

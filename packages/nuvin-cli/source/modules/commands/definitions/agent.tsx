@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Text, useInput } from 'ink';
-import type { AgentTemplate } from '@nuvin/nuvin-core';
+import type { AgentTemplate, ToolPort, AgentAwareToolPort, OrchestratorAwareToolPort } from '@nuvin/nuvin-core';
 import { AppModal } from '../../../components/AppModal.js';
 import AgentModal, { type AgentInfo } from '../../../components/agent-modal/AgentModal.js';
 import type { CommandRegistry, CommandComponentProps } from '../types.js';
@@ -95,7 +95,8 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
       setLoading(true);
       setError(null);
       const tools = context.orchestrator?.getTools?.();
-      const agentRegistry = tools?.getAgentRegistry?.();
+      const agentAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
+      const agentRegistry = agentAwareTools?.getAgentRegistry?.();
       const enabledConfig = (context.config.get('agentsEnabled') as Record<string, boolean>) || {};
 
       if (!agentRegistry) {
@@ -106,7 +107,7 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
           `- Orchestrator exists: ${!!context.orchestrator}`,
           `- getTools method exists: ${!!context.orchestrator?.getTools}`,
           `- Tools exist: ${!!tools}`,
-          `- getAgentRegistry method exists: ${!!tools?.getAgentRegistry}`,
+          `- getAgentRegistry method exists: ${!!agentAwareTools?.getAgentRegistry}`,
           '',
           'Please restart the CLI and try again.',
           'If the issue persists, the orchestrator may not be fully initialized.',
@@ -126,8 +127,9 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
       setAgents(agentInfos);
       setEnabledAgents({ ...enabledConfig });
 
-      if (tools && typeof tools.setEnabledAgents === 'function') {
-        tools.setEnabledAgents({ ...enabledConfig });
+      const orchestratorAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
+      if (orchestratorAwareTools?.setEnabledAgents) {
+        orchestratorAwareTools.setEnabledAgents({ ...enabledConfig });
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -179,8 +181,9 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
         setEnabledAgents(updatedConfig);
 
         const tools = context.orchestrator?.getTools?.();
-        if (tools && typeof tools.setEnabledAgents === 'function') {
-          tools.setEnabledAgents(updatedConfig);
+        const orchestratorAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
+        if (orchestratorAwareTools?.setEnabledAgents) {
+          orchestratorAwareTools.setEnabledAgents(updatedConfig);
         }
       } catch (error) {
         console.error('Failed to save agent status:', error);
@@ -197,8 +200,9 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
         setEnabledAgents(updatedConfig);
 
         const tools = context.orchestrator?.getTools?.();
-        if (tools && typeof tools.setEnabledAgents === 'function') {
-          tools.setEnabledAgents(updatedConfig);
+        const orchestratorAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
+        if (orchestratorAwareTools?.setEnabledAgents) {
+          orchestratorAwareTools.setEnabledAgents(updatedConfig);
         }
       } catch (error) {
         console.error('Failed to save batch agent statuses:', error);
@@ -218,7 +222,8 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
   const handleAgentEdit = useCallback(
     (agentId: string) => {
       const tools = context.orchestrator?.getTools?.();
-      const agentRegistry = tools?.getAgentRegistry?.();
+      const agentAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
+      const agentRegistry = agentAwareTools?.getAgentRegistry?.();
 
       if (!agentRegistry) {
         setError('Agent registry not available');
@@ -251,7 +256,8 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
     async (agentId: string) => {
       try {
         const tools = context.orchestrator?.getTools?.();
-        const agentRegistry = tools?.getAgentRegistry?.();
+        const agentAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
+        const agentRegistry = agentAwareTools?.getAgentRegistry?.();
 
         if (!agentRegistry) {
           setError('Agent registry not available');
@@ -273,8 +279,9 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
         const updatedConfig = (context.config.get('agentsEnabled') as Record<string, boolean>) || {};
         setEnabledAgents(updatedConfig);
 
-        if (tools && typeof tools.setEnabledAgents === 'function') {
-          tools.setEnabledAgents(updatedConfig);
+        const orchestratorAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
+        if (orchestratorAwareTools?.setEnabledAgents) {
+          orchestratorAwareTools.setEnabledAgents(updatedConfig);
         }
 
         // Reload agents list (this will also re-sync enabledAgents from config)
@@ -361,7 +368,8 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
 
       try {
         const tools = context.orchestrator?.getTools?.();
-        const agentRegistry = tools?.getAgentRegistry?.();
+        const agentAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
+        const agentRegistry = agentAwareTools?.getAgentRegistry?.();
 
         if (!agentRegistry) {
           setError('Agent registry not available');
@@ -420,8 +428,9 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
 
             await context.config.set('agentsEnabled', updatedConfig, 'global');
             setEnabledAgents(updatedConfig);
-            if (tools && typeof tools.setEnabledAgents === 'function') {
-              tools.setEnabledAgents(updatedConfig);
+            const orchestratorAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
+            if (orchestratorAwareTools?.setEnabledAgents) {
+              orchestratorAwareTools.setEnabledAgents(updatedConfig);
             }
 
             // Reload agents list to get updated data
@@ -431,7 +440,8 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
             if (navigationState.navigationSource === 'agent-config') {
               // Get the updated agents list to find the correct index
               const tools = context.orchestrator?.getTools?.();
-              const agentRegistry = tools?.getAgentRegistry?.();
+              const agentAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
+              const agentRegistry = agentAwareTools?.getAgentRegistry?.();
               if (agentRegistry) {
                 const allAgents = agentRegistry.list();
                 const agentInfos: AgentInfo[] = allAgents.map((agent) => ({
@@ -512,8 +522,9 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
           await context.config.set('agentsEnabled', updatedConfig, 'global');
           setEnabledAgents(updatedConfig);
 
-          if (tools && typeof tools.setEnabledAgents === 'function') {
-            tools.setEnabledAgents(updatedConfig);
+          const orchestratorAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
+          if (orchestratorAwareTools?.setEnabledAgents) {
+            orchestratorAwareTools.setEnabledAgents(updatedConfig);
           }
 
           // Reload agents list to get updated data

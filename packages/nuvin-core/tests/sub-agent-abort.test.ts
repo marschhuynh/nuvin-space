@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AgentManager } from '../agent-manager.js';
-import type { LLMPort, ToolPort, AgentConfig, CompletionResult, ToolDefinition } from '../ports.js';
+import type { LLMPort, ToolPort, AgentConfig, CompletionResult, ToolDefinition, LLMFactory } from '../ports.js';
 import type { SpecialistAgentConfig } from '../agent-types.js';
 
 describe('Sub-Agent Abort Functionality', () => {
   let mockLLM: LLMPort;
   let mockTools: ToolPort;
   let delegatingConfig: AgentConfig;
+  let mockFactory: LLMFactory;
 
   beforeEach(() => {
     mockLLM = {
@@ -30,6 +31,10 @@ describe('Sub-Agent Abort Functionality', () => {
       executeToolCalls: vi.fn().mockResolvedValue([]),
     };
 
+    mockFactory = {
+      createLLM: vi.fn().mockReturnValue(mockLLM),
+    };
+
     delegatingConfig = {
       id: 'parent-agent',
       model: 'test-model',
@@ -42,7 +47,7 @@ describe('Sub-Agent Abort Functionality', () => {
 
   describe('Abort before sub-agent starts', () => {
     it('should return abort error when signal is already aborted', async () => {
-      const agentManager = new AgentManager(delegatingConfig, mockLLM, mockTools);
+      const agentManager = new AgentManager(delegatingConfig, mockTools, mockFactory);
 
       const controller = new AbortController();
       controller.abort();
@@ -73,7 +78,7 @@ describe('Sub-Agent Abort Functionality', () => {
         } as CompletionResult;
       });
 
-      const agentManager = new AgentManager(delegatingConfig, mockLLM, mockTools);
+      const agentManager = new AgentManager(delegatingConfig, mockTools, mockFactory);
 
       const controller = new AbortController();
 
@@ -111,7 +116,7 @@ describe('Sub-Agent Abort Functionality', () => {
         } as CompletionResult;
       });
 
-      const agentManager = new AgentManager(delegatingConfig, mockLLM, mockTools);
+      const agentManager = new AgentManager(delegatingConfig, mockTools, mockFactory);
 
       const controller = new AbortController();
       controller.abort();
@@ -134,7 +139,7 @@ describe('Sub-Agent Abort Functionality', () => {
 
   describe('Abort message consistency', () => {
     it('should use consistent abort message for sub-agents', async () => {
-      const agentManager = new AgentManager(delegatingConfig, mockLLM, mockTools);
+      const agentManager = new AgentManager(delegatingConfig, mockTools, mockFactory);
 
       const controller = new AbortController();
       controller.abort();
@@ -161,7 +166,7 @@ describe('Sub-Agent Abort Functionality', () => {
         throw new Error('Aborted');
       });
 
-      const agentManager = new AgentManager(delegatingConfig, mockLLM, mockTools);
+      const agentManager = new AgentManager(delegatingConfig, mockTools, mockFactory);
 
       const controller = new AbortController();
 

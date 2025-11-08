@@ -1,12 +1,22 @@
-import { EchoLLM, GithubLLM, OpenRouterLLM, DeepInfraLLM, ZaiLLM, AnthropicAISDKLLM, type LLMPort } from '@nuvin/nuvin-core';
+import {
+  EchoLLM,
+  GithubLLM,
+  OpenRouterLLM,
+  DeepInfraLLM,
+  ZaiLLM,
+  AnthropicAISDKLLM,
+  type LLMPort,
+} from '@nuvin/nuvin-core';
 import type { ConfigManager } from '../config/manager.js';
 import type { ProviderKey } from './OrchestratorManager.js';
+import type { AuthMethod } from '../config/types.js';
 
 export type LLMConfig = {
   provider: ProviderKey;
   apiKey?: string;
   oauthConfig?: {
     anthropic?: {
+      type: 'oauth';
       access: string;
       refresh: string;
       expires: number;
@@ -36,19 +46,20 @@ export class LLMFactory implements LLMFactoryInterface {
     let oauthConfig: LLMConfig['oauthConfig'];
 
     if (Array.isArray(auth)) {
-      const apiKeyEntry = auth.find((a: any) => a.type === 'api-key');
-      const oauthEntry = auth.find((a: any) => a.type === 'oauth');
+      const apiKeyEntry = auth.find((a: AuthMethod) => a.type === 'api-key');
+      const oauthEntry = auth.find((a: AuthMethod) => a.type === 'oauth');
 
-      if (apiKeyEntry) {
+      if (apiKeyEntry && apiKeyEntry.type === 'api-key') {
         apiKey = apiKeyEntry['api-key'];
       }
 
-      if (oauthEntry && provider === 'anthropic') {
+      if (oauthEntry && oauthEntry.type === 'oauth' && provider === 'anthropic') {
         oauthConfig = {
           anthropic: {
+            type: 'oauth',
             access: oauthEntry.access,
             refresh: oauthEntry.refresh,
-            expires: oauthEntry.expires,
+            expires: oauthEntry.expires ?? 0,
           },
         };
       }
@@ -117,7 +128,7 @@ export class LLMFactory implements LLMFactoryInterface {
 
             if (!updatedAuth.some((auth) => auth.type === 'oauth')) {
               updatedAuth.push({
-                type: 'oauth',
+                type: 'oauth' as const,
                 access: newCredentials.access,
                 refresh: newCredentials.refresh,
                 expires: newCredentials.expires,
@@ -157,10 +168,6 @@ export class LLMFactory implements LLMFactoryInterface {
         return models.map((m) => m.id);
       }
 
-      // case 'github':
-      // case 'zai':
-      // case 'anthropic':
-      // case 'echo':
       default:
         return [];
     }

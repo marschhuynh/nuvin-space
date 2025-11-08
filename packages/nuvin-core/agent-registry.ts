@@ -88,7 +88,6 @@ export class AgentRegistry {
       maxTokens: partial.maxTokens ?? 4000,
       provider: partial.provider,
       model: partial.model,
-      apiKey: partial.apiKey,
       topP: partial.topP,
       timeoutMs: partial.timeoutMs,
       shareContext: partial.shareContext,

@@ -173,6 +173,15 @@ export interface LLMPort {
   ): Promise<CompletionResult>;
 }
 
+export type LLMConfig = {
+  provider?: string;
+  model?: string;
+};
+
+export interface LLMFactory {
+  createLLM(config: LLMConfig): LLMPort;
+}
+
 export type ToolDefinition = {
   type: 'function';
   function: { name: string; description: string; parameters: object };
@@ -198,9 +207,20 @@ export interface ToolPort {
     maxConcurrent?: number,
     signal?: AbortSignal,
   ): Promise<ToolExecutionResult[]>;
-  setEnabledAgents?(enabledAgents: Record<string, boolean>): void;
-  getAgentRegistry?(): AgentRegistry | undefined;
-  setOrchestrator?(config: AgentConfig, llm: LLMPort, tools: ToolPort): void;
+}
+
+export interface AgentAwareToolPort {
+  setEnabledAgents(enabledAgents: Record<string, boolean>): void;
+  getAgentRegistry(): AgentRegistry | undefined;
+}
+
+export interface OrchestratorAwareToolPort {
+  setOrchestrator(
+    config: AgentConfig,
+    tools: ToolPort,
+    llmFactory?: LLMFactory,
+    configResolver?: () => Partial<AgentConfig>,
+  ): void;
 }
 
 export type MemorySnapshot<T = unknown> = Record<string, T[]>;

@@ -4,3 +4,5 @@ export { DefaultSpecialistAgentFactory } from './DefaultSpecialistAgentFactory.j
 export { AgentManagerCommandRunner } from './AgentManagerCommandRunner.js';
 export { DefaultDelegationService } from './DefaultDelegationService.js';
 export { DefaultDelegationResultFormatter } from './DefaultDelegationResultFormatter.js';
+export { DelegationServiceFactory, type DelegationServiceConfig } from './DelegationServiceFactory.js';
+export { LLMResolver } from './LLMResolver.js';
