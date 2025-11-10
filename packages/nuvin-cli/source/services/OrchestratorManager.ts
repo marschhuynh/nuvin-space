@@ -54,7 +54,7 @@ const defaultModels: Record<ProviderKey, string> = {
   anthropic: 'claude-sonnet-4-5',
   echo: 'demo-echo',
 };
-export type ProviderKey = 'openrouter' | 'deepinfra' | 'github' | 'zai' | 'anthropic' | 'echo';
+export type { ProviderKey } from '@/config/providers.js';
 
 const enabledTools: string[] = [
   'bash_tool',
