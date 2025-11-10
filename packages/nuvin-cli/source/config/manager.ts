@@ -206,23 +206,84 @@ export class ConfigManager {
     return current;
   }
 
-  private createNestedObject(path: string, value: unknown): Record<string, unknown> {
-    const keys = path.split('.');
+  private createNestedObject(path: string, value: unknown): Record<string, unknown> | unknown[] {
+    const keys = this.parsePath(path);
     const result: Record<string, unknown> = {};
-    let current = result;
+    let current: Record<string, unknown> | unknown[] = result;
 
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (!key) continue;
-      current[key] = {};
-      current = current[key] as Record<string, unknown>;
+
+      if (key.isArrayIndex) {
+        if (!Array.isArray(current)) {
+          throw new Error(`Cannot use array index on non-array at ${key.name}`);
+        }
+        const index = Number.parseInt(key.name, 10);
+        if (Number.isNaN(index) || index < 0) {
+          throw new Error(`Invalid array index: ${key.name}`);
+        }
+        while (current.length <= index) {
+          current.push({});
+        }
+        current = current[index] as Record<string, unknown>;
+      } else if (key.createsArray) {
+        const arr: unknown[] = [];
+        if (Array.isArray(current)) {
+          throw new Error('Cannot create nested arrays in config path');
+        }
+        current[key.name] = arr;
+        current = arr;
+      } else {
+        if (Array.isArray(current)) {
+          throw new Error(`Cannot use property ${key.name} on array`);
+        }
+        current[key.name] = {};
+        current = current[key.name] as Record<string, unknown>;
+      }
     }
 
     const lastKey = keys[keys.length - 1];
     if (lastKey) {
-      current[lastKey] = value;
+      if (lastKey.isArrayIndex) {
+        if (!Array.isArray(current)) {
+          throw new Error(`Cannot use array index on non-array at ${lastKey.name}`);
+        }
+        const index = Number.parseInt(lastKey.name, 10);
+        if (Number.isNaN(index) || index < 0) {
+          throw new Error(`Invalid array index: ${lastKey.name}`);
+        }
+        while (current.length <= index) {
+          current.push(undefined);
+        }
+        current[index] = value;
+      } else {
+        if (Array.isArray(current)) {
+          throw new Error(`Cannot set property ${lastKey.name} on array`);
+        }
+        current[lastKey.name] = value;
+      }
     }
     return result;
+  }
+
+  private parsePath(path: string): Array<{ name: string; isArrayIndex: boolean; createsArray: boolean }> {
+    const segments: Array<{ name: string; isArrayIndex: boolean; createsArray: boolean }> = [];
+    const parts = path.split('.');
+
+    for (const part of parts) {
+      if (!part) continue;
+
+      const arrayMatch = part.match(/^(.+)\[(\d+)\]$/);
+      if (arrayMatch) {
+        segments.push({ name: arrayMatch[1] || '', isArrayIndex: false, createsArray: true });
+        segments.push({ name: arrayMatch[2] || '', isArrayIndex: true, createsArray: false });
+      } else {
+        segments.push({ name: part, isArrayIndex: false, createsArray: false });
+      }
+    }
+
+    return segments;
   }
 
   private async createEmptyScope(scope: ConfigScope): Promise<ConfigSource | null> {

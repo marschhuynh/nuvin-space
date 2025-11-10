@@ -20,7 +20,19 @@ export function deepMerge<T extends Record<string, unknown>>(target: T, source: 
     }
 
     if (Array.isArray(value)) {
-      output[key] = value.map((item) => (isPlainObject(item) ? deepMerge({}, item as Record<string, unknown>) : item));
+      if (Array.isArray(existing)) {
+        const merged = [...existing];
+        for (let i = 0; i < value.length; i++) {
+          if (i < merged.length && isPlainObject(merged[i]) && isPlainObject(value[i])) {
+            merged[i] = deepMerge(merged[i] as Record<string, unknown>, value[i] as Record<string, unknown>);
+          } else {
+            merged[i] = isPlainObject(value[i]) ? deepMerge({}, value[i] as Record<string, unknown>) : value[i];
+          }
+        }
+        output[key] = merged;
+      } else {
+        output[key] = value.map((item) => (isPlainObject(item) ? deepMerge({}, item as Record<string, unknown>) : item));
+      }
       continue;
     }
 
