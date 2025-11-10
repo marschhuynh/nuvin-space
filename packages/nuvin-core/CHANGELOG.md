@@ -1,5 +1,11 @@
 # @nuvin/nuvin-core
 
+## 1.0.1
+
+### Patch Changes
+
+- [`40b208c`](https://github.com/marschhuynh/nuvin-space/commit/40b208cbf0994b65152469e4590bffd087144123) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix cost tracking to return actual cost from OpenRouter and prevent double-counting in event processor
+
 ## 1.0.0
 
 ### Major Changes
