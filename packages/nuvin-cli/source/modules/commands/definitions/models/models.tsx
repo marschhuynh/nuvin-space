@@ -5,7 +5,8 @@ import TextInput from '@/components/TextInput/index.js';
 import { ComboBox } from '@/components/ComboBox/index.js';
 import type { CommandRegistry, CommandComponentProps } from '@/modules/commands/types.js';
 
-import { type ProviderKey, PROVIDER_MODELS, PROVIDER_OPTIONS } from '@/const.js';
+import { type ProviderKey, PROVIDER_MODELS } from '@/const.js';
+import { buildProviderOptions } from '@/config/providers.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import { useModelsCommandState } from './hooks/useModelsCommandState.js';
 
@@ -13,6 +14,9 @@ const ModelsCommandComponent = ({ context, deactivate }: CommandComponentProps) 
   const { theme } = useTheme();
 
   const llmFactory = context.orchestrator?.getLLMFactory();
+
+  const availableProviders = llmFactory?.getAvailableProviders();
+  const providerOptions = buildProviderOptions(availableProviders);
 
   const { state, selectProvider, selectModel, goToCustomInput, goBack, setCustomModelInput, submitCustomModel } =
     useModelsCommandState(context.config, llmFactory, deactivate, deactivate);
@@ -25,8 +29,6 @@ const ModelsCommandComponent = ({ context, deactivate }: CommandComponentProps) 
     },
     { isActive: true },
   );
-
-  const providerOptions = PROVIDER_OPTIONS;
 
   const handleProviderSelect = async (item: { label: string; value: string }) => {
     const provider = item.value as ProviderKey;
@@ -108,8 +110,8 @@ const ModelsCommandComponent = ({ context, deactivate }: CommandComponentProps) 
           </Box>
         )}
         <Text color={theme.model.subtitle} dimColor>
-          {state.availableModels.length > 0 
-            ? `${models.length} models available` 
+          {state.availableModels.length > 0
+            ? `${models.length} models available`
             : 'Choose a model or enter a custom model name'}
         </Text>
         <Box marginTop={1}>
@@ -123,9 +125,12 @@ const ModelsCommandComponent = ({ context, deactivate }: CommandComponentProps) 
               onCancel={goBack}
             />
           ) : (
-            <SelectInput 
-              items={[...modelOptions.map(m => ({ label: m.label, value: m.value })), { label: '🎯 Enter custom model name...', value: 'custom' }]} 
-              onSelect={(item) => handleModelSelect({ label: item.label, value: item.value })} 
+            <SelectInput
+              items={[
+                ...modelOptions.map((m) => ({ label: m.label, value: m.value })),
+                { label: '🎯 Enter custom model name...', value: 'custom' },
+              ]}
+              onSelect={(item) => handleModelSelect({ label: item.label, value: item.value })}
             />
           )}
         </Box>

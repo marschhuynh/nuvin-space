@@ -1,7 +1,15 @@
-import { GithubLLM, AnthropicAISDKLLM, createLLM, supportsGetModels, type LLMPort } from '@nuvin/nuvin-core';
+import {
+  GithubLLM,
+  AnthropicAISDKLLM,
+  createLLM,
+  supportsGetModels,
+  getAvailableProviders,
+  type LLMPort,
+  type CustomProviderDefinition,
+} from '@nuvin/nuvin-core';
 import type { ConfigManager } from '@/config/manager.js';
 import type { ProviderKey } from './OrchestratorManager.js';
-import type { AuthMethod } from '@/config/types.js';
+import type { AuthMethod, ProviderConfig } from '@/config/types.js';
 
 export type LLMConfig = {
   provider: ProviderKey;
@@ -28,6 +36,34 @@ export interface LLMFactoryInterface {
 
 export class LLMFactory implements LLMFactoryInterface {
   constructor(private configManager: ConfigManager) {}
+
+  getAvailableProviders(): string[] {
+    const customProviders = this.getCustomProviders();
+    const factoryProviders = getAvailableProviders(customProviders);
+    const specialProviders = ['github', 'anthropic'];
+    return [...factoryProviders, ...specialProviders];
+  }
+
+  private getCustomProviders(): Record<string, CustomProviderDefinition> | undefined {
+    const config = this.configManager.getConfig();
+    const providers = config.providers;
+    if (!providers) return undefined;
+
+    const customProviders: Record<string, CustomProviderDefinition> = {};
+
+    for (const [name, providerConfig] of Object.entries(providers)) {
+      const cfg = providerConfig as ProviderConfig;
+      if (cfg.baseUrl) {
+        customProviders[name] = {
+          type: cfg.type,
+          baseUrl: cfg.baseUrl,
+          models: cfg.models,
+        };
+      }
+    }
+
+    return Object.keys(customProviders).length > 0 ? customProviders : undefined;
+  }
 
   private getProviderConfig(provider: ProviderKey): LLMConfig {
     const config = this.configManager.getConfig();
@@ -66,16 +102,21 @@ export class LLMFactory implements LLMFactoryInterface {
 
   createLLM(provider: ProviderKey, options: LLMOptions = {}): LLMPort {
     const config = this.getProviderConfig(provider);
+    const customProviders = this.getCustomProviders();
 
     switch (provider) {
       case 'openrouter':
       case 'deepinfra':
       case 'zai':
       case 'moonshot':
-        return createLLM(provider, {
-          apiKey: config.apiKey,
-          httpLogFile: options.httpLogFile,
-        });
+        return createLLM(
+          provider,
+          {
+            apiKey: config.apiKey,
+            httpLogFile: options.httpLogFile,
+          },
+          customProviders,
+        );
 
       case 'github':
         return new GithubLLM({
@@ -123,12 +164,24 @@ export class LLMFactory implements LLMFactoryInterface {
         });
 
       default:
+        if (customProviders && customProviders[provider]) {
+          return createLLM(
+            provider,
+            {
+              apiKey: config.apiKey,
+              httpLogFile: options.httpLogFile,
+            },
+            customProviders,
+          );
+        }
         throw new Error(`Unsupported provider: ${provider}`);
     }
   }
 
   async getModels(provider: ProviderKey, signal?: AbortSignal): Promise<string[]> {
-    if (!supportsGetModels(provider)) {
+    const customProviders = this.getCustomProviders();
+
+    if (!supportsGetModels(provider, customProviders)) {
       return [];
     }
 
@@ -138,7 +191,7 @@ export class LLMFactory implements LLMFactoryInterface {
       throw new Error(`${provider} API key not configured. Please run /auth first.`);
     }
 
-    const llm = createLLM(provider, { apiKey: config.apiKey });
+    const llm = createLLM(provider, { apiKey: config.apiKey }, customProviders);
 
     if ('getModels' in llm && typeof llm.getModels === 'function') {
       const models = await llm.getModels(signal);

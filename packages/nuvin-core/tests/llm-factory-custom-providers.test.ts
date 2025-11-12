@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { createLLM, getAvailableProviders, supportsGetModels, type CustomProviderDefinition } from '../llm-providers/llm-factory.js';
+import {
+  createLLM,
+  getAvailableProviders,
+  supportsGetModels,
+  type CustomProviderDefinition,
+} from '../llm-providers/llm-factory.js';
 
 describe('LLM Factory - Custom Providers', () => {
   const customProviders: Record<string, CustomProviderDefinition> = {

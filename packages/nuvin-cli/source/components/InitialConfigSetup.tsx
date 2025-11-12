@@ -7,7 +7,14 @@ import { useConfig } from '@/contexts/ConfigContext.js';
 import Gradient from 'ink-gradient';
 import { getVersion } from '@/utils/version.js';
 import type { ProviderKey } from '@/config/const.js';
-import { PROVIDER_AUTH_METHODS, PROVIDER_MODELS, PROVIDER_OPTIONS, type AuthMethod } from '@/const.js';
+import {
+  PROVIDER_AUTH_METHODS,
+  PROVIDER_MODELS,
+  PROVIDER_OPTIONS,
+  getProviderAuthMethods,
+  getProviderModels,
+  type AuthMethod,
+} from '@/const.js';
 import { exchangeCodeForToken, createApiKey } from '@/modules/commands/definitions/auth/anthropic-oauth.js';
 import { DeviceFlowUI, OAuthUI, TokenInputUI } from './auth/index.js';
 import { useDeviceFlow } from '@/hooks/useDeviceFlow.js';
@@ -145,8 +152,8 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   const providerOption = PROVIDER_OPTIONS.find((p) => p.value === selectedProvider);
-  const availableAuthMethods = PROVIDER_AUTH_METHODS[selectedProvider] || [];
-  const fallbackModels = PROVIDER_MODELS[selectedProvider] || [];
+  const availableAuthMethods = getProviderAuthMethods(selectedProvider);
+  const fallbackModels = getProviderModels(selectedProvider);
   const models = availableModels.length > 0 ? availableModels : fallbackModels;
 
   const deviceFlowState = useDeviceFlow(step === 'auth-device-flow' && selectedProvider === 'github');
@@ -186,7 +193,7 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
     setSelectedProvider(providerValue);
     if (providerValue !== 'echo') {
       setStep('auth-method');
-      const firstAuthMethod = PROVIDER_AUTH_METHODS[providerValue]?.[0];
+      const firstAuthMethod = getProviderAuthMethods(providerValue)?.[0];
       setSelectedAuthMethod(firstAuthMethod?.value || 'token');
     } else {
       setStep('model');

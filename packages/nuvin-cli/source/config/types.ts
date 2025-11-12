@@ -14,6 +14,14 @@ export type AuthMethod =
   | { type: 'api-key'; 'api-key': string }
   | { type: 'oauth'; access: string; refresh: string; expires?: number };
 
+export interface ModelDefinition {
+  id: string;
+  name?: string;
+  [key: string]: unknown;
+}
+
+export type ModelConfig = false | true | string | string[] | ModelDefinition[];
+
 export interface ProviderConfig {
   /** API key or access token for the provider (legacy) */
   apiKey?: string;
@@ -34,6 +42,12 @@ export interface ProviderConfig {
     refresh?: string;
     expires?: number;
   };
+  /** Provider type (openai-compat or anthropic) */
+  type?: 'openai-compat' | 'anthropic';
+  /** Custom base URL for the provider */
+  baseUrl?: string;
+  /** Model configuration (false, true, endpoint path, or model list) */
+  models?: ModelConfig;
   /** Arbitrary provider-specific extras */
   [key: string]: unknown;
 }

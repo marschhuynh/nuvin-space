@@ -7,6 +7,7 @@ import {
   PROVIDER_ITEMS,
   PROVIDER_LABELS,
   PROVIDER_AUTH_METHODS,
+  getProviderAuthMethods,
   type ProviderKey,
   type AuthMethod,
   type ProviderItem,
@@ -58,7 +59,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
 
   const methodItems = useMemo<AuthMethodItem[]>(() => {
     if (!provider) return [];
-    return PROVIDER_AUTH_METHODS[provider] ?? [];
+    return getProviderAuthMethods(provider);
   }, [provider]);
 
   const resetToProviderStage = useCallback((message?: StatusMessage) => {
