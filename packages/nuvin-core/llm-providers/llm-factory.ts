@@ -3,11 +3,18 @@ import { BaseLLM } from './base-llm.js';
 import { FetchTransport, createTransport } from '../transports/index.js';
 import providerConfig from './llm-provider-config.json';
 
+type ModelConfig = 
+  | false
+  | true
+  | string
+  | string[]
+  | Array<{ id: string; name?: string; [key: string]: unknown }>;
+
 interface ProviderConfig {
   name: string;
-  className: string;
+  type?: 'openai-compat' | 'anthropic';
   baseUrl: string;
-  transportName: string;
+  models?: ModelConfig;
   features: {
     promptCaching?: boolean;
     getModels?: boolean;
@@ -36,16 +43,14 @@ type ModelsListResponse = {
 
 export class GenericLLM extends BaseLLM implements LLMPort {
   private readonly opts: LLMOptions;
-  private readonly transportName: string;
   private readonly includeUsage: boolean;
-  private readonly supportsModels: boolean;
+  private readonly modelConfig: ModelConfig;
 
-  constructor(transportName: string, baseUrl: string, supportsModels: boolean, opts: LLMOptions = {}) {
+  constructor(baseUrl: string, modelConfig: ModelConfig, opts: LLMOptions = {}) {
     const { enablePromptCaching = false, includeUsage = false, ...restOpts } = opts;
     super(opts.apiUrl || baseUrl, { enablePromptCaching });
-    this.transportName = transportName;
     this.includeUsage = includeUsage;
-    this.supportsModels = supportsModels;
+    this.modelConfig = modelConfig;
     this.opts = restOpts;
   }
 
@@ -57,12 +62,29 @@ export class GenericLLM extends BaseLLM implements LLMPort {
       maxFileSize: 5 * 1024 * 1024,
       captureResponseBody: true,
     });
-    return createTransport(this.transportName, base, this.apiUrl, this.opts.apiKey, this.opts.apiUrl);
+    return createTransport(base, this.apiUrl, this.opts.apiKey, this.opts.apiUrl);
   }
 
   async getModels(signal?: AbortSignal): Promise<ModelResponse[]> {
-    if (!this.supportsModels) {
-      throw new Error(`Provider ${this.transportName} does not support getModels`);
+    if (this.modelConfig === false) {
+      throw new Error('Provider does not support getModels');
+    }
+
+    if (Array.isArray(this.modelConfig)) {
+      return this.modelConfig.map((m) => (typeof m === 'string' ? { id: m } : m));
+    }
+
+    if (typeof this.modelConfig === 'string') {
+      const transport = this.createTransport();
+      const res = await transport.get(this.modelConfig, undefined, signal);
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Failed to fetch models: ${res.status} ${text}`);
+      }
+
+      const data: ModelsListResponse = await res.json();
+      return data.data;
     }
 
     const transport = this.createTransport();
@@ -109,24 +131,78 @@ export class GenericLLM extends BaseLLM implements LLMPort {
   }
 }
 
-export function createLLM(providerName: string, options: LLMOptions = {}): LLMPort {
-  const config = providers.find((p) => p.name.toLowerCase() === providerName.toLowerCase());
-  if (!config) {
-    throw new Error(`Unknown LLM provider: ${providerName}. Available: ${providers.map((p) => p.name).join(', ')}`);
+export interface CustomProviderDefinition {
+  type?: 'openai-compat' | 'anthropic';
+  baseUrl?: string;
+  models?: ModelConfig;
+}
+
+function normalizeModelConfig(config: ProviderConfig): ModelConfig {
+  if (config.models !== undefined) {
+    return config.models;
+  }
+  return config.features.getModels ?? false;
+}
+
+function mergeProviders(customProviders?: Record<string, CustomProviderDefinition>): ProviderConfig[] {
+  const merged = new Map<string, ProviderConfig>();
+
+  for (const provider of providers) {
+    merged.set(provider.name.toLowerCase(), provider);
   }
 
-  return new GenericLLM(config.transportName, config.baseUrl, config.features.getModels ?? false, {
+  if (customProviders) {
+    for (const [name, custom] of Object.entries(customProviders)) {
+      if (!custom.baseUrl) {
+        continue;
+      }
+
+      const existing = merged.get(name.toLowerCase());
+      const providerConfig: ProviderConfig = {
+        name,
+        type: custom.type ?? 'openai-compat',
+        baseUrl: custom.baseUrl,
+        models: custom.models ?? false,
+        features: existing?.features ?? {
+          promptCaching: false,
+          getModels: custom.models !== false,
+          includeUsage: false,
+        },
+      };
+
+      merged.set(name.toLowerCase(), providerConfig);
+    }
+  }
+
+  return Array.from(merged.values());
+}
+
+export function createLLM(providerName: string, options: LLMOptions = {}, customProviders?: Record<string, CustomProviderDefinition>): LLMPort {
+  const allProviders = mergeProviders(customProviders);
+  const config = allProviders.find((p) => p.name.toLowerCase() === providerName.toLowerCase());
+  
+  if (!config) {
+    throw new Error(`Unknown LLM provider: ${providerName}. Available: ${allProviders.map((p) => p.name).join(', ')}`);
+  }
+
+  const modelConfig = normalizeModelConfig(config);
+
+  return new GenericLLM(config.baseUrl, modelConfig, {
     ...options,
     enablePromptCaching: options.enablePromptCaching ?? config.features.promptCaching,
     includeUsage: options.includeUsage ?? config.features.includeUsage,
   });
 }
 
-export function getAvailableProviders(): string[] {
-  return providers.map((p) => p.name);
+export function getAvailableProviders(customProviders?: Record<string, CustomProviderDefinition>): string[] {
+  const allProviders = mergeProviders(customProviders);
+  return allProviders.map((p) => p.name);
 }
 
-export function supportsGetModels(providerName: string): boolean {
-  const config = providers.find((p) => p.name.toLowerCase() === providerName.toLowerCase());
-  return config?.features.getModels ?? false;
+export function supportsGetModels(providerName: string, customProviders?: Record<string, CustomProviderDefinition>): boolean {
+  const allProviders = mergeProviders(customProviders);
+  const config = allProviders.find((p) => p.name.toLowerCase() === providerName.toLowerCase());
+  if (!config) return false;
+  const modelConfig = normalizeModelConfig(config);
+  return modelConfig !== false;
 }
