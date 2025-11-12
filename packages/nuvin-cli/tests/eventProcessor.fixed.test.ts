@@ -15,6 +15,7 @@ describe('✅ FIXED: Last message showing correctly with streaming', () => {
     callbacks = {
       appendLine: vi.fn(),
       updateLine: vi.fn(),
+      updateLineMetadata: vi.fn(),
       setLastMetadata: vi.fn(),
       streamingEnabled: true,
     };
@@ -101,8 +102,9 @@ describe('✅ FIXED: Last message showing correctly with streaming', () => {
         callbacks,
       );
 
-      // No update needed when content matches
-      expect(callbacks.updateLine).not.toHaveBeenCalled();
+      // Always update to trigger markdown re-render even when content matches
+      expect(callbacks.updateLine).toHaveBeenCalledWith(expect.any(String), 'Hello World');
+      expect(callbacks.updateLineMetadata).toHaveBeenCalledWith(expect.any(String), { isStreaming: false });
       expect(callbacks.appendLine).not.toHaveBeenCalled();
     });
 

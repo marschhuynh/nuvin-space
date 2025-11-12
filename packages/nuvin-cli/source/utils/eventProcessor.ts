@@ -240,11 +240,9 @@ export function processAgentEvent(
 
       // If streaming is enabled and we have a streaming message, update it with final content
       if (callbacks.streamingEnabled && state.streamingMessageId) {
-        // Only update if content differs (optimization to avoid unnecessary re-renders)
-        if (state.streamingContent !== event.content) {
-          callbacks.updateLine?.(state.streamingMessageId, event.content);
-        }
-        // Mark streaming as complete
+        // Always update content to trigger re-render with markdown rendering
+        callbacks.updateLine?.(state.streamingMessageId, event.content);
+        // Mark streaming as complete - this must happen after content update
         callbacks.updateLineMetadata?.(state.streamingMessageId, { isStreaming: false });
         // Reset streaming state after finalizing the message
         return {
@@ -259,7 +257,7 @@ export function processAgentEvent(
         id: crypto.randomUUID(),
         type: 'assistant',
         content: event.content,
-        metadata: { timestamp: now() },
+        metadata: { timestamp: now(), isStreaming: false },
       });
 
       return state;

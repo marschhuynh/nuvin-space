@@ -182,6 +182,7 @@ export function processMessageToUILines(msg: {
         content: textContent,
         metadata: {
           timestamp: msg.timestamp || new Date().toISOString(),
+          isStreaming: false,
         },
         color: 'cyan',
       });
@@ -196,6 +197,7 @@ export function processMessageToUILines(msg: {
         content: textContent,
         metadata: {
           timestamp: msg.timestamp || new Date().toISOString(),
+          isStreaming: false,
         },
       });
     }
