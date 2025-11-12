@@ -34,11 +34,21 @@ export function StdoutDimensionsProvider({ children }: { children: React.ReactNo
         const validCols = newCols && newCols > 0 && newCols < 10000 ? Math.max(MIN_COLS, newCols) : DEFAULT_COLS;
         const validRows = newRows && newRows > 0 && newRows < 10000 ? Math.max(MIN_ROWS, newRows) : DEFAULT_ROWS;
 
-        setDimensions({ cols: validCols, rows: validRows });
+        setDimensions((prev) => {
+          if (prev.cols === validCols && prev.rows === validRows) {
+            return prev;
+          }
+          return { cols: validCols, rows: validRows };
+        });
       } catch (error) {
         // Fallback to safe defaults if any error occurs during resize
         console.warn('Error during resize, falling back to safe dimensions:', error);
-        setDimensions({ cols: DEFAULT_COLS, rows: DEFAULT_ROWS });
+        setDimensions((prev) => {
+          if (prev.cols === DEFAULT_COLS && prev.rows === DEFAULT_ROWS) {
+            return prev;
+          }
+          return { cols: DEFAULT_COLS, rows: DEFAULT_ROWS };
+        });
       }
     };
 

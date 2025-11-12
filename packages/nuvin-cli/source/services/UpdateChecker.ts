@@ -18,7 +18,7 @@ export class UpdateChecker {
 
     try {
       const latestVersion = await UpdateChecker.fetchLatestVersion();
-      const hasUpdate = UpdateChecker.compareVersions(currentVersion, latestVersion) <= 0;
+      const hasUpdate = UpdateChecker.compareVersions(currentVersion, latestVersion) < 0;
 
       return {
         current: currentVersion,

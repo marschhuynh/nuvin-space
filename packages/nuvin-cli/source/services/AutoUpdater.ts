@@ -115,7 +115,7 @@ export class AutoUpdater {
   }
 
   static async checkAndUpdate(): Promise<boolean> {
-    const { UpdateChecker } = await import('./update-checker.js');
+    const { UpdateChecker } = await import('./UpdateChecker.js');
 
     try {
       const versionInfo = await UpdateChecker.checkForUpdate();
