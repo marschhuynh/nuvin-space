@@ -4,8 +4,8 @@ import { BaseBearerAuthTransport } from './base-bearer-auth-transport.js';
 export class SimpleBearerAuthTransport extends BaseBearerAuthTransport {
   private readonly defaultUrl: string;
 
-  constructor(inner: FetchTransport, defaultBaseUrl: string, apiKey?: string, baseUrl?: string) {
-    super(inner, apiKey, baseUrl ?? defaultBaseUrl);
+  constructor(inner: FetchTransport, defaultBaseUrl: string, apiKey?: string, baseUrl?: string, version?: string) {
+    super(inner, apiKey, baseUrl ?? defaultBaseUrl, version);
     this.defaultUrl = defaultBaseUrl;
   }
 

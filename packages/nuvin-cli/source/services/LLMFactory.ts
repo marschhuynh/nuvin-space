@@ -10,6 +10,7 @@ import {
 import type { ConfigManager } from '@/config/manager.js';
 import type { ProviderKey } from './OrchestratorManager.js';
 import type { AuthMethod, ProviderConfig } from '@/config/types.js';
+import { getVersion } from '@/utils/version.js';
 
 export type LLMConfig = {
   provider: ProviderKey;
@@ -114,6 +115,7 @@ export class LLMFactory implements LLMFactoryInterface {
           {
             apiKey: config.apiKey,
             httpLogFile: options.httpLogFile,
+            version: getVersion(),
           },
           customProviders,
         );
@@ -170,6 +172,7 @@ export class LLMFactory implements LLMFactoryInterface {
             {
               apiKey: config.apiKey,
               httpLogFile: options.httpLogFile,
+              version: getVersion(),
             },
             customProviders,
           );

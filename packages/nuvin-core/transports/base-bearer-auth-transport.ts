@@ -4,11 +4,13 @@ export abstract class BaseBearerAuthTransport implements HttpTransport {
   protected readonly inner: HttpTransport;
   protected readonly apiKey?: string;
   protected readonly baseUrl: string;
+  protected readonly version?: string;
 
-  constructor(inner: FetchTransport, apiKey?: string, baseUrl?: string) {
+  constructor(inner: FetchTransport, apiKey?: string, baseUrl?: string, version?: string) {
     this.inner = inner;
     this.apiKey = apiKey;
     this.baseUrl = baseUrl ?? this.getDefaultBaseUrl();
+    this.version = version;
   }
 
   protected abstract getDefaultBaseUrl(): string;
@@ -26,6 +28,9 @@ export abstract class BaseBearerAuthTransport implements HttpTransport {
     }
     const base: HttpHeaders = headers ? { ...headers } : {};
     base.Authorization = `Bearer ${this.apiKey}`;
+    if (!base['User-Agent'] && this.version) {
+      base['User-Agent'] = `nuvin-cli/${this.version}`;
+    }
     return base;
   }
 

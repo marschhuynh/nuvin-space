@@ -28,6 +28,7 @@ export interface LLMOptions {
   httpLogFile?: string;
   enablePromptCaching?: boolean;
   includeUsage?: boolean;
+  version?: string;
 }
 
 const providers = providerConfig.providers as ProviderConfig[];
@@ -62,7 +63,7 @@ export class GenericLLM extends BaseLLM implements LLMPort {
       maxFileSize: 5 * 1024 * 1024,
       captureResponseBody: true,
     });
-    return createTransport(base, this.apiUrl, this.opts.apiKey, this.opts.apiUrl);
+    return createTransport(base, this.apiUrl, this.opts.apiKey, this.opts.apiUrl, this.opts.version);
   }
 
   async getModels(signal?: AbortSignal): Promise<ModelResponse[]> {

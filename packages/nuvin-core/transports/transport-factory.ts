@@ -6,6 +6,7 @@ export function createTransport(
   defaultBaseUrl: string,
   apiKey?: string,
   baseUrl?: string,
+  version?: string,
 ): HttpTransport {
-  return new SimpleBearerAuthTransport(inner, defaultBaseUrl, apiKey, baseUrl);
+  return new SimpleBearerAuthTransport(inner, defaultBaseUrl, apiKey, baseUrl, version);
 }
