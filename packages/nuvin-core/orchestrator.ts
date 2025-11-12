@@ -216,19 +216,22 @@ export class AgentOrchestrator {
     originalToolCalls: ToolCall[],
     assistantContent: string | null,
   ): Promise<void> {
-    accumulatedMessages.push({
-      role: 'assistant',
-      content: assistantContent ?? null,
-      tool_calls: originalToolCalls,
-    });
-    turnHistory.push({
+    const assistantMsg: Message = {
       id: this.deps.ids.uuid(),
       role: 'assistant',
       content: assistantContent ?? null,
       timestamp: this.deps.clock.iso(),
       tool_calls: originalToolCalls,
-    });
+    };
 
+    accumulatedMessages.push({
+      role: 'assistant',
+      content: assistantContent ?? null,
+      tool_calls: originalToolCalls,
+    });
+    turnHistory.push(assistantMsg);
+
+    const toolResultMsgs: Message[] = [];
     for (const toolCall of originalToolCalls) {
       const toolDenialResult = 'Tool execution denied by user';
 
@@ -239,15 +242,19 @@ export class AgentOrchestrator {
         name: toolCall.function.name,
       });
 
-      turnHistory.push({
+      const toolMsg: Message = {
         id: toolCall.id,
         role: 'tool',
         content: toolDenialResult,
         timestamp: this.deps.clock.iso(),
         tool_call_id: toolCall.id,
         name: toolCall.function.name,
-      });
+      };
+      turnHistory.push(toolMsg);
+      toolResultMsgs.push(toolMsg);
     }
+
+    await this.deps.memory.append(conversationId, [assistantMsg, ...toolResultMsgs]);
 
     await this.deps.events?.emit({
       type: AgentEventTypes.AssistantMessage,
@@ -343,6 +350,8 @@ export class AgentOrchestrator {
       userDisplay = resolveDisplayText(normalized.text, attachments, normalized.displayText);
       const userTimestamp = this.deps.clock.iso();
       userMessages = [{ id: this.deps.ids.uuid(), role: 'user', content: userContent, timestamp: userTimestamp }];
+
+      await this.deps.memory.append(convo, userMessages);
     }
 
     if (opts.signal?.aborted) throw new Error('Aborted');
@@ -379,6 +388,7 @@ export class AgentOrchestrator {
     let result: CompletionResult;
     let toolApprovalDenied = false;
     let denialMessage = '';
+    let finalResponseSaved = false;
 
     try {
       if (opts.stream && typeof this.deps.llm.streamCompletion === 'function') {
@@ -414,6 +424,29 @@ export class AgentOrchestrator {
         );
       } else {
         result = await this.deps.llm.generateCompletion(params, opts.signal);
+      }
+
+      if (!result.tool_calls?.length && result.content && !finalResponseSaved) {
+        const content = opts.stream ? streamedAssistantContent : result.content;
+        const assistantMsg: Message = {
+          id: msgId,
+          role: 'assistant',
+          content,
+          timestamp: this.deps.clock.iso(),
+        };
+        await this.deps.memory.append(convo, [assistantMsg]);
+        finalResponseSaved = true;
+
+        if (!opts.stream && content.trim()) {
+          const messageEvent: AssistantMessageEvent = {
+            type: AgentEventTypes.AssistantMessage,
+            conversationId: convo,
+            messageId: msgId,
+            content,
+            ...(result.usage && { usage: result.usage }),
+          };
+          await this.deps.events?.emit(messageEvent);
+        }
       }
 
       while (result.tool_calls?.length) {
@@ -468,14 +501,15 @@ export class AgentOrchestrator {
         );
         allToolResults.push(...toolResults);
 
-        accumulatedMessages.push({ role: 'assistant', content: result.content ?? null, tool_calls: approvedCalls });
-        turnHistory.push({
+        const assistantMsg: Message = {
           id: this.deps.ids.uuid(),
           role: 'assistant',
           content: result.content ?? null,
           timestamp: this.deps.clock.iso(),
           tool_calls: approvedCalls,
-        });
+        };
+
+        const toolResultMsgs: Message[] = [];
         for (const tr of toolResults) {
           const contentStr =
             tr.status === 'error'
@@ -483,8 +517,8 @@ export class AgentOrchestrator {
               : typeof tr.result === 'string'
                 ? tr.result
                 : JSON.stringify(tr.result);
-          accumulatedMessages.push({ role: 'tool', content: contentStr, tool_call_id: tr.id, name: tr.name });
-          turnHistory.push({
+
+          toolResultMsgs.push({
             id: tr.id,
             role: 'tool',
             content: contentStr,
@@ -492,6 +526,7 @@ export class AgentOrchestrator {
             tool_call_id: tr.id,
             name: tr.name,
           });
+
           await this.deps.events?.emit({
             type: AgentEventTypes.ToolResult,
             conversationId: convo,
@@ -500,7 +535,23 @@ export class AgentOrchestrator {
           });
         }
 
+        await this.deps.memory.append(convo, [assistantMsg, ...toolResultMsgs]);
+
+        accumulatedMessages.push({ role: 'assistant', content: result.content ?? null, tool_calls: approvedCalls });
+        for (const tr of toolResults) {
+          const contentStr =
+            tr.status === 'error'
+              ? String(tr.result)
+              : typeof tr.result === 'string'
+                ? tr.result
+                : JSON.stringify(tr.result);
+          accumulatedMessages.push({ role: 'tool', content: contentStr, tool_call_id: tr.id, name: tr.name });
+        }
+
         if (opts.signal?.aborted) throw new Error('Aborted');
+
+        streamedAssistantContent = '';
+
         if (opts.stream && typeof this.deps.llm.streamCompletion === 'function') {
           result = await this.deps.llm.streamCompletion(
             { ...params, messages: accumulatedMessages },
@@ -535,24 +586,35 @@ export class AgentOrchestrator {
         } else {
           result = await this.deps.llm.generateCompletion({ ...params, messages: accumulatedMessages }, opts.signal);
         }
+
+        if (!result.tool_calls?.length && result.content && !finalResponseSaved) {
+          const content = opts.stream ? streamedAssistantContent : result.content;
+          const assistantMsg: Message = {
+            id: msgId,
+            role: 'assistant',
+            content,
+            timestamp: this.deps.clock.iso(),
+          };
+          await this.deps.memory.append(convo, [assistantMsg]);
+          finalResponseSaved = true;
+
+          if (!opts.stream && content.trim()) {
+            const messageEvent: AssistantMessageEvent = {
+              type: AgentEventTypes.AssistantMessage,
+              conversationId: convo,
+              messageId: msgId,
+              content,
+              ...(result.usage && { usage: result.usage }),
+            };
+            await this.deps.events?.emit(messageEvent);
+          }
+        }
       }
 
       const t1 = this.deps.clock.now();
       const timestamp = this.deps.clock.iso();
 
-      const newHistory: Message[] = [];
-      for (const m of userMessages) newHistory.push(m);
-      for (const m of turnHistory) newHistory.push(m);
-
-      // When tools were denied, turnHistory already contains:
-      // 1. Assistant message with tool_calls
-      // 2. Tool results with "denied by user"
-      // Don't add result.content again as it's already in the assistant message with tool_calls
-      if (!toolApprovalDenied) {
-        newHistory.push({ id: msgId, role: 'assistant', content: result.content, timestamp });
-      }
-
-      const shouldEmitFinalMessage = result.content?.trim() && !toolApprovalDenied;
+      const shouldEmitFinalMessage = result.content?.trim() && !toolApprovalDenied && !finalResponseSaved;
 
       if (shouldEmitFinalMessage) {
         const messageEvent: AssistantMessageEvent = {
@@ -565,7 +627,6 @@ export class AgentOrchestrator {
         await this.deps.events?.emit(messageEvent);
       }
 
-      // Use denial message as response content when tools were denied
       const responseContent = toolApprovalDenied ? denialMessage : result.content;
 
       const resp: MessageResponse = {
@@ -586,9 +647,6 @@ export class AgentOrchestrator {
         },
       };
 
-      await this.deps.memory.append(convo, newHistory);
-      await this.deps.events?.emit({ type: AgentEventTypes.MemoryAppended, conversationId: convo, delta: newHistory });
-
       await this.deps.events?.emit({
         type: AgentEventTypes.Done,
         conversationId: convo,
@@ -599,27 +657,6 @@ export class AgentOrchestrator {
 
       return resp;
     } catch (err) {
-      try {
-        const partial: Message[] = [];
-        for (const m of userMessages) partial.push(m);
-        for (const m of turnHistory) partial.push(m);
-        const partialAssistant = (streamedAssistantContent || '').trim();
-        const assistantAlreadyRecorded = turnHistory.some((m) => m.role === 'assistant');
-        if (partialAssistant && !assistantAlreadyRecorded) {
-          partial.push({
-            id: this.deps.ids.uuid(),
-            role: 'assistant',
-            content: partialAssistant,
-            timestamp: this.deps.clock.iso(),
-          });
-        }
-        if (partial.length) {
-          await this.deps.memory.append(convo, partial);
-          await this.deps.events?.emit({ type: AgentEventTypes.MemoryAppended, conversationId: convo, delta: partial });
-        }
-      } catch {
-        // ignore partial persistence errors
-      }
       throw err;
     }
   }

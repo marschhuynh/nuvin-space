@@ -35,9 +35,6 @@ export class ConsoleEventPort implements EventPort {
         case AgentEventTypes.AssistantMessage:
           console.log('[agent] assistant', event.content);
           break;
-        case AgentEventTypes.MemoryAppended:
-          console.log('[agent] memory+ =', event.delta.length);
-          break;
         case AgentEventTypes.Done:
           console.log('[agent] done', { ms: event.responseTimeMs, usage: event.usage });
           break;

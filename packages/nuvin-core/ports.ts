@@ -303,7 +303,6 @@ export const AgentEventTypes = {
   AssistantChunk: 'assistant_chunk',
   AssistantMessage: 'assistant_message',
   StreamFinish: 'stream_finish',
-  MemoryAppended: 'memory_appended',
   Done: 'done',
   Error: 'error',
   MCPStderr: 'mcp_stderr',
@@ -371,11 +370,6 @@ export type AgentEvent =
       messageId: string;
       finishReason?: string;
       usage?: UsageData;
-    }
-  | {
-      type: typeof AgentEventTypes.MemoryAppended;
-      conversationId: string;
-      delta: Message[];
     }
   | {
       type: typeof AgentEventTypes.Done;
