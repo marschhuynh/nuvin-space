@@ -24,6 +24,7 @@ import {
   type ProviderKey,
 } from './config/index.js';
 import { ConfigCliHandler } from './config/cli-handler.js';
+import { AutoUpdater } from './services/auto-updater.js';
 
 process.stdout.write('\x1b[?2004h');
 
@@ -126,6 +127,9 @@ const cli = meow(
     console.log(`@nuvin/cli v${version} (${commit})`);
     process.exit(0);
   }
+
+  // Check for updates and auto-upgrade if available (always enabled)
+  await AutoUpdater.checkAndUpdate();
 
   const ensureString = (value: string | undefined): string | undefined => {
     if (typeof value !== 'string') return undefined;
