@@ -392,6 +392,7 @@ export class AgentOrchestrator {
 
     try {
       if (opts.stream && typeof this.deps.llm.streamCompletion === 'function') {
+        let isFirstChunk = true;
         result = await this.deps.llm.streamCompletion(
           params,
           {
@@ -399,7 +400,9 @@ export class AgentOrchestrator {
               try {
                 streamedAssistantContent += delta;
               } catch {}
-              const cleanDelta = delta.replace(/^\n+/, '');
+              // Only strip leading newlines from the very first chunk
+              const cleanDelta = isFirstChunk ? delta.replace(/^\n+/, '') : delta;
+              isFirstChunk = false;
               const chunkEvent: AssistantChunkEvent = {
                 type: AgentEventTypes.AssistantChunk,
                 conversationId: convo,
@@ -437,7 +440,9 @@ export class AgentOrchestrator {
         await this.deps.memory.append(convo, [assistantMsg]);
         finalResponseSaved = true;
 
-        if (!opts.stream && content.trim()) {
+        // Emit AssistantMessage for both streaming and non-streaming
+        // This signals the UI to finalize rendering and enable markdown
+        if (content.trim()) {
           const messageEvent: AssistantMessageEvent = {
             type: AgentEventTypes.AssistantMessage,
             conversationId: convo,
@@ -553,6 +558,7 @@ export class AgentOrchestrator {
         streamedAssistantContent = '';
 
         if (opts.stream && typeof this.deps.llm.streamCompletion === 'function') {
+          let isFirstChunk = true;
           result = await this.deps.llm.streamCompletion(
             { ...params, messages: accumulatedMessages },
             {
@@ -560,7 +566,9 @@ export class AgentOrchestrator {
                 try {
                   streamedAssistantContent += delta;
                 } catch {}
-                const cleanDelta = delta.replace(/^\n+/, '');
+                // Only strip leading newlines from the very first chunk
+                const cleanDelta = isFirstChunk ? delta.replace(/^\n+/, '') : delta;
+                isFirstChunk = false;
                 const chunkEvent: AssistantChunkEvent = {
                   type: AgentEventTypes.AssistantChunk,
                   conversationId: convo,
@@ -598,7 +606,9 @@ export class AgentOrchestrator {
           await this.deps.memory.append(convo, [assistantMsg]);
           finalResponseSaved = true;
 
-          if (!opts.stream && content.trim()) {
+          // Emit AssistantMessage for both streaming and non-streaming
+          // This signals the UI to finalize rendering and enable markdown
+          if (content.trim()) {
             const messageEvent: AssistantMessageEvent = {
               type: AgentEventTypes.AssistantMessage,
               conversationId: convo,
