@@ -1,5 +1,17 @@
 # @nuvin/nuvin-core
 
+## 1.1.0
+
+### Minor Changes
+
+- [`4ecfa09`](https://github.com/marschhuynh/nuvin-space/commit/4ecfa09550f43e60943c1d06dcc27eb782580f27) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add support for custom LLM providers with flexible model configuration. Custom providers can be defined with OpenAI-compatible APIs and support multiple model configuration types: pre-defined lists, custom endpoints, or dynamic fetching.
+
+- [`d3411e4`](https://github.com/marschhuynh/nuvin-space/commit/d3411e453323d9de85f42b40a3f66f4f06132398) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Remove unused className and transportName fields from provider configuration. The createTransport function signature has been updated to remove the unused \_name parameter. This is a breaking change for any code that directly uses createTransport.
+
+### Patch Changes
+
+- [`da66afa`](https://github.com/marschhuynh/nuvin-space/commit/da66afae845e697e9706d9175c888618811388fd) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Improve streaming behavior by only stripping leading newlines from the first chunk. Emit AssistantMessage events for both streaming and non-streaming modes to ensure proper UI finalization and markdown rendering.
+
 ## 1.0.1
 
 ### Patch Changes
