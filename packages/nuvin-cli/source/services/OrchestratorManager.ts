@@ -359,9 +359,8 @@ export class OrchestratorManager {
         };
 
         toolRegistry.setOrchestrator(agentConfig, agentTools, llmFactoryAdapter, configResolver);
+        toolRegistry.setEnabledAgents(enabledAgentsConfig);
       }
-
-      // Note: Enabled agents configuration will be loaded and set by the /agent command
 
       this.orchestrator = orchestrator;
       this.memory = memory;

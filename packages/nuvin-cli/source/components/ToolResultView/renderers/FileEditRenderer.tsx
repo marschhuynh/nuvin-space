@@ -7,9 +7,10 @@ type FileEditRendererProps = {
   toolResult: ToolExecutionResult;
   toolCall?: ToolCall;
   messageId?: string;
+  fullMode?: boolean;
 };
 
-export const FileEditRenderer: React.FC<FileEditRendererProps> = ({ toolResult, toolCall }) => {
+export const FileEditRenderer: React.FC<FileEditRendererProps> = ({ toolResult, toolCall, fullMode = false }) => {
   // Parse tool call arguments
   let args: {
     file_path?: string;

@@ -6,6 +6,7 @@ export type ToolParamRendererProps = {
   args: Record<string, unknown>;
   statusColor: string;
   formatValue: (value: unknown) => string;
+  fullMode?: boolean;
 };
 
 export type ToolParamRendererComponent = React.FC<ToolParamRendererProps>;

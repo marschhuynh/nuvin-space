@@ -3,6 +3,7 @@ import { Box, Text } from 'ink';
 import type { ToolCall, ToolExecutionResult } from '@nuvin/nuvin-core';
 import type { MessageLine as MessageLineType } from '@/adapters/index.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
+import { useExplainMode } from '@/contexts/ExplainModeContext.js';
 import { ToolResultView } from './ToolResultView/ToolResultView.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import { ToolTimer } from './ToolTimer.js';
@@ -48,6 +49,7 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
 }) => {
   const [cols] = useStdoutDimensions();
   const { theme } = useTheme();
+  const { explainMode } = useExplainMode();
 
   // Parse arguments to display
   const args =
@@ -217,6 +219,7 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
             toolCall={toolCall}
             messageId={`${messageId}-result-${toolCall.id}`}
             messageContent={toolResult.content || ''}
+            fullMode={explainMode}
           />
         </Box>
       ) : null}

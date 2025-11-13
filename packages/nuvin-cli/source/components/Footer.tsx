@@ -9,6 +9,7 @@ import { useTheme } from '@/contexts/ThemeContext.js';
 import { THINKING_LEVELS } from '@/config/types.js';
 import { useToolApproval } from '@/contexts/ToolApprovalContext.js';
 import { useConfig } from '@/contexts/ConfigContext.js';
+import { useExplainMode } from '@/contexts/ExplainModeContext.js';
 
 type FooterProps = {
   status: string;
@@ -31,6 +32,7 @@ const FooterComponent: React.FC<FooterProps> = ({
   const { notification } = useNotification();
   const { theme } = useTheme();
   const { toolApprovalMode } = useToolApproval();
+  const { explainMode } = useExplainMode();
   const { get } = useConfig();
 
   const thinking = get<string>('thinking');
@@ -49,7 +51,11 @@ const FooterComponent: React.FC<FooterProps> = ({
       borderRight={false}
     >
       <Box justifyContent="space-between">
-        {notification ? (
+        {explainMode ? (
+          <Text color={theme.tokens.yellow} bold>
+            Ctrl+E to toggle
+          </Text>
+        ) : notification ? (
           <Text color={theme.tokens.yellow}>{notification || ''}</Text>
         ) : (
           <Box>
@@ -71,7 +77,7 @@ const FooterComponent: React.FC<FooterProps> = ({
             </Text>
           </Box>
         )}
-        {lastMetadata?.totalTokens ? (
+        {!explainMode && lastMetadata?.totalTokens ? (
           <Box>
             <Text color={theme.footer.model} dimColor bold>
               Tokens:

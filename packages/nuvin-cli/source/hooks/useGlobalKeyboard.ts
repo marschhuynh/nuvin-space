@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { eventBus } from '@/services/EventBus.js';
 import type { InputAreaHandle } from '@/components/index.js';
+import { useExplainMode } from '@/contexts/ExplainModeContext.js';
 
 type UseGlobalKeyboardProps = {
   busy: boolean;
@@ -16,6 +17,7 @@ export const useGlobalKeyboard = ({
   onNotification,
 }: UseGlobalKeyboardProps): void => {
   const ctrlCArmedRef = useRef(false);
+  const { toggleExplainMode } = useExplainMode();
 
   const handleCtrlC = useCallback(() => {
     if (!ctrlCArmedRef.current) {
@@ -31,6 +33,10 @@ export const useGlobalKeyboard = ({
       process.exit(0);
     }
   }, [onNotification]);
+
+  const handleExplainToggle = useCallback(() => {
+    toggleExplainMode();
+  }, [toggleExplainMode]);
 
   const handlePaste = useCallback(async () => {
     if (busy || pendingApproval) {
@@ -76,10 +82,12 @@ export const useGlobalKeyboard = ({
   useEffect(() => {
     eventBus.on('ui:keyboard:ctrlc', handleCtrlC);
     eventBus.on('ui:keyboard:paste', handlePaste);
+    eventBus.on('ui:keyboard:explainToggle', handleExplainToggle);
 
     return () => {
       eventBus.off('ui:keyboard:ctrlc', handleCtrlC);
       eventBus.off('ui:keyboard:paste', handlePaste);
+      eventBus.off('ui:keyboard:explainToggle', handleExplainToggle);
     };
-  }, [handleCtrlC, handlePaste]);
+  }, [handleCtrlC, handlePaste, handleExplainToggle]);
 };

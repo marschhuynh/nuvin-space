@@ -3,6 +3,7 @@ import { Box, Text } from 'ink';
 import type { ToolCall, ToolExecutionResult } from '@nuvin/nuvin-core';
 import type { MessageLine as MessageLineType } from '@/adapters/index.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
+import { useExplainMode } from '@/contexts/ExplainModeContext.js';
 import { ToolResultView } from '@/components/ToolResultView/ToolResultView.js';
 import { FileEditParamRender, FileNewParamRender, DefaultParamRender, AssignTaskParamRender } from './params/index.js';
 import { ToolTimer } from '@/components/ToolTimer.js';
@@ -24,6 +25,7 @@ type ToolCallProps = {
  */
 export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, messageId }) => {
   const { theme } = useTheme();
+  const { explainMode } = useExplainMode();
 
   const parseArguments = (tc: ToolCall): Record<string, unknown> => {
     try {
@@ -48,9 +50,26 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
   const toolExecutionResult = toolResult?.metadata?.toolResult as ToolExecutionResult | undefined;
   const hasResult = !!toolExecutionResult;
 
+  const getToolDisplayName = (name: string): string => {
+    const toolNameMap: Record<string, string> = {
+      file_read: 'Read file',
+      file_edit: 'Edit file',
+      file_new: 'Create file',
+      bash_tool: 'Run command',
+      web_search: 'Search web',
+      web_fetch: 'Fetch page',
+      dir_ls: 'List directory',
+      todo_write: 'Update todo',
+      assign_task: 'Delegate task',
+    };
+    return toolNameMap[name] || name;
+  };
+
   const toolName = toolCall.function.name;
   const displayName =
-    args.description && typeof args.description === 'string' && args.description.trim() ? args.description : toolName;
+    args.description && typeof args.description === 'string' && args.description.trim()
+      ? args.description
+      : getToolDisplayName(toolName);
   const getParameterRenderer = () => {
     switch (toolName) {
       case 'file_edit':
@@ -88,7 +107,7 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
       {/* Tool Call Parameters */}
       {(() => {
         const ParamRenderer = getParameterRenderer();
-        return <ParamRenderer toolCall={toolCall} args={args} statusColor={statusColor} formatValue={formatValue} />;
+        return <ParamRenderer toolCall={toolCall} args={args} statusColor={statusColor} formatValue={formatValue} fullMode={explainMode} />;
       })()}
 
       {!hasResult && (
@@ -112,6 +131,7 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
           toolCall={toolCall}
           messageId={`${messageId}-result-${toolCall.id}`}
           messageContent={toolResult?.content || ''}
+          fullMode={explainMode}
         />
       ) : null}
     </Box>

@@ -25,6 +25,7 @@ import { commandRegistry } from './modules/commands/registry.js';
 import type { ProviderKey } from './const.js';
 import useMessages from './hooks/useMessage.js';
 import { useConfig } from './contexts/ConfigContext.js';
+import { useExplainMode } from './contexts/ExplainModeContext.js';
 
 type Props = {
   provider?: ProviderKey;
@@ -42,6 +43,7 @@ export default function App({
   mcpConfigPath: _mcpConfigPath,
   historyPath,
 }: Props) {
+  const { explainMode } = useExplainMode();
   const [cols, _rows] = useStdoutDimensions();
   const { messages, clearMessages, setLines, appendLine, updateLine, updateLineMetadata, handleError } = useMessages();
   const [busy, setBusy] = useState(false);
@@ -98,18 +100,14 @@ export default function App({
       return;
     }
 
-    // Echo provider doesn't need auth
     if (config.activeProvider === 'echo') {
       setShowInitialSetup(false);
       return;
     }
 
-    // Check new auth format (providers.{provider}.auth array)
     const provider = config.activeProvider;
     const providerConfig = config.providers?.[provider];
     const hasNewAuth = providerConfig?.auth && Array.isArray(providerConfig.auth) && providerConfig.auth.length > 0;
-
-    // Check legacy formats for backward compatibility
     const hasLegacyAuth = providerConfig?.token || providerConfig?.apiKey || config.tokens?.[provider] || config.apiKey;
 
     const needsSetup = !hasNewAuth && !hasLegacyAuth;
@@ -368,15 +366,16 @@ export default function App({
     previousVimModeRef.current = vimModeEnabled;
   }, [vimModeEnabled]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (!cols || cols < 10) return;
     try {
-      console.log(ansiEscapes.clearTerminal);
+      // console.log(ansiEscapes.clearTerminal);
       onViewRefresh();
     } catch (error) {
       console.warn('Error during resize refresh, continuing with safe state:', error);
     }
-  }, [cols, onViewRefresh]);
+  }, [cols, onViewRefresh, explainMode]);
 
   if (showInitialSetup) {
     return (
@@ -415,18 +414,20 @@ export default function App({
       <Box flexDirection="column" height={'100%'} width="100%">
         <ChatDisplay key={`chat-display-${headerKey}`} messages={messages} headerKey={headerKey} />
 
-        <InteractionArea
-          ref={inputAreaRef}
-          busy={busy}
-          vimModeEnabled={vimModeEnabled}
-          hasActiveCommand={!!activeCommand}
-          abortRef={abortRef}
-          onNotification={setNotification}
-          onBusyChange={setBusy}
-          onInputSubmit={handleSubmit}
-          onVimModeToggle={() => setVimModeEnabled((prev) => !prev)}
-          onVimModeChanged={setVimMode}
-        />
+        {!explainMode && (
+          <InteractionArea
+            ref={inputAreaRef}
+            busy={busy}
+            vimModeEnabled={vimModeEnabled}
+            hasActiveCommand={!!activeCommand}
+            abortRef={abortRef}
+            onNotification={setNotification}
+            onBusyChange={setBusy}
+            onInputSubmit={handleSubmit}
+            onVimModeToggle={() => setVimModeEnabled((prev) => !prev)}
+            onVimModeChanged={setVimMode}
+          />
+        )}
 
         <Footer
           status={status}

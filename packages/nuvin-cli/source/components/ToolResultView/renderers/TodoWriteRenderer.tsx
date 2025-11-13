@@ -11,9 +11,10 @@ type TodoItem = {
 type TodoWriteRendererProps = {
   toolResult: ToolExecutionResult;
   messageId?: string;
+  fullMode?: boolean;
 };
 
-export const TodoWriteRenderer: React.FC<TodoWriteRendererProps> = ({ toolResult, messageId }) => {
+export const TodoWriteRenderer: React.FC<TodoWriteRendererProps> = ({ toolResult, messageId, fullMode = false }) => {
   const { theme } = useTheme();
 
   if (toolResult.status !== 'success') return null;
@@ -55,7 +56,7 @@ export const TodoWriteRenderer: React.FC<TodoWriteRendererProps> = ({ toolResult
   if (items.length === 0) return null;
 
   return (
-    <Box marginLeft={2} flexDirection="column">
+    <Box flexDirection="column">
       {items.map((item) => {
         const status = String(item.status ?? 'pending');
         const icon = status === 'completed' ? '[✔]' : status === 'in_progress' ? '[~]' : '[ ]';

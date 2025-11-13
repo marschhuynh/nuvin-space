@@ -10,6 +10,7 @@ type DefaultRendererProps = {
   messageId?: string;
   messageContent?: string;
   messageColor?: string;
+  fullMode?: boolean;
 };
 
 export const DefaultRenderer: React.FC<DefaultRendererProps> = ({
@@ -17,6 +18,7 @@ export const DefaultRenderer: React.FC<DefaultRendererProps> = ({
   messageId,
   messageContent,
   messageColor,
+  fullMode = false,
 }) => {
   const { theme } = useTheme();
   const [cols] = useStdoutDimensions();
@@ -24,13 +26,13 @@ export const DefaultRenderer: React.FC<DefaultRendererProps> = ({
   const statusColor = toolResult.status === 'success' ? theme.tokens.gray : theme.tokens.red;
   const detailColor = messageColor ?? statusColor;
   const linesToRender = parseDetailLines({ status: toolResult.status, messageContent, toolResult });
-  const maxLines = 5;
-  const maxLineLength = 150;
+  const maxLines = fullMode ? Number.POSITIVE_INFINITY : 5;
+  const maxLineLength = fullMode ? Number.POSITIVE_INFINITY : 150;
 
   if (linesToRender.length === 0) return null;
 
   const truncateLine = (line: string): string => {
-    if (line.length <= maxLineLength) return line;
+    if (fullMode || line.length <= maxLineLength) return line;
     return `${line.slice(0, maxLineLength)}... (${line.length - maxLineLength} more chars)`;
   };
 
@@ -46,7 +48,7 @@ export const DefaultRenderer: React.FC<DefaultRendererProps> = ({
           {truncateLine(line)}
         </Text>
       ))}
-      {linesToRender.length > maxLines && (
+      {!fullMode && linesToRender.length > maxLines && (
         <Text dimColor color={theme.colors.muted}>
           ... ({linesToRender.length - maxLines} more lines)
         </Text>

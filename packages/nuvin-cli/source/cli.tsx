@@ -14,6 +14,7 @@ import { ConfigProvider } from './contexts/ConfigContext.js';
 import { ConfigBridge } from './components/ConfigBridge.js';
 import { ThemeProvider } from './contexts/ThemeContext.js';
 import { StdoutDimensionsProvider } from './contexts/StdoutDimensionsContext.js';
+import { ExplainModeProvider } from './contexts/ExplainModeContext.js';
 
 import { getVersionInfo } from './utils/version.js';
 import {
@@ -341,14 +342,16 @@ const cli = meow(
           <NotificationProvider>
             <ToolApprovalProvider requireToolApproval={finalRequireToolApproval} onError={(msg) => console.error(msg)}>
               <CommandProvider>
-                <ConfigBridge>
-                  <App
-                    memPersist={finalMemPersist}
-                    mcpConfigPath={displayMcpConfigPath}
-                    thinking={thinkingSetting}
-                    historyPath={historyPath}
-                  />
-                </ConfigBridge>
+                <ExplainModeProvider>
+                  <ConfigBridge>
+                    <App
+                      memPersist={finalMemPersist}
+                      mcpConfigPath={displayMcpConfigPath}
+                      thinking={thinkingSetting}
+                      historyPath={historyPath}
+                    />
+                  </ConfigBridge>
+                </ExplainModeProvider>
               </CommandProvider>
             </ToolApprovalProvider>
           </NotificationProvider>

@@ -4,6 +4,7 @@ import type { ToolExecutionResult, ToolCall } from '@nuvin/nuvin-core';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import { TodoWriteRenderer } from './renderers/TodoWriteRenderer.js';
 import { FileEditRenderer } from './renderers/FileEditRenderer.js';
+import { FileReadRenderer } from './renderers/FileReadRenderer.js';
 import { BashToolRenderer } from './renderers/BashToolRenderer.js';
 import { DefaultRenderer } from './renderers/DefaultRenderer.js';
 import { Markdown } from '@/components/Markdown.js';
@@ -15,6 +16,7 @@ type ToolResultViewProps = {
   messageId?: string;
   messageContent?: string;
   messageColor?: string;
+  fullMode?: boolean;
 };
 
 export const ToolResultView: React.FC<ToolResultViewProps> = ({
@@ -23,6 +25,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
   messageId,
   messageContent,
   messageColor,
+  fullMode = false,
 }) => {
   const { theme } = useTheme();
   const [cols] = useStdoutDimensions();
@@ -80,8 +83,14 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       }
       case 'file_edit':
         return { text: isSuccess ? 'Edited' : 'Edit failed', color: statusColor, paramText };
-      case 'file_read':
-        return { text: isSuccess ? 'Read' : 'Read failed', color: statusColor, paramText };
+      case 'file_read': {
+        if (isSuccess) {
+          const fileContent = typeof toolResult.result === 'string' ? toolResult.result : '';
+          const lineCount = fileContent.split(/\r?\n/).length;
+          return { text: `Read ${lineCount} lines`, color: statusColor, paramText };
+        }
+        return { text: 'Read failed', color: statusColor, paramText };
+      }
       case 'file_new':
         return { text: isSuccess ? 'Created' : 'Creation failed', color: statusColor, paramText };
       case 'bash_tool':
@@ -114,9 +123,21 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
         return <Markdown>{resultStr}</Markdown>;
       }
       case 'todo_write':
-        return <TodoWriteRenderer toolResult={toolResult} messageId={messageId} />;
+        return <TodoWriteRenderer toolResult={toolResult} messageId={messageId} fullMode={fullMode} />;
       case 'file_edit':
-        return <FileEditRenderer toolResult={toolResult} toolCall={toolCall} messageId={messageId} />;
+        return (
+          <FileEditRenderer toolResult={toolResult} toolCall={toolCall} messageId={messageId} fullMode={fullMode} />
+        );
+      case 'file_read':
+        return (
+          <FileReadRenderer
+            toolResult={toolResult}
+            messageId={messageId}
+            messageContent={messageContent}
+            messageColor={messageColor}
+            fullMode={fullMode}
+          />
+        );
       case 'bash_tool':
         return (
           <BashToolRenderer
@@ -124,6 +145,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
             messageId={messageId}
             messageContent={messageContent}
             messageColor={messageColor}
+            fullMode={fullMode}
           />
         );
       default:
@@ -133,6 +155,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
             messageId={messageId}
             messageContent={messageContent}
             messageColor={messageColor}
+            fullMode={fullMode}
           />
         );
     }
@@ -145,15 +168,16 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
     (toolResult.result !== null && toolResult.result !== undefined && toolResult.result !== '') ||
     toolResult.name === 'todo_write';
 
+  const shouldShowDone = toolResult.name !== 'file_read' || fullMode;
+
   return (
     <Box marginLeft={2} flexDirection="column">
       {shouldShowResult ? (
         <>
           <Box flexDirection="row">
-            <Text dimColor color={statusColor}>
-              ├─{' '}
+            <Text dimColor color={color}>
+              {`${shouldShowDone ? '├─' : '└─'} ${text}`}
             </Text>
-            <Text color={color}>{text}</Text>
           </Box>
           <Box
             borderStyle="single"
@@ -170,13 +194,15 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
           </Box>
         </>
       ) : null}
-      <Box flexDirection="row">
-        {durationText && toolResult.durationMs > 1000 ? (
-          <Text dimColor={!!toolResult.result} color={statusColor}>{`└─ Done in ${durationText}`}</Text>
-        ) : (
-          <Text dimColor={!!toolResult.result} color={statusColor}>{`└─ Done`}</Text>
-        )}
-      </Box>
+      {shouldShowDone && (
+        <Box flexDirection="row">
+          {durationText && toolResult.durationMs > 1000 ? (
+            <Text dimColor={!!toolResult.result} color={statusColor}>{`└─ Done in ${durationText}`}</Text>
+          ) : (
+            <Text dimColor={!!toolResult.result} color={statusColor}>{`└─ Done`}</Text>
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

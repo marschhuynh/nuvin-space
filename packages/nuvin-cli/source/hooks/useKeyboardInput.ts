@@ -8,6 +8,11 @@ export const useKeyboardInput = (): void => {
       return;
     }
 
+    if (key.ctrl && _input === 'e') {
+      eventBus.emit('ui:keyboard:explainToggle', undefined);
+      return;
+    }
+
     const isPasteCommand = _input === '\u0016' || ((_input === 'v' || _input === 'V') && (key.ctrl || key.meta));
 
     if (isPasteCommand) {
