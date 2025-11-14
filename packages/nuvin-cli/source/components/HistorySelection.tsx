@@ -11,6 +11,7 @@ type SessionInfo = {
   timestamp: string;
   lastMessage: string;
   messageCount: number;
+  topic?: string;
 };
 
 type HistorySelectionProps = {
@@ -112,7 +113,8 @@ const SessionItem: React.FC<{ item: SessionInfo; isSelected: boolean; cols: numb
 }) => {
   const { theme } = useTheme();
   const relativeTime = formatRelativeTime(item.timestamp);
-  const smartPreview = getSmartPreview(item.lastMessage, cols - 5);
+  const displayText = item.topic || item.lastMessage;
+  const smartPreview = getSmartPreview(displayText, cols - 5);
   const status = getSessionStatus(item.lastMessage, item.messageCount);
   const badge = getMessageCountBadge(item.messageCount);
 

@@ -9,6 +9,7 @@ type SessionInfo = {
   timestamp: string;
   lastMessage: string;
   messageCount: number;
+  topic?: string;
 };
 
 export const HeaderContent: React.FC<{ sessions: SessionInfo[]; columns: number }> = ({ sessions, columns }) => {

@@ -773,8 +773,51 @@ export class OrchestratorManager {
     } as const;
   }
 
-  async analyzeTopic(userMessage: string): Promise<string> {
-    const topicAnalysisPrompt = `Analyze the following user message and extract the main topic or intent in 3-5 words. Be concise and descriptive.
+  async analyzeTopic(userMessage: string, conversationId?: string): Promise<string> {
+    const actualConversationId = conversationId ?? this.conversationContext.getActiveConversationId();
+    
+    let conversationHistory = '';
+    if (this.memory) {
+      try {
+        const messages = await this.memory.get(actualConversationId);
+        if (messages && messages.length > 0) {
+          const userMessages = messages.filter((msg) => msg.role === 'user');
+          if (userMessages.length > 0) {
+            conversationHistory = userMessages
+              .map((msg) => {
+                let content = '';
+                if (typeof msg.content === 'string') {
+                  content = msg.content;
+                } else if (msg.content && typeof msg.content === 'object' && 'parts' in msg.content) {
+                  content = msg.content.parts
+                    .map((part) => {
+                      if (part.type === 'text') {
+                        return part.text;
+                      }
+                      return '[non-text content]';
+                    })
+                    .join('\n');
+                }
+                return content;
+              })
+              .join('\n\n');
+          }
+        }
+      } catch {
+        // If we can't get history, continue with just the current message
+      }
+    }
+
+    const topicAnalysisPrompt = conversationHistory
+      ? `Analyze the following user messages and extract the main topic or intent in 3-5 words. Be concise and descriptive.
+
+Previous user messages:
+${conversationHistory}
+
+Current user message: ${userMessage}
+
+Respond with only the topic, no explanation.`
+      : `Analyze the following user message and extract the main topic or intent in 3-5 words. Be concise and descriptive.
 
 User message: ${userMessage}
 

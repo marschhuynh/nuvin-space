@@ -10,6 +10,7 @@ type SessionInfo = {
   timestamp: string;
   lastMessage: string;
   messageCount: number;
+  topic?: string;
 };
 
 const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps) => {

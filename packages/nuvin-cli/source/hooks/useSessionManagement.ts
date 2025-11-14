@@ -35,6 +35,7 @@ export const scanAvailableSessions = async (): Promise<
     timestamp: string;
     lastMessage: string;
     messageCount: number;
+    topic?: string;
   }>
 > => {
   try {
@@ -49,13 +50,14 @@ export const scanAvailableSessions = async (): Promise<
       timestamp: string;
       lastMessage: string;
       messageCount: number;
+      topic?: string;
     }> = [];
 
     for (const sessionIdStr of sessionDirs) {
       const historyFile = path.join(dir, sessionIdStr, 'history.json');
       try {
-        const historyData = await readJson<{ cli?: Message[] }>(historyFile);
-        const cliMessages = historyData?.cli ?? [];
+        const historyData = await readJson<Record<string, unknown>>(historyFile);
+        const cliMessages = (historyData?.cli ?? []) as Message[];
         if (cliMessages.length === 0) continue;
 
         let lastMessage = 'No messages';
@@ -67,10 +69,16 @@ export const scanAvailableSessions = async (): Promise<
             const content = msgObj.content;
             const text = typeof content === 'string' ? content : '';
             lastMessage = text;
-            // if (lastMessage.length === 100) lastMessage += '...';
             break;
           }
         }
+
+        const metadataKey = '__metadata__cli';
+        const metadataArray = historyData?.[metadataKey] as unknown[];
+        const metadata = metadataArray && metadataArray.length > 0 ? metadataArray[0] : null;
+        const topic = metadata && typeof metadata === 'object' && 'topic' in metadata 
+          ? (metadata as { topic?: string }).topic 
+          : undefined;
 
         const timestamp = new Date(parseInt(sessionIdStr, 10)).toLocaleString();
         sessions.push({
@@ -78,6 +86,7 @@ export const scanAvailableSessions = async (): Promise<
           timestamp,
           lastMessage,
           messageCount: cliMessages.length,
+          topic,
         });
       } catch {}
     }
@@ -155,6 +164,7 @@ export const useSessionManagement = () => {
       timestamp: string;
       lastMessage: string;
       messageCount: number;
+      topic?: string;
     }>
   >([]);
 

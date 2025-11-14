@@ -290,6 +290,14 @@ export default function App({
           stream: true,
           signal: controller.signal,
         });
+
+        if (manager && displayContent) {
+          try {
+            await manager.analyzeAndUpdateTopic(displayContent, 'cli');
+          } catch (err) {
+            console.error('Failed to analyze topic:', err);
+          }
+        }
       } catch (err: unknown) {
         const e = err as Error & { name?: string; message?: unknown };
         const msgText: string = typeof e?.message === 'string' ? e.message : String(e);
@@ -310,7 +318,7 @@ export default function App({
         abortRef.current = null;
       }
     },
-    [send, appendLine, handleError],
+    [send, manager, appendLine, handleError],
   );
 
   useKeyboardInput();
