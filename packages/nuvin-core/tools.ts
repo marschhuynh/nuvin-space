@@ -10,6 +10,7 @@ import type {
   LLMPort,
   LLMFactory,
 } from './ports.js';
+import { ErrorReason } from './ports.js';
 import { InMemoryMemory } from './persistent/index.js';
 import { TodoStore, type TodoItem as StoreTodo } from './todo-store.js';
 import { TodoWriteTool } from './tools/TodoWriteTool.js';
@@ -87,7 +88,12 @@ export class ToolRegistry implements ToolPort, AgentAwareToolPort, OrchestratorA
   /**
    * Initialize AssignTool with orchestrator dependencies (lazy initialization)
    */
-  setOrchestrator(config: AgentConfig, tools: ToolPort, llmFactory?: LLMFactory, configResolver?: () => Partial<AgentConfig>): void {
+  setOrchestrator(
+    config: AgentConfig,
+    tools: ToolPort,
+    llmFactory?: LLMFactory,
+    configResolver?: () => Partial<AgentConfig>,
+  ): void {
     const commandRunner = new AgentManagerCommandRunner(config, tools, llmFactory, configResolver);
 
     const factory = this.delegationServiceFactory ?? new DelegationServiceFactory();
@@ -147,6 +153,7 @@ export class ToolRegistry implements ToolPort, AgentAwareToolPort, OrchestratorA
             status: 'error' as const,
             type: 'text' as const,
             result: 'Tool execution aborted by user',
+            metadata: { errorReason: ErrorReason.Aborted },
             durationMs: 0,
           });
         }
@@ -163,6 +170,7 @@ export class ToolRegistry implements ToolPort, AgentAwareToolPort, OrchestratorA
               status: 'error' as const,
               type: 'text' as const,
               result: 'Tool execution aborted by user',
+              metadata: { errorReason: ErrorReason.Aborted },
               durationMs: 0,
             };
           }
@@ -177,6 +185,7 @@ export class ToolRegistry implements ToolPort, AgentAwareToolPort, OrchestratorA
               status: 'error' as const,
               type: 'text' as const,
               result: `Tool '${c.name}' not found`,
+              metadata: { errorReason: ErrorReason.ToolNotFound },
               durationMs,
             };
           }

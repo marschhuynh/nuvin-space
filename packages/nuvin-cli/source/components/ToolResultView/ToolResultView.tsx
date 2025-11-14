@@ -1,15 +1,15 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
-import type { ToolExecutionResult, ToolCall } from '@nuvin/nuvin-core';
+import { type ToolExecutionResult, type ToolCall, ErrorReason } from '@nuvin/nuvin-core';
 import { useTheme } from '@/contexts/ThemeContext.js';
+import { Markdown } from '@/components/Markdown.js';
+import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import { TodoWriteRenderer } from './renderers/TodoWriteRenderer.js';
 import { FileEditRenderer } from './renderers/FileEditRenderer.js';
 import { FileReadRenderer } from './renderers/FileReadRenderer.js';
 import { FileNewRenderer } from './renderers/FileNewRenderer.js';
 import { BashToolRenderer } from './renderers/BashToolRenderer.js';
 import { DefaultRenderer } from './renderers/DefaultRenderer.js';
-import { Markdown } from '@/components/Markdown.js';
-import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 
 type ToolResultViewProps = {
   toolResult: ToolExecutionResult;
@@ -36,7 +36,6 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       ? `${toolResult.durationMs}ms`
       : null;
 
-  // Extract key parameter from tool call
   const getKeyParam = (): string | null => {
     if (!toolCall) return null;
 
@@ -51,20 +50,21 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       if (args.cmd) return args.cmd.substring(0, 50) + (args.cmd.length > 50 ? '...' : '');
 
       return null;
-    } catch {
+    } catch (_error) {
+      console.warn('Failed to parse tool arguments');
       return null;
     }
   };
 
   const getStatusMessage = () => {
     const isSuccess = toolResult.status === 'success';
-    const isAborted = toolResult.result.toLowerCase().includes('aborted by user');
-    const isDenied = toolResult.result.toLowerCase().includes('denied by user');
+    const errorReason = toolResult.metadata?.errorReason;
 
     const keyParam = getKeyParam();
     const paramText = keyParam ?? '';
 
-    if (isAborted) {
+    // Handle error states based on errorReason metadata
+    if (errorReason === ErrorReason.Aborted) {
       return {
         text: 'Aborted',
         color: theme.colors.warning || 'yellow',
@@ -72,7 +72,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       };
     }
 
-    if (isDenied) {
+    if (errorReason === ErrorReason.Denied) {
       return {
         text: 'Denied',
         color: theme.colors.warning || 'yellow',
@@ -80,14 +80,70 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       };
     }
 
+    if (errorReason === ErrorReason.Timeout) {
+      return {
+        text: 'Timeout',
+        color: theme.colors.warning || 'yellow',
+        paramText,
+      };
+    }
+
+    if (errorReason === ErrorReason.PermissionDenied) {
+      return {
+        text: 'Permission denied',
+        color: theme.colors.error || 'red',
+        paramText,
+      };
+    }
+
+    if (errorReason === ErrorReason.NotFound) {
+      return {
+        text: 'Not found',
+        color: theme.colors.error || 'red',
+        paramText,
+      };
+    }
+
+    if (errorReason === ErrorReason.ToolNotFound) {
+      return {
+        text: 'Tool not found',
+        color: theme.colors.error || 'red',
+        paramText,
+      };
+    }
+
+    if (errorReason === ErrorReason.NetworkError) {
+      return {
+        text: 'Network error',
+        color: theme.colors.error || 'red',
+        paramText,
+      };
+    }
+
+    if (errorReason === ErrorReason.RateLimit) {
+      return {
+        text: 'Rate limit',
+        color: theme.colors.warning || 'yellow',
+        paramText,
+      };
+    }
+
+    if (errorReason === ErrorReason.InvalidInput) {
+      return {
+        text: 'Invalid input',
+        color: theme.colors.error || 'red',
+        paramText,
+      };
+    }
+
+    // Tool-specific status messages
     switch (toolResult.name) {
-      case 'assign_task': {
+      case 'assign_task':
         return {
           text: isSuccess ? 'Success' : 'Error',
           color: statusColor,
           paramText,
         };
-      }
       case 'file_edit':
         return { text: isSuccess ? 'Edited' : 'Edit failed', color: statusColor, paramText };
       case 'file_read': {
@@ -106,16 +162,27 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
         return { text: isSuccess ? 'Fetched' : 'Fetch failed', color: statusColor, paramText };
       case 'web_search':
         return {
-          text: isSuccess ? `Searched` : `Search failed`,
+          text: isSuccess ? 'Searched' : 'Search failed',
           color: statusColor,
           paramText,
         };
       case 'todo_write':
-        return { text: isSuccess ? 'Updated ' : 'Update failed', color: statusColor, paramText };
-      case 'dir_ls':
-        return { text: isSuccess ? `Listed` : `Listing failed`, color: statusColor, paramText };
+        return {
+          text: isSuccess ? 'Updated' : 'Update failed',
+          color: statusColor,
+          paramText,
+          statusPosition: 'bottom',
+        };
+      case 'dir_ls': {
+        if (isSuccess) {
+          const dirContent = typeof toolResult.result === 'string' ? toolResult.result : '';
+          const entryCount = dirContent.split(/\r?\n/).filter((line) => line.trim()).length;
+          return { text: `Listed ${entryCount} entries`, color: statusColor, paramText };
+        }
+        return { text: 'Listing failed', color: statusColor, paramText };
+      }
       default:
-        return { text: toolResult.status, color: statusColor, paramText };
+        return { text: isSuccess ? 'Completed' : 'Failed', color: statusColor, paramText };
     }
   };
   const renderContent = () => {
@@ -179,7 +246,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
     }
   };
 
-  const { text, color } = getStatusMessage();
+  const { text, color, statusPosition = 'top' } = getStatusMessage();
   const content = renderContent();
 
   const hasResult = toolResult.result !== null && toolResult.result !== undefined && toolResult.result !== '';
@@ -190,9 +257,13 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
   const shouldShowDone = (toolResult.name !== 'file_read' && toolResult.name !== 'file_new') || fullMode;
   const shouldShowStatus = hasResult || toolResult.name === 'todo_write';
 
+  const showStatusTop = shouldShowStatus && statusPosition === 'top';
+  const showStatusBottom = shouldShowStatus && statusPosition === 'bottom';
+  const showDone = shouldShowDone && statusPosition === 'top';
+
   return (
     <Box marginLeft={2} flexDirection="column">
-      {shouldShowStatus && (
+      {showStatusTop && (
         <Box flexDirection="row">
           <Text dimColor color={color}>
             {`${shouldShowContent || shouldShowDone ? '├─' : '└─'} ${text}`}
@@ -214,13 +285,18 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
           {content}
         </Box>
       )}
-      {shouldShowDone && (
+      {showDone && (
         <Box flexDirection="row">
           {durationText && toolResult.durationMs > 1000 ? (
             <Text dimColor={!!toolResult.result} color={color}>{`└─ Done in ${durationText}`}</Text>
           ) : (
             <Text dimColor={!!toolResult.result} color={color}>{`└─ Done`}</Text>
           )}
+        </Box>
+      )}
+      {showStatusBottom && (
+        <Box flexDirection="row">
+          <Text dimColor color={color}>{`└─ ${text}`}</Text>
         </Box>
       )}
     </Box>

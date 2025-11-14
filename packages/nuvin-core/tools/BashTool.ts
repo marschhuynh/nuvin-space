@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import * as os from 'node:os';
 import * as fs from 'node:fs';
 import type { ToolDefinition } from '../ports.js';
+import { ErrorReason } from '../ports.js';
 import type { FunctionTool, ExecResult, ToolExecutionContext } from './types.js';
 import { ok, err } from './result-helpers.js';
 import { stripAnsiAndControls } from '../string-utils.js';
@@ -49,16 +50,16 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext> 
       return await this.execOnce(p, ctx?.signal);
     } catch (e: unknown) {
       if (e instanceof Error && e.name === 'AbortError') {
-        return err('Command execution aborted by user');
+        return err('Command execution aborted by user', undefined, ErrorReason.Aborted);
       }
       const message = e instanceof Error ? e.message : String(e);
-      return err(message);
+      return err(message, undefined, ErrorReason.Unknown);
     }
   }
 
   private async execOnce(p: BashParams, signal?: AbortSignal): Promise<ExecResult> {
     if (signal?.aborted) {
-      return err('Command execution aborted by user');
+      return err('Command execution aborted by user', undefined, ErrorReason.Aborted);
     }
     const { cmd, cwd = process.cwd(), timeoutMs = DEFAULTS.timeoutMs } = p;
 
@@ -79,7 +80,7 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext> 
       });
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-        return err(`Shell not found: ${executable}`);
+        return err(`Shell not found: ${executable}`, undefined, ErrorReason.NotFound);
       }
       throw error;
     }
@@ -91,8 +92,10 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext> 
     });
 
     let timer: NodeJS.Timeout | null = null;
+    let timedOut = false;
     const deadline = new Promise<never>((_, rej) => {
       timer = setTimeout(() => {
+        timedOut = true;
         try {
           child.kill('SIGKILL');
         } catch {}
@@ -154,11 +157,19 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext> 
 
       if (signal?.aborted) {
         const partialOutput = output ? `\nOutput before abort:\n${output}` : '';
-        return err(`Command execution aborted by user${partialOutput}`);
+        return err(`Command execution aborted by user${partialOutput}`, { cwd }, ErrorReason.Aborted);
       }
 
       if (code !== 0) {
-        return err(output, { code, signal: exitSignal, cwd });
+        const metadata: Record<string, unknown> = { code, signal: exitSignal, cwd };
+        // Detect common error patterns
+        if (output.toLowerCase().includes('permission denied')) {
+          return err(output, { ...metadata, errorReason: ErrorReason.PermissionDenied });
+        }
+        if (output.toLowerCase().includes('command not found') || output.toLowerCase().includes('not found')) {
+          return err(output, { ...metadata, errorReason: ErrorReason.NotFound });
+        }
+        return err(output, metadata);
       }
 
       return ok(output, { code, signal: exitSignal, cwd });
@@ -171,10 +182,14 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext> 
         const errText = Buffer.concat(stderr).toString('utf8');
         const output = stripAnsi ? stripAnsiAndControls(outText + errText) : outText + errText;
         const partialOutput = output ? `\nOutput before abort:\n${output}` : '';
-        return err(`Command execution aborted by user${partialOutput}`);
+        return err(`Command execution aborted by user${partialOutput}`, { cwd }, ErrorReason.Aborted);
       }
 
-      return err(message);
+      if (timedOut) {
+        return err(message, { cwd }, ErrorReason.Timeout);
+      }
+
+      return err(message, { cwd }, ErrorReason.Unknown);
     }
   }
 

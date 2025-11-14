@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/complexity/noStaticOnlyClass: <explanation> */
 import https from 'node:https';
 import { getVersion } from '../utils/version.js';
 
@@ -8,17 +7,17 @@ export interface VersionInfo {
   hasUpdate: boolean;
 }
 
-export class UpdateChecker {
-  private static readonly NPM_REGISTRY = 'registry.npmjs.org';
-  private static readonly PACKAGE_NAME = '@nuvin/nuvin-cli';
-  private static readonly TIMEOUT_MS = 5000;
+const NPM_REGISTRY = 'registry.npmjs.org';
+const PACKAGE_NAME = '@nuvin/nuvin-cli';
+const TIMEOUT_MS = 5000;
 
-  static async checkForUpdate(): Promise<VersionInfo> {
+export namespace UpdateChecker {
+  export async function checkForUpdate(): Promise<VersionInfo> {
     const currentVersion = getVersion();
 
     try {
-      const latestVersion = await UpdateChecker.fetchLatestVersion();
-      const hasUpdate = UpdateChecker.compareVersions(currentVersion, latestVersion) < 0;
+      const latestVersion = await fetchLatestVersion();
+      const hasUpdate = compareVersions(currentVersion, latestVersion) < 0;
 
       return {
         current: currentVersion,
@@ -34,16 +33,16 @@ export class UpdateChecker {
     }
   }
 
-  private static fetchLatestVersion(): Promise<string> {
+  function fetchLatestVersion(): Promise<string> {
     return new Promise((resolve, reject) => {
       const options = {
-        hostname: UpdateChecker.NPM_REGISTRY,
-        path: `/${encodeURIComponent(UpdateChecker.PACKAGE_NAME)}/latest`,
+        hostname: NPM_REGISTRY,
+        path: `/${encodeURIComponent(PACKAGE_NAME)}/latest`,
         method: 'GET',
         headers: {
           Accept: 'application/json',
         },
-        timeout: UpdateChecker.TIMEOUT_MS,
+        timeout: TIMEOUT_MS,
       };
 
       const req = https.request(options, (res) => {
@@ -77,7 +76,7 @@ export class UpdateChecker {
     });
   }
 
-  private static compareVersions(v1: string, v2: string): number {
+  function compareVersions(v1: string, v2: string): number {
     const cleanVersion = (v: string) => v.replace(/^v/, '').split('-')[0];
 
     const parts1 = cleanVersion(v1).split('.').map(Number);

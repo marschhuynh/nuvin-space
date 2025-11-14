@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/complexity/noStaticOnlyClass: <explanation> */
 import { execSync, spawn } from 'node:child_process';
 
 export interface UpdateResult {
@@ -7,15 +6,15 @@ export interface UpdateResult {
   error?: string;
 }
 
-export class AutoUpdater {
-  private static readonly PACKAGE_NAME = '@nuvin/nuvin-cli';
+const PACKAGE_NAME = '@nuvin/nuvin-cli';
 
-  static async update(targetVersion?: string): Promise<UpdateResult> {
+export namespace AutoUpdater {
+  export async function update(targetVersion?: string): Promise<UpdateResult> {
     try {
-      const packageManager = this.detectPackageManager();
-      const installCommand = this.getInstallCommand(packageManager, targetVersion);
+      const packageManager = detectPackageManager();
+      const installCommand = getInstallCommand(packageManager, targetVersion);
 
-      console.log(`🔄 Updating ${this.PACKAGE_NAME}...`);
+      console.log(`🔄 Updating ${PACKAGE_NAME}...`);
       console.log(`📦 Using: ${installCommand}\n`);
 
       execSync(installCommand, {
@@ -37,7 +36,7 @@ export class AutoUpdater {
     }
   }
 
-  private static detectPackageManager(): 'npm' | 'pnpm' | 'yarn' {
+  function detectPackageManager(): 'npm' | 'pnpm' | 'yarn' {
     try {
       const executablePath = execSync('which nuvin', { encoding: 'utf8', timeout: 3000 }).trim();
 
@@ -101,8 +100,8 @@ export class AutoUpdater {
     return 'npm';
   }
 
-  private static getInstallCommand(packageManager: 'npm' | 'pnpm' | 'yarn', version?: string): string {
-    const packageSpec = version ? `${AutoUpdater.PACKAGE_NAME}@${version}` : `${AutoUpdater.PACKAGE_NAME}@latest`;
+  function getInstallCommand(packageManager: 'npm' | 'pnpm' | 'yarn', version?: string): string {
+    const packageSpec = version ? `${PACKAGE_NAME}@${version}` : `${PACKAGE_NAME}@latest`;
 
     switch (packageManager) {
       case 'pnpm':
@@ -114,7 +113,7 @@ export class AutoUpdater {
     }
   }
 
-  static async checkAndUpdate(): Promise<boolean> {
+  export async function checkAndUpdate(): Promise<boolean> {
     const { UpdateChecker } = await import('./UpdateChecker.js');
 
     try {
@@ -124,8 +123,8 @@ export class AutoUpdater {
         return false;
       }
 
-      const packageManager = AutoUpdater.detectPackageManager();
-      const installCommand = AutoUpdater.getInstallCommand(packageManager, versionInfo.latest);
+      const packageManager = detectPackageManager();
+      const installCommand = getInstallCommand(packageManager, versionInfo.latest);
 
       const child = spawn('sh', ['-c', installCommand], {
         detached: true,

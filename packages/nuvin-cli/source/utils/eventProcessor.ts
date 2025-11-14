@@ -1,5 +1,5 @@
 import * as crypto from 'node:crypto';
-import { AgentEventTypes, type AgentEvent, type ToolCall } from '@nuvin/nuvin-core';
+import { AgentEventTypes, ErrorReason, type AgentEvent, type ToolCall } from '@nuvin/nuvin-core';
 import type { MessageLine, MessageMetadata, LineMetadata } from '@/adapters/index.js';
 import { renderToolCall, flattenError } from './messageProcessor.js';
 import { enrichToolCallsWithLineNumbers } from './enrichToolCalls.js';
@@ -142,14 +142,18 @@ export function processAgentEvent(
 
     case AgentEventTypes.ToolResult: {
       const tool = event.result;
-      const isAborted =
-        tool.status === 'error' &&
-        typeof tool.result === 'string' &&
-        tool.result.toLowerCase().includes('aborted by user');
+      const errorReason = tool.metadata?.errorReason;
 
-      const statusIcon = tool.status === 'success' ? '[+]' : isAborted ? '[⊗]' : '[!]';
+      // Use metadata to determine tool execution state
+      const isAborted = errorReason === ErrorReason.Aborted;
+      const isDenied = errorReason === ErrorReason.Denied;
+      const isTimeout = errorReason === ErrorReason.Timeout;
+      const isWarning = isAborted || isDenied || isTimeout || errorReason === ErrorReason.RateLimit;
 
-      const statusText = isAborted ? 'aborted' : tool.status;
+      const statusIcon = tool.status === 'success' ? '[+]' : isWarning ? '[⊗]' : '[!]';
+
+      // Map error reasons to readable status text
+      const statusText = errorReason || tool.status;
 
       const durationText =
         typeof tool.durationMs === 'number' && Number.isFinite(tool.durationMs) ? ` (${tool.durationMs}ms)` : '';
@@ -157,11 +161,11 @@ export function processAgentEvent(
       const content =
         tool.status === 'success'
           ? `${tool.name}: ${statusIcon} ${statusText}${durationText}`
-          : isAborted
+          : isWarning
             ? `${tool.name}: ${statusIcon} ${statusText}${durationText}`
             : `error: ${flattenError(tool).slice(0, 1000)}`;
 
-      const color = tool.status === 'success' ? 'green' : isAborted ? 'yellow' : 'red';
+      const color = tool.status === 'success' ? 'green' : isWarning ? 'yellow' : 'red';
 
       const toolCall = state.recentToolCalls.get(tool.id);
 

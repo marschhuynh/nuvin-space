@@ -42,19 +42,19 @@ export class TypedEventBus {
   }
 
   on<K extends keyof EventMap>(event: K, handler: (payload: EventMap[K]) => void) {
-    this.emitter.on(event as string, handler);
+    this.emitter.on(event, handler);
   }
 
   off<K extends keyof EventMap>(event: K, handler: (payload: EventMap[K]) => void) {
-    this.emitter.off(event as string, handler);
+    this.emitter.off(event, handler);
   }
 
   once<K extends keyof EventMap>(event: K, handler: (payload: EventMap[K]) => void) {
-    this.emitter.once(event as string, handler);
+    this.emitter.once(event, handler);
   }
 
   emit<K extends keyof EventMap>(event: K, payload?: EventMap[K]) {
-    this.emitter.emit(event as string, payload);
+    this.emitter.emit(event, payload);
   }
 }
 

@@ -21,7 +21,7 @@ export const ExplainModeProvider = ({ children }: { children: ReactNode }) => {
 
   const value = useMemo(
     () => ({ explainMode, toggleExplainMode, setExplainMode }),
-    [explainMode, toggleExplainMode, setExplainMode],
+    [explainMode, toggleExplainMode],
   );
 
   return <ExplainModeContext.Provider value={value}>{children}</ExplainModeContext.Provider>;
@@ -30,7 +30,12 @@ export const ExplainModeProvider = ({ children }: { children: ReactNode }) => {
 export const useExplainMode = () => {
   const context = useContext(ExplainModeContext);
   if (!context) {
-    throw new Error('useExplainMode must be used within ExplainModeProvider');
+    console.warn('useExplainMode used outside ExplainModeProvider, using defaults');
+    return {
+      explainMode: false,
+      toggleExplainMode: () => {},
+      setExplainMode: () => {},
+    };
   }
   return context;
 };

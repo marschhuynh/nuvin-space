@@ -189,7 +189,20 @@ export type ToolDefinition = {
   function: { name: string; description: string; parameters: object };
 };
 
-export type ToolInvocation = { id: string; name: string; parameters: Record<string, any> };
+export type ToolInvocation = { id: string; name: string; parameters: Record<string, unknown> };
+
+export enum ErrorReason {
+  Aborted = 'aborted',
+  Denied = 'denied',
+  Timeout = 'timeout',
+  NotFound = 'not_found',
+  PermissionDenied = 'permission_denied',
+  InvalidInput = 'invalid_input',
+  NetworkError = 'network_error',
+  RateLimit = 'rate_limit',
+  ToolNotFound = 'tool_not_found',
+  Unknown = 'unknown',
+}
 
 export type ToolExecutionResult = {
   id: string;
@@ -197,7 +210,9 @@ export type ToolExecutionResult = {
   status: 'success' | 'error';
   type: 'text' | 'json';
   result: string | object;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown> & {
+    errorReason?: ErrorReason;
+  };
   durationMs?: number;
 };
 

@@ -38,7 +38,7 @@ export type {
   AgentAwareToolPort,
   OrchestratorAwareToolPort,
 } from './ports.js';
-export { AgentEventTypes, ToolPort, AgentConfig } from './ports.js';
+export { AgentEventTypes, ToolPort, AgentConfig, ErrorReason } from './ports.js';
 
 // Core services
 export { SimpleId } from './id.js';
