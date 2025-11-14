@@ -21,7 +21,6 @@ function parseArgs(call: ToolCall): FileNewArgs | null {
 export function FileNewToolContent({ call }: { call: ToolCall }) {
   const args = useMemo(() => parseArgs(call), [call]);
   const [width] = useStdoutDimensions();
-  const { explainMode } = useExplainMode();
 
   if (!args)
     return (
@@ -29,10 +28,6 @@ export function FileNewToolContent({ call }: { call: ToolCall }) {
         <Text color="red">Invalid arguments</Text>
       </Box>
     );
-
-  if (!explainMode) {
-    return null;
-  }
 
   return (
     <Box flexDirection="column" marginTop={1} width={width - 10}>
