@@ -1,40 +1,44 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { markdownCache } from '@/utils/MarkdownCache.js';
 
 interface StreamingOptions {
   debounceMs?: number;
-  maxCacheAge?: number;
 }
 
 export const useStreamingMarkdown = (content: string, isStreaming: boolean, options: StreamingOptions = {}) => {
-  const { debounceMs: _debounceMs = 100 } = options;
+  const { debounceMs = 100 } = options;
+  const [debouncedContent, setDebouncedContent] = useState(content);
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const lastContentRef = useRef<string>('');
 
   useEffect(() => {
     if (!isStreaming) {
       markdownCache.clear();
+      setDebouncedContent(content);
+      return;
     }
-  }, [isStreaming]);
 
-  const debouncedContent = useMemo(() => {
-    if (!isStreaming) return content;
+    if (
+      debouncedContent &&
+      content.startsWith(debouncedContent) &&
+      content.length - debouncedContent.length < 50
+    ) {
+      return;
+    }
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
-    if (
-      lastContentRef.current &&
-      content.startsWith(lastContentRef.current) &&
-      content.length - lastContentRef.current.length < 50
-    ) {
-      return lastContentRef.current;
-    }
+    timeoutRef.current = setTimeout(() => {
+      setDebouncedContent(content);
+    }, debounceMs);
 
-    lastContentRef.current = content;
-    return content;
-  }, [content, isStreaming]);
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [content, isStreaming, debounceMs, debouncedContent]);
 
   return debouncedContent;
 };

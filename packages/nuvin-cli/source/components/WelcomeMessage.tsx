@@ -24,17 +24,83 @@ const formatRelativeTime = (timestamp: string) => {
 
   if (diffInMinutes < 5) return 'Just now';
   if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-  if (diffInHours < 24) return `${diffInHours}h ago`;
-  if (diffInDays === 1) return 'Yesterday';
-  if (diffInDays < 7) return `${diffInDays}d ago`;
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  if (diffInHours < 24) {
+    const timeStr = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return diffInHours < 6 ? `${diffInHours}h ago` : `Today ${timeStr}`;
+  }
+  if (diffInDays === 1) {
+    const timeStr = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return `Yesterday ${timeStr}`;
+  }
+  if (diffInDays < 7) {
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const timeStr = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return `${dayName} ${timeStr}`;
+  }
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 };
 
-const truncateMessage = (message: string, maxLength: number = 35): string => {
-  if (!message) return 'No preview';
+const getSmartPreview = (message: string | undefined, maxLength: number = 50): string => {
+  if (!message) return 'No preview available';
+
   const cleaned = message.replace(/\s+/g, ' ').trim();
+
+  if (cleaned.includes('successfully')) return '✓ Task completed';
+  if (cleaned.includes('error') || cleaned.includes('Error')) return '✗ Error occurred';
+  if (cleaned.includes('No message preview available')) return 'Empty session';
+
   if (cleaned.length <= maxLength) return cleaned;
-  return `${cleaned.substring(0, maxLength - 3)}...`;
+
+  const words = cleaned.split(' ');
+  let result = '';
+  for (const word of words) {
+    if (`${result} ${word}`.length > maxLength - 3) break;
+    result += (result ? ' ' : '') + word;
+  }
+
+  return result + (result.length < maxLength ? '...' : '');
+};
+
+const getSessionStatus = (lastMessage: string | undefined, messageCount: number) => {
+  if (!lastMessage) return { icon: '○', color: 'gray' };
+  if (lastMessage.includes('Successfully') || lastMessage.includes('successfully')) {
+    return { icon: '✓', color: 'green' };
+  }
+  if (lastMessage.includes('error') || lastMessage.includes('Error')) {
+    return { icon: '✗', color: 'red' };
+  }
+  if (lastMessage.includes('try again')) {
+    return { icon: '⚠', color: 'yellow' };
+  }
+  if (messageCount === 1) {
+    return { icon: '○', color: 'gray' };
+  }
+  return { icon: '●', color: 'blue' };
+};
+
+const getMessageCountBadge = (count: number) => {
+  if (count === 1) return { text: '1 msg', color: 'gray' };
+  if (count < 10) return { text: `${count} msgs`, color: 'cyan' };
+  if (count < 50) return { text: `${count} msgs`, color: 'green' };
+  return { text: `${count} msgs`, color: 'magenta' };
 };
 
 const LOGO = `Welcome to
@@ -64,55 +130,56 @@ const WelcomeMessage = ({ recentSessions }: WelcomeMessageProps) => {
       </Box>
 
       <Box justifyContent="center" gap={1} marginTop={1}>
-        {/* Left column - Quick Commands */}
-        <Box borderStyle="round" borderColor={theme.welcome.hint} paddingX={2} paddingY={1} width={40}>
-          <Box flexDirection="column">
-            <Text color={theme.welcome.title} bold>
-              Quick Commands
-            </Text>
-            <Text> </Text>
-            <Text color={theme.welcome.subtitle}>
-              {`/help`.padEnd(9)} <Text dimColor>All commands</Text>
-            </Text>
-            <Text color={theme.welcome.subtitle}>
-              {`/mcp`.padEnd(9)} <Text dimColor>MCP servers</Text>
-            </Text>
-            <Text color={theme.welcome.subtitle}>
-              {`/model`.padEnd(9)} <Text dimColor>Change AI model</Text>
-            </Text>
-            <Text color={theme.welcome.subtitle}>
-              {`/history`.padEnd(9)} <Text dimColor>View conversation</Text>
-            </Text>
-            <Text color={theme.welcome.subtitle}>
-              {`/docs`.padEnd(9)} <Text dimColor>Documentation</Text>
-            </Text>
-          </Box>
-        </Box>
-
         {/* Right column - Recent Activity */}
-        <Box borderStyle="round" borderColor={theme.welcome.hint} paddingX={2} paddingY={1} flexGrow={1}>
-          <Box flexDirection="column">
+        <Box flexDirection="column" paddingX={2} flexGrow={1}>
+          <Box
+            borderStyle="single"
+            // borderBottomColor={t}
+            borderLeft={false}
+            borderRight={false}
+            borderTop={false}
+          >
             <Text color={theme.welcome.title} bold>
               Recent Activity
             </Text>
-            <Text> </Text>
-            {recentSessions.length === 0 ? (
-              <Text color={theme.welcome.subtitle} dimColor>
-                No recent activity
-              </Text>
-            ) : (
-              recentSessions.map((session) => (
-                <Box key={session.sessionId} flexDirection="column" marginBottom={0}>
-                  <Text color={theme.welcome.subtitle}>
-                    <Text dimColor>{formatRelativeTime(session.timestamp)}</Text>
-                    {' - '}
-                    <Text dimColor>{truncateMessage(session.lastMessage, cols - 60)}</Text>
-                  </Text>
-                </Box>
-              ))
-            )}
-            <Text> </Text>
           </Box>
+          {recentSessions.length === 0 ? (
+            <Text color={theme.welcome.subtitle} dimColor>
+              No recent activity
+            </Text>
+          ) : (
+            recentSessions.slice(0, 5).map((session) => {
+              const relativeTime = formatRelativeTime(session.timestamp);
+              const displayText = session.topic || session.lastMessage;
+              // const isTopic = !!session.topic;
+              const smartPreview = getSmartPreview(displayText, cols - 60);
+              const status = getSessionStatus(session.lastMessage, session.messageCount);
+              const badge = getMessageCountBadge(session.messageCount);
+
+              return (
+                <Box key={session.sessionId} flexDirection="row">
+                  <Box>
+                    <Text color={status.color}>{`${status.icon} `}</Text>
+                    <Text color={theme.welcome.subtitle} dimColor>
+                      {relativeTime}
+                      {' · '}
+                    </Text>
+                  </Box>
+                  <Box>
+                    <Text color={theme.welcome.subtitle} dimColor>
+                      {smartPreview}
+                      {' · '}
+                    </Text>
+                  </Box>
+                  <Box>
+                    <Text color={badge.color} dimColor>
+                      {badge.text}
+                    </Text>
+                  </Box>
+                </Box>
+              );
+            })
+          )}
         </Box>
       </Box>
     </Box>

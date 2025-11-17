@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { Box, Text } from 'ink';
+import { Box, Spacer, Text } from 'ink';
 import ansiEscapes from 'ansi-escapes';
 import * as crypto from 'node:crypto';
 import * as path from 'node:path';
@@ -292,11 +292,7 @@ export default function App({
         });
 
         if (manager && displayContent) {
-          try {
-            await manager.analyzeAndUpdateTopic(displayContent, 'cli');
-          } catch (err) {
-            console.error('Failed to analyze topic:', err);
-          }
+          manager.analyzeAndUpdateTopic(displayContent, 'cli');
         }
       } catch (err: unknown) {
         const e = err as Error & { name?: string; message?: unknown };
@@ -421,6 +417,7 @@ export default function App({
     >
       <Box flexDirection="column" height={'100%'} width="100%">
         <ChatDisplay key={`chat-display-${headerKey}`} messages={messages} headerKey={headerKey} />
+        <Spacer />
 
         {!explainMode && (
           <InteractionArea

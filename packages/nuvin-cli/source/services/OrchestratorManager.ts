@@ -288,7 +288,7 @@ export class OrchestratorManager {
 
       // Get enabled agents config to filter available agents
       const enabledAgentsConfig = (currentConfig.config.agentsEnabled as Record<string, boolean>) || {};
-      
+
       const availableAgents = agentRegistry
         .list()
         .filter((agent) => {
@@ -773,7 +773,7 @@ export class OrchestratorManager {
 
   async analyzeTopic(userMessage: string, conversationId?: string): Promise<string> {
     const actualConversationId = conversationId ?? this.conversationContext.getActiveConversationId();
-    
+
     let conversationHistory = '';
     if (this.memory) {
       try {
@@ -807,7 +807,7 @@ export class OrchestratorManager {
     }
 
     const topicAnalysisPrompt = conversationHistory
-      ? `Analyze the following user messages and extract the main topic or intent in 3-5 words. Be concise and descriptive.
+      ? `Analyze the following user messages and extract the main topic or intent in 5-10 words. Be concise and descriptive.
 
 Previous user messages:
 ${conversationHistory}
@@ -815,7 +815,7 @@ ${conversationHistory}
 Current user message: ${userMessage}
 
 Respond with only the topic, no explanation.`
-      : `Analyze the following user message and extract the main topic or intent in 3-5 words. Be concise and descriptive.
+      : `Analyze the following user message and extract the main topic or intent in 5-10 words. Be concise and descriptive.
 
 User message: ${userMessage}
 
