@@ -60,6 +60,7 @@ export type ChatMessage = {
   tool_calls?: ToolCall[];
   tool_call_id?: string;
   name?: string;
+  [key: string]: unknown;
 };
 
 export type CompletionParams = {
@@ -77,12 +78,14 @@ export type CompletionParams = {
     };
   }>;
   tool_choice?: 'auto' | 'none' | { type: 'function'; function: { name: string } };
+  // Configuration for reasoning effort (common across some models like o1, deepseek-reasoner)
   reasoning?: {
     effort: string;
   };
   usage?: {
     include?: boolean;
   };
+  [key: string]: unknown;
 };
 
 export type UsageData = {
@@ -107,6 +110,7 @@ export type CompletionResult = {
   content: string;
   tool_calls?: ToolCall[];
   usage?: UsageData;
+  [key: string]: unknown;
 };
 
 // Internal domain types
@@ -122,6 +126,7 @@ export type Message = {
   name?: string;
   // Usage data for assistant messages
   usage?: UsageData;
+  [key: string]: unknown;
 };
 
 export type MessageResponse = {
@@ -173,6 +178,7 @@ export interface LLMPort {
     },
     signal?: AbortSignal,
   ): Promise<CompletionResult>;
+  getModels?(signal?: AbortSignal): Promise<Array<{ id: string; [key: string]: unknown }>>;
 }
 
 export type LLMConfig = {

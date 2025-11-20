@@ -56,6 +56,7 @@ type LLMMessageResponse = {
   role: string;
   content?: string | null;
   tool_calls?: LLMToolCallResponse[];
+  [key: string]: unknown;
 };
 
 type LLMChoiceResponse = {
@@ -82,6 +83,7 @@ type LLMToolCallDelta = {
     name?: string;
     arguments?: string;
   };
+  [key: string]: unknown;
 };
 
 type LLMMessageDelta = {
@@ -89,6 +91,7 @@ type LLMMessageDelta = {
   content?: string | null;
   reasoning?: string | null;
   tool_calls?: LLMToolCallDelta[];
+  [key: string]: unknown;
 };
 
 type LLMStreamChoiceDelta = {
@@ -120,7 +123,7 @@ export abstract class BaseLLM implements LLMPort {
   // Implemented by provider to inject auth, headers, refresh, etc.
   protected abstract createTransport(): HttpTransport;
 
-  private getTransport(): HttpTransport {
+  protected getTransport(): HttpTransport {
     if (!this.transport) this.transport = this.createTransport();
     return this.transport;
   }
@@ -270,6 +273,7 @@ export abstract class BaseLLM implements LLMPort {
     const mergedToolCalls: ToolCall[] = [];
     let usage: UsageData | undefined;
     let lastFinishReason: string | undefined;
+    const extraFields: Record<string, unknown> = {};
 
     const flushEvent = (rawEvent: string) => {
       const lines = rawEvent.split('\n');
@@ -286,21 +290,17 @@ export abstract class BaseLLM implements LLMPort {
         const choices = Array.isArray(evt.choices) ? evt.choices : [];
         const finishReason = choices.find((ch) => ch.finish_reason && ch.finish_reason !== null)?.finish_reason;
 
-        // Track finish_reason across chunks
         if (finishReason) {
           lastFinishReason = finishReason;
         }
 
-        // Extract usage from top level or from choices (Kimi/Moonshot pattern)
         const usageData = evt.usage || (choices[0] as LLMStreamEvent)?.usage;
 
         if (usageData) {
           usage = normalizeUsage(usageData);
-          // Emit finish event when we have usage (and finish_reason from any chunk)
           if (lastFinishReason && handlers.onStreamFinish) {
             handlers.onStreamFinish(lastFinishReason, usage);
           } else {
-            // Fallback to chunk event for backward compatibility
             handlers.onChunk?.('', usage);
           }
         }
@@ -320,6 +320,20 @@ export abstract class BaseLLM implements LLMPort {
               handlers.onChunk?.(textDelta);
             }
           }
+
+          // Dynamically accumulate unknown fields into root object (extraFields)
+          const knownKeys = ['role', 'content', 'tool_calls'];
+          for (const key of Object.keys(delta)) {
+            if (knownKeys.includes(key)) continue;
+
+            const val = (delta as Record<string, unknown>)[key];
+            if (typeof val === 'string') {
+              extraFields[key] = ((extraFields[key] as string) || '') + val;
+            } else if (val !== undefined && val !== null) {
+              extraFields[key] = val;
+            }
+          }
+
           const toolDeltas: LLMToolCallDelta[] = Array.isArray(delta.tool_calls) ? delta.tool_calls : [];
           for (const td of toolDeltas) {
             let toolCall: ToolCall | undefined;
@@ -328,6 +342,7 @@ export abstract class BaseLLM implements LLMPort {
               toolCall = mergedToolCalls.find((tc) => tc.id === td.id);
               if (!toolCall) {
                 toolCall = {
+                  ...td,
                   id: td.id,
                   type: 'function',
                   function: { name: td.function?.name ?? '', arguments: '' },
@@ -379,6 +394,12 @@ export abstract class BaseLLM implements LLMPort {
     content = content.replace(/^\n+/, '');
 
     const tool_calls = mergedToolCalls.length ? mergedToolCalls : undefined;
-    return { content, ...(tool_calls ? { tool_calls } : {}), ...(usage ? { usage } : {}) };
+
+    return {
+      content,
+      ...(tool_calls ? { tool_calls } : {}),
+      ...(usage ? { usage } : {}),
+      ...extraFields,
+    };
   }
 }

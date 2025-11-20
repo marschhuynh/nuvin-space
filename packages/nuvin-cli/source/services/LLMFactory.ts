@@ -191,8 +191,11 @@ export class LLMFactory implements LLMFactoryInterface {
 
   async getModels(provider: ProviderKey, signal?: AbortSignal): Promise<string[]> {
     const customProviders = this.getCustomProviders();
+    const isSupportedInCore = supportsGetModels(provider, customProviders);
+    const isGithub = provider === 'github';
 
-    if (!supportsGetModels(provider, customProviders)) {
+    // If not supported in core AND not github, return empty
+    if (!isSupportedInCore && !isGithub) {
       return [];
     }
 
@@ -202,9 +205,10 @@ export class LLMFactory implements LLMFactoryInterface {
       throw new Error(`${provider} API key not configured. Please run /auth first.`);
     }
 
-    const llm = createLLM(provider, { apiKey: config.apiKey }, customProviders);
+    // Use the factory's createLLM to handle both core and special providers (like github)
+    const llm = this.createLLM(provider);
 
-    if (llm && 'getModels' in llm && typeof llm.getModels === 'function') {
+    if (llm?.getModels) {
       const models = await llm.getModels(signal);
       return models.map((m: { id: string }) => m.id);
     }

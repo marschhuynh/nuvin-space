@@ -3,11 +3,21 @@ import type { ProviderContentPart, ToolCall, UsageData } from '../ports.js';
 // Merge provider choices into a single content string and combined tool_calls
 export function mergeChoices(
   choices:
-    | Array<{ message?: { content?: string | null | ProviderContentPart[]; tool_calls?: ToolCall[] } } | undefined>
+    | Array<
+        | {
+            message?: {
+              content?: string | null | ProviderContentPart[];
+              tool_calls?: ToolCall[];
+              [key: string]: unknown;
+            };
+          }
+        | undefined
+      >
     | undefined,
-): { content: string; tool_calls?: ToolCall[] } {
+): { content: string; tool_calls?: ToolCall[]; [key: string]: unknown } {
   const contentParts: string[] = [];
   const mergedToolCalls: ToolCall[] = [];
+  const extraFields: Record<string, unknown> = {};
 
   const collectText = (value: string | null | ProviderContentPart[] | undefined) => {
     if (typeof value === 'string') {
@@ -31,11 +41,24 @@ export function mergeChoices(
     if (!msg) continue;
     collectText(msg.content);
     if (Array.isArray(msg.tool_calls)) mergedToolCalls.push(...msg.tool_calls);
+
+    const knownKeys = ['content', 'tool_calls', 'role'];
+    // Flatten unknown keys into root
+    for (const key of Object.keys(msg)) {
+      if (!knownKeys.includes(key)) {
+        extraFields[key] = msg[key];
+      }
+    }
   }
 
   const content = contentParts.join('\n\n');
   const tool_calls = mergedToolCalls.length ? mergedToolCalls : undefined;
-  return { content, ...(tool_calls ? { tool_calls } : {}) } as { content: string; tool_calls?: ToolCall[] };
+
+  return {
+    content,
+    ...(tool_calls ? { tool_calls } : {}),
+    ...extraFields,
+  };
 }
 
 // Normalize usage data across providers (e.g., input/output vs prompt/completion)

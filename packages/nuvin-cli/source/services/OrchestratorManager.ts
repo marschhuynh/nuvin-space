@@ -43,10 +43,7 @@ import { ConfigManager } from '@/config/manager.js';
 import { getProviderAuth } from '@/config/utils.js';
 import { LLMFactory } from './LLMFactory.js';
 
-// Default directory paths
-const NUVIN_CLI_DIR = path.join(os.homedir(), '.nuvin-cli');
-const DEFAULT_SESSIONS_DIR = path.join(NUVIN_CLI_DIR, 'sessions');
-const DEFAULT_AGENTS_DIR = path.join(NUVIN_CLI_DIR, 'agents');
+// Directory paths will be resolved dynamically based on active profile
 const defaultModels: Record<ProviderKey, string> = {
   openrouter: 'openai/gpt-4.1',
   deepinfra: 'meta-llama/Meta-Llama-3.1-70B-Instruct',
@@ -107,6 +104,28 @@ export class OrchestratorManager {
     this.llmFactory = new LLMFactory(this.configManager);
   }
 
+  private getProfilePaths(): { sessionsDir: string; agentsDir: string } {
+    // Check if profile manager methods exist (they may not in tests or old code)
+    const profileManager =
+      typeof this.configManager.getProfileManager === 'function' ? this.configManager.getProfileManager() : undefined;
+    const currentProfile =
+      typeof this.configManager.getCurrentProfile === 'function' ? this.configManager.getCurrentProfile() : undefined;
+
+    if (!profileManager || !currentProfile) {
+      // Fallback to original paths if profile manager not available
+      const nuvinCliDir = path.join(os.homedir(), '.nuvin-cli');
+      return {
+        sessionsDir: path.join(nuvinCliDir, 'sessions'),
+        agentsDir: path.join(nuvinCliDir, 'agents'),
+      };
+    }
+
+    return {
+      sessionsDir: profileManager.getProfileSessionsDir(currentProfile),
+      agentsDir: profileManager.getProfileAgentsDir(currentProfile),
+    };
+  }
+
   private getCurrentConfig() {
     const config = this.configManager.getConfig();
     const provider = config.activeProvider || 'openrouter';
@@ -143,7 +162,8 @@ export class OrchestratorManager {
    */
   private createSessionDirectories(sessionDir: string): void {
     try {
-      fs.mkdirSync(DEFAULT_SESSIONS_DIR, { recursive: true });
+      const { sessionsDir } = this.getProfilePaths();
+      fs.mkdirSync(sessionsDir, { recursive: true });
       fs.mkdirSync(sessionDir, { recursive: true });
     } catch {
       // Ignore errors - directories might already exist
@@ -167,7 +187,8 @@ export class OrchestratorManager {
     sessionDir: string;
   } {
     const sessionId = config.sessionId ?? String(Date.now());
-    const sessionDir = config.sessionDir ?? path.join(DEFAULT_SESSIONS_DIR, sessionId);
+    const { sessionsDir } = this.getProfilePaths();
+    const sessionDir = config.sessionDir ?? path.join(sessionsDir, sessionId);
     return { sessionId, sessionDir };
   }
 
@@ -232,7 +253,9 @@ export class OrchestratorManager {
       const memory = this.createMemory(sessionDir, this.memPersist);
 
       // Initialize agent persistence and registry
-      const agentFilePersistence = new AgentFilePersistence({ agentsDir: DEFAULT_AGENTS_DIR });
+      const { agentsDir } = this.getProfilePaths();
+      fs.mkdirSync(agentsDir, { recursive: true });
+      const agentFilePersistence = new AgentFilePersistence({ agentsDir });
       const agentRegistry = new AgentRegistry({ filePersistence: agentFilePersistence });
 
       // Wait for agents to finish loading before building system prompt
@@ -270,8 +293,17 @@ export class OrchestratorManager {
         },
       };
 
+      // Determine MCP config path with profile awareness
+      const profileManager =
+        typeof this.configManager.getProfileManager === 'function' ? this.configManager.getProfileManager() : undefined;
+      const currentProfile =
+        typeof this.configManager.getCurrentProfile === 'function' ? this.configManager.getCurrentProfile() : undefined;
+      const profileMcpConfigPath =
+        profileManager && currentProfile ? profileManager.getProfileMcpConfigPath(currentProfile) : undefined;
+      const configPath = options.mcpConfigPath || profileMcpConfigPath;
+
       const mcpManager = new MCPServerManager({
-        configPath: options.mcpConfigPath,
+        configPath,
         config: currentConfig.config.mcp?.servers ? { mcpServers: currentConfig.config.mcp.servers } : null,
         appendLine: handlers.appendLine,
         handleError: handlers.handleError,
@@ -852,9 +884,15 @@ Respond with only the topic, no explanation.`;
     };
 
     const topicOrchestrator = new AgentOrchestrator(topicConfig, topicDeps);
-    const response = await topicOrchestrator.send(topicAnalysisPrompt);
 
-    return response.content.trim();
+    try {
+      const response = await topicOrchestrator.send(topicAnalysisPrompt);
+      return response.content.trim();
+    } catch (_error) {
+      // Silently fail topic analysis to avoid crashing the main interaction loop
+      // Just return a generic fallback or the user message itself if short
+      return userMessage.length < 50 ? userMessage : 'Topic analysis failed';
+    }
   }
 
   async updateConversationTopic(conversationId: string, topic: string): Promise<void> {

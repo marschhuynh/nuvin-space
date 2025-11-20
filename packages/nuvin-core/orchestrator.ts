@@ -551,7 +551,13 @@ export class AgentOrchestrator {
 
         await this.deps.memory.append(convo, [assistantMsg, ...toolResultMsgs]);
 
-        accumulatedMessages.push({ role: 'assistant', content: result.content ?? null, tool_calls: approvedCalls });
+        const { usage: _usage, ...extraField } = result;
+        accumulatedMessages.push({
+          ...extraField,
+          role: 'assistant',
+          content: result.content ?? null,
+          tool_calls: approvedCalls,
+        });
         for (const tr of toolResults) {
           const contentStr =
             tr.status === 'error'

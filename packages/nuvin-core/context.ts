@@ -45,9 +45,18 @@ export class SimpleContextBuilder implements ContextBuilder {
         transformed.push({ role: 'user', content: providerContent ?? '' });
       } else if (m.role === 'assistant') {
         if (m.tool_calls && m.tool_calls.length > 0) {
-          transformed.push({ role: 'assistant', content: providerContent ?? null, tool_calls: m.tool_calls });
+          transformed.push({
+            ...m,
+            role: 'assistant',
+            content: providerContent ?? null,
+            tool_calls: m.tool_calls,
+          });
         } else {
-          transformed.push({ role: 'assistant', content: providerContent ?? '' });
+          transformed.push({
+            ...m,
+            role: 'assistant',
+            content: providerContent ?? '',
+          });
         }
       } else if (m.role === 'tool') {
         if (m.tool_call_id) {

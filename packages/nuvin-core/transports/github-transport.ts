@@ -49,8 +49,9 @@ export class GithubAuthTransport implements HttpTransport {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
-        'user-agent': 'GitHubCopilotChat/0.31.3',
-        'editor-version': 'vscode/1.104.2',
+        'user-agent': 'GitHubCopilotChat/0.33.1',
+        'editor-version': 'vscode/1.106.1',
+        'x-github-api-version': '2025-10-01',
         accept: 'application/json',
       },
       signal,
@@ -173,14 +174,17 @@ export class GithubAuthTransport implements HttpTransport {
   }
 
   async postStream(url: string, body: unknown, headers?: HttpHeaders, signal?: AbortSignal): Promise<Response> {
+    // Default SSE accept header for Copilot streams if not provided
+    let hdrs = this.makeAuthHeaders({ Accept: 'text/event-stream', ...(headers || {}) }, body);
+
     // Ensure we have an API key if possible
-    if (!this.apiKey && this.accessToken) {
+    if ((!this.apiKey || !hdrs.Authorization) && this.accessToken) {
       await this.exchangeToken(signal);
+      hdrs = this.makeAuthHeaders({ Accept: 'text/event-stream', ...(headers || {}) }, body);
     }
 
     const fullUrl = this.buildFullUrl(url);
-    // Default SSE accept header for Copilot streams if not provided
-    const hdrs = this.makeAuthHeaders({ Accept: 'text/event-stream', ...(headers || {}) }, body);
+
     let res = await this.inner.postStream(fullUrl, body, hdrs, signal);
     if (res.status === 401 && this.accessToken) {
       // Refresh and retry once
