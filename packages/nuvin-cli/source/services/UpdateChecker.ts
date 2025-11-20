@@ -17,6 +17,16 @@ export namespace UpdateChecker {
 
     try {
       const latestVersion = await fetchLatestVersion();
+
+      // Do not update if the latest version is a prerelease
+      if (latestVersion.includes('-')) {
+        return {
+          current: currentVersion,
+          latest: latestVersion,
+          hasUpdate: false,
+        };
+      }
+
       const hasUpdate = compareVersions(currentVersion, latestVersion) < 0;
 
       return {
