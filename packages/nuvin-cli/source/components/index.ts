@@ -1,10 +1,10 @@
-export { Header } from './Header.js';
+// export { Header } from './Header.js';
 export { ChatDisplay } from './ChatDisplay.js';
 export { MessageLine } from './MessageLine.js';
 export { InputArea, type InputAreaHandle } from './InputArea.js';
 export { Footer } from './Footer.js';
 export { HistorySelection } from './HistorySelection.js';
-export { WelcomeMessage } from './WelcomeMessage.js';
+export { RecentSessions } from './RecentSessions.js';
 export { ToolApprovalPrompt } from './ToolApprovalPrompt/ToolApprovalPrompt.js';
 export { AppModal } from './AppModal.js';
 export { InteractionArea } from './InteractionArea.js';
