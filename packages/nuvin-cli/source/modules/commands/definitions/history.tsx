@@ -5,13 +5,7 @@ import type { CommandRegistry, CommandComponentProps } from '@/modules/commands/
 import { HistorySelection } from '@/components/HistorySelection.js';
 import { scanAvailableSessions, loadSessionHistory } from '@/hooks/useSessionManagement.js';
 
-type SessionInfo = {
-  sessionId: string;
-  timestamp: string;
-  lastMessage: string;
-  messageCount: number;
-  topic?: string;
-};
+import { SessionInfo } from '@/types.js';
 
 const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps) => {
   const [availableSessions, setAvailableSessions] = useState<SessionInfo[]>([]);

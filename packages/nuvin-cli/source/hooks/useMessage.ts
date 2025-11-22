@@ -6,9 +6,17 @@ import { MAX_RENDERED_LINES } from '@/const.js';
 const useMessages = () => {
   const [messages, setMessages] = useState<MessageLine[]>([]);
 
-  const clearMessages = () => {
+  const clearMessages = useCallback(() => {
     setMessages([]);
-  };
+  }, []);
+
+  const setLines = useCallback((newLines: MessageLine[]) => {
+    if (newLines.length > MAX_RENDERED_LINES) {
+      setMessages(newLines.slice(-MAX_RENDERED_LINES));
+    } else {
+      setMessages([...newLines]);
+    }
+  }, []);
 
   const appendLine = useCallback((line: MessageLine) => {
     setMessages((prev) => {
@@ -56,14 +64,6 @@ const useMessages = () => {
     },
     [appendLine],
   );
-
-  const setLines = (newLines: MessageLine[]) => {
-    if (newLines.length > MAX_RENDERED_LINES) {
-      setMessages(newLines.slice(-MAX_RENDERED_LINES));
-    } else {
-      setMessages([...newLines]);
-    }
-  };
 
   return { messages, clearMessages, setLines, appendLine, updateLine, updateLineMetadata, handleError };
 };
