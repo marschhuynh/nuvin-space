@@ -1,5 +1,5 @@
 import type React from 'react';
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import { commandRegistry } from './registry.js';
 
 interface CommandContextValue {
@@ -9,7 +9,7 @@ interface CommandContextValue {
 const CommandContext = createContext<CommandContextValue | undefined>(undefined);
 
 export function CommandProvider({ children }: { children: React.ReactNode }) {
-  const value = { registry: commandRegistry };
+  const value = useMemo(() => ({ registry: commandRegistry }), []);
 
   return <CommandContext.Provider value={value}>{children}</CommandContext.Provider>;
 }
