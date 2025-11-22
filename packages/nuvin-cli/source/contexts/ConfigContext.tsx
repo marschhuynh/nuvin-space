@@ -30,7 +30,7 @@ export function ConfigProvider({ children, initialConfig = {} }: ConfigProviderP
         await configManager.load();
         const loadedConfig = configManager.getConfig();
         setConfig(loadedConfig);
-        
+
         // Set current profile
         const profile = configManager.getCurrentProfile?.();
         setCurrentProfile(profile);
@@ -41,13 +41,7 @@ export function ConfigProvider({ children, initialConfig = {} }: ConfigProviderP
 
     // If we have initial config (e.g., merged with CLI flags), use it
     if (Object.keys(initialConfig).length > 0) {
-      // Update ConfigManager's internal combined config so get() calls work correctly
       configManager.combined = initialConfig;
-      setConfig(initialConfig);
-      
-      // Set current profile
-      const profile = configManager.getCurrentProfile?.();
-      setCurrentProfile(profile);
     } else {
       loadConfig();
     }

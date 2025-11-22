@@ -54,12 +54,8 @@ export function StdoutDimensionsProvider({ children }: { children: React.ReactNo
 
     stdout.on('resize', handleResize);
 
-    // Set initial dimensions after a small delay to ensure they're available
-    const timer = setTimeout(handleResize, 10);
-
     return () => {
       stdout.off('resize', handleResize);
-      clearTimeout(timer);
     };
   }, [stdout]);
 

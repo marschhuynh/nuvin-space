@@ -19,6 +19,7 @@ type FooterProps = {
   vimModeEnabled?: boolean;
   vimMode?: 'insert' | 'normal';
   workingDirectory?: string;
+  sessionId?: string;
 };
 
 const FooterComponent: React.FC<FooterProps> = ({
@@ -28,6 +29,7 @@ const FooterComponent: React.FC<FooterProps> = ({
   vimModeEnabled = false,
   vimMode = 'insert',
   workingDirectory,
+  sessionId,
 }) => {
   const { notification } = useNotification();
   const { theme } = useTheme();
@@ -70,6 +72,7 @@ const FooterComponent: React.FC<FooterProps> = ({
               {[
                 currentProfile && currentProfile !== 'default' ? currentProfile : null, // Only show if not default
                 `${provider}:${model}`,
+                sessionId && `Session: ${sessionId}`,
                 thinking && thinking !== THINKING_LEVELS.OFF ? `Thinking: ${thinking}` : '',
                 !toolApprovalMode ? 'SUDO' : '',
               ]

@@ -1,5 +1,5 @@
 import type React from 'react';
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import type { ToolCall, AgentOrchestrator, ToolApprovalDecision } from '@nuvin/nuvin-core';
 import { eventBus } from '@/services/EventBus.js';
 import { enrichToolCallsWithLineNumbers } from '@/utils/enrichToolCalls.js';
@@ -45,9 +45,9 @@ export function ToolApprovalProvider({
     orchestratorRef.current = orchestrator;
   }, []);
 
-  const addSessionApprovedTool = (toolName: string) => {
+  const addSessionApprovedTool = useCallback((toolName: string) => {
     setSessionApprovedTools((prev) => new Set(prev).add(toolName));
-  };
+  }, []);
 
   const clearSessionApprovedTools = useCallback(() => {
     setSessionApprovedTools(new Set());
@@ -128,16 +128,27 @@ export function ToolApprovalProvider({
     };
   }, [sessionApprovedTools, clearSessionApprovedTools, onError]);
 
-  const value = {
-    toolApprovalMode: isToolApprovalMode,
-    setToolApprovalMode,
-    pendingApproval,
-    sessionApprovedTools,
-    addSessionApprovedTool,
-    clearSessionApprovedTools,
-    handleApprovalResponse,
-    setOrchestrator,
-  };
+  const value = useMemo(
+    () => ({
+      toolApprovalMode: isToolApprovalMode,
+      setToolApprovalMode,
+      pendingApproval,
+      sessionApprovedTools,
+      addSessionApprovedTool,
+      clearSessionApprovedTools,
+      handleApprovalResponse,
+      setOrchestrator,
+    }),
+    [
+      isToolApprovalMode,
+      pendingApproval,
+      sessionApprovedTools,
+      addSessionApprovedTool,
+      clearSessionApprovedTools,
+      handleApprovalResponse,
+      setOrchestrator,
+    ],
+  );
 
   return <ToolApprovalContext.Provider value={value}>{children}</ToolApprovalContext.Provider>;
 }

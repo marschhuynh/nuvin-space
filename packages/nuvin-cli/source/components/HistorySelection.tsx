@@ -1,18 +1,11 @@
 import type React from 'react';
 import { useState, useRef } from 'react';
 import { Box, Text, useInput } from 'ink';
-import SelectInput from './SelectInput/index.js';
 import { eventBus } from '@/services/EventBus.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
-
-type SessionInfo = {
-  sessionId: string;
-  timestamp: string;
-  lastMessage: string;
-  messageCount: number;
-  topic?: string;
-};
+import { SessionInfo } from '@/types.js';
+import SelectInput from './SelectInput/index.js';
 
 type HistorySelectionProps = {
   availableSessions: SessionInfo[];

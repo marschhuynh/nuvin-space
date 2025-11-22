@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { eventBus } from '@/services/EventBus.js';
 import { commandRegistry } from '@/modules/commands/registry.js';
 import type { CommandDefinition, ActiveCommand, CommandContext } from '@/modules/commands/types.js';
@@ -12,21 +12,13 @@ interface UseCommandReturn {
 }
 
 export function useCommand(): UseCommandReturn {
-  const [commands, setCommands] = useState<CommandDefinition[]>([]);
-  const [activeCommand, setActiveCommandState] = useState<ActiveCommand | null>(null);
+  const [commands, _setCommands] = useState<CommandDefinition[]>(() => commandRegistry.list({ includeHidden: false }));
+  const [activeCommand, setActiveCommandState] = useState<ActiveCommand | null>(() => commandRegistry.getActive());
 
   useEffect(() => {
-    const updateCommands = () => {
-      setCommands(commandRegistry.list({ includeHidden: false }));
-    };
-
     const updateActiveCommand = () => {
       setActiveCommandState(commandRegistry.getActive());
     };
-
-    // Initial load
-    updateCommands();
-    updateActiveCommand();
 
     // Listen for registry changes
     eventBus.on('ui:command:activated', updateActiveCommand);
@@ -38,23 +30,26 @@ export function useCommand(): UseCommandReturn {
     };
   }, []);
 
-  const execute = async (input: string) => {
+  const execute = useCallback(async (input: string) => {
     await commandRegistry.execute(input);
-  };
+  }, []);
 
-  const setActiveCommand = (commandId: string, context: CommandContext) => {
+  const setActiveCommand = useCallback((commandId: string, context: CommandContext) => {
     commandRegistry.setActive(commandId, context);
-  };
+  }, []);
 
-  const clearActiveCommand = () => {
+  const clearActiveCommand = useCallback(() => {
     commandRegistry.clearActive();
-  };
+  }, []);
 
-  return {
-    commands,
-    activeCommand,
-    execute,
-    setActiveCommand,
-    clearActiveCommand,
-  };
+  return useMemo(
+    () => ({
+      commands,
+      activeCommand,
+      execute,
+      setActiveCommand,
+      clearActiveCommand,
+    }),
+    [commands, activeCommand, execute, setActiveCommand, clearActiveCommand],
+  );
 }
