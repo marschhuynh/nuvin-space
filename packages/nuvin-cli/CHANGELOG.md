@@ -1,5 +1,15 @@
 # @nuvin/nuvin-cli
 
+## 1.7.1
+
+### Patch Changes
+
+- [`f1e311c`](https://github.com/marschhuynh/nuvin-space/commit/f1e311ca5d2b3cee3111df9cdacf042957d05255) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Update ink to alpha version and remove padding from Footer component
+
+  - Updated @nuvin/ink dependency from 6.5.1 to 6.5.1-alpha.1
+  - Removed paddingX from Footer component's working directory display
+  - Cleaned up package.json configurations
+
 ## 1.7.0
 
 ### Minor Changes
@@ -284,19 +294,19 @@
   ```typescript
   // Update AgentManager instantiation
   const agentManager = new AgentManager(
-  	delegatingConfig,
-  	delegatingTools, // llm parameter removed
-  	llmFactory,
-  	eventCallback,
-  	configResolver, // new parameter
+    delegatingConfig,
+    delegatingTools, // llm parameter removed
+    llmFactory,
+    eventCallback,
+    configResolver // new parameter
   );
 
   // Update setOrchestrator calls
   toolRegistry.setOrchestrator(
-  	config,
-  	tools, // llm parameter removed
-  	llmFactory,
-  	configResolver, // new parameter
+    config,
+    tools, // llm parameter removed
+    llmFactory,
+    configResolver // new parameter
   );
   ```
 
