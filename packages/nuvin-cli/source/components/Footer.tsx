@@ -110,7 +110,7 @@ const FooterComponent: React.FC<FooterProps> = ({
         ) : null}
       </Box>
       {workingDirectory && (
-        <Box paddingX={1} paddingTop={0} backgroundColor={theme.footer.infoBg} justifyContent="space-between">
+        <Box paddingTop={0} backgroundColor={theme.footer.infoBg} justifyContent="space-between">
           <Box>
             <Text color={theme.footer.currentDir}>{formatDirectory(workingDirectory)}</Text>
             <Text dimColor color={theme.footer.gitBranch}>
