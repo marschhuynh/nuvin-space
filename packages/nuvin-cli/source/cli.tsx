@@ -89,6 +89,7 @@ const cli = meow(
     --reasoning-effort  Set reasoning effort for o1 models: low | medium | high (default: medium)
     --history PATH      Load conversation history from file on startup
     --profile NAME      Use specific profile (overrides active profile)
+    --resume, -r        Resume the most recent session
 
   Authentication Setup
     Environment variables are automatically detected and loaded at startup:
@@ -130,6 +131,7 @@ const cli = meow(
       demo: { type: 'string' },
       history: { type: 'string' },
       profile: { type: 'string' },
+      resume: { type: 'boolean', alias: 'r' },
     },
   },
 );
@@ -356,16 +358,26 @@ const cli = meow(
   const resolvedMcpConfigPath = explicitConfigPath ?? configPathFromFile ?? defaultMcpConfigPath;
   const displayMcpConfigPath = inlineMcpConfig ? (explicitConfigPath ?? configPathFromFile) : resolvedMcpConfigPath;
 
-  // Handle history flag
-  const historyPath = ensureString(cli.flags.history as string | undefined);
-
   // Pre-load sessions before rendering to avoid re-renders
-  const { scanAvailableSessions } = await import('./hooks/useSessionManagement.js');
+  const { scanAvailableSessions, getSessionDir } = await import('./hooks/useSessionManagement.js');
   let initialSessions: Awaited<ReturnType<typeof scanAvailableSessions>> | null = null;
   try {
     initialSessions = await scanAvailableSessions(5);
   } catch (_error) {
     initialSessions = [];
+  }
+
+  // Handle history flag or --resume
+  let historyPath = ensureString(cli.flags.history as string | undefined);
+  const resumeFlag = cli.flags.resume;
+
+  if (resumeFlag && !historyPath) {
+    if (initialSessions && initialSessions.length > 0) {
+      const latestSession = initialSessions[0];
+      historyPath = path.join(getSessionDir(latestSession.sessionId), 'history.json');
+    } else {
+      console.warn('No previous sessions found to resume.');
+    }
   }
 
   // Register commands
