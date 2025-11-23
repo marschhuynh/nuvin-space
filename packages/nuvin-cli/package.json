@@ -91,5 +91,16 @@
 		"tsup": "^8.5.1",
 		"typescript": "^5.9.3",
 		"vitest": "^3.2.4"
+	},
+	"pnpm": {
+		"overrides": {
+			"ink": "npm:@nuvin/ink@6.5.1-alpha.1"
+		}
+	},
+	"overrides": {
+		"ink": "npm:@nuvin/ink@6.5.1-alpha.1"
+	},
+	"resolutions": {
+		"ink": "npm:@nuvin/ink@6.5.1-alpha.1"
 	}
 }
