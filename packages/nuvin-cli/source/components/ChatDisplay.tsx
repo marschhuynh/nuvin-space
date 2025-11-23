@@ -1,12 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Box, Static } from 'ink';
 import { MessageLine } from './MessageLine.js';
-import { scanAvailableSessions } from '@/hooks/useSessionManagement.js';
 import type { MessageLine as MessageLineType } from '@/adapters/index.js';
-import { getDefaultLogger } from '@/utils/file-logger.js';
 import { RecentSessions, WelcomeLogo } from './RecentSessions.js';
 
 import type { SessionInfo } from '@/types.js';
+import { getDefaultLogger } from '@/utils/file-logger.js';
 
 type ChatDisplayProps = {
   key: string;
@@ -14,7 +13,10 @@ type ChatDisplayProps = {
   selectedIndex?: number | null;
   expandedIds?: Set<string>;
   headerKey?: number;
+  sessions?: SessionInfo[] | null;
 };
+
+const logger = getDefaultLogger()
 
 /**
  * Merges tool calls with their corresponding tool results for display purposes only.
@@ -118,32 +120,11 @@ function hasAnyPendingToolCalls(msg: MessageLineType): boolean {
   return false; // All tool calls have results
 }
 
-const logger = getDefaultLogger()
 
-let isScanned = false;
-
-
-const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey }) => {
+const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey, sessions: sessionsProp }) => {
   const DYNAMIC_COUNT = 0;
-  const [sessions, setSessions] = useState<SessionInfo[] | null>(null);
-
-  useEffect(() => {
-    const loadSessions = async () => {
-      try {
-        const result = await scanAvailableSessions(5);
-        setSessions(result);
-      } catch (_error) {
-        setSessions([]);
-      } finally {
-        isScanned = true;
-      }
-    };
-
-    if (!isScanned) {
-      loadSessions();
-    }
-
-  }, []);
+  // Use sessions from props instead of loading internally
+  const sessions = sessionsProp ?? null;
 
   // Merge tool calls with results for display only
   const mergedMessages = useMemo(() => mergeToolCallsWithResults(messages), [messages]);
@@ -181,19 +162,48 @@ const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey 
 
   const staticCount = useMemo(() => calculateStaticCount(mergedMessages), [mergedMessages, calculateStaticCount]);
 
-  const [staticItems, setStaticItems] = useState<MessageLineType[]>([]);
+  // Use a ref to maintain the stable list of static items to avoid re-rendering Static
+  // when the prefix hasn't changed.
+  const lastStaticItemsRef = React.useRef<MessageLineType[]>([]);
 
-  // Ensure we don't remove messages from visible before they're in static
-  // This prevents flashing when messages transition from dynamic to static
-  const safeStaticCount = useMemo(() => {
-    return Math.min(staticCount, staticItems.length);
-  }, [staticCount, staticItems.length]);
+  const staticItems = useMemo(() => {
+    const prevStatic = lastStaticItemsRef.current;
+    const currentStaticSlice = mergedMessages.slice(0, staticCount);
 
-  // Memoize message items to avoid recreating on every render
-  const staticMessagesWithType = useMemo(
-    () => staticItems,
-    [staticItems],
-  );
+    // Helper to update ref and return
+    const update = (items: MessageLineType[]) => {
+      lastStaticItemsRef.current = items;
+      return items;
+    };
+
+    // 1. Initial load
+    if (prevStatic.length === 0) {
+      return update(currentStaticSlice);
+    }
+
+    // 2. Check for invalidation (shrinking or head change)
+    // If staticCount decreased, we must have removed messages.
+    if (staticCount < prevStatic.length) {
+      return update(currentStaticSlice);
+    }
+    // If the first message ID changed, it's a different session/context.
+    if (currentStaticSlice.length > 0 && prevStatic[0]?.id !== currentStaticSlice[0]?.id) {
+      return update(currentStaticSlice);
+    }
+
+    // 3. Check for Append
+    if (staticCount > prevStatic.length) {
+      const newItems = currentStaticSlice.slice(prevStatic.length);
+      return update([...prevStatic, ...newItems]);
+    }
+
+    // 4. Same length. Assume stable to prevent Static re-render.
+    return prevStatic;
+  }, [mergedMessages, staticCount]);
+
+  // Track if we have shown sessions to ensure we keep them in the list
+  // to preserve Static index alignment
+  const showedSessionsRef = useRef(false);
 
   const staticItemsWithHeader = useMemo(() => {
     const hasMessages = messages.length > 0;
@@ -202,72 +212,32 @@ const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey 
     // Always show logo at the start
     items.push({ type: 'logo' as const, id: `logo-${headerKey}` });
 
-    // Only show Recent Activity when no messages and sessions are loaded
-    if (!hasMessages && sessions !== null && sessions.length > 0) {
+    // Show sessions if:
+    // 1. We have no messages (initial state)
+    // 2. OR we already showed them in this component lifecycle (to preserve Static indices)
+    const shouldShowSessions = (!hasMessages && sessions !== null && sessions.length > 0) || showedSessionsRef.current;
+
+    if (shouldShowSessions && sessions !== null && sessions.length > 0) {
       items.push({ type: 'sessions' as const, id: `sessions-${headerKey}-${sessions.length}`, sessions });
+      showedSessionsRef.current = true;
     }
 
     // Add all static messages
-    items.push(...staticMessagesWithType);
+    items.push(...staticItems);
 
     return items;
-  }, [headerKey, sessions, staticMessagesWithType, messages.length]);
+  }, [headerKey, sessions, staticItems, messages.length]);
 
-  useEffect(() => {
-    setStaticItems((prev) => {
-      if (staticCount === 0) {
-        return prev.length === 0 ? prev : [];
-      }
+  const visible = useMemo(() => {
+    return mergedMessages.slice(staticItems.length);
+  }, [mergedMessages, staticItems]);
 
-      const firstPrevId = prev[0]?.id;
-      const firstCurrentId = mergedMessages[0]?.id;
-      const currentStaticSlice = () => mergedMessages.slice(0, staticCount);
-
-      if (prev.length === 0) {
-        return currentStaticSlice();
-      }
-
-      // If first message changed or staticCount decreased, reset
-      if (firstPrevId !== firstCurrentId || staticCount < prev.length) {
-        return currentStaticSlice();
-      }
-
-      // If staticCount matches prev length, check if last message changed
-      if (staticCount === prev.length) {
-        const prevLastId = prev[prev.length - 1]?.id;
-        const currentLastId = mergedMessages[staticCount - 1]?.id;
-        if (prevLastId === currentLastId) {
-          // IDs match, but check if content changed (e.g., toolResultsByCallId added)
-          const prevLast = prev[prev.length - 1];
-          const currentLast = mergedMessages[staticCount - 1];
-          if (prevLast.metadata?.toolResultsByCallId !== currentLast.metadata?.toolResultsByCallId) {
-            // Tool result was added, update the static item
-            return currentStaticSlice();
-          }
-          return prev;
-        }
-        return currentStaticSlice();
-      }
-
-      const nextChunk = mergedMessages.slice(prev.length, staticCount);
-
-      if (nextChunk.length === 0) {
-        return prev;
-      }
-
-      return [...prev, ...nextChunk];
-    });
-  }, [mergedMessages, staticCount]);
-
-  const visible = useMemo(() => mergedMessages.slice(safeStaticCount), [mergedMessages, safeStaticCount]);
-
-  logger.info('ChatDisplayComponent mounted', {
-    staticItemsWithHeader: staticItemsWithHeader.length,
+  logger.info('ChatDisplay', {
     headerKey,
-    isScanned,
-    sessions: sessions?.length
+    staticCount,
+    staticItemsLength: staticItems.length,
+    visibleLength: visible.length,
   });
-
 
   /* Render static items using Ink's Static so they don't update after being printed */
   return (

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import { ConfigManager } from '@/config/manager.js';
 import type { CLIConfig, ConfigScope } from '@/config/types.js';
 
@@ -22,7 +22,7 @@ export function ConfigProvider({ children, initialConfig = {} }: ConfigProviderP
   const [config, setConfig] = useState<CLIConfig>(initialConfig);
   const [currentProfile, setCurrentProfile] = useState<string | undefined>();
   const configManager = ConfigManager.getInstance();
-
+  
   // Load initial config and set up state
   useEffect(() => {
     const loadConfig = async () => {
@@ -99,14 +99,19 @@ export function ConfigProvider({ children, initialConfig = {} }: ConfigProviderP
     }
   }, [configManager]);
 
-  const value: ConfigContextValue = {
-    config,
-    get,
-    set,
-    delete: deleteKey,
-    reload,
-    getCurrentProfile: () => currentProfile,
-  };
+  const getCurrentProfile = useCallback(() => currentProfile, [currentProfile]);
+
+  const value: ConfigContextValue = useMemo(
+    () => ({
+      config,
+      get,
+      set,
+      delete: deleteKey,
+      reload,
+      getCurrentProfile,
+    }),
+    [config, get, set, deleteKey, reload, getCurrentProfile]
+  );
 
   return <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>;
 }

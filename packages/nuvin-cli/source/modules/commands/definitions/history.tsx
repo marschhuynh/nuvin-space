@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import * as crypto from 'node:crypto';
 import { useInput } from 'ink';
+import ansiEscapes from 'ansi-escapes';
 import type { CommandRegistry, CommandComponentProps } from '@/modules/commands/types.js';
 import { HistorySelection } from '@/components/HistorySelection.js';
 import { scanAvailableSessions, loadSessionHistory } from '@/hooks/useSessionManagement.js';
@@ -61,35 +62,21 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
     const handleHistorySelected = async (session: SessionInfo) => {
       try {
         deactivate();
-
         const result = await loadSessionHistory(session.sessionId);
-
-        context.eventBus.emit('ui:lines:clear', undefined);
-        context.eventBus.emit('ui:header:refresh', undefined);
 
         if (result.kind === 'messages') {
           // Set metadata - use ui:lastMetadata event
-          if (result.metadata) {
-            context.eventBus.emit('ui:lastMetadata', result.metadata);
-          } else {
-            // Clear metadata if not available
-            context.eventBus.emit('ui:lastMetadata', null);
-          }
+          // if (result.metadata) {
+          //   context.eventBus.emit('ui:lastMetadata', result.metadata);
+          // } else {
+          //   // Clear metadata if not available
+          //   context.eventBus.emit('ui:lastMetadata', null);
+          // }
 
-          // Load ALL CLI messages into memory first - this ensures conversation continuity
           let memoryLoadSuccess = false;
           if (result.cliMessages && result.cliMessages.length > 0 && context.memory) {
             try {
               await context.memory.set('cli', result.cliMessages);
-
-              // Verify memory was loaded correctly
-              const loadedMessages = await context.memory.get('cli');
-              if (loadedMessages.length !== result.cliMessages.length) {
-                throw new Error(
-                  `Memory verification failed: expected ${result.cliMessages.length} messages, got ${loadedMessages.length}`,
-                );
-              }
-
               memoryLoadSuccess = true;
             } catch (err) {
               console.error('Failed to set memory:', err);
@@ -103,7 +90,10 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
             }
           }
 
-          // Set UI lines - note: app.tsx limits display to 2000 lines for performance
+          // Clear the terminal screen
+          console.log(ansiEscapes.clearTerminal);
+          context.eventBus.emit('ui:header:refresh');
+
           context.eventBus.emit('ui:lines:set', result.lines);
 
           // Notify user about what was loaded

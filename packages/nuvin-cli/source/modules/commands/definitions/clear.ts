@@ -20,11 +20,7 @@ export function registerClearCommand(registry: CommandRegistry) {
       eventBus.emit('ui:lastMetadata', null);
 
       // Clear the terminal screen
-      try {
-        console.log(ansiEscapes.clearScreen);
-        console.log(ansiEscapes.cursorTo(0, 0));
-      } catch {}
-
+        console.log(ansiEscapes.clearTerminal);
       // Refresh header to re-render
       eventBus.emit('ui:header:refresh');
 

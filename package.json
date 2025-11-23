@@ -29,5 +29,10 @@
   },
   "dependencies": {
     "husky": "^9.1.7"
+  },
+  "pnpm": {
+    "overrides": {
+      "ink": "npm:@nuvin/ink@6.5.1"
+    }
   }
 }

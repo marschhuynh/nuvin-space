@@ -69,7 +69,7 @@ export class FileLogger {
         this.logDir = options.logDir || path.join(os.homedir(), '.nuvin-cli', 'logs');
         const fileName = options.logFileName || 'nuvin';
         this.logFilePath = path.join(this.logDir, `${fileName}.log`);
-        this.minLevel = options.minLevel || 'info';
+        this.minLevel = options.minLevel || 'error';
         this.maxFileSize = options.maxFileSize || 5 * 1024 * 1024; // 5MB
         this.maxFiles = options.maxFiles || 3;
         this.includeTimestamp = options.includeTimestamp ?? true;
@@ -296,7 +296,6 @@ let defaultLogger: FileLogger | null = null;
 export function getDefaultLogger(options?: FileLoggerOptions): FileLogger {
     if (!defaultLogger) {
         defaultLogger = new FileLogger({
-            logDir: '.',
             ...options
         });
     }
@@ -312,3 +311,5 @@ export function resetDefaultLogger(): void {
         defaultLogger = null;
     }
 }
+
+export const logger = getDefaultLogger();

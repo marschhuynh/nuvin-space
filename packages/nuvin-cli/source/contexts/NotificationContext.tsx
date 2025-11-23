@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo, type ReactNode } from 'react';
 
 export interface NotificationContextValue {
   notification: string | null;
@@ -14,7 +14,7 @@ export interface NotificationProviderProps {
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
   const [notification, setNotificationState] = useState<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+  
   const setNotification = useCallback((content: string | null, duration = 3000) => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -43,10 +43,13 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     };
   }, []);
 
-  const value: NotificationContextValue = {
-    notification,
-    setNotification,
-  };
+  const value: NotificationContextValue = useMemo(
+    () => ({
+      notification,
+      setNotification,
+    }),
+    [notification, setNotification]
+  );
 
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
 };

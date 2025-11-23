@@ -109,5 +109,10 @@
 			"react/prop-types": "off"
 		}
 	},
-	"prettier": "@vdemedes/prettier-config"
+	"prettier": "@vdemedes/prettier-config",
+	"pnpm": {
+		"overrides": {
+			"ink": "npm:@nuvin/ink@6.5.1"
+		}
+	}
 }

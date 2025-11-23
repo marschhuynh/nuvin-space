@@ -5,29 +5,28 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import type { MCPConfig } from '@nuvin/nuvin-core';
-import type { AuthMethod } from './config/types.js';
-import App from './app.js';
-import { NotificationProvider } from './contexts/NotificationContext.js';
-import { ToolApprovalProvider } from './contexts/ToolApprovalContext.js';
-import { CommandProvider } from './modules/commands/provider.js';
-import { registerCommands } from './modules/commands/definitions/index.js';
-import { ConfigProvider } from './contexts/ConfigContext.js';
-import { ConfigBridge } from './components/ConfigBridge.js';
-import { ThemeProvider } from './contexts/ThemeContext.js';
-import { StdoutDimensionsProvider } from './contexts/StdoutDimensionsContext.js';
-import { ExplainModeProvider } from './contexts/ExplainModeContext.js';
+import type { AuthMethod } from '@/config/types.js';
+import App from '@/app.js';
+import { NotificationProvider } from '@/contexts/NotificationContext.js';
+import { ToolApprovalProvider } from '@/contexts/ToolApprovalContext.js';
+import { CommandProvider } from '@/modules/commands/provider.js';
+import { registerCommands } from '@/modules/commands/definitions/index.js';
+import { ConfigProvider } from '@/contexts/ConfigContext.js';
+import { ConfigBridge } from '@/components/ConfigBridge.js';
+import { ThemeProvider } from '@/contexts/ThemeContext.js';
+import { StdoutDimensionsProvider } from '@/contexts/StdoutDimensionsContext.js';
+import { ExplainModeProvider } from '@/contexts/ExplainModeContext.js';
 
-import { getVersionInfo } from './utils/version.js';
+import { getVersionInfo } from '@/utils/version.js';
 import {
   ConfigManager,
   resolveMCPDefinition,
   type CLIConfig,
   type ConfigSource,
   type ProviderKey,
-} from './config/index.js';
-import { ConfigCliHandler } from './config/cli-handler.js';
-import { AutoUpdater } from './services/AutoUpdater.js';
-import { StrictMode } from 'react';
+} from '@/config/index.js';
+import { ConfigCliHandler } from '@/config/cli-handler.js';
+import { AutoUpdater } from '@/services/AutoUpdater.js';
 
 process.stdout.write('\x1b[?2004h');
 
@@ -360,41 +359,46 @@ const cli = meow(
   // Handle history flag
   const historyPath = ensureString(cli.flags.history as string | undefined);
 
+  // Pre-load sessions before rendering to avoid re-renders
+  const { scanAvailableSessions } = await import('./hooks/useSessionManagement.js');
+  let initialSessions: Awaited<ReturnType<typeof scanAvailableSessions>> | null = null;
+  try {
+    initialSessions = await scanAvailableSessions(5);
+  } catch (_error) {
+    initialSessions = [];
+  }
+
   // Register commands
   registerCommands();
 
   const { waitUntilExit } = render(
-    <StrictMode>
-      <ThemeProvider>
-        <StdoutDimensionsProvider>
-          <ConfigProvider initialConfig={mergedConfig}>
-            <NotificationProvider>
-              <ToolApprovalProvider
-                requireToolApproval={finalRequireToolApproval}
-                onError={(msg) => console.error(msg)}
-              >
-                <CommandProvider>
-                  <ExplainModeProvider>
-                    <ConfigBridge>
-                      <App
-                        memPersist={finalMemPersist}
-                        mcpConfigPath={displayMcpConfigPath}
-                        thinking={thinkingSetting}
-                        historyPath={historyPath}
-                      />
-                    </ConfigBridge>
-                  </ExplainModeProvider>
-                </CommandProvider>
-              </ToolApprovalProvider>
-            </NotificationProvider>
-          </ConfigProvider>
-        </StdoutDimensionsProvider>
-      </ThemeProvider>
-    </StrictMode>,
+    <ThemeProvider>
+      <StdoutDimensionsProvider>
+        <ConfigProvider initialConfig={mergedConfig}>
+          <NotificationProvider>
+            <ToolApprovalProvider requireToolApproval={finalRequireToolApproval} onError={(msg) => console.error(msg)}>
+              <CommandProvider>
+                <ExplainModeProvider>
+                  <ConfigBridge>
+                    <App
+                      memPersist={finalMemPersist}
+                      mcpConfigPath={displayMcpConfigPath}
+                      thinking={thinkingSetting}
+                      historyPath={historyPath}
+                      initialSessions={initialSessions}
+                    />
+                  </ConfigBridge>
+                </ExplainModeProvider>
+              </CommandProvider>
+            </ToolApprovalProvider>
+          </NotificationProvider>
+        </ConfigProvider>
+      </StdoutDimensionsProvider>
+    </ThemeProvider>,
     {
       exitOnCtrlC: false,
       patchConsole: true,
-      incrementalRendering: false,
+      incrementalRendering: true,
       maxFps: 60,
     },
   );

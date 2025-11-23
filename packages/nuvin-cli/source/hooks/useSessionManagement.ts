@@ -104,7 +104,7 @@ export const scanAvailableSessions = async (limit?: number): Promise<
             const msg = cliMessages[i];
             if (!msg || typeof msg !== 'object') continue;
             const msgObj = msg as { role?: string; content?: unknown };
-            if (msgObj.role === 'user' || msgObj.role === 'assistant') {
+            if (msgObj.role === 'user') {
               const content = msgObj.content;
               const text = typeof content === 'string' ? content : '';
               lastMessage = text;

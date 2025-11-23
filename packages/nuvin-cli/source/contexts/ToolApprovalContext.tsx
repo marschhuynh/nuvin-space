@@ -70,6 +70,12 @@ export function ToolApprovalProvider({
     [pendingApproval, onError],
   );
 
+  const sessionApprovedToolsRef = useRef(sessionApprovedTools);
+  sessionApprovedToolsRef.current = sessionApprovedTools;
+
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
   useEffect(() => {
     const onToolApprovalRequired = async (event: {
       toolCalls: ToolCall[];
@@ -84,7 +90,7 @@ export function ToolApprovalProvider({
         const needsApprovalTools: ToolCall[] = [];
 
         for (const tool of enrichedToolCalls) {
-          if (sessionApprovedTools.has(tool.function.name)) {
+          if (sessionApprovedToolsRef.current.has(tool.function.name)) {
             autoApprovedTools.push(tool);
           } else {
             needsApprovalTools.push(tool);
@@ -96,7 +102,7 @@ export function ToolApprovalProvider({
             orchestratorRef.current.handleToolApproval(event.approvalId, 'approve', autoApprovedTools);
           } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
-            onError(`Failed to auto-approve session tools: ${message}`);
+            onErrorRef.current(`Failed to auto-approve session tools: ${message}`);
           }
         }
 
@@ -105,7 +111,7 @@ export function ToolApprovalProvider({
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        onError(`Failed to process tool approval: ${message}`);
+        onErrorRef.current(`Failed to process tool approval: ${message}`);
       }
     };
 
@@ -126,7 +132,7 @@ export function ToolApprovalProvider({
       eventBus.off('ui:new:conversation', onNewConversation);
       eventBus.off('ui:lines:clear', onClearChat);
     };
-  }, [sessionApprovedTools, clearSessionApprovedTools, onError]);
+  }, [clearSessionApprovedTools]);
 
   const value = useMemo(
     () => ({

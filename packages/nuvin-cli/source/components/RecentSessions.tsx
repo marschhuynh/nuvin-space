@@ -133,6 +133,10 @@ const RecentSessions = ({ recentSessions }: RecentSessionsProps) => {
             recentSessions.slice(0, 5).map((session) => {
               const relativeTime = formatRelativeTime(session.timestamp);
               const displayText = session.topic || session.lastMessage;
+              const maxTextLen = cols - 40;
+              const truncatedText = displayText && displayText.length > maxTextLen 
+                ? `${displayText.slice(0, maxTextLen)}...` 
+                : displayText;
               const status = getSessionStatus(session.lastMessage, session.messageCount);
               const badge = getMessageCountBadge(session.messageCount);
 
@@ -147,7 +151,7 @@ const RecentSessions = ({ recentSessions }: RecentSessionsProps) => {
                   </Box>
                   <Box>
                     <Text color={theme.welcome.subtitle} dimColor>
-                      {displayText}
+                      {truncatedText}
                       {' · '}
                     </Text>
                   </Box>

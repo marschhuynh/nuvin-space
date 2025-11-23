@@ -1,7 +1,7 @@
 export { useOrchestrator } from './useOrchestrator.js';
 export { useKeyboardInput } from './useKeyboardInput.js';
 export { useGlobalKeyboard } from './useGlobalKeyboard.js';
-export { useSessionManagement } from './useSessionManagement.js';
+export { useSessionManagement, scanAvailableSessions } from './useSessionManagement.js';
 export { useNotification } from './useNotification.js';
 export { useStdoutDimensions } from './useStdoutDimensions.js';
 export { useHandleSubmit } from './useHandleSubmit.js';

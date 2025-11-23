@@ -5,9 +5,9 @@ import * as crypto from 'node:crypto';
 import * as path from 'node:path';
 import type { UserMessagePayload } from '@nuvin/nuvin-core';
 
-import { ChatDisplay, Footer, InteractionArea, type InputAreaHandle } from './components/index.js';
-import { ErrorBoundary } from './components/ErrorBoundary.js';
-import { InitialConfigSetup } from './components/InitialConfigSetup.js';
+import { ChatDisplay, Footer, InteractionArea, type InputAreaHandle } from '@/components/index.js';
+import { ErrorBoundary } from '@/components/ErrorBoundary.js';
+import { InitialConfigSetup } from '@/components/InitialConfigSetup.js';
 import {
   useOrchestrator,
   useKeyboardInput,
@@ -16,17 +16,18 @@ import {
   useStdoutDimensions,
   useGlobalKeyboard,
   useHandleSubmit,
-} from './hooks/index.js';
-import type { MessageLine, MessageMetadata } from './adapters/index.js';
-import { eventBus } from './services/EventBus.js';
-import { useToolApproval } from './contexts/ToolApprovalContext.js';
-import { useCommand } from './modules/commands/hooks/useCommand.js';
-import { commandRegistry } from './modules/commands/registry.js';
-import type { ProviderKey } from './const.js';
-import useMessages from './hooks/useMessage.js';
-import { useConfig } from './contexts/ConfigContext.js';
-import { useExplainMode } from './contexts/ExplainModeContext.js';
-import { OrchestratorStatus } from './services/OrchestratorManager.js';
+} from '@/hooks/index.js';
+import type { MessageLine, MessageMetadata } from '@/adapters/index.js';
+import { eventBus } from '@/services/EventBus.js';
+import { useToolApproval } from '@/contexts/ToolApprovalContext.js';
+import { useCommand } from '@/modules/commands/hooks/useCommand.js';
+import { commandRegistry } from '@/modules/commands/registry.js';
+import type { ProviderKey } from '@/const.js';
+import useMessages from '@/hooks/useMessage.js';
+import { useConfig } from '@/contexts/ConfigContext.js';
+import { useExplainMode } from '@/contexts/ExplainModeContext.js';
+import { OrchestratorStatus } from '@/services/OrchestratorManager.js';
+import type { SessionInfo } from '@/types.js';
 
 type Props = {
   provider?: ProviderKey;
@@ -36,6 +37,7 @@ type Props = {
   mcpConfigPath?: string;
   thinking?: string;
   historyPath?: string;
+  initialSessions?: SessionInfo[] | null;
 };
 
 export default function App({
@@ -43,6 +45,7 @@ export default function App({
   memPersist = false,
   mcpConfigPath: _mcpConfigPath,
   historyPath,
+  initialSessions,
 }: Props) {
   const { explainMode } = useExplainMode();
   const [cols, _rows] = useStdoutDimensions();
@@ -413,7 +416,12 @@ export default function App({
       }
     >
       <Box flexDirection="column" height="100%" width="100%">
-        <ChatDisplay key={`chat-display-${headerKey}`} messages={messages} headerKey={headerKey} />
+        <ChatDisplay
+          key={`chat-display-${headerKey}`}
+          messages={messages}
+          headerKey={headerKey}
+          sessions={initialSessions}
+        />
         <Spacer />
 
         {!explainMode && (
