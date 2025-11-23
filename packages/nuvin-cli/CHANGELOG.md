@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.7.4
+
+### Patch Changes
+
+- [`74a6448`](https://github.com/marschhuynh/nuvin-space/commit/74a64481be9c064695ee96bc46926d7afd915f23) Thanks [@marschhuynh](https://github.com/marschhuynh)! - fix: override ink
+
 ## 1.7.3
 
 ### Patch Changes
