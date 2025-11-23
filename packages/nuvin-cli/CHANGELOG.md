@@ -1,5 +1,15 @@
 # @nuvin/nuvin-cli
 
+## 1.7.0
+
+### Minor Changes
+
+- [`20f4322`](https://github.com/marschhuynh/nuvin-space/commit/20f432282fd71509ee886c0faf4407a76d459947) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add `--resume` (or `-r`) flag to resume the most recent session when starting the app.
+
+### Patch Changes
+
+- [`41b4f59`](https://github.com/marschhuynh/nuvin-space/commit/41b4f5904177aababa9da3f5253f844107126031) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix `/history` command to switch to the selected session instead of loading messages into current session. New messages are now appended to the selected session's history.
+
 ## 1.6.0
 
 ### Minor Changes
