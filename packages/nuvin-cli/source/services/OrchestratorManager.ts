@@ -805,6 +805,44 @@ export class OrchestratorManager {
     } as const;
   }
 
+  /**
+   * Switch to an existing session. Unlike createNewConversation, this assumes
+   * the session directory already exists and won't create new directories.
+   */
+  async switchToSession(config: { sessionId: string; sessionDir: string }) {
+    if (!this.orchestrator) {
+      throw new Error('Orchestrator not initialized');
+    }
+
+    if (!this.handlers) {
+      throw new Error('Handlers not initialized');
+    }
+
+    const { sessionId, sessionDir } = config;
+
+    const currentConfig = this.getCurrentConfig();
+    const persistEventLog = currentConfig.config.session?.persistEventLog ?? false;
+
+    const newMemory = this.createMemory(sessionDir, true);
+
+    const newEventAdapter = this.createEventAdapter(sessionDir, this.handlers, persistEventLog, this.streamingChunks);
+
+    this.orchestrator.setMemory(newMemory);
+    this.orchestrator.setEvents(newEventAdapter);
+
+    this.memory = newMemory;
+    this.conversationStore = new ConversationStore(newMemory);
+    this.memPersist = true;
+    this.sessionId = sessionId;
+    this.sessionDir = sessionDir;
+
+    return {
+      sessionId: this.sessionId,
+      sessionDir: this.sessionDir,
+      memory: this.memory,
+    } as const;
+  }
+
   async analyzeTopic(userMessage: string, conversationId?: string): Promise<string> {
     const actualConversationId = conversationId ?? this.conversationContext.getActiveConversationId();
 

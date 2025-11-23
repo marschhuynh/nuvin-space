@@ -203,6 +203,10 @@ export const loadSessionHistory = async (selectedSessionId: string): Promise<Loa
   return loadHistoryFromFile(historyFile);
 };
 
+export const getSessionDir = (sessionId: string): string => {
+  return path.join(sessionsDir(), sessionId);
+};
+
 export const useSessionManagement = () => {
   const [availableSessions, setAvailableSessions] = useState<
     SessionInfo[]
