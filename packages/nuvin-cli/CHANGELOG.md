@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.7.2
+
+### Patch Changes
+
+- [`3010073`](https://github.com/marschhuynh/nuvin-space/commit/3010073037b477e2dbb0701fa3d5c43366d58364) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Adds pnpm override for ink dependency to use @nuvin/ink@6.5.1-alpha.1
+
 ## 1.7.1
 
 ### Patch Changes
