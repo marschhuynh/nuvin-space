@@ -32,7 +32,13 @@
   },
   "pnpm": {
     "overrides": {
-      "ink": "npm:@nuvin/ink@6.5.1-alpha.1"
+      "ink": "npm:@nuvin/ink@6.5.2"
     }
+  },
+  "overrides": {
+    "ink": "npm:@nuvin/ink@6.5.2"
+  },
+  "resolutions": {
+    "ink": "npm:@nuvin/ink@6.5.2"
   }
 }
