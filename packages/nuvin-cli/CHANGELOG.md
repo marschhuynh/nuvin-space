@@ -1,5 +1,17 @@
 # @nuvin/nuvin-cli
 
+## 1.7.6
+
+### Patch Changes
+
+- [`32981d9`](https://github.com/marschhuynh/nuvin-space/commit/32981d9c3e17244570c3e1fc4657ded958a312f9) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Improve diff view and tool content rendering
+
+  - Refactor FileDiffView to use flex wrapping for better long-line handling
+  - Replace Markdown with plain text for file_new tool content and streaming messages
+  - Clean up RecentSessions styling with underline title
+  - Remove unused isInitialMountRef from app.tsx
+  - Update snapshots for new diff line format
+
 ## 1.7.5
 
 ### Patch Changes
