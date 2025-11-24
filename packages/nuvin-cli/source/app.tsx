@@ -70,7 +70,6 @@ export default function App({
   const abortRef = useRef<AbortController | null>(null);
   const previousVimModeRef = useRef<boolean | null>(null);
   const inputAreaRef = useRef<InputAreaHandle>(null);
-  const isInitialMountRef = useRef(true);
 
   const newConversationInProgressRef = useRef(false);
   const historyLoadedRef = useRef(false);
@@ -366,12 +365,6 @@ export default function App({
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: cols dependency intentionally excluded to avoid re-renders
   useEffect(() => {
-    // Skip on initial mount to avoid unnecessary render
-    if (isInitialMountRef.current) {
-      isInitialMountRef.current = false;
-      return;
-    }
-
     if (!cols || cols < 10) return;
     try {
       console.log(ansiEscapes.clearTerminal);

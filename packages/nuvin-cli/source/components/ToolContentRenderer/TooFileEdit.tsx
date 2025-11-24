@@ -1,9 +1,8 @@
 import { useMemo } from 'react';
-import type { ToolCall } from '@nuvin/nuvin-core';
 import { Box, Text } from 'ink';
+import type { ToolCall } from '@nuvin/nuvin-core';
 import { FileDiffView, type LineNumbers } from '@/components/FileDiffView.js';
 import type { EnrichedToolCall } from '@/utils/enrichToolCalls.js';
-import { useStdoutDimensions } from '@/hooks/index.js';
 
 type FileEditArgs = {
   file_path: string;
@@ -21,7 +20,6 @@ function parseArgs(call: ToolCall): FileEditArgs | null {
 }
 
 export function FileEditToolContent({ call }: { call: ToolCall }) {
-  const [width] = useStdoutDimensions();
   const args = useMemo(() => parseArgs(call), [call]);
   const lineNumbers = (call as EnrichedToolCall).metadata?.lineNumbers as LineNumbers | undefined;
 
@@ -33,13 +31,11 @@ export function FileEditToolContent({ call }: { call: ToolCall }) {
     );
 
   return (
-    <Box flexDirection="column" width={width - 10}>
-      <FileDiffView
-        blocks={[{ search: args.old_text, replace: args.new_text }]}
-        filePath={args.file_path}
-        lineNumbers={lineNumbers}
-        showPath={false}
-      />
-    </Box>
+    <FileDiffView
+      blocks={[{ search: args.old_text, replace: args.new_text }]}
+      filePath={args.file_path}
+      lineNumbers={lineNumbers}
+      showPath={false}
+    />
   );
 }

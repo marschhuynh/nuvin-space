@@ -2,10 +2,10 @@ import { render } from 'ink-testing-library';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FileDiffView, createSimpleDiff } from '../source/components/FileDiffView.js';
 
-// Mock the dimensions hook
+// Mock the dimensions hook - use 100 to match ink-testing-library's default
 vi.mock('../source/hooks/useStdoutDimensions.ts', () => {
   return {
-    useStdoutDimensions: vi.fn().mockReturnValue([120, 30]),
+    useStdoutDimensions: vi.fn().mockReturnValue([100, 30]),
   };
 });
 

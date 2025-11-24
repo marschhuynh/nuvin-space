@@ -240,74 +240,64 @@ function buildDiffFromLCS(
 
 type DiffLineViewProps = {
   line: DiffLine;
-  maxWidth?: number;
   lineNumWidth?: number;
 };
 
-export function DiffLineView({ line, maxWidth = 80, lineNumWidth = 3 }: DiffLineViewProps) {
+export function DiffLineView({ line, lineNumWidth = 3 }: DiffLineViewProps) {
+  const [cols] = useStdoutDimensions();
   const lineNum = line.oldLineNum || line.newLineNum || 0;
-  const lineNumStr = `${String(lineNum).padStart(lineNumWidth, ' ')}│`;
+  const lineNumStr = `${String(lineNum).padStart(lineNumWidth, ' ')}│ `;
 
-  // Handle modify type with inline segments
   if (line.type === 'modify' && line.segments) {
-    const prefix = line.oldLineNum ? '- ' : '+ ';
+    const prefix = line.oldLineNum ? '-' : '+';
     const isRemoveLine = !!line.oldLineNum;
     const lineBaseBg = isRemoveLine ? 'red' : 'green';
 
-    // Use segments without truncation to preserve diff highlighting accuracy
-    const segments: typeof line.segments = line.segments;
-
     return (
       <Box>
-        <Text dimColor color="gray">
-          {lineNumStr}
-        </Text>
-        <Text color="gray"> </Text>
-        <Text backgroundColor={lineBaseBg} color="white">
-          {prefix}
-        </Text>
-        {segments.map((segment, segIdx) => {
-          let segmentBg: string | undefined = lineBaseBg;
-          const segmentFg = 'white';
+        <Box>
+          <Text dimColor color="gray">
+            {lineNumStr}
+          </Text>
+          <Text color="white">{prefix}</Text>
+        </Box>
+        <Box flexDirection="row" flexWrap="wrap" width={cols - lineNumStr.length - 5}>
+          {line.segments.map((segment, segIdx) => {
+            const segmentFg = 'white';
+            const segmentBg =
+              segment.type === 'add' ? 'greenBright' : line.type === 'remove' ? 'redBright' : lineBaseBg;
 
-          if (segment.type === 'add') {
-            segmentBg = 'greenBright';
-          } else if (segment.type === 'remove') {
-            segmentBg = 'redBright';
-          }
+            const text = segment.text.replace(/\t/g, '  ');
 
-          // Replace tabs with spaces to avoid Ink rendering issues with stringWidth
-          const text = segment.text.replace(/\t/g, '  ');
-
-          return (
-            <Text key={`${lineNum}-${segIdx}-${segment.type}`} backgroundColor={segmentBg} color={segmentFg}>
-              {text}
-            </Text>
-          );
-        })}
+            return (
+              <Text key={`${lineNum}-${segIdx}-${segment.type}`} backgroundColor={segmentBg} color={segmentFg}>
+                {text}
+              </Text>
+            );
+          })}
+        </Box>
       </Box>
     );
   }
 
-  // Handle regular add/remove/context lines
-  const prefix = line.type === 'add' ? '+ ' : line.type === 'remove' ? '- ' : '  ';
-  const rawContent = line.content.length > maxWidth ? `${line.content.slice(0, maxWidth)}…` : line.content;
-  // Replace tabs with spaces to avoid Ink rendering issues with stringWidth
-  const content = rawContent.replace(/\t/g, '  ');
-
+  const prefix = line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' ';
   const bgColor = line.type === 'add' ? 'green' : line.type === 'remove' ? 'red' : undefined;
   const fgColor = line.type === 'add' || line.type === 'remove' ? 'white' : 'gray';
+  const content = line.content.replace(/\t/g, '  ');
 
   return (
     <Box>
-      <Text dimColor color="gray">
-        {lineNumStr}
-      </Text>
-      <Text color="gray"> </Text>
-      <Text backgroundColor={bgColor} color={fgColor}>
-        {prefix}
-        {content}
-      </Text>
+      <Box>
+        <Text dimColor color="gray">
+          {lineNumStr}
+        </Text>
+        <Text color="white">{prefix}</Text>
+      </Box>
+      <Box flexWrap="wrap" width={cols - lineNumStr.length - 5}>
+        <Text backgroundColor={bgColor} color={fgColor}>
+          {content}
+        </Text>
+      </Box>
     </Box>
   );
 }
@@ -320,7 +310,6 @@ type FileDiffViewProps = {
 };
 
 export function FileDiffView({ blocks, filePath, showPath = true, lineNumbers }: FileDiffViewProps) {
-  const [cols] = useStdoutDimensions();
   return (
     <Box flexDirection="column">
       {showPath && filePath && (
@@ -340,24 +329,15 @@ export function FileDiffView({ blocks, filePath, showPath = true, lineNumbers }:
         return (
           <Box key={`block-${b.replace}`} flexDirection="column">
             {blocks.length > 1 && (
-              <Text color="magenta" dimColor>
+              <Text color="magentaBright" dimColor>
                 ─── Block {idx + 1}/{blocks.length} ───
               </Text>
             )}
             {hasChanges ? (
               <Box flexDirection="column">
                 {diff.map((line, ldx) => {
-                  // Calculate available width: terminal width - line number width - separators - prefix - padding
-                  // Line number (lineNumWidth) + "│" (1) + space (1) + prefix (2) + margin (4)
-                  const overhead = lineNumWidth + 1 + 1 + 2 + 4;
-                  const availableWidth = Math.max(80, cols - overhead);
-
-                  // Create unique key using line numbers and type to avoid duplicates
                   const lineKey = `line-${idx}-${ldx}-${line.type}-${line.oldLineNum || ''}-${line.newLineNum || ''}`;
-
-                  return (
-                    <DiffLineView maxWidth={availableWidth} key={lineKey} line={line} lineNumWidth={lineNumWidth} />
-                  );
+                  return <DiffLineView key={lineKey} line={line} lineNumWidth={lineNumWidth} />;
                 })}
               </Box>
             ) : (

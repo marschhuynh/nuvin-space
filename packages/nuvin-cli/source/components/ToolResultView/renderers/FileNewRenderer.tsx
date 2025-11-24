@@ -1,7 +1,6 @@
 import type React from 'react';
-import { Box } from 'ink';
+import { Box, Text } from 'ink';
 import type { ToolExecutionResult, ToolCall } from '@nuvin/nuvin-core';
-import { Markdown } from '@/components/Markdown.js';
 import { useStdoutDimensions } from '@/hooks/index.js';
 
 type FileNewRendererProps = {
@@ -12,6 +11,22 @@ type FileNewRendererProps = {
   messageColor?: string;
   fullMode?: boolean;
 };
+
+function addLineNumbers(content: string): Array<{lineNumber: string, content: string}> {
+  if (!content) return [];
+  
+  const lines = content.split('\n');
+  const maxLineNumber = lines.length;
+  const lineNumberWidth = maxLineNumber.toString().length;
+  
+  return lines.map((line, index) => {
+    const lineNumber = (index + 1).toString().padStart(lineNumberWidth, ' ');
+    return {
+      lineNumber: `${lineNumber} | `,
+      content: line.replace(/\t/g, '  ')
+    };
+  });
+}
 
 export const FileNewRenderer: React.FC<FileNewRendererProps> = ({ toolResult, toolCall, fullMode = false }) => {
   const [cols] = useStdoutDimensions();
@@ -36,9 +51,16 @@ export const FileNewRenderer: React.FC<FileNewRendererProps> = ({ toolResult, to
     return null;
   }
 
+  const linesWithNumbers = addLineNumbers(fileContent);
+
   return (
     <Box flexDirection="column" width={cols - 10}>
-      <Markdown>{fileContent}</Markdown>
+      {linesWithNumbers.map((line) => (
+        <Box key={`${line.lineNumber}-${line.content.slice(0, 20)}`}>
+          <Text dimColor>{line.lineNumber}</Text>
+          <Text>{line.content}</Text>
+        </Box>
+      ))}
     </Box>
   );
 };

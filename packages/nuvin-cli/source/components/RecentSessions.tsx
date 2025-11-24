@@ -114,14 +114,9 @@ const RecentSessions = ({ recentSessions }: RecentSessionsProps) => {
     <Box flexDirection="column" width={cols} marginTop={0} marginBottom={0} paddingX={0} gap={0}>
       <Box justifyContent="center" gap={1} marginTop={1}>
         {/* Recent Activity */}
-        <Box flexDirection="column" paddingX={2} flexGrow={1}>
-          <Box
-            borderStyle="single"
-            borderLeft={false}
-            borderRight={false}
-            borderTop={false}
-          >
-            <Text color={theme.welcome.title} bold>
+        <Box flexDirection="column" paddingX={2} flexGrow={1} marginBottom={4}>
+          <Box marginBottom={1}>
+            <Text color={theme.welcome.title} bold underline>
               Recent Activity
             </Text>
           </Box>
@@ -134,9 +129,8 @@ const RecentSessions = ({ recentSessions }: RecentSessionsProps) => {
               const relativeTime = formatRelativeTime(session.timestamp);
               const displayText = session.topic || session.lastMessage;
               const maxTextLen = cols - 40;
-              const truncatedText = displayText && displayText.length > maxTextLen 
-                ? `${displayText.slice(0, maxTextLen)}...` 
-                : displayText;
+              const truncatedText =
+                displayText && displayText.length > maxTextLen ? `${displayText.slice(0, maxTextLen)}...` : displayText;
               const status = getSessionStatus(session.lastMessage, session.messageCount);
               const badge = getMessageCountBadge(session.messageCount);
 

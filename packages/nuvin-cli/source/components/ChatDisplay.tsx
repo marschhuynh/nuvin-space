@@ -16,7 +16,7 @@ type ChatDisplayProps = {
   sessions?: SessionInfo[] | null;
 };
 
-const logger = getDefaultLogger()
+const logger = getDefaultLogger();
 
 /**
  * Merges tool calls with their corresponding tool results for display purposes only.
@@ -120,7 +120,6 @@ function hasAnyPendingToolCalls(msg: MessageLineType): boolean {
   return false; // All tool calls have results
 }
 
-
 const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey, sessions: sessionsProp }) => {
   const DYNAMIC_COUNT = 0;
   // Use sessions from props instead of loading internally
@@ -207,7 +206,9 @@ const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey,
 
   const staticItemsWithHeader = useMemo(() => {
     const hasMessages = messages.length > 0;
-    const items: Array<{ type: 'logo' | 'sessions' | MessageLineType['type']; id: string; sessions?: SessionInfo[] } | MessageLineType> = [];
+    const items: Array<
+      { type: 'logo' | 'sessions' | MessageLineType['type']; id: string; sessions?: SessionInfo[] } | MessageLineType
+    > = [];
 
     // Always show logo at the start
     items.push({ type: 'logo' as const, id: `logo-${headerKey}` });
