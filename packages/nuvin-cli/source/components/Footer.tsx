@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Text } from 'ink';
 import * as os from 'node:os';
 import { execSync } from 'node:child_process';
-import type { MessageMetadata } from '@/adapters/index.js';
+import type { SessionDisplayMetrics } from '@/adapters/index.js';
 import type { ProviderKey } from '@/const.js';
 import { useNotification } from '@/hooks/useNotification.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
@@ -13,8 +13,7 @@ import { useExplainMode } from '@/contexts/ExplainModeContext.js';
 
 type FooterProps = {
   status: string;
-  lastMetadata?: MessageMetadata | null;
-  accumulatedCost?: number;
+  sessionMetrics?: SessionDisplayMetrics;
   toolApprovalMode?: boolean;
   vimModeEnabled?: boolean;
   vimMode?: 'insert' | 'normal';
@@ -24,8 +23,7 @@ type FooterProps = {
 
 const FooterComponent: React.FC<FooterProps> = ({
   status: _status,
-  lastMetadata,
-  accumulatedCost = 0,
+  sessionMetrics,
   vimModeEnabled = false,
   vimMode = 'insert',
   workingDirectory,
@@ -81,29 +79,48 @@ const FooterComponent: React.FC<FooterProps> = ({
             </Text>
           </Box>
         )}
-        {!explainMode && lastMetadata?.totalTokens ? (
+        {!explainMode && (sessionMetrics?.currentWindowTokens || sessionMetrics?.totalTokens) ? (
           <Box>
             <Text color={theme.footer.model} dimColor bold>
               Tokens:
             </Text>
             <Text color={theme.footer.model} bold>
               {' '}
-              {formatTokens(lastMetadata.totalTokens)}
+              {formatTokens(sessionMetrics.currentWindowTokens)}
             </Text>
-            <Text color={theme.footer.model} dimColor>
-              {' '}
-              (↑{formatTokens(lastMetadata.promptTokens)} ↓{formatTokens(lastMetadata.completionTokens)})
-            </Text>
-            {lastMetadata.cachedTokens !== undefined && lastMetadata.cachedTokens > 0 && (
-              <Text color={theme.tokens.green} dimColor>
+            {sessionMetrics.totalTokens > 0 && (
+              <Text color={theme.footer.model} dimColor>
                 {' '}
-                | Cached: {formatTokens(lastMetadata.cachedTokens)}
+                / {formatTokens(sessionMetrics.totalTokens)}
               </Text>
             )}
-            {accumulatedCost > 0 && (
+            <Text color={theme.footer.model} dimColor>
+              {' '}
+              (↑{formatTokens(sessionMetrics.currentWindowPromptTokens)} ↓
+              {formatTokens(sessionMetrics.currentWindowCompletionTokens)})
+            </Text>
+            {sessionMetrics.currentWindowCachedTokens > 0 && (
+              <Text color={theme.tokens.green} dimColor>
+                {' '}
+                | Cached: {formatTokens(sessionMetrics.currentWindowCachedTokens)}
+              </Text>
+            )}
+            {sessionMetrics.requestCount > 0 && (
+              <Text color={theme.tokens.magenta} dimColor>
+                {' '}
+                | Req: {sessionMetrics.requestCount}
+              </Text>
+            )}
+            {(sessionMetrics.toolCallCount + sessionMetrics.currentWindowToolCalls) > 0 && (
+              <Text color={theme.tokens.blue} dimColor>
+                {' '}
+                | Tools: {sessionMetrics.toolCallCount + sessionMetrics.currentWindowToolCalls}
+              </Text>
+            )}
+            {sessionMetrics.totalPrice > 0 && (
               <Text color={theme.tokens.cyan} dimColor>
                 {' '}
-                | ${formatCost(accumulatedCost)}
+                | ${formatCost(sessionMetrics.totalPrice)}
               </Text>
             )}
           </Box>

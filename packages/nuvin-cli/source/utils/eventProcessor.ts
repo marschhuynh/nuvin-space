@@ -17,6 +17,8 @@ export interface EventProcessorCallbacks {
     conversationId: string;
     messageId: string;
   }) => void;
+  onToolResult?: () => void;
+  onRequestComplete?: (metadata: MessageMetadata) => void;
   renderUserMessages?: boolean;
   streamingEnabled?: boolean;
 }
@@ -184,6 +186,8 @@ export function processAgentEvent(
         color,
       });
 
+      callbacks.onToolResult?.();
+
       return state;
     }
 
@@ -281,6 +285,7 @@ export function processAgentEvent(
         };
 
         callbacks.setLastMetadata?.(metadata);
+        callbacks.onRequestComplete?.(metadata);
         return {
           ...state,
           metadata,
@@ -300,9 +305,13 @@ export function processAgentEvent(
           estimatedCost: null,
           cost: callbacks.streamingEnabled ? undefined : usage.cost,
           cachedTokens: usage.prompt_tokens_details?.cached_tokens,
+          responseTime: event.responseTimeMs,
         };
 
         callbacks.setLastMetadata?.(metadata);
+        if (!callbacks.streamingEnabled) {
+          callbacks.onRequestComplete?.(metadata);
+        }
         return {
           ...state,
           metadata,

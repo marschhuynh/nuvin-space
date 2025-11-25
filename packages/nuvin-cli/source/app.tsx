@@ -17,7 +17,14 @@ import {
   useGlobalKeyboard,
   useHandleSubmit,
 } from '@/hooks/index.js';
-import type { MessageLine, MessageMetadata } from '@/adapters/index.js';
+import {
+  type MessageLine,
+  type MessageMetadata,
+  type SessionDisplayMetrics,
+  createEmptySessionMetrics,
+  updateSessionMetricsForRequest,
+  incrementToolCall,
+} from '@/adapters/index.js';
 import { eventBus } from '@/services/EventBus.js';
 import { useToolApproval } from '@/contexts/ToolApprovalContext.js';
 import { useCommand } from '@/modules/commands/hooks/useCommand.js';
@@ -53,6 +60,7 @@ export default function App({
   const [busy, setBusy] = useState(false);
   const [lastMetadata, setLastMetadata] = useState<MessageMetadata | null>(null);
   const [accumulatedCost, setAccumulatedCost] = useState(0);
+  const [sessionMetrics, setSessionMetrics] = useState<SessionDisplayMetrics>(createEmptySessionMetrics());
 
   const [_setupComplete, setSetupComplete] = useState(false);
 
@@ -78,9 +86,26 @@ export default function App({
 
   const handleSetLastMetadata = useCallback((metadata: MessageMetadata | null) => {
     setLastMetadata(metadata);
-    if (metadata?.cost && metadata.cost > 0) {
+  }, []);
+
+  const handleRequestComplete = useCallback((metadata: MessageMetadata) => {
+    setSessionMetrics((prev) =>
+      updateSessionMetricsForRequest(prev, {
+        promptTokens: metadata.promptTokens,
+        completionTokens: metadata.completionTokens,
+        totalTokens: metadata.totalTokens,
+        cachedTokens: metadata.cachedTokens,
+        responseTimeMs: metadata.responseTime,
+        cost: metadata.cost,
+      }),
+    );
+    if (metadata.cost && metadata.cost > 0) {
       setAccumulatedCost((prev) => prev + (metadata.cost ?? 0));
     }
+  }, []);
+
+  const handleToolResult = useCallback(() => {
+    setSessionMetrics((prev) => incrementToolCall(prev));
   }, []);
 
   const { orchestrator, manager, memory, status, send, createNewConversation, reinit } = useOrchestrator({
@@ -156,10 +181,9 @@ export default function App({
       newConversationInProgressRef.current = true;
 
       try {
-        // Reset accumulated cost on new conversation
         setAccumulatedCost(0);
+        setSessionMetrics(createEmptySessionMetrics());
 
-        // Only create session directory if memPersist is enabled
         const session = event.memPersist ? await createNewSession() : { sessionId: undefined, sessionDir: undefined };
         await createNewConversation({ ...session, memPersist: event.memPersist });
 
@@ -185,6 +209,8 @@ export default function App({
     eventBus.on('ui:lines:set', setLines);
     eventBus.on('ui:clear:complete', onClearComplete);
     eventBus.on('ui:new:conversation', onNewConversation);
+    eventBus.on('ui:toolResult', handleToolResult);
+    eventBus.on('ui:requestComplete', handleRequestComplete);
 
     return () => {
       eventBus.off('ui:line', onLine);
@@ -194,8 +220,10 @@ export default function App({
       eventBus.off('ui:lines:set', setLines);
       eventBus.off('ui:clear:complete', onClearComplete);
       eventBus.off('ui:new:conversation', onNewConversation);
+      eventBus.off('ui:toolResult', handleToolResult);
+      eventBus.off('ui:requestComplete', handleRequestComplete);
     };
-  }, [appendLine, handleError, createNewConversation, createNewSession, clearMessages, setLines]);
+  }, [appendLine, handleError, createNewConversation, createNewSession, clearMessages, setLines, handleToolResult, handleRequestComplete]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: We only want to load once at startup
   useEffect(() => {
@@ -461,8 +489,7 @@ export default function App({
 
         <Footer
           status={status}
-          lastMetadata={lastMetadata}
-          accumulatedCost={accumulatedCost}
+          sessionMetrics={sessionMetrics}
           toolApprovalMode={toolApprovalMode}
           vimModeEnabled={vimModeEnabled}
           vimMode={vimMode}

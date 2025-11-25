@@ -555,7 +555,14 @@ export class OrchestratorManager {
 
   private async updateConversationMetadataAfterSend(
     conversationId: string,
-    tokenUsage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number },
+    metrics?: {
+      promptTokens?: number;
+      completionTokens?: number;
+      totalTokens?: number;
+      toolCalls?: number;
+      responseTimeMs?: number;
+      cost?: number;
+    },
   ): Promise<void> {
     if (!this.conversationStore || !this.memory) {
       return;
@@ -566,8 +573,8 @@ export class OrchestratorManager {
       messageCount: messages.length,
     });
 
-    if (tokenUsage) {
-      await this.conversationStore.incrementTokens(conversationId, tokenUsage);
+    if (metrics) {
+      await this.conversationStore.recordRequestMetrics(conversationId, metrics);
     }
   }
 
@@ -649,6 +656,9 @@ export class OrchestratorManager {
           promptTokens: result.metadata?.promptTokens,
           completionTokens: result.metadata?.completionTokens,
           totalTokens: result.metadata?.totalTokens,
+          toolCalls: result.metadata?.toolCalls,
+          responseTimeMs: result.metadata?.responseTime,
+          cost: result.metadata?.estimatedCost ?? undefined,
         });
       }
 
@@ -729,6 +739,9 @@ export class OrchestratorManager {
           promptTokens: result.metadata?.promptTokens,
           completionTokens: result.metadata?.completionTokens,
           totalTokens: result.metadata?.totalTokens,
+          toolCalls: result.metadata?.toolCalls,
+          responseTimeMs: result.metadata?.responseTime,
+          cost: result.metadata?.estimatedCost ?? undefined,
         });
       }
 

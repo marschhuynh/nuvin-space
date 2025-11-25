@@ -63,7 +63,7 @@ export function mergeChoices(
 
 // Normalize usage data across providers (e.g., input/output vs prompt/completion)
 export function normalizeUsage(
-  usage?: (Partial<UsageData> & { input_tokens?: number; output_tokens?: number }) | null,
+  usage?: (Partial<UsageData> & { input_tokens?: number; output_tokens?: number; estimated_cost?: number }) | null,
 ): UsageData | undefined {
   if (!usage) return undefined;
   const usageObj = usage as Record<string, unknown>;
@@ -74,6 +74,8 @@ export function normalizeUsage(
   const total_tokens =
     usage.total_tokens ??
     (prompt_tokens != null && completion_tokens != null ? prompt_tokens + completion_tokens : undefined);
+  const cost =
+    usage.cost ?? (typeof usageObj.estimated_cost === 'number' ? usageObj.estimated_cost : undefined);
 
   return {
     prompt_tokens,
@@ -82,7 +84,7 @@ export function normalizeUsage(
     ...(usage.reasoning_tokens !== undefined && { reasoning_tokens: usage.reasoning_tokens }),
     ...(usage.prompt_tokens_details && { prompt_tokens_details: usage.prompt_tokens_details }),
     ...(usage.completion_tokens_details && { completion_tokens_details: usage.completion_tokens_details }),
-    ...(usage.cost !== undefined && { cost: usage.cost }),
+    ...(cost !== undefined && { cost }),
     ...(usage.cost_details && { cost_details: usage.cost_details }),
   };
 }

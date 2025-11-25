@@ -16,6 +16,10 @@ export type ConversationMetadata = {
   promptTokens?: number;
   completionTokens?: number;
   contextWindow?: TokenUsage;
+  requestCount?: number;
+  toolCallCount?: number;
+  totalTimeMs?: number;
+  totalPrice?: number;
 };
 
 export type Conversation = {
@@ -93,6 +97,40 @@ export class ConversationStore {
       updatedAt: new Date().toISOString(),
     };
     await this.metadataMemory.set(conversationId, updatedMetadata);
+  }
+
+  async recordRequestMetrics(
+    conversationId: string,
+    metrics: {
+      promptTokens?: number;
+      completionTokens?: number;
+      totalTokens?: number;
+      toolCalls?: number;
+      responseTimeMs?: number;
+      cost?: number;
+    },
+  ): Promise<ConversationMetadata> {
+    const metadata = await this.metadataMemory.get(conversationId);
+
+    const updatedMetadata: ConversationMetadata = {
+      ...metadata,
+      promptTokens: (metadata?.promptTokens ?? 0) + (metrics.promptTokens ?? 0),
+      completionTokens: (metadata?.completionTokens ?? 0) + (metrics.completionTokens ?? 0),
+      totalTokens: (metadata?.totalTokens ?? 0) + (metrics.totalTokens ?? 0),
+      requestCount: (metadata?.requestCount ?? 0) + 1,
+      toolCallCount: (metadata?.toolCallCount ?? 0) + (metrics.toolCalls ?? 0),
+      totalTimeMs: (metadata?.totalTimeMs ?? 0) + (metrics.responseTimeMs ?? 0),
+      totalPrice: (metadata?.totalPrice ?? 0) + (metrics.cost ?? 0),
+      contextWindow: {
+        promptTokens: metrics.promptTokens,
+        completionTokens: metrics.completionTokens,
+        totalTokens: metrics.totalTokens,
+      },
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.metadataMemory.set(conversationId, updatedMetadata);
+    return updatedMetadata;
   }
 
   async updateTopic(conversationId: string, topic: string): Promise<void> {

@@ -18,6 +18,10 @@ export { ConversationStore } from './conversation-store.js';
 export { ConversationContext } from './conversation-context.js';
 export type { Conversation, ConversationMetadata, ConversationSnapshot } from './conversation-store.js';
 
+// Session metrics
+export { SessionMetricsTracker } from './session-metrics.js';
+export type { SessionMetrics, MetricsUpdate } from './session-metrics.js';
+
 // Ports and types
 export type {
   Message,

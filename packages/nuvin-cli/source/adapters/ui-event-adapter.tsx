@@ -14,6 +14,78 @@ import {
 } from '@/utils/eventProcessor.js';
 import { eventBus } from '@/services/EventBus.js';
 
+export type SessionDisplayMetrics = {
+  totalTokens: number;
+  totalPromptTokens: number;
+  totalCompletionTokens: number;
+  totalCachedTokens: number;
+  requestCount: number;
+  toolCallCount: number;
+  totalTimeMs: number;
+  totalPrice: number;
+
+  currentWindowTokens: number;
+  currentWindowPromptTokens: number;
+  currentWindowCompletionTokens: number;
+  currentWindowCachedTokens: number;
+  currentWindowToolCalls: number;
+  currentWindowTimeMs: number;
+  currentWindowPrice: number;
+};
+
+export const createEmptySessionMetrics = (): SessionDisplayMetrics => ({
+  totalTokens: 0,
+  totalPromptTokens: 0,
+  totalCompletionTokens: 0,
+  totalCachedTokens: 0,
+  requestCount: 0,
+  toolCallCount: 0,
+  totalTimeMs: 0,
+  totalPrice: 0,
+  currentWindowTokens: 0,
+  currentWindowPromptTokens: 0,
+  currentWindowCompletionTokens: 0,
+  currentWindowCachedTokens: 0,
+  currentWindowToolCalls: 0,
+  currentWindowTimeMs: 0,
+  currentWindowPrice: 0,
+});
+
+export type RequestMetricsUpdate = {
+  promptTokens?: number;
+  completionTokens?: number;
+  totalTokens?: number;
+  cachedTokens?: number;
+  responseTimeMs?: number;
+  cost?: number;
+};
+
+export const updateSessionMetricsForRequest = (
+  prev: SessionDisplayMetrics,
+  update: RequestMetricsUpdate,
+): SessionDisplayMetrics => ({
+  totalTokens: prev.totalTokens + (update.totalTokens ?? 0),
+  totalPromptTokens: prev.totalPromptTokens + (update.promptTokens ?? 0),
+  totalCompletionTokens: prev.totalCompletionTokens + (update.completionTokens ?? 0),
+  totalCachedTokens: prev.totalCachedTokens + (update.cachedTokens ?? 0),
+  requestCount: prev.requestCount + 1,
+  toolCallCount: prev.toolCallCount + prev.currentWindowToolCalls,
+  totalTimeMs: prev.totalTimeMs + (update.responseTimeMs ?? 0),
+  totalPrice: prev.totalPrice + (update.cost ?? 0),
+  currentWindowTokens: update.totalTokens ?? 0,
+  currentWindowPromptTokens: update.promptTokens ?? 0,
+  currentWindowCompletionTokens: update.completionTokens ?? 0,
+  currentWindowCachedTokens: update.cachedTokens ?? 0,
+  currentWindowToolCalls: 0,
+  currentWindowTimeMs: update.responseTimeMs ?? 0,
+  currentWindowPrice: update.cost ?? 0,
+});
+
+export const incrementToolCall = (prev: SessionDisplayMetrics): SessionDisplayMetrics => ({
+  ...prev,
+  currentWindowToolCalls: prev.currentWindowToolCalls + 1,
+});
+
 export type MessageMetadata = {
   promptTokens?: number;
   completionTokens?: number;
@@ -73,6 +145,12 @@ export class UIEventAdapter extends PersistingConsoleEventPort {
       streamingEnabled: this.streamingEnabled,
       onToolApprovalRequired: (event) => {
         eventBus.emit('ui:toolApprovalRequired', event);
+      },
+      onToolResult: () => {
+        eventBus.emit('ui:toolResult', {});
+      },
+      onRequestComplete: (metadata) => {
+        eventBus.emit('ui:requestComplete', metadata);
       },
     };
 
