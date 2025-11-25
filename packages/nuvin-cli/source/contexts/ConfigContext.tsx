@@ -32,7 +32,7 @@ export function ConfigProvider({ children, initialConfig = {} }: ConfigProviderP
         setConfig(loadedConfig);
 
         // Set current profile
-        const profile = configManager.getCurrentProfile?.();
+        const profile = configManager.getCurrentProfile();
         setCurrentProfile(profile);
       } catch (error) {
         console.error('Failed to load config in ConfigProvider:', error);
@@ -42,6 +42,9 @@ export function ConfigProvider({ children, initialConfig = {} }: ConfigProviderP
     // If we have initial config (e.g., merged with CLI flags), use it
     if (Object.keys(initialConfig).length > 0) {
       configManager.combined = initialConfig;
+      // Still need to set current profile even with initial config
+      const profile = configManager.getCurrentProfile();
+      setCurrentProfile(profile);
     } else {
       loadConfig();
     }
