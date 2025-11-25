@@ -36,11 +36,11 @@ const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandCompon
   };
 
   const handleModelSelect = async (item: { label: string; value: string }) => {
-    await selectModel(item.value);
     if (item.value === 'custom') {
       goToCustomInput();
       return;
     }
+    await selectModel(item.value);
   };
 
   const handleCustomModelSubmit = async (value: string) => {
