@@ -134,7 +134,7 @@ export class ProfileCliHandler {
   private async deleteProfile(name: string, options: string[]): Promise<void> {
     if (!name) {
       console.error('Error: Profile name is required');
-      console.log('Usage: nuvin-cli profile delete <name> [--force]');
+      console.log('Usage: nuvin profile delete <name> [--force]');
       process.exit(1);
     }
 
@@ -230,7 +230,7 @@ export class ProfileCliHandler {
 Profile Management Commands
 
 Usage:
-  nuvin-cli profile <command> [options]
+  nuvin profile <command> [options]
 
 Commands:
   list                        List all profiles
@@ -249,12 +249,12 @@ Delete Options:
   --force, -f                  Force delete even if active
 
 Examples:
-  nuvin-cli profile list
-  nuvin-cli profile create work --description "Work projects"
-  nuvin-cli profile switch work
-  nuvin-cli profile clone work client-project
-  nuvin-cli profile delete old-project --force
-  nuvin-cli profile show
+  nuvin profile list
+  nuvin profile create work --description "Work projects"
+  nuvin profile switch work
+  nuvin profile clone work client-project
+  nuvin profile delete old-project --force
+  nuvin profile show
 
 Note: The 'default' profile is reserved and cannot be deleted.
 The default profile uses the root ~/.nuvin-cli directory.

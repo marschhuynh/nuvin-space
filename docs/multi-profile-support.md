@@ -175,9 +175,9 @@ Update `packages/nuvin-cli/source/cli.tsx`:
 ```typescript
 const cli = meow(`
   Usage
-    $ nuvin-cli [options]
-    $ nuvin-cli --profile <name> [options]
-    $ nuvin-cli profile <command> [options]
+    $ nuvin [options]
+    $ nuvin --profile <name> [options]
+    $ nuvin profile <command> [options]
 
   Profile Commands
     profile list                List all profiles
@@ -545,25 +545,25 @@ Note: There is no separate "shared global" config - the default profile IS the g
 
 ```bash
 # List all profiles
-nuvin-cli profile list
+nuvin profile list
 
 # Create a new profile
-nuvin-cli profile create work --description "Work projects"
+nuvin profile create work --description "Work projects"
 
 # Switch to work profile
-nuvin-cli profile switch work
+nuvin profile switch work
 
 # Use specific profile for one session
-nuvin-cli --profile personal
+nuvin --profile personal
 
 # Show current profile
-nuvin-cli profile show
+nuvin profile show
 
 # Clone an existing profile
-nuvin-cli profile clone work client-acme
+nuvin profile clone work client-acme
 
 # Delete a profile
-nuvin-cli profile delete old-project
+nuvin profile delete old-project
 ```
 
 ## Success Metrics
