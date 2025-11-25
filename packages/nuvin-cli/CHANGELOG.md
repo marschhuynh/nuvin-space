@@ -1,5 +1,39 @@
 # @nuvin/nuvin-cli
 
+## 1.8.0
+
+### Minor Changes
+
+- [`e400bb9`](https://github.com/marschhuynh/nuvin-space/commit/e400bb955dde2834344002ec9f9746ce5698ac6a) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add notification-based update system with lifecycle callbacks
+
+  The update checker now runs after app startup and communicates via notifications:
+
+  - Update checks run 2 seconds after app starts (non-blocking)
+  - Shows notifications for update availability, start, and completion
+  - Added UpdateCheckOptions interface with lifecycle callbacks
+  - Improved UX by not blocking app startup for update checks
+
+### Patch Changes
+
+- [`e400bb9`](https://github.com/marschhuynh/nuvin-space/commit/e400bb955dde2834344002ec9f9746ce5698ac6a) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Update CLI branding from 'nuvin-cli' to 'nuvin'
+
+  - Update profile command help text to use 'nuvin' command name
+  - Update documentation with consistent branding
+  - Improve user-facing documentation clarity
+
+- [`e400bb9`](https://github.com/marschhuynh/nuvin-space/commit/e400bb955dde2834344002ec9f9746ce5698ac6a) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Validate provider authentication in models command
+
+  - Check provider auth configuration before allowing model selection
+  - Show helpful error message prompting users to run /auth if provider not configured
+  - Prevent saving invalid provider/model configurations
+  - Fix isActive prop forwarding in ModelsCommandComponent
+
+- [`e400bb9`](https://github.com/marschhuynh/nuvin-space/commit/e400bb955dde2834344002ec9f9746ce5698ac6a) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix ComboBox rendering and config profile tracking
+
+  - Fix ComboBox selection index reset behavior to prevent unnecessary re-renders
+  - Ensure current profile is properly tracked when using CLI flag overrides
+  - Improve component stability and config state management
+
 ## 1.7.6
 
 ### Patch Changes
