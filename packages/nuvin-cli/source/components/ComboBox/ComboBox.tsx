@@ -40,11 +40,14 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
       : items;
 
     setFilteredItems(filtered);
-    
+  }, [input, items]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only reset index when the input changed
+  useEffect(() => {
     if (selectInputRef.current) {
       selectInputRef.current.setSelectedIndex(0);
     }
-  }, [input, items]);
+  }, [input]);
 
   useInput((inputChar, key) => {
     const pasteResult = processPasteChunk(inputChar, pasteStateRef.current);
