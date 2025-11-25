@@ -1,4 +1,5 @@
 import { execSync, spawn } from 'node:child_process';
+import type { UpdateCheckOptions } from './UpdateChecker.js';
 
 export interface UpdateResult {
   success: boolean;
@@ -9,33 +10,6 @@ export interface UpdateResult {
 const PACKAGE_NAME = '@nuvin/nuvin-cli';
 
 export namespace AutoUpdater {
-  export async function update(targetVersion?: string): Promise<UpdateResult> {
-    try {
-      const packageManager = detectPackageManager();
-      const installCommand = getInstallCommand(packageManager, targetVersion);
-
-      console.log(`🔄 Updating ${PACKAGE_NAME}...`);
-      console.log(`📦 Using: ${installCommand}\n`);
-
-      execSync(installCommand, {
-        stdio: 'inherit',
-        timeout: 120000,
-      });
-
-      return {
-        success: true,
-        message: `✅ Successfully updated to ${targetVersion || 'latest'}`,
-      };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      return {
-        success: false,
-        message: '❌ Update failed',
-        error: errorMessage,
-      };
-    }
-  }
-
   function detectPackageManager(): 'npm' | 'pnpm' | 'yarn' {
     try {
       const executablePath = execSync('which nuvin', { encoding: 'utf8', timeout: 3000 }).trim();
@@ -113,14 +87,21 @@ export namespace AutoUpdater {
     }
   }
 
-  export async function checkAndUpdate(): Promise<boolean> {
+  export async function checkAndUpdate(options?: UpdateCheckOptions): Promise<boolean> {
     const { UpdateChecker } = await import('./UpdateChecker.js');
 
     try {
-      const versionInfo = await UpdateChecker.checkForUpdate();
+      const versionInfo = await UpdateChecker.checkForUpdate({
+        onUpdateAvailable: options?.onUpdateAvailable,
+        onError: options?.onError,
+      });
 
       if (!versionInfo.hasUpdate) {
         return false;
+      }
+
+      if (options?.onUpdateStarted) {
+        options.onUpdateStarted();
       }
 
       const packageManager = detectPackageManager();
@@ -131,12 +112,29 @@ export namespace AutoUpdater {
         stdio: 'ignore',
       });
 
+      child.on('exit', (code) => {
+        if (options?.onUpdateCompleted) {
+          const success = code === 0;
+          const message = success
+            ? `Update to v${versionInfo.latest} completed successfully!`
+            : 'Update failed. Please try manually.';
+          options.onUpdateCompleted(success, message);
+        }
+      });
+
+      child.on('error', (error) => {
+        if (options?.onUpdateCompleted) {
+          options.onUpdateCompleted(false, `Update failed: ${error.message}`);
+        }
+      });
+
       child.unref();
 
-      console.log('✅ Update started in background. New version will be available on next run.\n');
-
       return true;
-    } catch (_error) {
+    } catch (error) {
+      if (options?.onError) {
+        options.onError(error instanceof Error ? error : new Error(String(error)));
+      }
       return false;
     }
   }

@@ -7,18 +7,24 @@ export interface VersionInfo {
   hasUpdate: boolean;
 }
 
+export interface UpdateCheckOptions {
+  onUpdateAvailable?: (versionInfo: VersionInfo) => void;
+  onUpdateStarted?: () => void;
+  onUpdateCompleted?: (success: boolean, message: string) => void;
+  onError?: (error: Error) => void;
+}
+
 const NPM_REGISTRY = 'registry.npmjs.org';
 const PACKAGE_NAME = '@nuvin/nuvin-cli';
 const TIMEOUT_MS = 5000;
 
 export namespace UpdateChecker {
-  export async function checkForUpdate(): Promise<VersionInfo> {
+  export async function checkForUpdate(options?: UpdateCheckOptions): Promise<VersionInfo> {
     const currentVersion = getVersion();
 
     try {
       const latestVersion = await fetchLatestVersion();
 
-      // Do not update if the latest version is a prerelease
       if (latestVersion.includes('-')) {
         return {
           current: currentVersion,
@@ -28,13 +34,21 @@ export namespace UpdateChecker {
       }
 
       const hasUpdate = compareVersions(currentVersion, latestVersion) < 0;
-
-      return {
+      const versionInfo: VersionInfo = {
         current: currentVersion,
         latest: latestVersion,
         hasUpdate,
       };
-    } catch (_error) {
+
+      if (hasUpdate && options?.onUpdateAvailable) {
+        options.onUpdateAvailable(versionInfo);
+      }
+
+      return versionInfo;
+    } catch (error) {
+      if (options?.onError) {
+        options.onError(error instanceof Error ? error : new Error(String(error)));
+      }
       return {
         current: currentVersion,
         latest: currentVersion,
