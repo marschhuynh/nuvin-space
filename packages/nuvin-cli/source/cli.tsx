@@ -26,7 +26,6 @@ import {
   type ProviderKey,
 } from '@/config/index.js';
 import { ConfigCliHandler } from '@/config/cli-handler.js';
-import { AutoUpdater } from '@/services/AutoUpdater.js';
 
 process.stdout.write('\x1b[?2004h');
 
@@ -60,10 +59,10 @@ const cli = meow(
   with intelligent AI agent workflows. Build faster with your AI coding assistant.
 
   Usage
-    $ nuvin-cli [options]
-    $ nuvin-cli config <command> [options]
-    $ nuvin-cli profile <command> [options]
-    $ nuvin-cli --demo <path/to/history.json>
+    $ nuvin [options]
+    $ nuvin config <command> [options]
+    $ nuvin profile <command> [options]
+    $ nuvin --demo <path/to/history.json>
 
   Configuration Commands
     config get <key>            Get a configuration value
@@ -143,9 +142,6 @@ const cli = meow(
     console.log(`@nuvin/cli v${version} (${commit})`);
     process.exit(0);
   }
-
-  // Check for updates and auto-upgrade if available (always enabled)
-  await AutoUpdater.checkAndUpdate();
 
   const ensureString = (value: string | undefined): string | undefined => {
     if (typeof value !== 'string') return undefined;

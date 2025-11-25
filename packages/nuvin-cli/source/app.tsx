@@ -374,6 +374,33 @@ export default function App({
     }
   }, [cols, onViewRefresh, explainMode]);
 
+  useEffect(() => {
+    const checkForUpdates = async () => {
+      const { AutoUpdater } = await import('@/services/AutoUpdater.js');
+      
+      await AutoUpdater.checkAndUpdate({
+        onUpdateAvailable: (versionInfo) => {
+          setNotification(`New version ${versionInfo.latest} available! Starting update...`, 5000);
+        },
+        onUpdateStarted: () => {
+          setNotification('Update started in background...', 3000);
+        },
+        onUpdateCompleted: (success, message) => {
+          setNotification(message, 5000);
+        },
+        onError: (error) => {
+          console.error('Update check failed:', error);
+        },
+      });
+    };
+
+    const timer = setTimeout(() => {
+      checkForUpdates();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [setNotification]);
+
   if (showInitialSetup) {
     return (
       <ErrorBoundary
