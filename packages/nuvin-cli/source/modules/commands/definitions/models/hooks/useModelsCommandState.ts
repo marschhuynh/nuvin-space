@@ -125,21 +125,32 @@ async function saveConfiguration(
   model: string,
   config: CommandContext['config'],
   dispatch: React.Dispatch<ModelsCommandAction>,
-): Promise<void> {
+): Promise<boolean> {
   dispatch({ type: 'SET_INPUT_DONE', payload: true });
   dispatch({ type: 'SET_ERROR', payload: null });
 
   try {
-    await config.set('activeProvider', provider, 'global');
-    await config.set('model', model, 'global');
-    await config.set(`providers.${provider}.model`, model, 'global');
-    dispatch({ type: 'SET_INPUT_DONE', payload: false });
+    // Check if provider has auth configured
+    const providerAuth = config.get<unknown[]>(`providers.${provider}.auth`);
+    const hasAuthConfig = providerAuth && Array.isArray(providerAuth) && providerAuth.length > 0;
+
+    if (!hasAuthConfig) {
+      dispatch({ type: 'SET_INPUT_DONE', payload: false });
+      dispatch({ type: 'SET_ERROR', payload: `Provider '${provider}' is not configured. Please run /auth first.` });
+    } else {
+      await config.set('activeProvider', provider, 'global');
+      await config.set('model', model, 'global');
+      await config.set(`providers.${provider}.model`, model, 'global');
+      dispatch({ type: 'SET_INPUT_DONE', payload: false });
+      return true;
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Save failed';
     dispatch({ type: 'SET_INPUT_DONE', payload: false });
     dispatch({ type: 'SET_ERROR', payload: message });
     throw error;
   }
+  return false;
 }
 
 export function useModelsCommandState(
@@ -177,8 +188,10 @@ export function useModelsCommandState(
     }
 
     try {
-      await saveConfiguration(state.selectedProvider, model, config, dispatch);
-      onComplete();
+      const isSaved = await saveConfiguration(state.selectedProvider, model, config, dispatch);
+      if (isSaved) {
+        onComplete();
+      }
     } catch (error) {
       // Error already handled in saveConfiguration
       console.error('Failed to save model configuration:', error);
@@ -213,8 +226,10 @@ export function useModelsCommandState(
     }
 
     try {
-      await saveConfiguration(state.selectedProvider, value.trim(), config, dispatch);
-      onComplete();
+      const isSaved = await saveConfiguration(state.selectedProvider, value.trim(), config, dispatch);
+      if (isSaved) {
+        onComplete();
+      }
     } catch (error) {
       // Error already handled in saveConfiguration
       console.error('Failed to save custom model configuration:', error);

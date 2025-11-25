@@ -10,7 +10,7 @@ import { buildProviderOptions } from '@/config/providers.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import { useModelsCommandState } from './hooks/useModelsCommandState.js';
 
-const ModelsCommandComponent = ({ context, deactivate }: CommandComponentProps) => {
+const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandComponentProps) => {
   const { theme } = useTheme();
 
   const llmFactory = context.orchestrator?.getLLMFactory();
@@ -27,7 +27,7 @@ const ModelsCommandComponent = ({ context, deactivate }: CommandComponentProps) 
         goBack();
       }
     },
-    { isActive: true },
+    { isActive: isActive },
   );
 
   const handleProviderSelect = async (item: { label: string; value: string }) => {
@@ -36,12 +36,11 @@ const ModelsCommandComponent = ({ context, deactivate }: CommandComponentProps) 
   };
 
   const handleModelSelect = async (item: { label: string; value: string }) => {
+    await selectModel(item.value);
     if (item.value === 'custom') {
       goToCustomInput();
       return;
     }
-
-    await selectModel(item.value);
   };
 
   const handleCustomModelSubmit = async (value: string) => {
