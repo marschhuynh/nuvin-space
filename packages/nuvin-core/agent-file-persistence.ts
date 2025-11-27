@@ -30,11 +30,15 @@ export class AgentFilePersistence {
    * Load all agents from the agents directory
    */
   async loadAll(): Promise<AgentTemplate[]> {
-    this.ensureAgentsDir();
-
     const agents: AgentTemplate[] = [];
 
     try {
+      this.ensureAgentsDir();
+
+      if (!fs.existsSync(this.agentsDir)) {
+        return agents;
+      }
+
       const files = fs.readdirSync(this.agentsDir);
       const yamlFiles = files.filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'));
 
@@ -48,8 +52,8 @@ export class AgentFilePersistence {
           console.warn(`Failed to load agent from ${file}:`, error);
         }
       }
-    } catch (error) {
-      console.warn('Failed to read agents directory:', error);
+    } catch (_error) {
+      // Silently ignore directory read errors (directory might not exist or be inaccessible)
     }
 
     return agents;
