@@ -1,5 +1,6 @@
 import ansiEscapes from 'ansi-escapes';
 import type { CommandRegistry } from '@/modules/commands/types.js';
+import { sessionMetricsService } from '@/services/SessionMetricsService.js';
 
 export function registerClearCommand(registry: CommandRegistry) {
   registry.register({
@@ -7,24 +8,21 @@ export function registerClearCommand(registry: CommandRegistry) {
     type: 'function',
     description: 'Clear all messages from the current conversation',
     category: 'session',
-    async handler({ eventBus, memory }) {
-      // Clear the conversation history in memory if available
+    async handler({ eventBus, orchestratorManager }) {
+      const memory = orchestratorManager?.getMemory();
       if (memory) {
         await memory.delete('cli');
       }
 
-      // Clear the UI messages
+      const sessionId = orchestratorManager?.getSession().sessionId;
+      if (sessionId) {
+        sessionMetricsService.reset(sessionId);
+      }
+
       eventBus.emit('ui:lines:clear');
-
-      // Clear last metadata
-      eventBus.emit('ui:lastMetadata', null);
-
-      // Clear the terminal screen
-        console.log(ansiEscapes.clearTerminal);
-      // Refresh header to re-render
+      console.log(ansiEscapes.clearTerminal);
       eventBus.emit('ui:header:refresh');
 
-      // Emit a custom event for clear confirmation
       eventBus.emit('ui:clear:complete');
     },
   });

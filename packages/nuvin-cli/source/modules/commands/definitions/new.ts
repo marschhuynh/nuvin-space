@@ -1,5 +1,7 @@
 import type { CommandRegistry } from '@/modules/commands/types.js';
 import { OrchestratorStatus } from '@/services/OrchestratorManager.js';
+import { sessionMetricsService } from '@/services/SessionMetricsService.js';
+import ansiEscapes from 'ansi-escapes';
 
 export function registerNewCommand(registry: CommandRegistry) {
   registry.register({
@@ -7,28 +9,28 @@ export function registerNewCommand(registry: CommandRegistry) {
     type: 'function',
     description: 'Start a new conversation session',
     category: 'session',
-    async handler({ eventBus, config, orchestrator }) {
-      if (!orchestrator) {
+    async handler({ eventBus, config, orchestratorManager }) {
+      if (!orchestratorManager) {
         eventBus.emit('ui:error', 'Orchestrator not available');
         return;
       }
 
-      if (orchestrator.getStatus() !== OrchestratorStatus.READY) {
+      if (orchestratorManager.getStatus() !== OrchestratorStatus.READY) {
         eventBus.emit('ui:error', 'Cannot start new conversation: System is still initializing');
         return;
       }
 
-      // Get memPersist config from session.memPersist (supports both CLI flags and config file)
       const memPersist = config?.get<boolean>('session.memPersist') ?? false;
+      const sessionId = orchestratorManager.getSession().sessionId;
 
-      // Clear the UI messages (but don't delete the current session's memory!)
       eventBus.emit('ui:lines:clear');
+      console.log(ansiEscapes.clearTerminal);
+      eventBus.emit('ui:header:refresh');
 
-      // Clear last metadata
-      eventBus.emit('ui:lastMetadata', null);
+      if (sessionId) {
+        sessionMetricsService.reset(sessionId);
+      }
 
-      // Emit event to create new conversation (without MCP reinitialization)
-      // This will switch to a new memory instance, preserving the old session
       eventBus.emit('ui:new:conversation', { memPersist });
     },
   });

@@ -1,5 +1,6 @@
 import * as crypto from 'node:crypto';
 import type { CommandRegistry } from '@/modules/commands/types.js';
+import { sessionMetricsService } from '@/services/SessionMetricsService.js';
 import { compressConversation } from './compression.js';
 
 export function registerSummaryCommand(registry: CommandRegistry) {
@@ -9,8 +10,8 @@ export function registerSummaryCommand(registry: CommandRegistry) {
     description:
       'Summarize the current conversation and replace the history with the summary. Use "/summary beta" for compression-based summarization.',
     category: 'session',
-    async handler({ eventBus, memory, orchestrator, rawInput }) {
-      if (!orchestrator) {
+    async handler({ eventBus, orchestratorManager, rawInput }) {
+      if (!orchestratorManager) {
         eventBus.emit('ui:line', {
           id: crypto.randomUUID(),
           type: 'system',
@@ -21,6 +22,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
         return;
       }
 
+      const memory = orchestratorManager.getMemory();
       if (!memory) {
         eventBus.emit('ui:line', {
           id: crypto.randomUUID(),
@@ -31,6 +33,8 @@ export function registerSummaryCommand(registry: CommandRegistry) {
         });
         return;
       }
+
+      const sessionId = orchestratorManager.getSession().sessionId;
 
       const history = await memory.get('cli');
       if (!history || history.length === 0) {
@@ -63,7 +67,9 @@ export function registerSummaryCommand(registry: CommandRegistry) {
           await memory.set('cli', compressed);
 
           eventBus.emit('ui:lines:clear');
-          eventBus.emit('ui:lastMetadata', null);
+          if (sessionId) {
+            sessionMetricsService.reset(sessionId);
+          }
 
           eventBus.emit('ui:line', {
             id: crypto.randomUUID(),
@@ -111,7 +117,18 @@ export function registerSummaryCommand(registry: CommandRegistry) {
       });
 
       try {
-        const summary = await orchestrator.summarize();
+        const orchestrator = orchestratorManager.getOrchestrator();
+        if (!orchestrator) {
+          eventBus.emit('ui:line', {
+            id: crypto.randomUUID(),
+            type: 'system',
+            content: 'Orchestrator not available',
+            metadata: { timestamp: new Date().toISOString() },
+            color: 'red',
+          });
+          return;
+        }
+        const summary = await orchestratorManager.summarize();
 
         const summaryMessage = {
           id: crypto.randomUUID(),
@@ -123,7 +140,9 @@ export function registerSummaryCommand(registry: CommandRegistry) {
         await memory.set('cli', [summaryMessage]);
 
         eventBus.emit('ui:lines:clear');
-        eventBus.emit('ui:lastMetadata', null);
+        if (sessionId) {
+          sessionMetricsService.reset(sessionId);
+        }
 
         eventBus.emit('ui:line', {
           id: crypto.randomUUID(),

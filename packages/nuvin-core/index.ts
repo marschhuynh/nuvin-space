@@ -18,9 +18,10 @@ export { ConversationStore } from './conversation-store.js';
 export { ConversationContext } from './conversation-context.js';
 export type { Conversation, ConversationMetadata, ConversationSnapshot } from './conversation-store.js';
 
-// Session metrics
-export { SessionMetricsTracker } from './session-metrics.js';
-export type { SessionMetrics, MetricsUpdate } from './session-metrics.js';
+// Metrics Port
+export { NoopMetricsPort, InMemoryMetricsPort, createEmptySnapshot } from './metrics.js';
+export type { MetricsChangeHandler } from './metrics.js';
+export type { MetricsPort, MetricsSnapshot, UsageData } from './ports.js';
 
 // Ports and types
 export type {
@@ -59,7 +60,13 @@ export { BashTool } from './tools/BashTool.js';
 export { AgentRegistry } from './agent-registry.js';
 export { AgentManager } from './agent-manager.js';
 export { AgentFilePersistence } from './agent-file-persistence.js';
-export type { AgentTemplate, CompleteAgent, SpecialistAgentConfig, SpecialistAgentResult, AssignParams } from './agent-types.js';
+export type {
+  AgentTemplate,
+  CompleteAgent,
+  SpecialistAgentConfig,
+  SpecialistAgentResult,
+  AssignParams,
+} from './agent-types.js';
 export {
   DefaultDelegationService,
   DefaultDelegationPolicy,
@@ -73,6 +80,13 @@ export { DelegationServiceFactory, LLMResolver } from './delegation/index.js';
 // LLM providers
 export { GithubLLM, AnthropicAISDKLLM } from './llm-providers/index.js';
 export { createLLM, getAvailableProviders, supportsGetModels, type LLMOptions } from './llm-providers/index.js';
+export {
+  normalizeModelLimits,
+  normalizeModelInfo,
+  getFallbackLimits,
+  type ModelLimits,
+  type ModelInfo,
+} from './llm-providers/index.js';
 export { LLMError } from './llm-providers/base-llm.js';
 
 // MCP

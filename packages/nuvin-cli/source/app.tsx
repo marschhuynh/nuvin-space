@@ -17,24 +17,18 @@ import {
   useGlobalKeyboard,
   useHandleSubmit,
 } from '@/hooks/index.js';
-import {
-  type MessageLine,
-  type MessageMetadata,
-  type SessionDisplayMetrics,
-  createEmptySessionMetrics,
-  updateSessionMetricsForRequest,
-  incrementToolCall,
-} from '@/adapters/index.js';
+import type { MessageLine } from '@/adapters/index.js';
 import { eventBus } from '@/services/EventBus.js';
+import { sessionMetricsService, type MetricsSnapshot } from '@/services/SessionMetricsService.js';
 import { useToolApproval } from '@/contexts/ToolApprovalContext.js';
 import { useCommand } from '@/modules/commands/hooks/useCommand.js';
-import { commandRegistry } from '@/modules/commands/registry.js';
 import type { ProviderKey } from '@/const.js';
 import useMessages from '@/hooks/useMessage.js';
 import { useConfig } from '@/contexts/ConfigContext.js';
 import { useExplainMode } from '@/contexts/ExplainModeContext.js';
-import { OrchestratorStatus } from '@/services/OrchestratorManager.js';
+import { orchestratorManager, OrchestratorStatus } from '@/services/OrchestratorManager.js';
 import type { SessionInfo } from '@/types.js';
+import { createEmptySnapshot } from '@nuvin/nuvin-core';
 
 type Props = {
   provider?: ProviderKey;
@@ -58,9 +52,8 @@ export default function App({
   const [cols, _rows] = useStdoutDimensions();
   const { messages, clearMessages, setLines, appendLine, updateLine, updateLineMetadata, handleError } = useMessages();
   const [busy, setBusy] = useState(false);
-  const [lastMetadata, setLastMetadata] = useState<MessageMetadata | null>(null);
-  const [accumulatedCost, setAccumulatedCost] = useState(0);
-  const [sessionMetrics, setSessionMetrics] = useState<SessionDisplayMetrics>(createEmptySessionMetrics());
+  const [metrics, setMetrics] = useState<MetricsSnapshot>(createEmptySnapshot());
+  const currentSessionIdRef = useRef<string | null>(null);
 
   const [_setupComplete, setSetupComplete] = useState(false);
 
@@ -70,7 +63,7 @@ export default function App({
   const [vimModeEnabled, setVimModeEnabled] = useState(false);
   const [vimMode, setVimMode] = useState<'insert' | 'normal'>('insert');
 
-  const { toolApprovalMode, setToolApprovalMode, pendingApproval, setOrchestrator } = useToolApproval();
+  const { toolApprovalMode, setToolApprovalMode, pendingApproval } = useToolApproval();
   const { activeCommand, execute: executeCommand } = useCommand();
 
   const [headerKey, setHeaderKey] = useState<number>(1);
@@ -84,47 +77,29 @@ export default function App({
 
   const { createNewSession, loadHistoryFromFile } = useSessionManagement();
 
-  const handleSetLastMetadata = useCallback((metadata: MessageMetadata | null) => {
-    setLastMetadata(metadata);
-  }, []);
-
-  const handleRequestComplete = useCallback((metadata: MessageMetadata) => {
-    setSessionMetrics((prev) =>
-      updateSessionMetricsForRequest(prev, {
-        promptTokens: metadata.promptTokens,
-        completionTokens: metadata.completionTokens,
-        totalTokens: metadata.totalTokens,
-        cachedTokens: metadata.cachedTokens,
-        responseTimeMs: metadata.responseTime,
-        cost: metadata.cost,
-      }),
-    );
-    if (metadata.cost && metadata.cost > 0) {
-      setAccumulatedCost((prev) => prev + (metadata.cost ?? 0));
-    }
-  }, []);
-
-  const handleToolResult = useCallback(() => {
-    setSessionMetrics((prev) => incrementToolCall(prev));
-  }, []);
-
-  const { orchestrator, manager, memory, status, send, createNewConversation, reinit } = useOrchestrator({
+  const { status, send, createNewConversation, reinit, sessionId } = useOrchestrator({
     appendLine,
     updateLine,
     updateLineMetadata,
-    setLastMetadata: handleSetLastMetadata,
     handleError,
     memPersist,
   });
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: just depend on the status
   useEffect(() => {
-    if (status === OrchestratorStatus.READY) {
-      setOrchestrator(orchestrator);
-      commandRegistry.setMemory(memory);
-      commandRegistry.setOrchestrator(manager);
+    currentSessionIdRef.current = sessionId ?? null;
+    if (sessionId) {
+      setMetrics(sessionMetricsService.getSnapshot(sessionId));
     }
-  }, [status]);
+  }, [sessionId]);
+
+  useEffect(() => {
+    const unsubscribe = sessionMetricsService.subscribe((conversationId, snapshot) => {
+      if (conversationId === currentSessionIdRef.current) {
+        setMetrics(snapshot);
+      }
+    });
+    return unsubscribe;
+  }, []);
 
   const showInitialSetup = useMemo(() => {
     if (!config.activeProvider) {
@@ -155,15 +130,7 @@ export default function App({
     const onLine = (line: MessageLine) => appendLine(line);
     const onErr = (message: string) => handleError(message);
 
-    const onLastMetadata = (metadata: MessageMetadata | null) => {
-      setLastMetadata(metadata);
-    };
-
     const onClearComplete = () => {
-      // Reset accumulated cost and metadata on clear
-      setAccumulatedCost(0);
-      setLastMetadata(null);
-
       appendLine({
         id: crypto.randomUUID(),
         type: 'info',
@@ -181,9 +148,6 @@ export default function App({
       newConversationInProgressRef.current = true;
 
       try {
-        setAccumulatedCost(0);
-        setSessionMetrics(createEmptySessionMetrics());
-
         const session = event.memPersist ? await createNewSession() : { sessionId: undefined, sessionDir: undefined };
         await createNewConversation({ ...session, memPersist: event.memPersist });
 
@@ -204,30 +168,24 @@ export default function App({
 
     eventBus.on('ui:line', onLine);
     eventBus.on('ui:error', onErr);
-    eventBus.on('ui:lastMetadata', onLastMetadata);
     eventBus.on('ui:lines:clear', clearMessages);
     eventBus.on('ui:lines:set', setLines);
     eventBus.on('ui:clear:complete', onClearComplete);
     eventBus.on('ui:new:conversation', onNewConversation);
-    eventBus.on('ui:toolResult', handleToolResult);
-    eventBus.on('ui:requestComplete', handleRequestComplete);
 
     return () => {
       eventBus.off('ui:line', onLine);
       eventBus.off('ui:error', onErr);
-      eventBus.off('ui:lastMetadata', onLastMetadata);
       eventBus.off('ui:lines:clear', clearMessages);
       eventBus.off('ui:lines:set', setLines);
       eventBus.off('ui:clear:complete', onClearComplete);
       eventBus.off('ui:new:conversation', onNewConversation);
-      eventBus.off('ui:toolResult', handleToolResult);
-      eventBus.off('ui:requestComplete', handleRequestComplete);
     };
-  }, [appendLine, handleError, createNewConversation, createNewSession, clearMessages, setLines, handleToolResult, handleRequestComplete]);
+  }, [appendLine, handleError, createNewConversation, createNewSession, clearMessages, setLines]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: We only want to load once at startup
   useEffect(() => {
-    if (!historyPath || !memory || historyLoadedRef.current) return;
+    if (!historyPath || historyLoadedRef.current) return;
 
     const loadHistory = async () => {
       try {
@@ -235,20 +193,12 @@ export default function App({
         const result = await loadHistoryFromFile(resolvedPath);
 
         if (result.kind === 'messages') {
-          // Load messages into memory
           if (result.cliMessages && result.cliMessages.length > 0) {
-            await memory.set('cli', result.cliMessages);
+            await orchestratorManager.getMemory()?.set('cli', result.cliMessages);
           }
 
-          // Set metadata
-          if (result.metadata) {
-            setLastMetadata(result.metadata);
-          }
-
-          // Set UI lines
           setLines(result.lines);
 
-          // Notify user
           appendLine({
             id: crypto.randomUUID(),
             type: 'info',
@@ -257,7 +207,6 @@ export default function App({
             color: 'green',
           });
 
-          // Mark history as loaded to prevent reloading
           historyLoadedRef.current = true;
         } else {
           const msg =
@@ -285,7 +234,7 @@ export default function App({
     };
 
     loadHistory();
-  }, [historyPath, memory]);
+  }, [historyPath]);
 
   const processMessage = useCallback(
     async (submission: UserMessagePayload) => {
@@ -312,8 +261,8 @@ export default function App({
           signal: controller.signal,
         });
 
-        if (manager && displayContent) {
-          manager.analyzeAndUpdateTopic(displayContent, 'cli');
+        if (orchestratorManager && displayContent) {
+          orchestratorManager.analyzeAndUpdateTopic(displayContent, 'cli');
         }
       } catch (err: unknown) {
         const e = err as Error & { name?: string; message?: unknown };
@@ -335,7 +284,7 @@ export default function App({
         abortRef.current = null;
       }
     },
-    [send, manager, appendLine, handleError],
+    [send, appendLine, handleError],
   );
 
   useKeyboardInput();
@@ -405,7 +354,7 @@ export default function App({
   useEffect(() => {
     const checkForUpdates = async () => {
       const { AutoUpdater } = await import('@/services/AutoUpdater.js');
-      
+
       await AutoUpdater.checkAndUpdate({
         onUpdateAvailable: (versionInfo) => {
           setNotification(`New version ${versionInfo.latest} available! Starting update...`, 5000);
@@ -413,7 +362,7 @@ export default function App({
         onUpdateStarted: () => {
           setNotification('Update started in background...', 3000);
         },
-        onUpdateCompleted: (success, message) => {
+        onUpdateCompleted: (_success, message) => {
           setNotification(message, 5000);
         },
         onError: (error) => {
@@ -432,7 +381,7 @@ export default function App({
   if (showInitialSetup) {
     return (
       <ErrorBoundary
-        memory={memory}
+        memory={orchestratorManager.getMemory()}
         fallback={
           <Box flexDirection="column" padding={1}>
             <Box>
@@ -444,14 +393,14 @@ export default function App({
           </Box>
         }
       >
-        <InitialConfigSetup onComplete={handleSetupComplete} llmFactory={manager?.getLLMFactory()} />
+        <InitialConfigSetup onComplete={handleSetupComplete} llmFactory={orchestratorManager.getLLMFactory()} />
       </ErrorBoundary>
     );
   }
 
   return (
     <ErrorBoundary
-      memory={memory}
+      memory={orchestratorManager.getMemory()}
       fallback={
         <Box flexDirection="column" padding={1}>
           <Box>
@@ -489,7 +438,7 @@ export default function App({
 
         <Footer
           status={status}
-          sessionMetrics={sessionMetrics}
+          metrics={metrics}
           toolApprovalMode={toolApprovalMode}
           vimModeEnabled={vimModeEnabled}
           vimMode={vimMode}

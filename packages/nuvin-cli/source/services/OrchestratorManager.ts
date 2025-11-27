@@ -29,11 +29,14 @@ import {
   type ToolPort,
   type LLMPort,
   type MemoryPort,
+  type MetricsPort,
+  type MetricsSnapshot,
+  type UsageData,
   type UserMessagePayload,
   type SendMessageOptions,
   type ConversationMetadata,
 } from '@nuvin/nuvin-core';
-import { UIEventAdapter, type MessageLine, type MessageMetadata, type LineMetadata } from '@/adapters/index.js';
+import { UIEventAdapter, type MessageLine, type LineMetadata } from '@/adapters/index.js';
 import { prompt } from '@/prompt.js';
 import type { ProviderKey } from '@/config/providers.js';
 import { MCPServerManager } from './MCPServerManager.js';
@@ -43,6 +46,8 @@ import { ConfigManager } from '@/config/manager.js';
 import { getProviderAuth } from '@/config/utils.js';
 import { LLMFactory } from './LLMFactory.js';
 import { OrchestratorStatus } from '@/types/orchestrator.js';
+import { modelLimitsCache } from './ModelLimitsCache.js';
+import { sessionMetricsService } from './SessionMetricsService.js';
 
 // Directory paths will be resolved dynamically based on active profile
 const defaultModels: Record<ProviderKey, string> = {
@@ -68,6 +73,37 @@ const enabledTools: string[] = [
   'assign_task',
 ];
 
+class SessionBoundMetricsPort implements MetricsPort {
+  constructor(
+    private sessionId: string,
+    private service: typeof sessionMetricsService,
+  ) {}
+
+  recordLLMCall(usage: UsageData, cost?: number): void {
+    this.service.recordLLMCall(this.sessionId, usage, cost);
+  }
+
+  recordToolCall(): void {
+    this.service.recordToolCall(this.sessionId);
+  }
+
+  recordRequestComplete(responseTimeMs: number): void {
+    this.service.recordRequestComplete(this.sessionId, responseTimeMs);
+  }
+
+  setContextWindow(limit: number, usage: number): void {
+    this.service.setContextWindow(this.sessionId, limit, usage);
+  }
+
+  reset(): void {
+    this.service.reset(this.sessionId);
+  }
+
+  getSnapshot(): MetricsSnapshot {
+    return this.service.getSnapshot(this.sessionId);
+  }
+}
+
 export type OrchestratorConfig = {
   memPersist?: boolean;
   mcpConfigPath?: string;
@@ -80,7 +116,6 @@ export type UIHandlers = {
   appendLine: (line: MessageLine) => void;
   updateLine: (id: string, content: string) => void;
   updateLineMetadata: (id: string, metadata: Partial<LineMetadata>) => void;
-  setLastMetadata: (metadata: MessageMetadata | null) => void;
   handleError: (message: string) => void;
 };
 
@@ -96,9 +131,12 @@ export class OrchestratorManager {
   private mcpManager: MCPServerManager | null = null;
   private handlers: UIHandlers | null = null;
   private memPersist: boolean = false;
-  private streamingChunks: boolean = false;
+  private streamingChunks: boolean = true;
   private configManager: ConfigManager;
   private llmFactory: LLMFactory;
+
+  private static readonly WARNING_THRESHOLD = 0.85;
+  private static readonly AUTO_SUMMARY_THRESHOLD = 0.95;
 
   constructor(configManager?: ConfigManager, conversationContext?: ConversationContext) {
     this.configManager = configManager ?? ConfigManager.getInstance();
@@ -137,13 +175,9 @@ export class OrchestratorManager {
     const requireToolApproval = config.requireToolApproval;
     const thinkingValue = config.thinking;
     const reasoningEffort = thinkingValue === 'OFF' ? undefined : thinkingValue?.toLowerCase();
-    const streamingChunks = config.streamingChunks ?? false;
+    const streamingChunks = config.streamingChunks ?? true;
 
-    const oauthConfig = auth?.oauth
-      ? {
-        anthropic: auth.oauth,
-      }
-      : undefined;
+    const oauthConfig = auth?.oauth ? { anthropic: auth.oauth } : undefined;
 
     return {
       config,
@@ -207,15 +241,14 @@ export class OrchestratorManager {
       handlers.appendLine,
       handlers.updateLine,
       handlers.updateLineMetadata,
-      handlers.setLastMetadata,
       persistEventLog
         ? {
-          filename: path.join(sessionDir, 'events.json'),
-          streamingEnabled: streamingChunks,
-        }
+            filename: path.join(sessionDir, 'events.json'),
+            streamingEnabled: streamingChunks,
+          }
         : {
-          streamingEnabled: streamingChunks,
-        },
+            streamingEnabled: streamingChunks,
+          },
     );
   }
 
@@ -226,8 +259,8 @@ export class OrchestratorManager {
 
     // Store handlers and options for later use
     this.handlers = handlers;
-    this.memPersist = options.memPersist ?? false;
-    this.streamingChunks = options.streamingChunks ?? this.getCurrentConfig().streamingChunks;
+    this.memPersist = options.memPersist ?? true;
+    // this.streamingChunks = options.streamingChunks ?? this.getCurrentConfig().streamingChunks;
 
     try {
       // Only create session directories if memPersist is enabled
@@ -235,22 +268,15 @@ export class OrchestratorManager {
         this.createSessionDirectories(sessionDir);
       }
 
-      // Create agents directory
-      try {
-        fs.mkdirSync(DEFAULT_AGENTS_DIR, { recursive: true });
-      } catch {
-        // Ignore errors - directory might already exist
-      }
-
       // Read config from ConfigManager
       const currentConfig = this.getCurrentConfig();
       const sessionConfig = currentConfig.config.session;
-      const persistHttpLog = sessionConfig?.persistHttpLog ?? false;
       const persistEventLog = sessionConfig?.persistEventLog ?? false;
 
-      const httpLogFile = persistHttpLog ? path.join(sessionDir, 'http-log.json') : undefined;
+      // const persistHttpLog = sessionConfig?.persistHttpLog ?? false;
+      // const httpLogFile = persistHttpLog ? path.join(sessionDir, 'http-log.json') : undefined;
 
-      const llm = this.createLLM(httpLogFile);
+      // const llm = this.createLLM(httpLogFile);
 
       const memory = this.createMemory(sessionDir, this.memPersist);
 
@@ -259,8 +285,6 @@ export class OrchestratorManager {
       fs.mkdirSync(agentsDir, { recursive: true });
       const agentFilePersistence = new AgentFilePersistence({ agentsDir });
       const agentRegistry = new AgentRegistry({ filePersistence: agentFilePersistence });
-
-      // Wait for agents to finish loading before building system prompt
       await agentRegistry.waitForLoad();
 
       const toolRegistry = new ToolRegistry({ agentRegistry });
@@ -291,17 +315,15 @@ export class OrchestratorManager {
             provider = this.getCurrentConfig().config.activeProvider || 'openrouter';
           }
 
-          return this.llmFactory.createLLM(provider, { httpLogFile });
+          return this.llmFactory.createLLM(provider);
         },
       };
 
       // Determine MCP config path with profile awareness
-      const profileManager =
-        typeof this.configManager.getProfileManager === 'function' ? this.configManager.getProfileManager() : undefined;
-      const currentProfile =
-        typeof this.configManager.getCurrentProfile === 'function' ? this.configManager.getCurrentProfile() : undefined;
-      const profileMcpConfigPath =
-        profileManager && currentProfile ? profileManager.getProfileMcpConfigPath(currentProfile) : undefined;
+      const profileManager = this.configManager.getProfileManager();
+      const currentProfile = this.configManager.getCurrentProfile();
+
+      const profileMcpConfigPath = profileManager?.getProfileMcpConfigPath(currentProfile);
       const configPath = options.mcpConfigPath || profileMcpConfigPath;
 
       const mcpManager = new MCPServerManager({
@@ -317,8 +339,7 @@ export class OrchestratorManager {
         mcpManager.setAllowedToolsConfig(currentConfig.mcpAllowedTools);
       }
 
-      const runtimeEnv = new RuntimeEnv({ appName: 'nuvin-agent' });
-      runtimeEnv.init(sessionId);
+      new RuntimeEnv({ appName: 'nuvin-agent' }).init(sessionId);
 
       // Get enabled agents config to filter available agents
       const enabledAgentsConfig = (currentConfig.config.agentsEnabled as Record<string, boolean>) || {};
@@ -326,8 +347,7 @@ export class OrchestratorManager {
       const availableAgents = agentRegistry
         .list()
         .filter((agent) => {
-          // Include agent if it's enabled or if no explicit config exists (default to enabled)
-          return enabledAgentsConfig[agent.id] !== false; // Include if true or undefined
+          return enabledAgentsConfig[agent.id] !== false;
         })
         .map((agent) => ({
           id: agent.id as string,
@@ -355,7 +375,7 @@ export class OrchestratorManager {
       );
 
       const agentConfig = {
-        id: 'core-demo-agent',
+        id: 'nuvin-agent',
         systemPrompt: renderTemplate(prompt, { injectedSystem }),
         temperature: 1,
         topP: 1,
@@ -368,14 +388,9 @@ export class OrchestratorManager {
 
       const agentDeps = {
         memory,
-        llm,
         tools: agentTools,
-        context: new SimpleContextBuilder(),
-        ids: new SimpleId(),
-        clock: new SystemClock(),
-        cost: new SimpleCost(),
-        reminders: new NoopReminders(),
         events: this.createEventAdapter(sessionDir, handlers, persistEventLog, this.streamingChunks),
+        metrics: new SessionBoundMetricsPort(sessionId, sessionMetricsService),
       };
       const orchestrator = new AgentOrchestrator(agentConfig, agentDeps);
 
@@ -409,8 +424,6 @@ export class OrchestratorManager {
       this.initializeMCPServersInBackground(mcpManager, handlers);
 
       return {
-        orchestrator: this.orchestrator,
-        memory: this.memory,
         model: this.model,
         sessionId: this.sessionId,
         sessionDir: this.sessionDir,
@@ -587,6 +600,100 @@ export class OrchestratorManager {
     return this.llmFactory;
   }
 
+  private async checkContextWindowUsage(conversationId: string, provider: string, model: string): Promise<void> {
+    if (!this.sessionId) return;
+    
+    const metrics = sessionMetricsService.getSnapshot(this.sessionId);
+    if (!metrics.currentPromptTokens) return;
+
+    const llm = this.orchestrator?.getLLM();
+    const limits = await modelLimitsCache.getLimit(provider, model, llm?.getModels);
+
+    if (!limits) return;
+
+    const usage = metrics.currentPromptTokens / limits.contextWindow;
+
+    sessionMetricsService.setContextWindow(this.sessionId, limits.contextWindow, usage);
+
+    if (usage >= OrchestratorManager.AUTO_SUMMARY_THRESHOLD) {
+      eventBus.emit('ui:line', {
+        id: crypto.randomUUID(),
+        type: 'system',
+        content: `⚠️ Context window at ${Math.round(usage * 100)}% (${metrics.currentPromptTokens.toLocaleString()}/${limits.contextWindow.toLocaleString()} tokens). Running auto-summary...`,
+        metadata: { timestamp: new Date().toISOString() },
+        color: 'yellow',
+      });
+
+      try {
+        await this.autoSummarizeAndReplace();
+        eventBus.emit('ui:line', {
+          id: crypto.randomUUID(),
+          type: 'system',
+          content: '✓ Auto-summary completed. Context window has been reduced.',
+          metadata: { timestamp: new Date().toISOString() },
+          color: 'green',
+        });
+      } catch (error) {
+        eventBus.emit('ui:line', {
+          id: crypto.randomUUID(),
+          type: 'system',
+          content: `⚠️ Auto-summary failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          metadata: { timestamp: new Date().toISOString() },
+          color: 'red',
+        });
+      }
+    } else if (usage >= OrchestratorManager.WARNING_THRESHOLD) {
+      eventBus.emit('ui:line', {
+        id: crypto.randomUUID(),
+        type: 'system',
+        content: `⚠️ Context window at ${Math.round(usage * 100)}% (${metrics.currentPromptTokens.toLocaleString()}/${limits.contextWindow.toLocaleString()} tokens). Consider using /summary to reduce context.`,
+        metadata: { timestamp: new Date().toISOString() },
+        color: 'yellow',
+      });
+    }
+  }
+
+  private async autoSummarizeAndReplace(): Promise<void> {
+    if (!this.memory) {
+      throw new Error('Memory not initialized');
+    }
+
+    if (!this.sessionId) {
+      throw new Error('Session ID not set');
+    }
+
+    const summary = await this.summarize();
+
+    const summaryMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: `Previous conversation summary:\n\n${summary}`,
+      timestamp: new Date().toISOString(),
+    };
+
+    await this.memory.set('cli', [summaryMessage]);
+
+    eventBus.emit('ui:lines:clear');
+
+    eventBus.emit('ui:line', {
+      id: crypto.randomUUID(),
+      type: 'user',
+      content: summaryMessage.content as string,
+      metadata: { timestamp: summaryMessage.timestamp },
+    });
+
+    eventBus.emit('ui:header:refresh');
+
+    sessionMetricsService.reset(this.sessionId);
+  }
+
+  async getModelContextLimit(): Promise<number | null> {
+    const currentConfig = this.getCurrentConfig();
+    const llm = this.orchestrator?.getLLM();
+    const limits = await modelLimitsCache.getLimit(currentConfig.provider, currentConfig.model, llm?.getModels);
+    return limits?.contextWindow ?? null;
+  }
+
   async send(
     content: UserMessagePayload,
     opts: SendMessageOptions = {},
@@ -660,6 +767,8 @@ export class OrchestratorManager {
           responseTimeMs: result.metadata?.responseTime,
           cost: result.metadata?.estimatedCost ?? undefined,
         });
+
+        await this.checkContextWindowUsage(conversationId, currentConfig.provider, currentConfig.model);
       }
 
       return result;
@@ -743,6 +852,8 @@ export class OrchestratorManager {
           responseTimeMs: result.metadata?.responseTime,
           cost: result.metadata?.estimatedCost ?? undefined,
         });
+
+        await this.checkContextWindowUsage(conversationId, currentConfig.provider, currentConfig.model);
       }
 
       return result;
@@ -800,9 +911,10 @@ export class OrchestratorManager {
     // Create new event adapter for the new session
     const newEventAdapter = this.createEventAdapter(sessionDir, this.handlers, persistEventLog, this.streamingChunks);
 
-    // Update orchestrator with new memory and events
+    // Update orchestrator with new memory, events, and metrics
     this.orchestrator.setMemory(newMemory);
     this.orchestrator.setEvents(newEventAdapter);
+    this.orchestrator.setMetrics(new SessionBoundMetricsPort(sessionId, sessionMetricsService));
 
     // Update internal state
     this.memory = newMemory;
@@ -842,6 +954,7 @@ export class OrchestratorManager {
 
     this.orchestrator.setMemory(newMemory);
     this.orchestrator.setEvents(newEventAdapter);
+    this.orchestrator.setMetrics(new SessionBoundMetricsPort(sessionId, sessionMetricsService));
 
     this.memory = newMemory;
     this.conversationStore = new ConversationStore(newMemory);
@@ -925,18 +1038,11 @@ Respond with only the topic, no explanation.`;
       reasoningEffort: undefined,
     };
 
-    const topicDeps = {
+    const topicOrchestrator = new AgentOrchestrator(topicConfig, {
       memory: topicMemory,
       llm,
       tools: topicTools,
-      context: new SimpleContextBuilder(),
-      ids: new SimpleId(),
-      clock: new SystemClock(),
-      cost: new SimpleCost(),
-      reminders: new NoopReminders(),
-    };
-
-    const topicOrchestrator = new AgentOrchestrator(topicConfig, topicDeps);
+    });
 
     try {
       const response = await topicOrchestrator.send(topicAnalysisPrompt);
