@@ -64,8 +64,10 @@ describe('GithubLLM', () => {
     expect(llm.mockTransport.get).toHaveBeenCalledWith('/models', undefined, undefined);
     expect(models).toHaveLength(2);
     expect(models[0].id).toBe('gpt-4');
-    expect(models[0].capabilities.limits?.max_context_window_tokens).toBe(128000);
+    expect(models[0].name).toBe('GPT 4');
+    expect(models[0].limits?.contextWindow).toBe(128000);
     expect(models[1].id).toBe('claude-sonnet-4.5');
+    expect(models[1].limits).toBeUndefined();
   });
 
   it('should handle error response', async () => {

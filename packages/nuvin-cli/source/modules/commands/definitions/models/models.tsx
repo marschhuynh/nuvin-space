@@ -13,7 +13,7 @@ import { useModelsCommandState } from './hooks/useModelsCommandState.js';
 const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandComponentProps) => {
   const { theme } = useTheme();
 
-  const llmFactory = context.orchestrator?.getLLMFactory();
+  const llmFactory = context.orchestratorManager?.getLLMFactory();
 
   const availableProviders = llmFactory?.getAvailableProviders();
   const providerOptions = buildProviderOptions(availableProviders);

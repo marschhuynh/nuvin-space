@@ -1,8 +1,9 @@
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import type { ToolCall, AgentOrchestrator, ToolApprovalDecision } from '@nuvin/nuvin-core';
+import type { ToolCall, ToolApprovalDecision } from '@nuvin/nuvin-core';
 import { eventBus } from '@/services/EventBus.js';
 import { enrichToolCallsWithLineNumbers } from '@/utils/enrichToolCalls.js';
+import type { OrchestratorManager } from '@/services/OrchestratorManager';
 
 interface ToolApprovalState {
   toolApprovalMode: boolean;
@@ -17,7 +18,6 @@ interface ToolApprovalState {
   addSessionApprovedTool: (toolName: string) => void;
   clearSessionApprovedTools: () => void;
   handleApprovalResponse: (decision: ToolApprovalDecision, approvedCalls?: ToolCall[]) => void;
-  setOrchestrator: (orchestrator: AgentOrchestrator | null) => void;
 }
 
 const ToolApprovalContext = createContext<ToolApprovalState | undefined>(undefined);
@@ -26,7 +26,9 @@ export function ToolApprovalProvider({
   requireToolApproval,
   onError,
   children,
+  orchestratorManager,
 }: {
+  orchestratorManager: OrchestratorManager | null;
   requireToolApproval: boolean;
   onError: (message: string) => void;
   children: React.ReactNode;
@@ -39,11 +41,11 @@ export function ToolApprovalProvider({
     messageId: string;
   } | null>(null);
   const [sessionApprovedTools, setSessionApprovedTools] = useState<Set<string>>(new Set());
-  const orchestratorRef = useRef<AgentOrchestrator | null>(null);
+  // const orchestratorRef = useRef<AgentOrchestrator | null>(orchestrator);
 
-  const setOrchestrator = useCallback((orchestrator: AgentOrchestrator | null) => {
-    orchestratorRef.current = orchestrator;
-  }, []);
+  // const setOrchestrator = useCallback((orchestrator: AgentOrchestrator | null) => {
+  //   orchestratorRef.current = orchestrator;
+  // }, []);
 
   const addSessionApprovedTool = useCallback((toolName: string) => {
     setSessionApprovedTools((prev) => new Set(prev).add(toolName));
@@ -55,19 +57,19 @@ export function ToolApprovalProvider({
 
   const handleApprovalResponse = useCallback(
     (decision: ToolApprovalDecision, approvedCalls?: ToolCall[]) => {
-      if (!pendingApproval || !orchestratorRef.current) {
+      if (!pendingApproval || !orchestratorManager?.getOrchestrator()) {
         return;
       }
 
       try {
-        orchestratorRef.current.handleToolApproval(pendingApproval.approvalId, decision, approvedCalls);
+        orchestratorManager?.getOrchestrator()?.handleToolApproval(pendingApproval.approvalId, decision, approvedCalls);
         setPendingApproval(null);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         onError(`Failed to respond to tool approval: ${message}`);
       }
     },
-    [pendingApproval, onError],
+    [pendingApproval, onError, orchestratorManager?.getOrchestrator],
   );
 
   const sessionApprovedToolsRef = useRef(sessionApprovedTools);
@@ -143,7 +145,6 @@ export function ToolApprovalProvider({
       addSessionApprovedTool,
       clearSessionApprovedTools,
       handleApprovalResponse,
-      setOrchestrator,
     }),
     [
       isToolApprovalMode,
@@ -152,7 +153,6 @@ export function ToolApprovalProvider({
       addSessionApprovedTool,
       clearSessionApprovedTools,
       handleApprovalResponse,
-      setOrchestrator,
     ],
   );
 

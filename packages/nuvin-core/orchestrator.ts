@@ -1,32 +1,41 @@
-import type {
-  AgentConfig,
-  AgentEvent,
-  ChatMessage,
-  Clock,
-  CompletionParams,
-  CompletionResult,
-  ContextBuilder,
-  CostCalculator,
-  IdGenerator,
-  LLMPort,
-  MemoryPort,
-  Message,
-  MessageContent,
-  MessageContentPart,
-  MessageResponse,
-  RemindersPort,
-  SendMessageOptions,
-  ToolExecutionResult,
-  ToolInvocation,
-  ToolPort,
-  ToolCall,
-  UserAttachment,
-  UserMessagePayload,
-  ToolApprovalDecision,
-  EventPort,
-  UsageData,
+import {
+  type AgentConfig,
+  type AgentEvent,
+  type ChatMessage,
+  type Clock,
+  type CompletionParams,
+  type CompletionResult,
+  type ContextBuilder,
+  type CostCalculator,
+  type IdGenerator,
+  type LLMPort,
+  type MemoryPort,
+  type Message,
+  type MessageContent,
+  type MessageContentPart,
+  type MessageResponse,
+  type MetricsPort,
+  type RemindersPort,
+  type SendMessageOptions,
+  type ToolExecutionResult,
+  type ToolInvocation,
+  type ToolPort,
+  type ToolCall,
+  type UserAttachment,
+  type UserMessagePayload,
+  type ToolApprovalDecision,
+  type EventPort,
+  type UsageData,
+  AgentEventTypes,
+  MessageRoles,
 } from './ports.js';
-import { AgentEventTypes, MessageRoles } from './ports.js';
+import { NoopMetricsPort } from './metrics.js';
+import { SystemClock } from './clock.js';
+import { SimpleId } from './id.js';
+import { SimpleCost } from './cost.js';
+import { NoopReminders } from './reminders.js';
+import { SimpleContextBuilder } from './context.js';
+import { NoopEventPort } from './events.js';
 
 type AssistantChunkEvent = Extract<AgentEvent, { type: typeof AgentEventTypes.AssistantChunk }>;
 type AssistantMessageEvent = Extract<AgentEvent, { type: typeof AgentEventTypes.AssistantMessage }>;
@@ -118,20 +127,44 @@ export class AgentOrchestrator {
     { resolve: (calls: ToolCall[]) => void; reject: (error: Error) => void }
   >();
 
+  private context: ContextBuilder = new SimpleContextBuilder();
+  private ids: IdGenerator = new SimpleId();
+  private clock: Clock = new SystemClock();
+  private cost: CostCalculator = new SimpleCost();
+  private reminders: RemindersPort = new NoopReminders();
+  // private llm: LLMPort;
+  private metrics: MetricsPort = new NoopMetricsPort();
+  private events?: EventPort = new NoopEventPort();
+  private llm?: LLMPort;
+  private tools: ToolPort;
+  private memory: MemoryPort<Message>;
+
   constructor(
     private cfg: AgentConfig,
-    private deps: {
+    deps: {
       memory: MemoryPort<Message>;
-      llm: LLMPort;
       tools: ToolPort;
-      context: ContextBuilder;
-      ids: IdGenerator;
-      clock: Clock;
-      cost: CostCalculator;
-      reminders: RemindersPort;
+      context?: ContextBuilder;
+      ids?: IdGenerator;
+      clock?: Clock;
+      cost?: CostCalculator;
+      reminders?: RemindersPort;
+      llm?: LLMPort;
+      metrics?: MetricsPort;
       events?: EventPort;
     },
-  ) {}
+  ) {
+    this.memory = deps.memory;
+    this.tools = deps.tools;
+    this.llm = deps.llm;
+    this.context = deps.context ?? this.context;
+    this.ids = deps.ids ?? this.ids;
+    this.clock = deps.clock ?? this.clock;
+    this.cost = deps.cost ?? this.cost;
+    this.reminders = deps.reminders ?? this.reminders;
+    this.metrics = deps.metrics ?? this.metrics;
+    this.events = deps.events ?? this.events;
+  }
 
   /**
    * Updates the agent configuration dynamically after initialization.
@@ -146,7 +179,7 @@ export class AgentOrchestrator {
    * This preserves conversation history, MCP connections, and other state.
    */
   public setLLM(newLLM: LLMPort): void {
-    this.deps.llm = newLLM;
+    this.llm = newLLM;
   }
 
   /**
@@ -154,21 +187,21 @@ export class AgentOrchestrator {
    * This preserves conversation history and other state while adding/removing tools.
    */
   public setTools(newTools: ToolPort): void {
-    this.deps.tools = newTools;
+    this.tools = newTools;
   }
 
   /**
    * Gets the current tool port.
    */
   public getTools(): ToolPort {
-    return this.deps.tools;
+    return this.tools;
   }
 
   /**
    * Gets the current LLM port.
    */
-  public getLLM(): LLMPort {
-    return this.deps.llm;
+  public getLLM(): LLMPort | undefined {
+    return this.llm;
   }
 
   /**
@@ -184,7 +217,7 @@ export class AgentOrchestrator {
    * MCP servers, and other state.
    */
   public setMemory(newMemory: MemoryPort<Message>): void {
-    this.deps.memory = newMemory;
+    this.memory = newMemory;
   }
 
   /**
@@ -192,7 +225,21 @@ export class AgentOrchestrator {
    * This is useful when switching to a new session with a different event log file.
    */
   public setEvents(newEvents: import('./ports.js').EventPort): void {
-    this.deps.events = newEvents;
+    this.events = newEvents;
+  }
+
+  /**
+   * Updates the metrics port without reinitializing the entire orchestrator.
+   */
+  public setMetrics(newMetrics: MetricsPort): void {
+    this.metrics = newMetrics;
+  }
+
+  /**
+   * Gets the current metrics port.
+   */
+  public getMetrics(): MetricsPort | undefined {
+    return this.metrics;
   }
 
   /**
@@ -201,9 +248,7 @@ export class AgentOrchestrator {
    */
   private shouldBypassApproval(toolName: string): boolean {
     const readOnlyTools = ['file_read', 'dir_ls', 'web_search', 'web_fetch'];
-
     const todoTools = ['todo_write', 'todo_read'];
-
     return readOnlyTools.includes(toolName) || todoTools.includes(toolName);
   }
 
@@ -218,10 +263,10 @@ export class AgentOrchestrator {
     usage?: UsageData,
   ): Promise<void> {
     const assistantMsg: Message = {
-      id: this.deps.ids.uuid(),
+      id: this.ids.uuid(),
       role: 'assistant',
       content: assistantContent ?? null,
-      timestamp: this.deps.clock.iso(),
+      timestamp: this.clock.iso(),
       tool_calls: originalToolCalls,
       usage,
     };
@@ -248,7 +293,7 @@ export class AgentOrchestrator {
         id: toolCall.id,
         role: 'tool',
         content: toolDenialResult,
-        timestamp: this.deps.clock.iso(),
+        timestamp: this.clock.iso(),
         tool_call_id: toolCall.id,
         name: toolCall.function.name,
       };
@@ -256,9 +301,9 @@ export class AgentOrchestrator {
       toolResultMsgs.push(toolMsg);
     }
 
-    await this.deps.memory.append(conversationId, [assistantMsg, ...toolResultMsgs]);
+    await this.memory.append(conversationId, [assistantMsg, ...toolResultMsgs]);
 
-    await this.deps.events?.emit({
+    await this.events?.emit({
       type: AgentEventTypes.AssistantMessage,
       conversationId,
       messageId,
@@ -308,19 +353,25 @@ export class AgentOrchestrator {
       return { approvedCalls: [], wasDenied: true, denialMessage };
     }
   }
+
   async send(content: UserMessagePayload, opts: SendMessageOptions = {}): Promise<MessageResponse> {
     const convo = opts.conversationId ?? 'default';
-    const t0 = this.deps.clock.now();
-    const msgId = this.deps.ids.uuid();
+    const t0 = this.clock.now();
+    const msgId = this.ids.uuid();
 
-    const history = await this.deps.memory.get(convo);
+    const history = await this.memory.get(convo);
     let providerMsgs: ChatMessage[];
     let userMessages: Message[];
     let userDisplay: string;
     let enhanced: string[];
 
+    const _llm = this.getLLM();
+    if (!_llm) {
+      throw new Error('LLM provider not set');
+    }
+
     if (opts.retry) {
-      providerMsgs = this.deps.context.toProviderMessages(history, this.cfg.systemPrompt, []);
+      providerMsgs = this.context.toProviderMessages(history, this.cfg.systemPrompt, []);
       userMessages = [];
       userDisplay = '[Retry]';
       enhanced = [];
@@ -335,7 +386,7 @@ export class AgentOrchestrator {
             };
 
       const attachments = normalized.attachments;
-      enhanced = this.deps.reminders.enhance(normalized.text, { conversationId: convo });
+      enhanced = this.reminders.enhance(normalized.text, { conversationId: convo });
       const enhancedCombined = enhanced.join('\n');
       const messageParts = buildMessageParts(enhancedCombined, attachments);
 
@@ -350,21 +401,21 @@ export class AgentOrchestrator {
         userContent = enhancedCombined;
       }
 
-      providerMsgs = this.deps.context.toProviderMessages(history, this.cfg.systemPrompt, [userContent]);
+      providerMsgs = this.context.toProviderMessages(history, this.cfg.systemPrompt, [userContent]);
 
       userDisplay = resolveDisplayText(normalized.text, attachments, normalized.displayText);
-      const userTimestamp = this.deps.clock.iso();
-      userMessages = [{ id: this.deps.ids.uuid(), role: 'user', content: userContent, timestamp: userTimestamp }];
+      const userTimestamp = this.clock.iso();
+      userMessages = [{ id: this.ids.uuid(), role: 'user', content: userContent, timestamp: userTimestamp }];
 
-      await this.deps.memory.append(convo, userMessages);
+      await this.memory.append(convo, userMessages);
     }
 
     if (opts.signal?.aborted) throw new Error('Aborted');
 
-    const toolDefs = this.deps.tools.getToolDefinitions(this.cfg.enabledTools ?? []);
+    const toolDefs = this.tools.getToolDefinitions(this.cfg.enabledTools ?? []);
     const toolNames = toolDefs.map((t) => t.function.name);
 
-    await this.deps.events?.emit({
+    await this.events?.emit({
       type: AgentEventTypes.MessageStarted,
       conversationId: convo,
       messageId: msgId,
@@ -395,17 +446,202 @@ export class AgentOrchestrator {
     let denialMessage = '';
     let finalResponseSaved = false;
 
-    try {
-      if (opts.stream && typeof this.deps.llm.streamCompletion === 'function') {
+    if (opts.stream && typeof _llm.streamCompletion === 'function') {
+      let isFirstChunk = true;
+      result = await _llm.streamCompletion(
+        params,
+        {
+          onChunk: async (delta: string, usage?: UsageData) => {
+            streamedAssistantContent += delta;
+            const cleanDelta = isFirstChunk ? delta.replace(/^\n+/, '') : delta;
+            isFirstChunk = false;
+            const chunkEvent: AssistantChunkEvent = {
+              type: AgentEventTypes.AssistantChunk,
+              conversationId: convo,
+              messageId: msgId,
+              delta: cleanDelta,
+              ...(usage && { usage }),
+            };
+            await this.events?.emit(chunkEvent);
+          },
+          onStreamFinish: async (finishReason?: string, usage?: UsageData) => {
+            if (usage) {
+              const cost = this.cost.estimate(this.cfg.model, usage);
+              this.metrics?.recordLLMCall?.(usage, cost);
+            }
+            const finishEvent: StreamFinishEvent = {
+              type: AgentEventTypes.StreamFinish,
+              conversationId: convo,
+              messageId: msgId,
+              ...(finishReason && { finishReason }),
+              ...(usage && { usage }),
+            };
+            await this.events?.emit(finishEvent);
+          },
+        },
+        opts.signal,
+      );
+    } else {
+      result = await _llm.generateCompletion(params, opts.signal);
+      if (result.usage) {
+        const cost = this.cost.estimate(this.cfg.model, result.usage);
+        this.metrics?.recordLLMCall?.(result.usage, cost);
+      }
+    }
+
+    if (!result.tool_calls?.length && result.content && !finalResponseSaved) {
+      const content = opts.stream ? streamedAssistantContent : result.content;
+
+      const assistantMsg: Message = {
+        id: msgId,
+        role: 'assistant',
+        content,
+        timestamp: this.clock.iso(),
+        usage: result.usage,
+      };
+      await this.memory.append(convo, [assistantMsg]);
+      finalResponseSaved = true;
+
+      // Emit AssistantMessage for both streaming and non-streaming
+      // This signals the UI to finalize rendering and enable markdown
+      if (content.trim()) {
+        const messageEvent: AssistantMessageEvent = {
+          type: AgentEventTypes.AssistantMessage,
+          conversationId: convo,
+          messageId: msgId,
+          content,
+          ...(result.usage && { usage: result.usage }),
+        };
+        await this.events?.emit(messageEvent);
+      }
+    }
+
+    while (result.tool_calls?.length) {
+      // Emit the assistant message along with the tool call
+      if (result.content?.trim()) {
+        const messageEvent: AssistantMessageEvent = {
+          type: AgentEventTypes.AssistantMessage,
+          conversationId: convo,
+          messageId: msgId,
+          content: result.content,
+          ...(result.usage && { usage: result.usage }),
+        };
+        await this.events?.emit(messageEvent);
+      }
+
+      if (opts.signal?.aborted) throw new Error('Aborted');
+
+      await this.events?.emit({
+        type: AgentEventTypes.ToolCalls,
+        conversationId: convo,
+        messageId: msgId,
+        toolCalls: result.tool_calls,
+        usage: result.usage,
+      });
+
+      const approvalResult = await this.processToolApproval(
+        result.tool_calls,
+        convo,
+        msgId,
+        accumulatedMessages,
+        turnHistory,
+        result.content,
+        result.usage,
+      );
+
+      if (approvalResult.wasDenied) {
+        denialMessage = approvalResult.denialMessage || '';
+        toolApprovalDenied = true;
+        break;
+      }
+
+      const approvedCalls = approvalResult.approvedCalls;
+
+      const invocations = this.toInvocations(approvedCalls);
+      if (opts.signal?.aborted) throw new Error('Aborted');
+
+      // TODO: change to use generators
+      const toolResults = await this.tools.executeToolCalls(
+        invocations,
+        {
+          conversationId: convo,
+          agentId: this.cfg.id,
+          messageId: msgId,
+          eventPort: this.events,
+        },
+        this.cfg.maxToolConcurrency ?? 3,
+        opts.signal,
+      );
+      allToolResults.push(...toolResults);
+
+      const assistantMsg: Message = {
+        id: this.ids.uuid(),
+        role: 'assistant',
+        content: result.content ?? null,
+        timestamp: this.clock.iso(),
+        tool_calls: approvedCalls,
+        usage: result.usage,
+      };
+
+      const toolResultMsgs: Message[] = [];
+      for (const tr of toolResults) {
+        const contentStr =
+          tr.status === 'error'
+            ? String(tr.result)
+            : typeof tr.result === 'string'
+              ? tr.result
+              : JSON.stringify(tr.result);
+
+        toolResultMsgs.push({
+          id: tr.id,
+          role: 'tool',
+          content: contentStr,
+          timestamp: this.clock.iso(),
+          tool_call_id: tr.id,
+          name: tr.name,
+        });
+
+        this.metrics?.recordToolCall?.();
+
+        await this.events?.emit({
+          type: AgentEventTypes.ToolResult,
+          conversationId: convo,
+          messageId: msgId,
+          result: tr,
+        });
+      }
+
+      await this.memory.append(convo, [assistantMsg, ...toolResultMsgs]);
+
+      const { usage: _usage, ...extraField } = result;
+      // TODO: revisit the logic here
+      accumulatedMessages.push({
+        ...extraField,
+        role: 'assistant',
+        content: result.content ?? null,
+        tool_calls: approvedCalls,
+      });
+      for (const tr of toolResults) {
+        const contentStr =
+          tr.status === 'error'
+            ? String(tr.result)
+            : typeof tr.result === 'string'
+              ? tr.result
+              : JSON.stringify(tr.result);
+        accumulatedMessages.push({ role: 'tool', content: contentStr, tool_call_id: tr.id, name: tr.name });
+      }
+
+      if (opts.signal?.aborted) throw new Error('Aborted');
+
+      streamedAssistantContent = '';
+
+      if (opts.stream && typeof _llm.streamCompletion === 'function') {
         let isFirstChunk = true;
-        result = await this.deps.llm.streamCompletion(
-          params,
+        result = await _llm.streamCompletion(
+          { ...params, messages: accumulatedMessages },
           {
             onChunk: async (delta: string, usage?: UsageData) => {
-              try {
-                streamedAssistantContent += delta;
-              } catch {}
-              // Only strip leading newlines from the very first chunk
+              streamedAssistantContent += delta;
               const cleanDelta = isFirstChunk ? delta.replace(/^\n+/, '') : delta;
               isFirstChunk = false;
               const chunkEvent: AssistantChunkEvent = {
@@ -415,9 +651,13 @@ export class AgentOrchestrator {
                 delta: cleanDelta,
                 ...(usage && { usage }),
               };
-              await this.deps.events?.emit(chunkEvent);
+              await this.events?.emit(chunkEvent);
             },
             onStreamFinish: async (finishReason?: string, usage?: UsageData) => {
+              if (usage) {
+                const cost = this.cost.estimate(this.cfg.model, usage);
+                this.metrics?.recordLLMCall?.(usage, cost);
+              }
               const finishEvent: StreamFinishEvent = {
                 type: AgentEventTypes.StreamFinish,
                 conversationId: convo,
@@ -425,13 +665,17 @@ export class AgentOrchestrator {
                 ...(finishReason && { finishReason }),
                 ...(usage && { usage }),
               };
-              await this.deps.events?.emit(finishEvent);
+              await this.events?.emit(finishEvent);
             },
           },
           opts.signal,
         );
       } else {
-        result = await this.deps.llm.generateCompletion(params, opts.signal);
+        result = await _llm.generateCompletion({ ...params, messages: accumulatedMessages }, opts.signal);
+        if (result.usage) {
+          const cost = this.cost.estimate(this.cfg.model, result.usage);
+          this.metrics?.recordLLMCall?.(result.usage, cost);
+        }
       }
 
       if (!result.tool_calls?.length && result.content && !finalResponseSaved) {
@@ -440,10 +684,10 @@ export class AgentOrchestrator {
           id: msgId,
           role: 'assistant',
           content,
-          timestamp: this.deps.clock.iso(),
+          timestamp: this.clock.iso(),
           usage: result.usage,
         };
-        await this.deps.memory.append(convo, [assistantMsg]);
+        await this.memory.append(convo, [assistantMsg]);
         finalResponseSaved = true;
 
         // Emit AssistantMessage for both streaming and non-streaming
@@ -456,235 +700,58 @@ export class AgentOrchestrator {
             content,
             ...(result.usage && { usage: result.usage }),
           };
-          await this.deps.events?.emit(messageEvent);
+          await this.events?.emit(messageEvent);
         }
       }
+    }
 
-      while (result.tool_calls?.length) {
-        if (result.content?.trim()) {
-          const messageEvent: AssistantMessageEvent = {
-            type: AgentEventTypes.AssistantMessage,
-            conversationId: convo,
-            messageId: msgId,
-            content: result.content,
-            ...(result.usage && { usage: result.usage }),
-          };
-          await this.deps.events?.emit(messageEvent);
-        }
+    const t1 = this.clock.now();
+    const timestamp = this.clock.iso();
 
-        if (opts.signal?.aborted) throw new Error('Aborted');
-        await this.deps.events?.emit({
-          type: AgentEventTypes.ToolCalls,
-          conversationId: convo,
-          messageId: msgId,
-          toolCalls: result.tool_calls,
-          usage: result.usage,
-        });
+    this.metrics?.recordRequestComplete?.(t1 - t0);
 
-        const approvalResult = await this.processToolApproval(
-          result.tool_calls,
-          convo,
-          msgId,
-          accumulatedMessages,
-          turnHistory,
-          result.content,
-          result.usage,
-        );
+    const shouldEmitFinalMessage = result.content?.trim() && !toolApprovalDenied && !finalResponseSaved;
 
-        if (approvalResult.wasDenied) {
-          denialMessage = approvalResult.denialMessage || '';
-          toolApprovalDenied = true;
-          break;
-        }
-
-        const approvedCalls = approvalResult.approvedCalls;
-
-        const invocations = this.toInvocations(approvedCalls);
-        if (opts.signal?.aborted) throw new Error('Aborted');
-        const toolResults = await this.deps.tools.executeToolCalls(
-          invocations,
-          {
-            conversationId: convo,
-            agentId: this.cfg.id,
-            messageId: msgId,
-            eventPort: this.deps.events,
-          },
-          this.cfg.maxToolConcurrency ?? 3,
-          opts.signal,
-        );
-        allToolResults.push(...toolResults);
-
-        const assistantMsg: Message = {
-          id: this.deps.ids.uuid(),
-          role: 'assistant',
-          content: result.content ?? null,
-          timestamp: this.deps.clock.iso(),
-          tool_calls: approvedCalls,
-          usage: result.usage,
-        };
-
-        const toolResultMsgs: Message[] = [];
-        for (const tr of toolResults) {
-          const contentStr =
-            tr.status === 'error'
-              ? String(tr.result)
-              : typeof tr.result === 'string'
-                ? tr.result
-                : JSON.stringify(tr.result);
-
-          toolResultMsgs.push({
-            id: tr.id,
-            role: 'tool',
-            content: contentStr,
-            timestamp: this.deps.clock.iso(),
-            tool_call_id: tr.id,
-            name: tr.name,
-          });
-
-          await this.deps.events?.emit({
-            type: AgentEventTypes.ToolResult,
-            conversationId: convo,
-            messageId: msgId,
-            result: tr,
-          });
-        }
-
-        await this.deps.memory.append(convo, [assistantMsg, ...toolResultMsgs]);
-
-        const { usage: _usage, ...extraField } = result;
-        accumulatedMessages.push({
-          ...extraField,
-          role: 'assistant',
-          content: result.content ?? null,
-          tool_calls: approvedCalls,
-        });
-        for (const tr of toolResults) {
-          const contentStr =
-            tr.status === 'error'
-              ? String(tr.result)
-              : typeof tr.result === 'string'
-                ? tr.result
-                : JSON.stringify(tr.result);
-          accumulatedMessages.push({ role: 'tool', content: contentStr, tool_call_id: tr.id, name: tr.name });
-        }
-
-        if (opts.signal?.aborted) throw new Error('Aborted');
-
-        streamedAssistantContent = '';
-
-        if (opts.stream && typeof this.deps.llm.streamCompletion === 'function') {
-          let isFirstChunk = true;
-          result = await this.deps.llm.streamCompletion(
-            { ...params, messages: accumulatedMessages },
-            {
-              onChunk: async (delta: string, usage?: UsageData) => {
-                try {
-                  streamedAssistantContent += delta;
-                } catch {}
-                // Only strip leading newlines from the very first chunk
-                const cleanDelta = isFirstChunk ? delta.replace(/^\n+/, '') : delta;
-                isFirstChunk = false;
-                const chunkEvent: AssistantChunkEvent = {
-                  type: AgentEventTypes.AssistantChunk,
-                  conversationId: convo,
-                  messageId: msgId,
-                  delta: cleanDelta,
-                  ...(usage && { usage }),
-                };
-                await this.deps.events?.emit(chunkEvent);
-              },
-              onStreamFinish: async (finishReason?: string, usage?: UsageData) => {
-                const finishEvent: StreamFinishEvent = {
-                  type: AgentEventTypes.StreamFinish,
-                  conversationId: convo,
-                  messageId: msgId,
-                  ...(finishReason && { finishReason }),
-                  ...(usage && { usage }),
-                };
-                await this.deps.events?.emit(finishEvent);
-              },
-            },
-            opts.signal,
-          );
-        } else {
-          result = await this.deps.llm.generateCompletion({ ...params, messages: accumulatedMessages }, opts.signal);
-        }
-
-        if (!result.tool_calls?.length && result.content && !finalResponseSaved) {
-          const content = opts.stream ? streamedAssistantContent : result.content;
-          const assistantMsg: Message = {
-            id: msgId,
-            role: 'assistant',
-            content,
-            timestamp: this.deps.clock.iso(),
-            usage: result.usage,
-          };
-          await this.deps.memory.append(convo, [assistantMsg]);
-          finalResponseSaved = true;
-
-          // Emit AssistantMessage for both streaming and non-streaming
-          // This signals the UI to finalize rendering and enable markdown
-          if (content.trim()) {
-            const messageEvent: AssistantMessageEvent = {
-              type: AgentEventTypes.AssistantMessage,
-              conversationId: convo,
-              messageId: msgId,
-              content,
-              ...(result.usage && { usage: result.usage }),
-            };
-            await this.deps.events?.emit(messageEvent);
-          }
-        }
-      }
-
-      const t1 = this.deps.clock.now();
-      const timestamp = this.deps.clock.iso();
-
-      const shouldEmitFinalMessage = result.content?.trim() && !toolApprovalDenied && !finalResponseSaved;
-
-      if (shouldEmitFinalMessage) {
-        const messageEvent: AssistantMessageEvent = {
-          type: AgentEventTypes.AssistantMessage,
-          conversationId: convo,
-          messageId: msgId,
-          content: result.content,
-          ...(result.usage && { usage: result.usage }),
-        };
-        await this.deps.events?.emit(messageEvent);
-      }
-
-      const responseContent = toolApprovalDenied ? denialMessage : result.content;
-
-      const resp: MessageResponse = {
-        id: msgId,
-        content: responseContent,
-        role: MessageRoles.Assistant,
-        timestamp,
-        metadata: {
-          model: this.cfg.model,
-          provider: 'echo',
-          agentId: this.cfg.id,
-          responseTime: t1 - t0,
-          promptTokens: result.usage?.prompt_tokens,
-          completionTokens: result.usage?.completion_tokens,
-          totalTokens: result.usage?.total_tokens,
-          estimatedCost: this.deps.cost.estimate(this.cfg.model, result.usage),
-          toolCalls: allToolResults.length,
-        },
-      };
-
-      await this.deps.events?.emit({
-        type: AgentEventTypes.Done,
+    if (shouldEmitFinalMessage) {
+      const messageEvent: AssistantMessageEvent = {
+        type: AgentEventTypes.AssistantMessage,
         conversationId: convo,
         messageId: msgId,
-        responseTimeMs: t1 - t0,
-        usage: result.usage,
-      });
-
-      return resp;
-    } catch (err) {
-      throw err;
+        content: result.content,
+        ...(result.usage && { usage: result.usage }),
+      };
+      await this.events?.emit(messageEvent);
     }
+
+    const responseContent = toolApprovalDenied ? denialMessage : result.content;
+
+    const resp: MessageResponse = {
+      id: msgId,
+      content: responseContent,
+      role: MessageRoles.Assistant,
+      timestamp,
+      metadata: {
+        model: this.cfg.model,
+        provider: 'echo',
+        agentId: this.cfg.id,
+        responseTime: t1 - t0,
+        promptTokens: result.usage?.prompt_tokens,
+        completionTokens: result.usage?.completion_tokens,
+        totalTokens: result.usage?.total_tokens,
+        estimatedCost: this.cost.estimate(this.cfg.model, result.usage),
+        toolCalls: allToolResults.length,
+      },
+    };
+
+    await this.events?.emit({
+      type: AgentEventTypes.Done,
+      conversationId: convo,
+      messageId: msgId,
+      responseTimeMs: t1 - t0,
+      usage: result.usage,
+    });
+
+    return resp;
   }
 
   private async waitForToolApproval(
@@ -692,12 +759,12 @@ export class AgentOrchestrator {
     conversationId: string,
     messageId: string,
   ): Promise<ToolCall[]> {
-    const approvalId = this.deps.ids.uuid();
+    const approvalId = this.ids.uuid();
 
     return new Promise((resolve, reject) => {
       this.pendingApprovals.set(approvalId, { resolve, reject });
 
-      this.deps.events?.emit({
+      this.events?.emit({
         type: AgentEventTypes.ToolApprovalRequired,
         conversationId,
         messageId,
@@ -727,9 +794,9 @@ export class AgentOrchestrator {
 
   private toInvocations(toolCalls: ToolCall[]): ToolInvocation[] {
     return toolCalls.map((tc) => {
-      let parameters: Record<string, any> = {};
+      let parameters: Record<string, unknown> = {};
       try {
-        parameters = JSON.parse(tc.function.arguments || '{}') as Record<string, any>;
+        parameters = JSON.parse(tc.function.arguments || '{}') as Record<string, unknown>;
       } catch {
         parameters = {};
       }

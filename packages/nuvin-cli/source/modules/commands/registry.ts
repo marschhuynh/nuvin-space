@@ -1,6 +1,5 @@
-import type { MemoryPort, Message } from '@nuvin/nuvin-core';
 import { eventBus } from '@/services/EventBus.js';
-import type { OrchestratorManager } from '@/services/OrchestratorManager.js';
+import { orchestratorManager, type OrchestratorManager } from '@/services/OrchestratorManager.js';
 import type {
   CommandDefinition,
   CommandContext,
@@ -13,8 +12,11 @@ export class CommandRegistry implements ICommandRegistry {
   private commands = new Map<string, CommandDefinition>();
   private activeCommand: ActiveCommand | null = null;
   private configFunctions: CommandContext['config'] | null = null;
-  private memory: MemoryPort<Message> | null = null;
-  private orchestrator: OrchestratorManager | null = null;
+  private orchestratorManager: OrchestratorManager | null = null;
+
+  constructor(orchestratorManager: OrchestratorManager) {
+    this.orchestratorManager = orchestratorManager;
+  }
 
   register(command: CommandDefinition): void {
     this.commands.set(command.id, command);
@@ -156,12 +158,14 @@ export class CommandRegistry implements ICommandRegistry {
     this.configFunctions = configFunctions;
   }
 
-  setMemory(memory: MemoryPort<Message> | null): void {
-    this.memory = memory;
-  }
+  // setMemory(memory: MemoryPort<Message> | null): void {
+  //   if (this.orchestratorManager) {
+  //     this.orchestratorManager.setMemory(memory);
+  //   }
+  // }
 
   setOrchestrator(orchestrator: OrchestratorManager): void {
-    this.orchestrator = orchestrator;
+    this.orchestratorManager = orchestrator;
   }
 
   private createContext(input: string): CommandContext {
@@ -174,10 +178,9 @@ export class CommandRegistry implements ICommandRegistry {
       eventBus,
       registry: this,
       config: this.configFunctions,
-      memory: this.memory,
-      orchestrator: this.orchestrator,
+      orchestratorManager: this.orchestratorManager,
     };
   }
 }
 
-export const commandRegistry = new CommandRegistry();
+export const commandRegistry = new CommandRegistry(orchestratorManager);

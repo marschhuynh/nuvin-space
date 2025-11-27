@@ -66,6 +66,14 @@ class MockConfigManager {
     }
     return current;
   }
+
+  getProfileManager() {
+    return undefined;
+  }
+
+  getCurrentProfile(): string {
+    return 'default';
+  }
 }
 
 describe('OrchestratorManager - ConfigManager Integration', () => {
@@ -99,7 +107,7 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
 
     const result = await manager.init({}, handlers);
 
-    expect(result.orchestrator).toBeTruthy();
+    expect(manager.getOrchestrator()).toBeTruthy();
     expect(result.model).toBe('openai/gpt-4o');
     expect(manager.getStatus()).toBe('Ready');
 
@@ -130,7 +138,7 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
 
     const result = await manager.init({}, handlers);
 
-    expect(result.orchestrator).toBeTruthy();
+    expect(manager.getOrchestrator()).toBeTruthy();
     expect(result.model).toBe('claude-sonnet-4-5-20250929');
     expect(manager.getStatus()).toBe('Ready');
 
@@ -215,7 +223,7 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
 
     const result = await manager.init({}, handlers);
 
-    expect(result.orchestrator).toBeTruthy();
+    expect(manager.getOrchestrator()).toBeTruthy();
     expect(result.model).toBe('openai/gpt-4.1');
 
     await manager.cleanup();
@@ -243,7 +251,7 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
 
     const result = await manager.init({}, handlers);
 
-    expect(result.orchestrator).toBeTruthy();
+    expect(manager.getOrchestrator()).toBeTruthy();
     expect(result.model).toBe('glm-4.6');
 
     await manager.cleanup();

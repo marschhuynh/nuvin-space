@@ -26,6 +26,7 @@ import {
   type ProviderKey,
 } from '@/config/index.js';
 import { ConfigCliHandler } from '@/config/cli-handler.js';
+import { orchestratorManager } from './services/OrchestratorManager.js';
 
 process.stdout.write('\x1b[?2004h');
 
@@ -384,7 +385,11 @@ const cli = meow(
       <StdoutDimensionsProvider>
         <ConfigProvider initialConfig={mergedConfig}>
           <NotificationProvider>
-            <ToolApprovalProvider requireToolApproval={finalRequireToolApproval} onError={(msg) => console.error(msg)}>
+            <ToolApprovalProvider
+              orchestratorManager={orchestratorManager}
+              requireToolApproval={finalRequireToolApproval}
+              onError={(msg) => console.error(msg)}
+            >
               <CommandProvider>
                 <ExplainModeProvider>
                   <ConfigBridge>

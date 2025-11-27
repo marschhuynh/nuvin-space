@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Text } from 'ink';
 import * as os from 'node:os';
 import { execSync } from 'node:child_process';
-import type { SessionDisplayMetrics } from '@/adapters/index.js';
+import type { MetricsSnapshot } from '@/services/SessionMetricsService.js';
 import type { ProviderKey } from '@/const.js';
 import { useNotification } from '@/hooks/useNotification.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
@@ -13,7 +13,7 @@ import { useExplainMode } from '@/contexts/ExplainModeContext.js';
 
 type FooterProps = {
   status: string;
-  sessionMetrics?: SessionDisplayMetrics;
+  metrics?: MetricsSnapshot;
   toolApprovalMode?: boolean;
   vimModeEnabled?: boolean;
   vimMode?: 'insert' | 'normal';
@@ -23,7 +23,7 @@ type FooterProps = {
 
 const FooterComponent: React.FC<FooterProps> = ({
   status: _status,
-  sessionMetrics,
+  metrics,
   vimModeEnabled = false,
   vimMode = 'insert',
   workingDirectory,
@@ -68,7 +68,7 @@ const FooterComponent: React.FC<FooterProps> = ({
             )}
             <Text color={theme.footer.status} dimColor>
               {[
-                currentProfile && currentProfile !== 'default' ? currentProfile : null, // Only show if not default
+                currentProfile && currentProfile !== 'default' ? currentProfile : null,
                 `${provider}:${model}`,
                 sessionId && `Session: ${sessionId}`,
                 thinking && thinking !== THINKING_LEVELS.OFF ? `Thinking: ${thinking}` : '',
@@ -79,48 +79,53 @@ const FooterComponent: React.FC<FooterProps> = ({
             </Text>
           </Box>
         )}
-        {!explainMode && (sessionMetrics?.currentWindowTokens || sessionMetrics?.totalTokens) ? (
+        {!explainMode && (metrics?.currentTokens || metrics?.totalTokens) ? (
           <Box>
             <Text color={theme.footer.model} dimColor bold>
               Tokens:
             </Text>
             <Text color={theme.footer.model} bold>
               {' '}
-              {formatTokens(sessionMetrics.currentWindowTokens)}
+              {formatTokens(metrics.currentTokens)}
             </Text>
-            {sessionMetrics.totalTokens > 0 && (
+            {metrics.contextWindowLimit && metrics.contextWindowUsage !== undefined ? (
+              <Text color={getUsageColor(metrics.contextWindowUsage, theme)} dimColor>
+                {' '}
+                ({Math.round(metrics.contextWindowUsage * 100)}%)
+              </Text>
+            ) : null}
+            {metrics.totalTokens > 0 && (
               <Text color={theme.footer.model} dimColor>
                 {' '}
-                / {formatTokens(sessionMetrics.totalTokens)}
+                / {formatTokens(metrics.totalTokens)}
               </Text>
             )}
             <Text color={theme.footer.model} dimColor>
               {' '}
-              (↑{formatTokens(sessionMetrics.currentWindowPromptTokens)} ↓
-              {formatTokens(sessionMetrics.currentWindowCompletionTokens)})
+              (↑{formatTokens(metrics.currentPromptTokens)} ↓{formatTokens(metrics.currentCompletionTokens)})
             </Text>
-            {sessionMetrics.currentWindowCachedTokens > 0 && (
+            {metrics.currentCachedTokens > 0 && (
               <Text color={theme.tokens.green} dimColor>
                 {' '}
-                | Cached: {formatTokens(sessionMetrics.currentWindowCachedTokens)}
+                | Cached: {formatTokens(metrics.currentCachedTokens)}
               </Text>
             )}
-            {sessionMetrics.requestCount > 0 && (
+            {metrics.llmCallCount > 0 && (
               <Text color={theme.tokens.magenta} dimColor>
                 {' '}
-                | Req: {sessionMetrics.requestCount}
+                | Req: {metrics.llmCallCount}
               </Text>
             )}
-            {(sessionMetrics.toolCallCount + sessionMetrics.currentWindowToolCalls) > 0 && (
+            {metrics.toolCallCount > 0 && (
               <Text color={theme.tokens.blue} dimColor>
                 {' '}
-                | Tools: {sessionMetrics.toolCallCount + sessionMetrics.currentWindowToolCalls}
+                | Tools: {metrics.toolCallCount}
               </Text>
             )}
-            {sessionMetrics.totalPrice > 0 && (
+            {metrics.totalCost > 0 && (
               <Text color={theme.tokens.cyan} dimColor>
                 {' '}
-                | ${formatCost(sessionMetrics.totalPrice)}
+                | ${formatCost(metrics.totalCost)}
               </Text>
             )}
           </Box>
@@ -158,6 +163,12 @@ const formatCost = (cost: number): string => {
   if (cost < 0.01) return cost.toFixed(4);
   if (cost < 1) return cost.toFixed(3);
   return cost.toFixed(2);
+};
+
+const getUsageColor = (usage: number, theme: ReturnType<typeof useTheme>['theme']): string => {
+  if (usage >= 0.95) return theme.tokens.red;
+  if (usage >= 0.85) return theme.tokens.yellow;
+  return theme.footer.model;
 };
 
 const formatDirectory = (dir: string): string => {

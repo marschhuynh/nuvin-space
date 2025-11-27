@@ -1,10 +1,9 @@
 import { EventEmitter } from 'node:events';
-import type { MessageLine, MessageMetadata } from '@/adapters/index.js';
+import type { MessageLine } from '@/adapters/index.js';
 import type { ToolCall } from '@nuvin/nuvin-core';
 
 type EventMap = {
   'ui:line': MessageLine;
-  'ui:lastMetadata': MessageMetadata | null;
   'ui:error': string;
   'ui:toolApprovalRequired': {
     toolCalls: ToolCall[];
@@ -38,7 +37,6 @@ export class TypedEventBus {
   private emitter = new EventEmitter();
 
   constructor() {
-    // Increase max listeners to accommodate multiple components using useStdoutDimensions
     this.emitter.setMaxListeners(30);
   }
 

@@ -2,13 +2,9 @@ import type { LLMPort } from '../ports.js';
 import { BaseLLM } from './base-llm.js';
 import { FetchTransport, createTransport } from '../transports/index.js';
 import providerConfig from './llm-provider-config.json';
+import { normalizeModelInfo, type ModelInfo } from './model-limits.js';
 
-type ModelConfig = 
-  | false
-  | true
-  | string
-  | string[]
-  | Array<{ id: string; name?: string; [key: string]: unknown }>;
+type ModelConfig = false | true | string | string[] | Array<{ id: string; name?: string; [key: string]: unknown }>;
 
 interface ProviderConfig {
   name: string;
@@ -29,6 +25,7 @@ export interface LLMOptions {
   enablePromptCaching?: boolean;
   includeUsage?: boolean;
   version?: string;
+  providerName?: string;
 }
 
 const providers = providerConfig.providers as ProviderConfig[];
@@ -46,12 +43,14 @@ export class GenericLLM extends BaseLLM implements LLMPort {
   private readonly opts: LLMOptions;
   private readonly includeUsage: boolean;
   private readonly modelConfig: ModelConfig;
+  private readonly providerName: string;
 
   constructor(baseUrl: string, modelConfig: ModelConfig, opts: LLMOptions = {}) {
-    const { enablePromptCaching = false, includeUsage = false, ...restOpts } = opts;
+    const { enablePromptCaching = false, includeUsage = false, providerName = 'unknown', ...restOpts } = opts;
     super(opts.apiUrl || baseUrl, { enablePromptCaching });
     this.includeUsage = includeUsage;
     this.modelConfig = modelConfig;
+    this.providerName = providerName;
     this.opts = restOpts;
   }
 
@@ -66,13 +65,16 @@ export class GenericLLM extends BaseLLM implements LLMPort {
     return createTransport(base, this.apiUrl, this.opts.apiKey, this.opts.apiUrl, this.opts.version);
   }
 
-  async getModels(signal?: AbortSignal): Promise<ModelResponse[]> {
+  async getModels(signal?: AbortSignal): Promise<ModelInfo[]> {
     if (this.modelConfig === false) {
       throw new Error('Provider does not support getModels');
     }
 
     if (Array.isArray(this.modelConfig)) {
-      return this.modelConfig.map((m) => (typeof m === 'string' ? { id: m } : m));
+      return this.modelConfig.map((m) => {
+        const raw = typeof m === 'string' ? { id: m } : m;
+        return normalizeModelInfo(this.providerName, raw);
+      });
     }
 
     if (typeof this.modelConfig === 'string') {
@@ -85,7 +87,7 @@ export class GenericLLM extends BaseLLM implements LLMPort {
       }
 
       const data: ModelsListResponse = await res.json();
-      return data.data;
+      return data.data.map((m) => normalizeModelInfo(this.providerName, m));
     }
 
     const transport = this.createTransport();
@@ -97,7 +99,7 @@ export class GenericLLM extends BaseLLM implements LLMPort {
     }
 
     const data: ModelsListResponse = await res.json();
-    return data.data;
+    return data.data.map((m) => normalizeModelInfo(this.providerName, m));
   }
 
   async generateCompletion(
@@ -178,10 +180,14 @@ function mergeProviders(customProviders?: Record<string, CustomProviderDefinitio
   return Array.from(merged.values());
 }
 
-export function createLLM(providerName: string, options: LLMOptions = {}, customProviders?: Record<string, CustomProviderDefinition>): LLMPort {
+export function createLLM(
+  providerName: string,
+  options: LLMOptions = {},
+  customProviders?: Record<string, CustomProviderDefinition>,
+): LLMPort {
   const allProviders = mergeProviders(customProviders);
   const config = allProviders.find((p) => p.name.toLowerCase() === providerName.toLowerCase());
-  
+
   if (!config) {
     throw new Error(`Unknown LLM provider: ${providerName}. Available: ${allProviders.map((p) => p.name).join(', ')}`);
   }
@@ -190,6 +196,7 @@ export function createLLM(providerName: string, options: LLMOptions = {}, custom
 
   return new GenericLLM(config.baseUrl, modelConfig, {
     ...options,
+    providerName: config.name,
     enablePromptCaching: options.enablePromptCaching ?? config.features.promptCaching,
     includeUsage: options.includeUsage ?? config.features.includeUsage,
   });
@@ -200,7 +207,10 @@ export function getAvailableProviders(customProviders?: Record<string, CustomPro
   return allProviders.map((p) => p.name);
 }
 
-export function supportsGetModels(providerName: string, customProviders?: Record<string, CustomProviderDefinition>): boolean {
+export function supportsGetModels(
+  providerName: string,
+  customProviders?: Record<string, CustomProviderDefinition>,
+): boolean {
   const allProviders = mergeProviders(customProviders);
   const config = allProviders.find((p) => p.name.toLowerCase() === providerName.toLowerCase());
   if (!config) return false;

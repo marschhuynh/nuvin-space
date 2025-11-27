@@ -37,7 +37,7 @@ export class ConfigManager {
     }
 
     // Determine active profile (CLI flag overrides registry)
-    this.currentProfile = profile || await this.profileManager.getActive();
+    this.currentProfile = profile || (await this.profileManager.getActive());
 
     // Update global directory based on profile
     if (this.profileManager.isDefault(this.currentProfile)) {

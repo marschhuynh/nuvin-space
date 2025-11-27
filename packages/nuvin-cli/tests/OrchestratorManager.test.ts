@@ -35,6 +35,8 @@ const createMockConfigManager = () => {
     }),
     get: vi.fn().mockReturnValue(undefined),
     set: vi.fn().mockResolvedValue(undefined),
+    getProfileManager: vi.fn().mockReturnValue(undefined),
+    getCurrentProfile: vi.fn().mockReturnValue('default'),
     // biome-ignore lint/suspicious/noExplicitAny: test mock
   } as any;
 };
@@ -77,11 +79,11 @@ describe('OrchestratorManager', () => {
 
     const result = await manager.init({ mcpConfigPath: '/non/existent/path/mcp-config.json' }, handlers);
 
-    expect(result.orchestrator).toBeTruthy();
-    expect(result.memory).toBeTruthy();
+    expect(manager.getOrchestrator()).toBeTruthy();
+    expect(manager.getMemory()).toBeTruthy();
     expect(result.model).toBe('openai/gpt-4');
-    expect(result.sessionId).toBe(null); // null when memPersist is false (default)
-    expect(result.sessionDir).toBe(null); // null when memPersist is false (default)
+    expect(result.sessionId).toBeTruthy(); // sessionId is generated
+    expect(result.sessionDir).toBeTruthy(); // sessionDir is set
     expect(manager.getStatus()).toBe('Ready');
 
     await manager.cleanup();
@@ -202,9 +204,9 @@ describe('OrchestratorManager', () => {
     const manager = new OrchestratorManager(mockConfigManager);
     const handlers = createMockHandlers();
 
-    const result = await manager.init({ mcpConfigPath: '/non/existent/path/mcp-config.json' }, handlers);
+    await manager.init({ mcpConfigPath: '/non/existent/path/mcp-config.json' }, handlers);
 
-    expect(result.orchestrator).toBeTruthy();
+    expect(manager.getOrchestrator()).toBeTruthy();
     expect(manager.getStatus()).toBe('Ready');
 
     await manager.cleanup();

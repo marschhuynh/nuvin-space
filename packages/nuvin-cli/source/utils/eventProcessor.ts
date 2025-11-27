@@ -1,6 +1,6 @@
 import * as crypto from 'node:crypto';
 import { AgentEventTypes, ErrorReason, type AgentEvent, type ToolCall } from '@nuvin/nuvin-core';
-import type { MessageLine, MessageMetadata, LineMetadata } from '@/adapters/index.js';
+import type { MessageLine, LineMetadata } from '@/adapters/index.js';
 import { renderToolCall, flattenError } from './messageProcessor.js';
 import { enrichToolCallsWithLineNumbers } from './enrichToolCalls.js';
 
@@ -10,15 +10,12 @@ export interface EventProcessorCallbacks {
   appendLine: (line: MessageLine) => void;
   updateLine?: (id: string, content: string) => void;
   updateLineMetadata?: (id: string, metadata: Partial<LineMetadata>) => void;
-  setLastMetadata?: (metadata: MessageMetadata | null) => void;
   onToolApprovalRequired?: (event: {
     toolCalls: ToolCall[];
     approvalId: string;
     conversationId: string;
     messageId: string;
   }) => void;
-  onToolResult?: () => void;
-  onRequestComplete?: (metadata: MessageMetadata) => void;
   renderUserMessages?: boolean;
   streamingEnabled?: boolean;
 }
@@ -30,22 +27,19 @@ export type SubAgentState = {
   toolCalls: Array<{
     id: string;
     name: string;
-    arguments?: string; // JSON string of tool call arguments
+    arguments?: string;
     durationMs?: number;
     status?: 'success' | 'error';
   }>;
   resultMessage?: string;
   totalDurationMs?: number;
   finalStatus?: 'success' | 'error' | 'timeout';
-  // Track which tool call message this state belongs to
   toolCallMessageId?: string;
-  // Track which specific tool call (assign_task) triggered this agent
   toolCallId?: string;
 };
 
 export type EventProcessorState = {
   toolCallCount: number;
-  metadata: MessageMetadata | null;
   recentToolCalls: Map<string, ToolCall>;
   streamingMessageId: string | null;
   streamingContent: string;
@@ -57,7 +51,6 @@ export type EventProcessorState = {
 
 export const initialEventProcessorState: EventProcessorState = {
   toolCallCount: 0,
-  metadata: null,
   recentToolCalls: new Map(),
   streamingMessageId: null,
   streamingContent: '',
@@ -94,7 +87,6 @@ export function processAgentEvent(
       }
       return {
         toolCallCount: 0,
-        metadata: null,
         recentToolCalls: state.recentToolCalls,
         streamingMessageId: null,
         streamingContent: '',
@@ -186,15 +178,11 @@ export function processAgentEvent(
         color,
       });
 
-      callbacks.onToolResult?.();
-
       return state;
     }
 
     case AgentEventTypes.AssistantChunk: {
-      // Check if streaming is enabled
       if (!callbacks.streamingEnabled) {
-        // In the simplified flow we ignore streaming deltas and wait for the final assistant message.
         return state;
       }
 
@@ -232,27 +220,9 @@ export function processAgentEvent(
         return state;
       }
 
-      // Handle usage/cost for non-streaming mode
-      if (!callbacks.streamingEnabled && event.usage) {
-        const metadata: MessageMetadata = {
-          promptTokens: event.usage.prompt_tokens,
-          completionTokens: event.usage.completion_tokens,
-          totalTokens: event.usage.total_tokens,
-          toolCalls: state.toolCallCount,
-          estimatedCost: null,
-          cost: event.usage.cost,
-          cachedTokens: event.usage.prompt_tokens_details?.cached_tokens,
-        };
-        callbacks.setLastMetadata?.(metadata);
-      }
-
-      // If streaming is enabled and we have a streaming message, update it with final content
       if (callbacks.streamingEnabled && state.streamingMessageId) {
-        // Always update content to trigger re-render with markdown rendering
         callbacks.updateLine?.(state.streamingMessageId, event.content);
-        // Mark streaming as complete - this must happen after content update
         callbacks.updateLineMetadata?.(state.streamingMessageId, { isStreaming: false });
-        // Reset streaming state after finalizing the message
         return {
           ...state,
           streamingContent: event.content,
@@ -260,7 +230,6 @@ export function processAgentEvent(
         };
       }
 
-      // No streaming or no streaming message exists, create a new one
       callbacks.appendLine({
         id: crypto.randomUUID(),
         type: 'assistant',
@@ -272,51 +241,10 @@ export function processAgentEvent(
     }
 
     case AgentEventTypes.StreamFinish: {
-      const usage = event.usage;
-      if (usage) {
-        const metadata: MessageMetadata = {
-          promptTokens: usage.prompt_tokens,
-          completionTokens: usage.completion_tokens,
-          totalTokens: usage.total_tokens,
-          toolCalls: state.toolCallCount,
-          estimatedCost: null,
-          cost: usage.cost,
-          cachedTokens: usage.prompt_tokens_details?.cached_tokens,
-        };
-
-        callbacks.setLastMetadata?.(metadata);
-        callbacks.onRequestComplete?.(metadata);
-        return {
-          ...state,
-          metadata,
-        };
-      }
       return state;
     }
 
     case AgentEventTypes.Done: {
-      const usage = event.usage;
-      if (usage) {
-        const metadata: MessageMetadata = {
-          promptTokens: usage.prompt_tokens,
-          completionTokens: usage.completion_tokens,
-          totalTokens: usage.total_tokens,
-          toolCalls: state.toolCallCount,
-          estimatedCost: null,
-          cost: callbacks.streamingEnabled ? undefined : usage.cost,
-          cachedTokens: usage.prompt_tokens_details?.cached_tokens,
-          responseTime: event.responseTimeMs,
-        };
-
-        callbacks.setLastMetadata?.(metadata);
-        if (!callbacks.streamingEnabled) {
-          callbacks.onRequestComplete?.(metadata);
-        }
-        return {
-          ...state,
-          metadata,
-        };
-      }
       return state;
     }
 

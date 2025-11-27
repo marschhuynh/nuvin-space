@@ -9,7 +9,7 @@ export function registerExportCommand(registry: CommandRegistry) {
     type: 'function',
     description: 'Export conversation history to a JSON file',
     category: 'session',
-    async handler({ rawInput, eventBus, memory }) {
+    async handler({ rawInput, eventBus, orchestratorManager }) {
       const parts = rawInput.trim().split(/\s+/);
       const filename = parts.slice(1).join(' ').trim();
 
@@ -25,6 +25,7 @@ export function registerExportCommand(registry: CommandRegistry) {
       }
 
       try {
+        const memory = orchestratorManager?.getMemory();
         if (!memory) {
           eventBus.emit('ui:line', {
             id: crypto.randomUUID(),

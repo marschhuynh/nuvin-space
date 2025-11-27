@@ -144,17 +144,17 @@ describe('LLM Factory - Custom Providers', () => {
       const llm = createLLM('custom-provider', { apiKey: 'test-key' }, customProviders);
       const models = await llm.getModels();
       expect(models).toHaveLength(3);
-      expect(models[0]).toEqual({ id: 'model-1' });
-      expect(models[1]).toEqual({ id: 'model-2' });
-      expect(models[2]).toEqual({ id: 'model-3' });
+      expect(models[0]).toEqual({ id: 'model-1', name: 'model-1' });
+      expect(models[1]).toEqual({ id: 'model-2', name: 'model-2' });
+      expect(models[2]).toEqual({ id: 'model-3', name: 'model-3' });
     });
 
-    it('should return model objects when configured', async () => {
+    it('should return model objects with normalized limits when configured', async () => {
       const llm = createLLM('custom-with-objects', { apiKey: 'test-key' }, customProviders);
       const models = await llm.getModels();
       expect(models).toHaveLength(2);
-      expect(models[0]).toEqual({ id: 'model-a', name: 'Model A', context_length: 128000 });
-      expect(models[1]).toEqual({ id: 'model-b', name: 'Model B', context_length: 200000 });
+      expect(models[0]).toEqual({ id: 'model-a', name: 'Model A', limits: { contextWindow: 128000 } });
+      expect(models[1]).toEqual({ id: 'model-b', name: 'Model B', limits: { contextWindow: 200000 } });
     });
 
     it('should throw error when models=false', async () => {

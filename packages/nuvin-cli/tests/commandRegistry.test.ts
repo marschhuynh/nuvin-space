@@ -120,25 +120,4 @@ describe('CommandRegistry', () => {
     expect(result.commandId).toBe('/unknown');
     expect(result.error).toBeTruthy();
   });
-
-  it('setOrchestrator stores orchestrator reference', () => {
-    const registry = new CommandRegistry();
-    const mockOrchestrator = { test: 'orchestrator' };
-
-    registry.setOrchestrator(mockOrchestrator);
-
-    expect((registry as { orchestrator: unknown }).orchestrator).toBe(mockOrchestrator);
-  });
-
-  it('createContext includes orchestrator when set', () => {
-    const registry = new CommandRegistry();
-    registry.setConfigFunctions(createMockConfigFunctions());
-
-    const mockOrchestrator = { test: 'orchestrator' };
-    registry.setOrchestrator(mockOrchestrator);
-
-    const context = (registry as { createContext: (input: string) => CommandContext }).createContext('/test');
-
-    expect(context.orchestrator).toBe(mockOrchestrator);
-  });
 });

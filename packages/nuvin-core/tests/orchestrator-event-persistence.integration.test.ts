@@ -89,6 +89,7 @@ describe('AgentOrchestrator - Event Persistence Integration Test', () => {
     const llm = new GenericLLM('https://api.example.com', true, {
       apiKey: 'test-key',
       includeUsage: true,
+      providerName: 'test-provider',
     });
 
     const config: AgentConfig = {
@@ -179,9 +180,7 @@ describe('AgentOrchestrator - Event Persistence Integration Test', () => {
     expect(Array.isArray(persistedEvents)).toBe(true);
     expect(persistedEvents.length).toBe(emittedEvents.length);
 
-    const persistedChunks = persistedEvents.filter(
-      (e: AgentEvent) => e.type === AgentEventTypes.AssistantChunk,
-    );
+    const persistedChunks = persistedEvents.filter((e: AgentEvent) => e.type === AgentEventTypes.AssistantChunk);
 
     expect(persistedChunks).toHaveLength(assistantChunkEvents.length);
 

@@ -1,6 +1,7 @@
 import type { LLMPort } from '../ports.js';
 import { BaseLLM, LLMError } from './base-llm.js';
 import { FetchTransport, GithubAuthTransport } from '../transports/index.js';
+import { normalizeModelInfo, type ModelInfo } from './model-limits.js';
 
 type GithubOptions = { apiKey?: string; accessToken?: string; apiUrl?: string; httpLogFile?: string };
 
@@ -47,7 +48,7 @@ export class GithubLLM extends BaseLLM implements LLMPort {
     });
   }
 
-  async getModels(signal?: AbortSignal): Promise<GithubModel[]> {
+  async getModels(signal?: AbortSignal): Promise<ModelInfo[]> {
     const res = await this.getTransport().get('/models', undefined, signal);
 
     if (!res.ok) {
@@ -56,7 +57,7 @@ export class GithubLLM extends BaseLLM implements LLMPort {
     }
 
     const body = (await res.json()) as GithubModelsResponse;
-    return body.data;
+    return body.data.map((m) => normalizeModelInfo('github', m as unknown as Record<string, unknown>));
   }
 
   private handleError(error: unknown, model: string): never {

@@ -76,7 +76,19 @@ const getMessageCountBadge = (count: number) => {
   return { text: `${count} msgs`, color: 'magenta' };
 };
 
-const LOGO = `Welcome to
+const version = getVersion();
+
+const ICON_2 = `
+╭──┴──┴──┴──┴──┴──╮
+│  ●  ●  ● ─────  │
+│                 │   N U V I N
+│  >_  READY      │   [${version}]
+╰──┬──┬──┬──┬──┬──╯
+      │  │  │
+         │
+`;
+
+const _LOGO = `Welcome to
 ███╗   ██╗ ██╗   ██╗ ██╗   ██╗ ██╗ ███╗   ██╗
 ██╔██╗ ██║ ██║   ██║ ██║   ██║ ██║ ██╔██╗ ██║
 ██║╚██╗██║ ██║   ██║ ╚██╗ ██╔╝ ██║ ██║╚██╗██║
@@ -89,16 +101,21 @@ const WelcomeLogo = () => {
 
   return (
     <Box flexDirection="column" width={cols} marginTop={0} marginBottom={0} paddingX={0} gap={0}>
-      <Box alignItems="center" paddingTop={0} paddingBottom={0} flexDirection="column">
-        <Box flexDirection="column" alignItems="center" justifyContent="center">
+      <Box alignItems="flex-start" paddingTop={0} paddingBottom={0} flexDirection="column">
+        <Box flexDirection="row" alignItems="center" justifyContent="center">
           <Gradient colors={['#FF5F6D', '#FFC371']}>
-            <Text>{`${LOGO}`}</Text>
+            <Text>{`${ICON_2}`}</Text>
           </Gradient>
-          <Box alignSelf="flex-end">
+          {/* <Box flexDirection="column">
             <Gradient colors={['#FF5F6D', '#FFC371']}>
-              <Text>{`v${getVersion()}`}</Text>
+              <Text>{`${LOGO}`}</Text>
             </Gradient>
-          </Box>
+            <Box alignSelf="flex-end">
+              <Gradient colors={['#FF5F6D', '#FFC371']}>
+                <Text>{`v${getVersion()}`}</Text>
+              </Gradient>
+            </Box>
+          </Box> */}
         </Box>
       </Box>
     </Box>

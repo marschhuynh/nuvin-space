@@ -178,7 +178,7 @@ export interface LLMPort {
     },
     signal?: AbortSignal,
   ): Promise<CompletionResult>;
-  getModels?(signal?: AbortSignal): Promise<Array<{ id: string; [key: string]: unknown }>>;
+  getModels?(signal?: AbortSignal): Promise<Array<{ id: string; limits?: { contextWindow: number; maxOutput?: number }; [key: string]: unknown }>>;
 }
 
 export type LLMConfig = {
@@ -293,6 +293,35 @@ export interface Clock {
 
 export interface CostCalculator {
   estimate(model: string, usage?: UsageData): number | undefined;
+}
+
+export type MetricsSnapshot = {
+  totalTokens: number;
+  totalPromptTokens: number;
+  totalCompletionTokens: number;
+  totalCachedTokens: number;
+  totalReasoningTokens: number;
+  requestCount: number;
+  llmCallCount: number;
+  toolCallCount: number;
+  totalTimeMs: number;
+  totalCost: number;
+  currentTokens: number;
+  currentPromptTokens: number;
+  currentCompletionTokens: number;
+  currentCachedTokens: number;
+  currentCost: number;
+  contextWindowLimit?: number;
+  contextWindowUsage?: number;
+};
+
+export interface MetricsPort {
+  recordLLMCall(usage: UsageData, cost?: number): void;
+  recordToolCall(): void;
+  recordRequestComplete(responseTimeMs: number): void;
+  setContextWindow(limit: number, usage: number): void;
+  reset(): void;
+  getSnapshot(): MetricsSnapshot;
 }
 
 // Configuration for the orchestrator

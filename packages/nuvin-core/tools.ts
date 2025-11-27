@@ -100,13 +100,11 @@ export class ToolRegistry implements ToolPort, AgentAwareToolPort, OrchestratorA
       agentRegistry: this.agentRegistry,
       commandRunner,
       agentListProvider: () =>
-        this.agentRegistry
-          .list()
-          .map((agent) => ({
-            id: agent.id,
-            name: agent.name,
-            description: agent.description,
-          })),
+        this.agentRegistry.list().map((agent) => ({
+          id: agent.id,
+          name: agent.name,
+          description: agent.description,
+        })),
     });
 
     delegationService.setEnabledAgents(this.enabledAgentsConfig);

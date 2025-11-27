@@ -53,13 +53,19 @@ describe('/clear command', () => {
   let registry: CommandRegistry;
   let mockEventBus: TypedEventBus;
   let mockMemory: ReturnType<typeof createMockMemory>;
+  let mockOrchestratorManager: OrchestratorManager;
 
   beforeEach(() => {
-    registry = new CommandRegistry();
-    registry.setConfigFunctions(createMockConfigFunctions());
     mockEventBus = createMockEventBus();
     mockMemory = createMockMemory();
-    registry.setMemory(mockMemory as unknown as MemoryPort<Message>);
+    
+    mockOrchestratorManager = {
+      getMemory: vi.fn(() => mockMemory),
+      getSession: vi.fn(() => ({ sessionId: 'test-session-id' })),
+    } as unknown as OrchestratorManager;
+
+    registry = new CommandRegistry(mockOrchestratorManager);
+    registry.setConfigFunctions(createMockConfigFunctions());
 
     // Replace the global eventBus with our mock
     (registry as { createContext: (input: string) => CommandContext }).createContext = function (input: string) {
@@ -68,8 +74,7 @@ describe('/clear command', () => {
         eventBus: mockEventBus,
         registry: this,
         config: this.configFunctions,
-        memory: this.memory,
-        orchestrator: this.orchestrator,
+        orchestratorManager: this.orchestratorManager,
       };
     };
 
@@ -97,24 +102,10 @@ describe('/clear command', () => {
     expect(mockEventBus.emit).toHaveBeenCalledWith('ui:lines:clear');
   });
 
-  it('should emit ui:lastMetadata event with null', async () => {
-    await registry.execute('/clear');
-
-    expect(mockEventBus.emit).toHaveBeenCalledWith('ui:lastMetadata', null);
-  });
-
   it('should emit ui:clear:complete event', async () => {
     await registry.execute('/clear');
 
     expect(mockEventBus.emit).toHaveBeenCalledWith('ui:clear:complete');
-  });
-
-  it('should handle missing memory gracefully', async () => {
-    registry.setMemory(null);
-
-    const result = await registry.execute('/clear');
-
-    expect(result.success).toBe(true);
   });
 });
 
@@ -123,21 +114,21 @@ describe('/new command', () => {
   let mockEventBus: TypedEventBus;
   let mockMemory: ReturnType<typeof createMockMemory>;
   let mockConfig: ReturnType<typeof createMockConfigFunctions>;
-  let mockOrchestrator: { getStatus: () => string };
+  let mockOrchestratorManager: OrchestratorManager;
 
   beforeEach(() => {
-    registry = new CommandRegistry();
-    mockConfig = createMockConfigFunctions();
-    registry.setConfigFunctions(mockConfig);
     mockEventBus = createMockEventBus();
     mockMemory = createMockMemory();
-    registry.setMemory(mockMemory as unknown as MemoryPort<Message>);
-
-    // Create mock orchestrator
-    mockOrchestrator = {
+    mockConfig = createMockConfigFunctions();
+    
+    mockOrchestratorManager = {
       getStatus: vi.fn(() => 'Ready'),
-    };
-    registry.setOrchestrator(mockOrchestrator as unknown as OrchestratorManager);
+      getMemory: vi.fn(() => mockMemory),
+      getSession: vi.fn(() => ({ sessionId: 'test-session-id' })),
+    } as unknown as OrchestratorManager;
+
+    registry = new CommandRegistry(mockOrchestratorManager);
+    registry.setConfigFunctions(mockConfig);
 
     // Replace the global eventBus with our mock
     (registry as { createContext: (input: string) => CommandContext }).createContext = function (input: string) {
@@ -146,8 +137,7 @@ describe('/new command', () => {
         eventBus: mockEventBus,
         registry: this,
         config: this.configFunctions,
-        memory: this.memory,
-        orchestrator: this.orchestrator,
+        orchestratorManager: this.orchestratorManager,
       };
     };
 
@@ -167,12 +157,6 @@ describe('/new command', () => {
     await registry.execute('/new');
 
     expect(mockEventBus.emit).toHaveBeenCalledWith('ui:lines:clear');
-  });
-
-  it('should clear last metadata', async () => {
-    await registry.execute('/new');
-
-    expect(mockEventBus.emit).toHaveBeenCalledWith('ui:lastMetadata', null);
   });
 
   it('should not clear memory (preserves session)', async () => {
@@ -196,14 +180,6 @@ describe('/new command', () => {
     await registry.execute('/new');
 
     expect(mockEventBus.emit).toHaveBeenCalledWith('ui:new:conversation', { memPersist: true });
-  });
-
-  it('should handle missing memory gracefully', async () => {
-    registry.setMemory(null);
-
-    const result = await registry.execute('/new');
-
-    expect(result.success).toBe(true);
   });
 
   it('should get session.memPersist config', async () => {

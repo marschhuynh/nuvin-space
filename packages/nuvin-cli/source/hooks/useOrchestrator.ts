@@ -1,8 +1,8 @@
 // biome-ignore-all lint/correctness/useExhaustiveDependencies: complex hook dependencies managed manually
 import { useRef, useEffect, useState } from 'react';
-import type { MemoryPort, AgentOrchestrator, Message, UserMessagePayload, SendMessageOptions } from '@nuvin/nuvin-core';
-import type { MessageLine, MessageMetadata } from '@/adapters/index.js';
-import { OrchestratorManager, type OrchestratorConfig } from '@/services/OrchestratorManager.js';
+import type { UserMessagePayload, SendMessageOptions } from '@nuvin/nuvin-core';
+import type { MessageLine } from '@/adapters/index.js';
+import { orchestratorManager, type OrchestratorConfig } from '@/services/OrchestratorManager.js';
 import { useToolApproval } from '@/contexts/ToolApprovalContext.js';
 import { OrchestratorStatus } from '@/types/orchestrator.js';
 
@@ -14,7 +14,6 @@ type UseOrchestratorProps = {
   appendLine: (line: MessageLine) => void;
   updateLine: (id: string, content: string) => void;
   updateLineMetadata: (id: string, metadata: Partial<LineMetadata>) => void;
-  setLastMetadata: (metadata: MessageMetadata | null) => void;
   handleError: (message: string) => void;
 };
 
@@ -24,28 +23,23 @@ export const useOrchestrator = ({
   appendLine,
   updateLine,
   updateLineMetadata,
-  setLastMetadata,
   handleError,
 }: UseOrchestratorProps) => {
   const [status, setStatus] = useState<OrchestratorStatus>(OrchestratorStatus.INITIALIZING);
   const { toolApprovalMode } = useToolApproval();
 
-  const orchestratorRef = useRef<AgentOrchestrator | null>(null);
-  const memoryRef = useRef<MemoryPort<Message> | null>(null);
-  const managerRef = useRef<OrchestratorManager>(new OrchestratorManager());
-
-  const handlersRef = useRef({ appendLine, updateLine, updateLineMetadata, setLastMetadata, handleError });
-  handlersRef.current = { appendLine, updateLine, updateLineMetadata, setLastMetadata, handleError };
+  const handlersRef = useRef({ appendLine, updateLine, updateLineMetadata, handleError });
+  // handlersRef.current = { appendLine, updateLine, updateLineMetadata, handleError };
 
   const cleanup = async () => {
-    await managerRef.current.cleanup();
+    await orchestratorManager.cleanup();
   };
 
   const initializeOrchestrator = async (overrides?: Partial<OrchestratorConfig>, isReinit = false) => {
     if (isReinit) {
       setStatus(OrchestratorStatus.INITIALIZING);
-      await managerRef.current.cleanup();
-      managerRef.current.reset();
+      await orchestratorManager.cleanup();
+      orchestratorManager.reset();
     }
 
     const config: OrchestratorConfig = {
@@ -55,10 +49,8 @@ export const useOrchestrator = ({
       ...(overrides ?? {}),
     };
 
-    const result = await managerRef.current.init(config, handlersRef.current);
+    const result = await orchestratorManager.init(config, handlersRef.current);
 
-    memoryRef.current = result.memory;
-    orchestratorRef.current = result.orchestrator;
     setStatus(OrchestratorStatus.READY);
 
     return result;
@@ -69,16 +61,16 @@ export const useOrchestrator = ({
   };
 
   useEffect(() => {
-    if (managerRef.current.getOrchestrator()) {
-      managerRef.current.updateConfig({ requireToolApproval: toolApprovalMode });
+    if (orchestratorManager.getOrchestrator()) {
+      orchestratorManager.updateConfig({ requireToolApproval: toolApprovalMode });
     }
   }, [toolApprovalMode]);
 
   useEffect(() => {
     let didCancel = false;
 
-    if (managerRef.current.getStatus() === OrchestratorStatus.READY) {
-      memoryRef.current = managerRef.current.getMemory();
+    if (orchestratorManager.getStatus() === OrchestratorStatus.READY) {
+      // memoryRef.current = orchestratorManager.getMemory();
       setStatus(OrchestratorStatus.READY);
       return () => {
         didCancel = true;
@@ -103,24 +95,19 @@ export const useOrchestrator = ({
   }, []);
 
   const send = async (content: UserMessagePayload, opts: SendMessageOptions = {}) => {
-    return managerRef.current.send(content, opts);
+    return orchestratorManager.send(content, opts);
   };
 
   const createNewConversation = async (config: { sessionId?: string; sessionDir?: string; memPersist?: boolean }) => {
-    const result = await managerRef.current.createNewConversation(config);
-    memoryRef.current = result.memory;
-    return result;
+    return await orchestratorManager.createNewConversation(config);
   };
 
   return {
-    orchestrator: orchestratorRef.current,
-    manager: managerRef.current,
-    memory: memoryRef.current,
     status,
     cleanup,
     reinit,
     send,
     createNewConversation,
-    sessionId: managerRef.current.getSession().sessionId,
+    sessionId: orchestratorManager.getSession().sessionId,
   };
 };

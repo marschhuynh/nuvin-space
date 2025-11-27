@@ -2,177 +2,266 @@
 
 ## Problem
 
-When conversation exceeds a model's context window limit, the LLM API returns an error (typically 400/413 with messages like `context_length_exceeded`, `max_tokens`, `too many tokens`). Currently, the app just fails.
+When conversation exceeds a model's context window limit, the LLM API returns an error. Currently, the app just fails. We want to proactively detect when approaching the limit and auto-summarize to prevent errors.
 
 ## Architecture Overview
 
-### Key Components Identified
+### Key Components
 
 | Component | Location | Role |
 |-----------|----------|------|
-| `BaseLLM` / `GenericLLM` | `nuvin-core/llm-providers/` | Makes LLM calls, throws `LLMError` |
-| `LLMError` | `base-llm.ts:6` | Error with `statusCode`, `isRetryable` |
-| `AgentOrchestrator` | `nuvin-core/orchestrator.ts` | Main send loop, catches errors |
+| `SessionMetricsTracker` | `nuvin-core/session-metrics.ts` | Tracks `currentWindowTokens` (last request's token count = context window usage) |
+| `GenericLLM.getModels()` | `nuvin-core/llm-providers/llm-factory.ts` | Fetches models from provider API |
 | `OrchestratorManager` | `nuvin-cli/source/services/` | CLI wrapper, has `summarize()` method |
 | `/summary` command | `commands/definitions/summary/` | Manual summarization (LLM-based + beta compression) |
-| `ConversationStore` | `nuvin-core/conversation-store.ts` | Tracks `contextWindow` token usage |
+
+### Provider Model Limits (from `/models` endpoint)
+
+| Provider | Context Window Field | Max Output Field |
+|----------|---------------------|------------------|
+| **GitHub (Copilot)** | `capabilities.limits.max_context_window_tokens` | `capabilities.limits.max_output_tokens` |
+| **DeepInfra** | `metadata.context_length` | `metadata.max_tokens` |
+| **Moonshot** | `context_length` (root level) | N/A |
+| **OpenRouter** | `context_length` (root), `top_provider.context_length` | `top_provider.max_completion_tokens` |
 
 ---
 
-## Proposed Implementation
+## Implementation Plan
 
-### 1. Model Context Window Registry (nuvin-core)
+### Phase 1: Model Limits Types & Normalizer
+
+**New file: `nuvin-core/llm-providers/model-limits.ts`**
 
 ```typescript
-// New file: nuvin-core/llm-providers/model-limits.ts
-type ModelLimits = {
-  contextWindow: number;  // max input tokens
-  maxOutput?: number;     // max output tokens
+export type ModelLimits = {
+  contextWindow: number;
+  maxOutput?: number;
 };
 
-// Map of provider -> model -> limits
-const MODEL_LIMITS: Record<string, Record<string, ModelLimits>> = {
+export type ModelInfo = {
+  id: string;
+  limits?: ModelLimits;
+};
+
+// Normalize raw model response from provider API → ModelLimits
+export function normalizeModelLimits(provider: string, model: Record<string, unknown>): ModelLimits | null {
+  switch (provider) {
+    case 'github':
+      const ghLimits = (model as any).capabilities?.limits;
+      return ghLimits?.max_context_window_tokens
+        ? { contextWindow: ghLimits.max_context_window_tokens, maxOutput: ghLimits.max_output_tokens }
+        : null;
+    case 'deepinfra':
+      const diMeta = (model as any).metadata;
+      return diMeta?.context_length
+        ? { contextWindow: diMeta.context_length, maxOutput: diMeta.max_tokens }
+        : null;
+    case 'moonshot':
+      return (model as any).context_length
+        ? { contextWindow: (model as any).context_length }
+        : null;
+    case 'openrouter':
+      const ctx = (model as any).context_length ?? (model as any).top_provider?.context_length;
+      return ctx
+        ? { contextWindow: ctx, maxOutput: (model as any).top_provider?.max_completion_tokens }
+        : null;
+    default:
+      return null;
+  }
+}
+
+// Fallback static mapping for models without API limits
+const FALLBACK_LIMITS: Record<string, Record<string, ModelLimits>> = {
   openrouter: {
-    'anthropic/claude-3.5-sonnet': { contextWindow: 200000 },
-    'openai/gpt-4o': { contextWindow: 128000 },
-    // ...
+    'anthropic/claude-sonnet-4': { contextWindow: 200000, maxOutput: 16000 },
+    'openai/gpt-4o': { contextWindow: 128000, maxOutput: 16384 },
+    'openai/gpt-4.1': { contextWindow: 128000, maxOutput: 32768 },
   },
-  github: { ... },
-  anthropic: { ... },
-  // dynamic fetch fallback for unknown models
+  github: {
+    'gpt-4.1': { contextWindow: 128000, maxOutput: 16384 },
+    'claude-sonnet-4': { contextWindow: 200000, maxOutput: 16000 },
+  },
+  deepinfra: {
+    'meta-llama/Meta-Llama-3.1-70B-Instruct': { contextWindow: 131072, maxOutput: 131072 },
+  },
+  moonshot: {
+    'moonshot-v1-8k': { contextWindow: 8192 },
+    'moonshot-v1-32k': { contextWindow: 32768 },
+  },
 };
 
-function getModelLimits(provider: string, model: string): ModelLimits | null;
-```
-
-### 2. Context Length Error Detection (nuvin-core)
-
-Enhance `LLMError` to detect context overflow:
-
-```typescript
-// In base-llm.ts or new error-utils.ts
-export function isContextOverflowError(error: unknown): boolean {
-  if (!(error instanceof LLMError)) return false;
-
-  // Check status codes (400, 413)
-  if (error.statusCode === 400 || error.statusCode === 413) {
-    const msg = error.message.toLowerCase();
-    const patterns = [
-      'context_length_exceeded',
-      'maximum context length',
-      'too many tokens',
-      'token limit',
-      'context window',
-      'input too long',
-      'request too large',
-    ];
-    return patterns.some(p => msg.includes(p));
-  }
-  return false;
+export function getFallbackLimits(provider: string, model: string): ModelLimits | null {
+  return FALLBACK_LIMITS[provider]?.[model] ?? null;
 }
 ```
 
-### 3. Proactive Token Counting (optional enhancement)
+### Phase 2: Extend LLMPort & GenericLLM
 
-Track tokens per message using usage data already captured:
+**Modify: `nuvin-core/llm-providers/llm-factory.ts`**
+
+- Add `provider` field to `GenericLLM`
+- Modify `getModels()` to return normalized `ModelInfo[]` with limits
 
 ```typescript
-// In ConversationStore - already has incrementTokens()
-// Extend to estimate if next message might exceed limit
-
-async estimateContextUsage(conversationId: string): Promise<{
-  estimatedTokens: number;
-  modelLimit: number;
-  percentUsed: number;
-}>;
+async getModels(signal?: AbortSignal): Promise<ModelInfo[]> {
+  const rawModels = await this._fetchRawModels(signal);
+  return rawModels.map(m => ({
+    id: m.id,
+    limits: normalizeModelLimits(this.provider, m),
+  }));
+}
 ```
 
-### 4. Auto-Summary Trigger (nuvin-cli)
-
-In `OrchestratorManager.send()`:
+**Update `LLMPort` interface in `ports.ts`:**
 
 ```typescript
-async send(content, opts, overrides) {
-  try {
-    return await withRetry(async () => {
-      return this.orchestrator?.send(content, { ...opts, conversationId });
-    }, retryOptions);
-  } catch (error) {
-    if (isContextOverflowError(error)) {
-      // Emit event to notify user
-      eventBus.emit('ui:line', {
-        type: 'system',
-        content: '⚠️ Context window exceeded. Running auto-summary...',
-        color: 'yellow',
-      });
+getModels?(signal?: AbortSignal): Promise<ModelInfo[]>;
+```
 
-      // Run summary (use beta compression for speed, or LLM summary)
-      await this.autoSummarize();
+### Phase 3: Model Limits Cache
 
-      // Retry the original request
-      return this.send(content, opts, overrides);
+**New file: `nuvin-cli/source/services/ModelLimitsCache.ts`**
+
+```typescript
+import type { ModelLimits, ModelInfo } from '@nuvin/nuvin-core';
+import { getFallbackLimits } from '@nuvin/nuvin-core';
+
+export class ModelLimitsCache {
+  private cache: Map<string, ModelLimits> = new Map();
+
+  async getLimit(
+    provider: string,
+    model: string,
+    fetchModels?: () => Promise<ModelInfo[]>
+  ): Promise<ModelLimits | null> {
+    const key = `${provider}:${model}`;
+    
+    if (this.cache.has(key)) {
+      return this.cache.get(key)!;
     }
-    throw error;
+
+    // Try fetching from API
+    if (fetchModels) {
+      try {
+        const models = await fetchModels();
+        // Cache all fetched models
+        for (const m of models) {
+          if (m.limits) {
+            this.cache.set(`${provider}:${m.id}`, m.limits);
+          }
+        }
+        if (this.cache.has(key)) {
+          return this.cache.get(key)!;
+        }
+      } catch {
+        // Fallback to static mapping on error
+      }
+    }
+
+    // Fallback to static mapping
+    const fallback = getFallbackLimits(provider, model);
+    if (fallback) {
+      this.cache.set(key, fallback);
+    }
+    return fallback;
+  }
+
+  clear(): void {
+    this.cache.clear();
   }
 }
 ```
 
-### 5. Pre-emptive Warning (optional UX enhancement)
+### Phase 4: Auto-Summary Based on Metrics
 
-Before sending, check if approaching limit:
+**Modify: `nuvin-cli/source/services/OrchestratorManager.ts`**
+
+Use `SessionMetricsTracker.currentWindowTokens` to check against model limit before/after each request.
 
 ```typescript
-// In OrchestratorManager or orchestrator
-const usage = await this.conversationStore.getConversationMetadata(conversationId);
-const limit = getModelLimits(provider, model);
+// Add to OrchestratorManager
+private metricsTracker: SessionMetricsTracker;
+private modelLimitsCache: ModelLimitsCache;
 
-if (usage.totalTokens && limit && usage.totalTokens > limit.contextWindow * 0.85) {
-  eventBus.emit('ui:line', {
-    type: 'system',
-    content: `⚠️ Approaching context limit (${Math.round(usage.totalTokens/limit.contextWindow*100)}% used)`,
-    color: 'yellow'
-  });
+// In send() method, after successful response:
+async send(content, opts, overrides) {
+  const result = await this._doSend(content, opts, overrides);
+  
+  // Check if approaching context limit
+  await this.checkContextWindowUsage(conversationId);
+  
+  return result;
+}
+
+private async checkContextWindowUsage(conversationId: string): Promise<void> {
+  const metrics = this.metricsTracker.get(conversationId);
+  if (!metrics) return;
+
+  const currentConfig = this.getCurrentConfig();
+  const limits = await this.modelLimitsCache.getLimit(
+    currentConfig.provider,
+    currentConfig.model,
+    () => this.llmFactory.createLLM(currentConfig.provider).getModels?.()
+  );
+
+  if (!limits) return;
+
+  const usage = metrics.currentWindowTokens / limits.contextWindow;
+  const WARNING_THRESHOLD = 0.85;
+  const AUTO_SUMMARY_THRESHOLD = 0.95;
+
+  if (usage >= AUTO_SUMMARY_THRESHOLD) {
+    eventBus.emit('ui:line', {
+      id: crypto.randomUUID(),
+      type: 'system',
+      content: `⚠️ Context window at ${Math.round(usage * 100)}%. Running auto-summary...`,
+      color: 'yellow',
+    });
+    await this.summarize();
+  } else if (usage >= WARNING_THRESHOLD) {
+    eventBus.emit('ui:line', {
+      id: crypto.randomUUID(),
+      type: 'system',
+      content: `⚠️ Context window at ${Math.round(usage * 100)}% (${metrics.currentWindowTokens}/${limits.contextWindow} tokens)`,
+      color: 'yellow',
+    });
+  }
 }
 ```
 
 ---
 
-## Implementation Phases
+## Implementation Phases Summary
 
-| Phase | Task | Location |
-|-------|------|----------|
-| **1** | Create `isContextOverflowError()` utility | `nuvin-core/llm-providers/` |
-| **2** | Create model limits registry with common models | `nuvin-core/llm-providers/model-limits.ts` |
-| **3** | Add auto-summary recovery in `OrchestratorManager.send()` | `nuvin-cli/services/OrchestratorManager.ts` |
-| **4** | Add pre-emptive warning based on token tracking | `nuvin-cli/services/OrchestratorManager.ts` |
-| **5** | (Optional) Dynamic limit fetching from provider APIs | `nuvin-core/llm-providers/` |
-
----
-
-## Key Decisions to Make
-
-1. **Summary method**: Use LLM summarization (better quality) or compression algorithm (faster, no API call)?
-2. **Retry behavior**: Retry automatically after summary, or prompt user?
-3. **Model limits source**: Hardcode common models, fetch from APIs, or let users configure?
-4. **Warning threshold**: 80%? 85%? 90%?
+| Phase | Task | Location | Priority |
+|-------|------|----------|----------|
+| **1** | Create model limits types & normalizer | `nuvin-core/llm-providers/model-limits.ts` | High |
+| **2** | Extend `GenericLLM.getModels()` to return normalized limits | `nuvin-core/llm-providers/llm-factory.ts` | High |
+| **3** | Create `ModelLimitsCache` service | `nuvin-cli/source/services/ModelLimitsCache.ts` | High |
+| **4** | Add context window check in `OrchestratorManager.send()` | `nuvin-cli/source/services/OrchestratorManager.ts` | High |
+| **5** | Add `SessionMetricsTracker` integration | `nuvin-cli/source/services/OrchestratorManager.ts` | High |
 
 ---
 
-## Error Message Patterns by Provider
+## Key Decisions
 
-### OpenAI / OpenRouter
-- `"context_length_exceeded"`
-- `"maximum context length is X tokens"`
-- `"This model's maximum context length is X tokens"`
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **Detection method** | Use `currentWindowTokens` from `SessionMetricsTracker` | Already tracked per request, represents actual context usage |
+| **Warning threshold** | 85% | Give user time to react before auto-summary |
+| **Auto-summary threshold** | 95% | Trigger before hitting actual limit |
+| **Limits source** | API first → fallback to static mapping | Keeps limits up-to-date without manual maintenance |
+| **Summary method** | Use existing `summarize()` method | Already implemented, LLM-based quality |
 
-### Anthropic
-- `"prompt is too long"`
-- `"request too large"`
+---
 
-### GitHub Copilot
-- `"input too long"`
-- `"token limit exceeded"`
+## Files to Create/Modify
 
-### DeepInfra
-- `"context window exceeded"`
-- `"maximum tokens"`
+| File | Action |
+|------|--------|
+| `nuvin-core/llm-providers/model-limits.ts` | **New** - types, normalizer, fallback map |
+| `nuvin-core/llm-providers/index.ts` | **Modify** - export new module |
+| `nuvin-core/llm-providers/llm-factory.ts` | **Modify** - add provider field, normalize in `getModels()` |
+| `nuvin-core/ports.ts` | **Modify** - update `LLMPort.getModels()` return type |
+| `nuvin-cli/source/services/ModelLimitsCache.ts` | **New** - caching layer |
+| `nuvin-cli/source/services/OrchestratorManager.ts` | **Modify** - add metrics tracker, context window check |
