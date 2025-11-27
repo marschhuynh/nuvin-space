@@ -1,5 +1,32 @@
 # @nuvin/nuvin-cli
 
+## 1.9.0
+
+### Minor Changes
+
+- [`7bb25af`](https://github.com/marschhuynh/nuvin-space/commit/7bb25af570fbbed6b753cbf7c382da84e68bcf2e) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Refactor session metrics and orchestrator architecture
+
+  - Move metrics tracking to dedicated port in orchestrator
+  - Add model limits support for context window management
+  - Simplify orchestrator dependency injection with optional deps
+  - Remove deprecated setMemory() from CommandRegistry
+  - Fix all related tests
+
+- [`459c879`](https://github.com/marschhuynh/nuvin-space/commit/459c8797169fa59b7d9186baf216c131d8f182d4) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Refactor session metrics to be session-oriented
+
+  - **Breaking**: Remove `SessionMetricsTracker` from `@nuvin/nuvin-core` (unused)
+  - **Breaking**: `SessionMetricsService` methods now require explicit `conversationId` parameter
+  - Add `SessionBoundMetricsPort` adapter to bind metrics to specific sessions
+  - Fix `contextWindowUsage` not displaying - now correctly tracks and displays percentage in Footer
+  - Update subscriber callback to include `conversationId` for filtering
+  - Ensure all metrics operations use consistent session ID
+  - Update command handlers (`/clear`, `/new`, `/summary`) to pass session ID explicitly
+
+### Patch Changes
+
+- Updated dependencies [[`7bb25af`](https://github.com/marschhuynh/nuvin-space/commit/7bb25af570fbbed6b753cbf7c382da84e68bcf2e), [`459c879`](https://github.com/marschhuynh/nuvin-space/commit/459c8797169fa59b7d9186baf216c131d8f182d4)]:
+  - @nuvin/nuvin-core@1.3.0
+
 ## 1.8.0
 
 ### Minor Changes
