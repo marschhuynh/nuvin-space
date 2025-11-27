@@ -82,7 +82,12 @@ async function buildTree(
     return [];
   }
 
-  const entries = await fs.readdir(dir, { withFileTypes: true });
+  let entries;
+  try {
+    entries = await fs.readdir(dir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
   const lines: string[] = [];
 
   const sortedEntries = entries.sort((a, b) => {
