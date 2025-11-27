@@ -3,11 +3,12 @@
 "@nuvin/nuvin-cli": minor
 ---
 
-Add session metrics tracking for conversations
+Refactor session metrics to be session-oriented
 
-- Add SessionMetrics type and SessionMetricsTracker class for tracking cumulative and per-request metrics
-- Track total tokens, request count, tool call count, total time, and total price across session
-- Display session metrics in footer: tokens (current/total), requests, tools, cost
-- Fix tool call counting to only increment after tool execution completes
-- Add estimated_cost → cost mapping for providers like MiniMax
-- Add recordRequestMetrics method to ConversationStore for persisting metrics
+- **Breaking**: Remove `SessionMetricsTracker` from `@nuvin/nuvin-core` (unused)
+- **Breaking**: `SessionMetricsService` methods now require explicit `conversationId` parameter
+- Add `SessionBoundMetricsPort` adapter to bind metrics to specific sessions
+- Fix `contextWindowUsage` not displaying - now correctly tracks and displays percentage in Footer
+- Update subscriber callback to include `conversationId` for filtering
+- Ensure all metrics operations use consistent session ID
+- Update command handlers (`/clear`, `/new`, `/summary`) to pass session ID explicitly
