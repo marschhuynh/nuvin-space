@@ -1,5 +1,11 @@
 # @nuvin/nuvin-core
 
+## 1.3.1
+
+### Patch Changes
+
+- [`18ebf8f`](https://github.com/marschhuynh/nuvin-space/commit/18ebf8f3967c86144fa51112fac6ebd955be1d29) Thanks [@marschhuynh](https://github.com/marschhuynh)! - - Support kimi coding
+
 ## 1.3.0
 
 ### Minor Changes
