@@ -1,6 +1,7 @@
 import { Box, Text, useInput } from 'ink';
 import { useState, useEffect, useCallback } from 'react';
 import SelectInput from './SelectInput/index.js';
+import TextInput from './TextInput/index.js';
 import { ComboBox } from './ComboBox/index.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import { useConfig } from '@/contexts/ConfigContext.js';
@@ -29,6 +30,7 @@ type SetupStep =
   | 'auth-device-flow'
   | 'auth-oauth'
   | 'model'
+  | 'model-custom'
   | 'loading-models'
   | 'complete';
 
@@ -139,6 +141,7 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
   const [selectedProvider, setSelectedProvider] = useState<ProviderKey>('openrouter');
   const [selectedAuthMethod, setSelectedAuthMethod] = useState<AuthMethod>('token');
   const [selectedModel, setSelectedModel] = useState('');
+  const [customModel, setCustomModel] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [oauthCode, setOAuthCode] = useState('');
   const [_saving, setSaving] = useState(false);
@@ -158,6 +161,10 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
   useInput((_input, key) => {
     if (key.escape && step === 'auth-method') {
       setStep('provider');
+    }
+    if (key.escape && step === 'model-custom') {
+      setCustomModel('');
+      setStep('model');
     }
   });
 
@@ -201,8 +208,20 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
   };
 
   const handleModelSubmit = (item: SelectItem) => {
+    if (item.value === 'custom') {
+      setStep('model-custom');
+      return;
+    }
     setSelectedModel(item.value);
-    saveConfig(item.value); // Pass the model value directly
+    saveConfig(item.value);
+  };
+
+  const handleCustomModelSubmit = (value: string) => {
+    if (!value.trim()) {
+      return;
+    }
+    setSelectedModel(value.trim());
+    saveConfig(value.trim());
   };
 
   const saveConfig = async (modelOverride?: string) => {
@@ -347,6 +366,7 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
           {step === 'auth-oauth' && 'OAuth Authorization'}
           {step === 'loading-models' && 'Loading Models'}
           {step === 'model' && 'Select Model'}
+          {step === 'model-custom' && 'Enter Custom Model'}
           {step === 'complete' && 'Setup Complete'}
         </Text>
         <Text color={theme.welcome.subtitle} dimColor>
@@ -357,6 +377,7 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
           {step === 'auth-oauth' && 'Complete authentication in your browser'}
           {step === 'loading-models' && `Fetching available models from ${providerOption?.label}...`}
           {step === 'model' && 'Choose a model for your conversations:'}
+          {step === 'model-custom' && `Type the exact model name for ${providerOption?.label}:`}
           {step === 'complete' && 'Configuration saved! Starting Nuvin...'}
         </Text>
       </Box>
@@ -553,14 +574,34 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
             />
           ) : (
             <SelectInput
-              items={models.map((model) => ({
-                key: model,
-                value: model,
-                label: model,
-              }))}
+              items={[
+                ...models.map((model) => ({
+                  key: model,
+                  value: model,
+                  label: model,
+                })),
+                { key: 'custom', value: 'custom', label: '🎯 Enter custom model name...' },
+              ]}
               onSelect={handleModelSubmit}
             />
           )}
+        </Box>
+      )}
+
+      {step === 'model-custom' && (
+        <Box flexDirection="column" alignItems="center" marginTop={1}>
+          <Box marginBottom={1}>
+            <Text color={theme.welcome.title}>Model: </Text>
+            <TextInput
+              value={customModel}
+              onChange={setCustomModel}
+              onSubmit={handleCustomModelSubmit}
+              placeholder="e.g., gpt-4o or anthropic/claude-3-opus"
+            />
+          </Box>
+          <Text color={theme.welcome.subtitle} dimColor>
+            Press Enter to save, Esc to go back
+          </Text>
         </Box>
       )}
 

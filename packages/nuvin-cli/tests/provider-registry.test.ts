@@ -4,6 +4,7 @@ import {
   PROVIDER_LABELS,
   PROVIDER_ITEMS,
   PROVIDER_OPTIONS,
+  getProviderLabel,
   isFactoryProvider,
   isSpecialProvider,
 } from '../source/config/providers.js';
@@ -23,8 +24,9 @@ describe('Provider Registry', () => {
 
   it('should have labels for all providers', () => {
     for (const provider of ALL_PROVIDERS) {
-      expect(PROVIDER_LABELS[provider]).toBeDefined();
-      expect(PROVIDER_LABELS[provider]).toBeTruthy();
+      const label = getProviderLabel(provider);
+      expect(label).toBeDefined();
+      expect(label).toBeTruthy();
     }
   });
 
@@ -34,7 +36,7 @@ describe('Provider Registry', () => {
     for (const provider of ALL_PROVIDERS) {
       const item = PROVIDER_ITEMS.find((i) => i.value === provider);
       expect(item).toBeDefined();
-      expect(item?.label).toBe(PROVIDER_LABELS[provider]);
+      expect(item?.label).toBe(getProviderLabel(provider));
     }
   });
 
@@ -44,7 +46,7 @@ describe('Provider Registry', () => {
     for (const provider of ALL_PROVIDERS) {
       const option = PROVIDER_OPTIONS.find((o) => o.value === provider);
       expect(option).toBeDefined();
-      expect(option?.label).toContain(PROVIDER_LABELS[provider]);
+      expect(option?.label).toContain(getProviderLabel(provider));
     }
   });
 

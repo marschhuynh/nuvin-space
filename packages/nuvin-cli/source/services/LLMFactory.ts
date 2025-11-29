@@ -176,18 +176,15 @@ export class LLMFactory implements LLMFactoryInterface {
         });
 
       default:
-        if (customProviders?.[provider]) {
-          return createLLM(
-            provider,
-            {
-              apiKey: config.apiKey,
-              httpLogFile: options.httpLogFile,
-              version: getVersion(),
-            },
-            customProviders,
-          );
-        }
-        throw new Error(`Unsupported provider: ${provider}`);
+        return createLLM(
+          provider,
+          {
+            apiKey: config.apiKey,
+            httpLogFile: options.httpLogFile,
+            version: getVersion(),
+          },
+          customProviders,
+        );
     }
   }
 

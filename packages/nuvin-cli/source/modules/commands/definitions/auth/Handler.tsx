@@ -5,13 +5,13 @@ import { AppModal } from '@/components/AppModal.js';
 import type { CommandComponentProps } from '@/modules/commands/types.js';
 import {
   PROVIDER_ITEMS,
-  PROVIDER_LABELS,
   getProviderAuthMethods,
   type ProviderKey,
   type AuthMethod,
   type ProviderItem,
   type AuthMethodItem,
 } from '@/const.js';
+import { getProviderLabel } from '@/config/providers.js';
 
 import { exchangeCodeForToken, createApiKey } from './anthropic-oauth.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
@@ -99,7 +99,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
           const providerKey = provider;
           resetToProviderStage({
             type: 'info',
-            message: `${PROVIDER_LABELS[providerKey]} does not require authentication.`,
+            message: `${getProviderLabel(providerKey)} does not require authentication.`,
           });
           return;
         }
@@ -124,12 +124,12 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
         await saveApiKeyAuth(provider, trimmed);
         resetToProviderStage({
           type: 'success',
-          message: `${PROVIDER_LABELS[provider]} API key saved to configuration.`,
+          message: `${getProviderLabel(provider)} API key saved to configuration.`,
         });
       } catch (error) {
         resetToProviderStage({
           type: 'error',
-          message: `Failed to save ${PROVIDER_LABELS[provider]} API key: ${
+          message: `Failed to save ${getProviderLabel(provider)} API key: ${
             error instanceof Error ? error.message : String(error)
           }`,
         });
@@ -230,7 +230,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
           <Box marginTop={1} flexDirection="column">
             {provider ? (
               <Text>
-                Provider: <Text color={theme.auth.provider}>{PROVIDER_LABELS[provider]}</Text>
+                Provider: <Text color={theme.auth.provider}>{getProviderLabel(provider)}</Text>
               </Text>
             ) : null}
             <Text>Select method:</Text>
@@ -244,7 +244,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
         return (
           <Box marginTop={1} flexDirection="column">
             <Text>
-              Provider: <Text color={theme.auth.provider}>{PROVIDER_LABELS[provider]}</Text>
+              Provider: <Text color={theme.auth.provider}>{getProviderLabel(provider)}</Text>
             </Text>
             <Text>Enter your API key or token, then press Enter.</Text>
             <Box marginTop={1}>

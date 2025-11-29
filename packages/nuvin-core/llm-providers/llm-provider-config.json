@@ -36,6 +36,19 @@
         "promptCaching": false,
         "getModels": true
       }
+    },
+    {
+      "name": "kimi-for-coding",
+      "type": "openai-compat",
+      "baseUrl": "https://api.kimi.com/coding/v1",
+      "features": {
+        "promptCaching": true,
+        "getModels": true,
+        "includeUsage": true
+      },
+      "customHeaders": {
+        "User-Agent": "KimiCLI/0.59"
+      }
     }
   ]
 }
