@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.9.2
+
+### Patch Changes
+
+- [`a9742e0`](https://github.com/marschhuynh/nuvin-space/commit/a9742e07131afeae5b4c7da44074337b941666d0) Thanks [@marschhuynh](https://github.com/marschhuynh)! - - Support kimi coding
+
 ## 1.9.1
 
 ### Patch Changes
