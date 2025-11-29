@@ -1,5 +1,12 @@
 # @nuvin/nuvin-cli
 
+## 1.9.1
+
+### Patch Changes
+
+- [`2663741`](https://github.com/marschhuynh/nuvin-space/commit/2663741c5660cd631559722c0505ab88bd57df85) Thanks [@marschhuynh](https://github.com/marschhuynh)! - - Fix duplicate logo and RecentSessions rendering during streaming
+  - Consolidate RecentSessions inside WelcomeLogo component for simpler rendering
+
 ## 1.9.0
 
 ### Minor Changes
