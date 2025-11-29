@@ -48,6 +48,8 @@ export interface ProviderConfig {
   baseUrl?: string;
   /** Model configuration (false, true, endpoint path, or model list) */
   models?: ModelConfig;
+  /** Custom HTTP headers to send with every request */
+  customHeaders?: Record<string, string>;
   /** Arbitrary provider-specific extras */
   [key: string]: unknown;
 }

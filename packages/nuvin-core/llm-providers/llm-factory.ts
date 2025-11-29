@@ -11,6 +11,7 @@ interface ProviderConfig {
   type?: 'openai-compat' | 'anthropic';
   baseUrl: string;
   models?: ModelConfig;
+  customHeaders?: Record<string, string>;
   features: {
     promptCaching?: boolean;
     getModels?: boolean;
@@ -44,14 +45,16 @@ export class GenericLLM extends BaseLLM implements LLMPort {
   private readonly includeUsage: boolean;
   private readonly modelConfig: ModelConfig;
   private readonly providerName: string;
+  private readonly customHeaders?: Record<string, string>;
 
-  constructor(baseUrl: string, modelConfig: ModelConfig, opts: LLMOptions = {}) {
+  constructor(baseUrl: string, modelConfig: ModelConfig, opts: LLMOptions = {}, customHeaders?: Record<string, string>) {
     const { enablePromptCaching = false, includeUsage = false, providerName = 'unknown', ...restOpts } = opts;
     super(opts.apiUrl || baseUrl, { enablePromptCaching });
     this.includeUsage = includeUsage;
     this.modelConfig = modelConfig;
     this.providerName = providerName;
     this.opts = restOpts;
+    this.customHeaders = customHeaders;
   }
 
   protected createTransport() {
@@ -62,7 +65,7 @@ export class GenericLLM extends BaseLLM implements LLMPort {
       maxFileSize: 5 * 1024 * 1024,
       captureResponseBody: true,
     });
-    return createTransport(base, this.apiUrl, this.opts.apiKey, this.opts.apiUrl, this.opts.version);
+    return createTransport(base, this.apiUrl, this.opts.apiKey, this.opts.apiUrl, this.opts.version, this.customHeaders);
   }
 
   async getModels(signal?: AbortSignal): Promise<ModelInfo[]> {
@@ -138,6 +141,7 @@ export interface CustomProviderDefinition {
   type?: 'openai-compat' | 'anthropic';
   baseUrl?: string;
   models?: ModelConfig;
+  customHeaders?: Record<string, string>;
 }
 
 function normalizeModelConfig(config: ProviderConfig): ModelConfig {
@@ -166,6 +170,7 @@ function mergeProviders(customProviders?: Record<string, CustomProviderDefinitio
         type: custom.type ?? 'openai-compat',
         baseUrl: custom.baseUrl,
         models: custom.models ?? false,
+        customHeaders: custom.customHeaders,
         features: existing?.features ?? {
           promptCaching: false,
           getModels: custom.models !== false,
@@ -199,7 +204,7 @@ export function createLLM(
     providerName: config.name,
     enablePromptCaching: options.enablePromptCaching ?? config.features.promptCaching,
     includeUsage: options.includeUsage ?? config.features.includeUsage,
-  });
+  }, config.customHeaders);
 }
 
 export function getAvailableProviders(customProviders?: Record<string, CustomProviderDefinition>): string[] {

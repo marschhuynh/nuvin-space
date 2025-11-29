@@ -18,6 +18,7 @@ type CustomProviderDefinition = {
   type?: 'openai-compat' | 'anthropic';
   baseUrl?: string;
   models?: ModelConfig;
+  customHeaders?: Record<string, string>;
 };
 
 export type LLMConfig = {
@@ -67,6 +68,7 @@ export class LLMFactory implements LLMFactoryInterface {
           type: cfg.type,
           baseUrl: cfg.baseUrl,
           models: cfg.models,
+          customHeaders: cfg.customHeaders,
         };
       }
     }
