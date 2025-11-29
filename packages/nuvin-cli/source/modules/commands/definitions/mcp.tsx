@@ -40,7 +40,7 @@ const MCPCommandComponent = ({ context, deactivate }: CommandComponentProps) => 
         context.config.set('mcpAllowedTools', currentConfig, 'global');
 
         // Update the MCP manager with the new config
-        await context.orchestrator?.updateMCPAllowedTools?.(currentConfig);
+        await context.orchestratorManager?.updateMCPAllowedTools(currentConfig);
       } catch (error) {
         console.error('Failed to save MCP tool permission:', error);
       }
@@ -55,7 +55,7 @@ const MCPCommandComponent = ({ context, deactivate }: CommandComponentProps) => 
         context.config.set('mcpAllowedTools', data.config, 'global');
 
         // Update the MCP manager with the new config
-        await context.orchestrator?.updateMCPAllowedTools?.(data.config);
+        await context.orchestratorManager?.updateMCPAllowedTools?.(data.config);
       } catch (error) {
         console.error('Failed to save MCP batch tool permissions:', error);
       }
@@ -71,7 +71,7 @@ const MCPCommandComponent = ({ context, deactivate }: CommandComponentProps) => 
         setError(null);
 
         // Try to get MCP servers from the orchestrator first
-        const mcpServers = context.orchestrator?.getMCPServers?.() || [];
+        const mcpServers = context.orchestratorManager?.getMCPServers() || [];
 
         if (mcpServers.length === 0) {
           // If no servers are loaded yet (background init still in progress),
@@ -123,7 +123,7 @@ const MCPCommandComponent = ({ context, deactivate }: CommandComponentProps) => 
       context.eventBus.off('ui:mcp:toolPermissionChanged', handleToolPermissionChanged);
       context.eventBus.off('ui:mcp:batchToolPermissionChanged', handleBatchToolPermissionChanged);
     };
-  }, [context.eventBus, context.config, context.orchestrator]);
+  }, [context.eventBus, context.config, context.orchestratorManager?.getMCPServers, context.orchestratorManager?.updateMCPAllowedTools]);
 
   if (loading) {
     return (

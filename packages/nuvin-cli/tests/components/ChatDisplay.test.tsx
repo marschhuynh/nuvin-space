@@ -14,7 +14,12 @@ vi.mock('../../source/components/MessageLine.js', () => ({
 
 vi.mock('../../source/components/RecentSessions.js', () => ({
   RecentSessions: () => <Text>[RecentSessions]</Text>,
-  WelcomeLogo: () => <Text>[WelcomeLogo]</Text>,
+  WelcomeLogo: ({ recentSessions }: { recentSessions: unknown[] }) => (
+    <>
+      <Text>[WelcomeLogo]</Text>
+      {recentSessions && recentSessions.length > 0 && <Text>[RecentSessions]</Text>}
+    </>
+  ),
 }));
 
 // Mock logger to avoid cluttering test output

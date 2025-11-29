@@ -19,7 +19,7 @@ type DemoProps = {
   messageCount: number;
 };
 
-function DemoDisplayContent({ messages, metadata, messageCount }: DemoProps) {
+function DemoDisplayContent({ messages, messageCount }: DemoProps) {
   const { exit } = useApp();
 
   useEffect(() => {
@@ -36,7 +36,6 @@ function DemoDisplayContent({ messages, metadata, messageCount }: DemoProps) {
       <InteractionArea busy={false} vimModeEnabled={false} hasActiveCommand={false} />
       <Footer
         status="Demo Mode"
-        lastMetadata={metadata}
         toolApprovalMode={false}
         vimModeEnabled={false}
         vimMode="insert"
@@ -61,7 +60,7 @@ function DemoDisplay({ messages, metadata, messageCount }: DemoProps) {
     <ThemeProvider>
       <ConfigProvider initialConfig={mockConfig}>
         <NotificationProvider>
-          <ToolApprovalProvider requireToolApproval={false} onError={(msg) => console.error(msg)}>
+          <ToolApprovalProvider orchestratorManager={null} requireToolApproval={false} onError={(msg) => console.error(msg)}>
             <CommandProvider>
               <DemoDisplayContent messages={messages} metadata={metadata} messageCount={messageCount} />
             </CommandProvider>

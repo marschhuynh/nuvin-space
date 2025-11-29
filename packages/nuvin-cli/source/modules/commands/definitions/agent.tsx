@@ -91,7 +91,7 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
     try {
       setLoading(true);
       setError(null);
-      const tools = context.orchestrator?.getTools?.();
+      const tools = context.orchestratorManager?.getOrchestrator()?.getTools?.();
       const agentAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
       const agentRegistry = agentAwareTools?.getAgentRegistry?.();
       const enabledConfig = (context.config.get('agentsEnabled') as Record<string, boolean>) || {};
@@ -101,8 +101,8 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
           'Agent registry not available.',
           '',
           'Debug Info:',
-          `- Orchestrator exists: ${!!context.orchestrator}`,
-          `- getTools method exists: ${!!context.orchestrator?.getTools}`,
+          `- Orchestrator exists: ${!!context.orchestratorManager?.getOrchestrator()}`,
+          `- getTools method exists: ${!!context.orchestratorManager?.getOrchestrator()?.getTools}`,
           `- Tools exist: ${!!tools}`,
           `- getAgentRegistry method exists: ${!!agentAwareTools?.getAgentRegistry}`,
           '',
@@ -134,14 +134,14 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
     } finally {
       setLoading(false);
     }
-  }, [context.config, context.orchestrator]);
+  }, [context.config, context.orchestratorManager?.getOrchestrator]);
 
   useEffect(() => {
     let cancelled = false;
 
     const loadAvailableTools = async () => {
       try {
-        const toolsPort = context.orchestrator?.getTools?.();
+        const toolsPort = context.orchestratorManager?.getOrchestrator()?.getTools?.();
         const toolRegistry = toolsPort as { listRegisteredTools?: () => Promise<string[]> } | null | undefined;
         if (toolRegistry?.listRegisteredTools) {
           const toolList = await toolRegistry.listRegisteredTools();
@@ -162,7 +162,7 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
     return () => {
       cancelled = true;
     };
-  }, [context.orchestrator]);
+  }, [context.orchestratorManager?.getOrchestrator]);
 
   useEffect(() => {
     void loadAgents();
@@ -177,7 +177,7 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
         await context.config.set('agentsEnabled', updatedConfig, 'global');
         setEnabledAgents(updatedConfig);
 
-        const tools = context.orchestrator?.getTools?.();
+        const tools = context.orchestratorManager?.getOrchestrator()?.getTools?.();
         const orchestratorAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
         if (orchestratorAwareTools?.setEnabledAgents) {
           orchestratorAwareTools.setEnabledAgents(updatedConfig);
@@ -186,7 +186,7 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
         console.error('Failed to save agent status:', error);
       }
     },
-    [context.config, context.orchestrator],
+    [context.config, context.orchestratorManager?.getOrchestrator],
   );
 
   const handleBatchAgentStatusChange = useCallback(
@@ -196,7 +196,7 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
         await context.config.set('agentsEnabled', updatedConfig, 'global');
         setEnabledAgents(updatedConfig);
 
-        const tools = context.orchestrator?.getTools?.();
+        const tools = context.orchestratorManager?.getOrchestrator()?.getTools?.();
         const orchestratorAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
         if (orchestratorAwareTools?.setEnabledAgents) {
           orchestratorAwareTools.setEnabledAgents(updatedConfig);
@@ -205,7 +205,7 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
         console.error('Failed to save batch agent statuses:', error);
       }
     },
-    [context.config, context.orchestrator],
+    [context.config, context.orchestratorManager?.getOrchestrator],
   );
 
   const handleAgentCreate = useCallback(() => {
@@ -218,7 +218,7 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
 
   const handleAgentEdit = useCallback(
     (agentId: string) => {
-      const tools = context.orchestrator?.getTools?.();
+      const tools = context.orchestratorManager?.getOrchestrator()?.getTools?.();
       const agentAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
       const agentRegistry = agentAwareTools?.getAgentRegistry?.();
 
@@ -246,13 +246,13 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
       setCreationPreview(agent);
       setCreationLoading(false);
     },
-    [context.orchestrator, loadAgents, agents, transitionToEdit],
+    [loadAgents, agents, transitionToEdit, context.orchestratorManager?.getOrchestrator],
   );
 
   const handleAgentDelete = useCallback(
     async (agentId: string) => {
       try {
-        const tools = context.orchestrator?.getTools?.();
+        const tools = context.orchestratorManager?.getOrchestrator()?.getTools?.();
         const agentAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
         const agentRegistry = agentAwareTools?.getAgentRegistry?.();
 
@@ -287,7 +287,7 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
         setError(`Failed to delete agent: ${error instanceof Error ? error.message : String(error)}`);
       }
     },
-    [context.config, context.orchestrator, loadAgents],
+    [context.config, loadAgents, context.orchestratorManager?.getOrchestrator],
   );
 
   // Handle agent creation
@@ -297,8 +297,8 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
       setCreationError(undefined);
       setEditingAgentId(null);
 
-      const llm = context.orchestrator?.getLLM?.();
-      const model = context.orchestrator?.getConfig?.()?.model || 'gpt-4';
+      const llm = context.orchestratorManager?.getOrchestrator()?.getLLM?.();
+      const model = context.orchestratorManager?.getOrchestrator()?.getConfig?.()?.model || 'gpt-4';
 
       if (!llm) {
         setCreationError('LLM not available');
@@ -364,7 +364,7 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
       setCreationLoading(true);
 
       try {
-        const tools = context.orchestrator?.getTools?.();
+        const tools = context.orchestratorManager?.getOrchestrator()?.getTools?.();
         const agentAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
         const agentRegistry = agentAwareTools?.getAgentRegistry?.();
 
@@ -436,7 +436,7 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
             // Check navigationSource to determine where to return
             if (navigationState.navigationSource === 'agent-config') {
               // Get the updated agents list to find the correct index
-              const tools = context.orchestrator?.getTools?.();
+              const tools = context.orchestratorManager?.getOrchestrator()?.getTools?.();
               const agentAwareTools = tools as (ToolPort & AgentAwareToolPort) | undefined;
               const agentRegistry = agentAwareTools?.getAgentRegistry?.();
               if (agentRegistry) {
@@ -567,15 +567,14 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
       }
     },
     [
-      context.config,
-      context.orchestrator,
-      creationPreview,
-      editingAgentId,
-      loadAgents,
-      navigationState.navigationSource,
-      transitionToConfig,
-      deactivate,
-      navigationState.preservedState?.selectedAgentIndex,
+      context.config, 
+      creationPreview, 
+      editingAgentId, 
+      loadAgents, 
+      navigationState.navigationSource, 
+      transitionToConfig, 
+      deactivate, 
+      navigationState.preservedState?.selectedAgentIndex, context.orchestratorManager?.getOrchestrator
     ],
   );
 

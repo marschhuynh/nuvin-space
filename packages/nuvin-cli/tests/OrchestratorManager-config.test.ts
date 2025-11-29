@@ -1,6 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OrchestratorManager } from '../source/services/OrchestratorManager.js';
-import type { ConfigManager } from '../source/config/manager.js';
 import type { MessageLine } from '../source/adapters/index.js';
 import type { CLIConfig } from '../source/config/types.js';
 
@@ -23,62 +21,49 @@ const createMockHandlers = () => {
   };
 };
 
-class MockConfigManager {
-  private config: CLIConfig = {};
+// Use vi.hoisted to create mock before module is loaded
+const { mockConfigManager } = vi.hoisted(() => {
+  let currentConfig: CLIConfig = {};
 
-  constructor(initialConfig: CLIConfig = {}) {
-    this.config = initialConfig;
-  }
-
-  getConfig(): CLIConfig {
-    return JSON.parse(JSON.stringify(this.config));
-  }
-
-  setConfig(config: CLIConfig): void {
-    this.config = config;
-  }
-
-  async load() {
-    return { config: this.config, sources: [] };
-  }
-
-  async set(key: string, value: unknown) {
-    const keys = key.split('.');
-    let current: Record<string, unknown> = this.config;
-    for (let i = 0; i < keys.length - 1; i++) {
-      if (!current[keys[i]]) {
-        current[keys[i]] = {};
+  const instance = {
+    getConfig: vi.fn(() => JSON.parse(JSON.stringify(currentConfig))),
+    get: vi.fn((key: string) => {
+      const keys = key.split('.');
+      let current: any = currentConfig;
+      for (const k of keys) {
+        if (current && typeof current === 'object' && k in current) {
+          current = current[k];
+        } else {
+          return undefined;
+        }
       }
-      current = current[keys[i]] as Record<string, unknown>;
-    }
-    current[keys[keys.length - 1]] = value;
-  }
+      return current;
+    }),
+    set: vi.fn(),
+    getProfileManager: vi.fn(() => undefined),
+    getCurrentProfile: vi.fn(() => 'default'),
+    setMockConfig: (config: CLIConfig) => {
+      currentConfig = config;
+    },
+  };
 
-  get(key: string): unknown {
-    const keys = key.split('.');
-    let current: unknown = this.config;
-    for (const k of keys) {
-      if (current && typeof current === 'object' && k in current) {
-        current = (current as Record<string, unknown>)[k];
-      } else {
-        return undefined;
-      }
-    }
-    return current;
-  }
+  return { mockConfigManager: instance };
+});
 
-  getProfileManager() {
-    return undefined;
-  }
+vi.mock('../source/config/manager.js', () => ({
+  ConfigManager: {
+    getInstance: vi.fn(() => mockConfigManager),
+  },
+}));
 
-  getCurrentProfile(): string {
-    return 'default';
-  }
-}
+// Import after mocking
+import { OrchestratorManager } from '../source/services/OrchestratorManager.js';
 
 describe('OrchestratorManager - ConfigManager Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset config to empty
+    mockConfigManager.setMockConfig({});
   });
 
   afterEach(() => {
@@ -86,7 +71,7 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
   });
 
   it('reads config from ConfigManager during init', async () => {
-    const mockConfig = new MockConfigManager({
+    mockConfigManager.setMockConfig({
       activeProvider: 'openrouter',
       model: 'openai/gpt-4o',
       providers: {
@@ -102,7 +87,7 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
       },
     });
 
-    const manager = new OrchestratorManager(mockConfig as unknown as ConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     const result = await manager.init({}, handlers);
@@ -115,7 +100,7 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
   });
 
   it('reads OAuth config from ConfigManager during init', async () => {
-    const mockConfig = new MockConfigManager({
+    mockConfigManager.setMockConfig({
       activeProvider: 'anthropic',
       model: 'claude-sonnet-4-5-20250929',
       providers: {
@@ -133,7 +118,7 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
       },
     });
 
-    const manager = new OrchestratorManager(mockConfig as unknown as ConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     const result = await manager.init({}, handlers);
@@ -146,11 +131,11 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
   });
 
   it('uses default model if not in config', async () => {
-    const mockConfig = new MockConfigManager({
+    mockConfigManager.setMockConfig({
       activeProvider: 'github',
     });
 
-    const manager = new OrchestratorManager(mockConfig as unknown as ConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     const result = await manager.init({}, handlers);
@@ -161,13 +146,13 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
   });
 
   it('reads requireToolApproval from config', async () => {
-    const mockConfig = new MockConfigManager({
+    mockConfigManager.setMockConfig({
       activeProvider: 'openrouter',
       model: 'openai/gpt-4',
       requireToolApproval: true,
     });
 
-    const manager = new OrchestratorManager(mockConfig as unknown as ConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     await manager.init({}, handlers);
@@ -181,13 +166,13 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
   });
 
   it('handles thinking: OFF correctly', async () => {
-    const mockConfig = new MockConfigManager({
+    mockConfigManager.setMockConfig({
       activeProvider: 'openrouter',
       model: 'openai/gpt-4',
       thinking: 'OFF',
     });
 
-    const manager = new OrchestratorManager(mockConfig as unknown as ConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     await manager.init({}, handlers);
@@ -201,13 +186,13 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
   });
 
   it('reads streamingChunks from config', async () => {
-    const mockConfig = new MockConfigManager({
+    mockConfigManager.setMockConfig({
       activeProvider: 'openrouter',
       model: 'openai/gpt-4',
       streamingChunks: false,
     });
 
-    const manager = new OrchestratorManager(mockConfig as unknown as ConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     await manager.init({}, handlers);
@@ -216,9 +201,9 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
   });
 
   it('handles missing provider gracefully', async () => {
-    const mockConfig = new MockConfigManager({});
+    mockConfigManager.setMockConfig({});
 
-    const manager = new OrchestratorManager(mockConfig as unknown as ConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     const result = await manager.init({}, handlers);
@@ -229,8 +214,8 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
     await manager.cleanup();
   });
 
-  it('supports injecting custom ConfigManager for testing', async () => {
-    const customConfig = new MockConfigManager({
+  it('supports mocking ConfigManager with vi.mock', async () => {
+    mockConfigManager.setMockConfig({
       activeProvider: 'zai',
       model: 'glm-4.6',
       providers: {
@@ -246,7 +231,7 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
       },
     });
 
-    const manager = new OrchestratorManager(customConfig as unknown as ConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     const result = await manager.init({}, handlers);
@@ -258,7 +243,7 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
   });
 
   it('reads mcpAllowedTools from config', async () => {
-    const mockConfig = new MockConfigManager({
+    mockConfigManager.setMockConfig({
       activeProvider: 'openrouter',
       model: 'openai/gpt-4',
       mcpAllowedTools: {
@@ -269,7 +254,7 @@ describe('OrchestratorManager - ConfigManager Integration', () => {
       },
     });
 
-    const manager = new OrchestratorManager(mockConfig as unknown as ConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     await manager.init({}, handlers);

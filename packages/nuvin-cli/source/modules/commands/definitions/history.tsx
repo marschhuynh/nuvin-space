@@ -67,11 +67,11 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
         if (result.kind === 'messages') {
           const sessionDir = getSessionDir(session.sessionId);
 
-          if (!context.orchestrator) {
+          if (!context.orchestratorManager?.getOrchestrator()) {
             throw new Error('Orchestrator not initialized');
           }
 
-          const switchResult = await context.orchestrator.switchToSession({
+          const switchResult = await context.orchestratorManager.switchToSession({
             sessionId: session.sessionId,
             sessionDir,
           });
@@ -122,7 +122,12 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
     return () => {
       context.eventBus.off('ui:history:selected', handleHistorySelected);
     };
-  }, [context.eventBus, context.orchestrator, deactivate]);
+  }, [
+    context.eventBus,
+    deactivate,
+    context.orchestratorManager?.switchToSession,
+    context.orchestratorManager?.getOrchestrator,
+  ]);
 
   if (loading || availableSessions.length === 0) {
     return null;

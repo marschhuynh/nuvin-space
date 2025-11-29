@@ -138,9 +138,9 @@ export class OrchestratorManager {
   private static readonly WARNING_THRESHOLD = 0.85;
   private static readonly AUTO_SUMMARY_THRESHOLD = 0.95;
 
-  constructor(configManager?: ConfigManager, conversationContext?: ConversationContext) {
-    this.configManager = configManager ?? ConfigManager.getInstance();
-    this.conversationContext = conversationContext ?? new ConversationContext();
+  constructor() {
+    this.configManager = ConfigManager.getInstance();
+    this.conversationContext = new ConversationContext();
     this.llmFactory = new LLMFactory(this.configManager);
   }
 
@@ -600,9 +600,9 @@ export class OrchestratorManager {
     return this.llmFactory;
   }
 
-  private async checkContextWindowUsage(conversationId: string, provider: string, model: string): Promise<void> {
+  private async checkContextWindowUsage(provider: string, model: string): Promise<void> {
     if (!this.sessionId) return;
-    
+
     const metrics = sessionMetricsService.getSnapshot(this.sessionId);
     if (!metrics.currentPromptTokens) return;
 
@@ -768,7 +768,7 @@ export class OrchestratorManager {
           cost: result.metadata?.estimatedCost ?? undefined,
         });
 
-        await this.checkContextWindowUsage(conversationId, currentConfig.provider, currentConfig.model);
+        await this.checkContextWindowUsage(currentConfig.provider, currentConfig.model);
       }
 
       return result;
@@ -853,7 +853,7 @@ export class OrchestratorManager {
           cost: result.metadata?.estimatedCost ?? undefined,
         });
 
-        await this.checkContextWindowUsage(conversationId, currentConfig.provider, currentConfig.model);
+        await this.checkContextWindowUsage(currentConfig.provider, currentConfig.model);
       }
 
       return result;

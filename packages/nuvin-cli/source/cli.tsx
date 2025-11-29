@@ -27,6 +27,7 @@ import {
 } from '@/config/index.js';
 import { ConfigCliHandler } from '@/config/cli-handler.js';
 import { orchestratorManager } from './services/OrchestratorManager.js';
+import ansiEscapes from 'ansi-escapes';
 
 process.stdout.write('\x1b[?2004h');
 
@@ -380,6 +381,8 @@ const cli = meow(
   // Register commands
   registerCommands();
 
+  console.log(ansiEscapes.clearTerminal);
+
   const { waitUntilExit } = render(
     <ThemeProvider>
       <StdoutDimensionsProvider>
@@ -411,7 +414,7 @@ const cli = meow(
     {
       exitOnCtrlC: false,
       patchConsole: true,
-      incrementalRendering: true,
+      incrementalRendering: false,
       maxFps: 60,
     },
   );

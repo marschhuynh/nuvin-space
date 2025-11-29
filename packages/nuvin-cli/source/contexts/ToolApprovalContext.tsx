@@ -99,9 +99,9 @@ export function ToolApprovalProvider({
           }
         }
 
-        if (autoApprovedTools.length > 0 && orchestratorRef.current) {
+        if (autoApprovedTools.length > 0 && orchestratorManager?.getOrchestrator()) {
           try {
-            orchestratorRef.current.handleToolApproval(event.approvalId, 'approve', autoApprovedTools);
+            orchestratorManager?.getOrchestrator()?.handleToolApproval(event.approvalId, 'approve', autoApprovedTools);
           } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
             onErrorRef.current(`Failed to auto-approve session tools: ${message}`);
@@ -134,7 +134,7 @@ export function ToolApprovalProvider({
       eventBus.off('ui:new:conversation', onNewConversation);
       eventBus.off('ui:lines:clear', onClearChat);
     };
-  }, [clearSessionApprovedTools]);
+  }, [clearSessionApprovedTools, orchestratorManager?.getOrchestrator]);
 
   const value = useMemo(
     () => ({

@@ -34,7 +34,7 @@ export class EventReplayAdapter {
   getUIState(): { lines: MessageLine[]; metadata: MessageMetadata | null } {
     return {
       lines: [...this.lines],
-      metadata: this.state.metadata,
+      metadata: null,
     };
   }
 

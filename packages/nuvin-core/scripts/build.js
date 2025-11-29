@@ -12,6 +12,14 @@ const libDir = join(__dirname, '../lib');
 console.log('🚀 Building nuvin-core...');
 
 try {
+  execSync('npx tsc --noEmit', { cwd: join(__dirname, '..'), stdio: 'inherit' });
+  console.log('✓ TypeScript type check passed');
+} catch (error) {
+  console.error('✗ TypeScript type check failed');
+  process.exit(1);
+}
+
+try {
   execSync('npx tsup', { cwd: join(__dirname, '..'), stdio: 'inherit' });
   console.log('✓ TypeScript compilation completed');
 } catch (error) {

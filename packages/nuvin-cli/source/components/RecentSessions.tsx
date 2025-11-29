@@ -1,9 +1,9 @@
 import { Box, Text } from 'ink';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import Gradient from 'ink-gradient';
-import { getVersion } from '@/utils/version.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import type { SessionInfo } from '@/types.js';
+import { getVersion } from '@/utils/version';
 
 type RecentSessionsProps = {
   recentSessions: SessionInfo[];
@@ -77,47 +77,32 @@ const getMessageCountBadge = (count: number) => {
 };
 
 const version = getVersion();
-
-const ICON_2 = `
-╭──┴──┴──┴──┴──┴──╮
+const ICON_2 = `╭──┴──┴──┴──┴──┴──╮
 │  ●  ●  ● ─────  │
-│                 │   N U V I N
-│  >_  READY      │   [${version}]
+│                 │
+│  >_  NUVIN      │
 ╰──┬──┬──┬──┬──┬──╯
       │  │  │
-         │
-`;
+         │  ${version}`;
 
-const _LOGO = `Welcome to
-███╗   ██╗ ██╗   ██╗ ██╗   ██╗ ██╗ ███╗   ██╗
-██╔██╗ ██║ ██║   ██║ ██║   ██║ ██║ ██╔██╗ ██║
-██║╚██╗██║ ██║   ██║ ╚██╗ ██╔╝ ██║ ██║╚██╗██║
-██║ ╚████║ ╚██████╔╝  ╚████╔╝  ██║ ██║ ╚████║
-╚═╝  ╚═══╝  ╚═════╝    ╚═══╝   ╚═╝ ╚═╝  ╚═══╝`;
+// const _LOGO = `Welcome to
+// ███╗   ██╗ ██╗   ██╗ ██╗   ██╗ ██╗ ███╗   ██╗
+// ██╔██╗ ██║ ██║   ██║ ██║   ██║ ██║ ██╔██╗ ██║
+// ██║╚██╗██║ ██║   ██║ ╚██╗ ██╔╝ ██║ ██║╚██╗██║
+// ██║ ╚████║ ╚██████╔╝  ╚████╔╝  ██║ ██║ ╚████║
+// ╚═╝  ╚═══╝  ╚═════╝    ╚═══╝   ╚═╝ ╚═╝  ╚═══╝`;
 
-// Logo component - always displayed
-const WelcomeLogo = () => {
+const WelcomeLogo = ({ recentSessions }: { recentSessions: SessionInfo[] }) => {
   const [cols, _rows] = useStdoutDimensions();
 
   return (
-    <Box flexDirection="column" width={cols} marginTop={0} marginBottom={0} paddingX={0} gap={0}>
-      <Box alignItems="flex-start" paddingTop={0} paddingBottom={0} flexDirection="column">
-        <Box flexDirection="row" alignItems="center" justifyContent="center">
-          <Gradient colors={['#FF5F6D', '#FFC371']}>
-            <Text>{`${ICON_2}`}</Text>
-          </Gradient>
-          {/* <Box flexDirection="column">
-            <Gradient colors={['#FF5F6D', '#FFC371']}>
-              <Text>{`${LOGO}`}</Text>
-            </Gradient>
-            <Box alignSelf="flex-end">
-              <Gradient colors={['#FF5F6D', '#FFC371']}>
-                <Text>{`v${getVersion()}`}</Text>
-              </Gradient>
-            </Box>
-          </Box> */}
-        </Box>
+    <Box flexDirection="row" padding={0} width={cols} marginTop={1} marginBottom={4}>
+      <Box width={40} justifyContent="center">
+        <Gradient colors={['#FF5F6D', '#FFC371']}>
+          <Text>{`${ICON_2}`}</Text>
+        </Gradient>
       </Box>
+      <RecentSessions recentSessions={recentSessions} />
     </Box>
   );
 };
@@ -128,55 +113,48 @@ const RecentSessions = ({ recentSessions }: RecentSessionsProps) => {
   const [cols, _rows] = useStdoutDimensions();
 
   return (
-    <Box flexDirection="column" width={cols} marginTop={0} marginBottom={0} paddingX={0} gap={0}>
-      <Box justifyContent="center" gap={1} marginTop={1}>
-        {/* Recent Activity */}
-        <Box flexDirection="column" paddingX={2} flexGrow={1} marginBottom={4}>
-          <Box marginBottom={1}>
-            <Text color={theme.welcome.title} bold underline>
-              Recent Activity
-            </Text>
-          </Box>
-          {recentSessions.length === 0 ? (
-            <Text color={theme.welcome.subtitle} dimColor>
-              No recent activity
-            </Text>
-          ) : (
-            recentSessions.slice(0, 5).map((session) => {
-              const relativeTime = formatRelativeTime(session.timestamp);
-              const displayText = session.topic || session.lastMessage;
-              const maxTextLen = cols - 40;
-              const truncatedText =
-                displayText && displayText.length > maxTextLen ? `${displayText.slice(0, maxTextLen)}...` : displayText;
-              const status = getSessionStatus(session.lastMessage, session.messageCount);
-              const badge = getMessageCountBadge(session.messageCount);
+    <Box flexDirection="column" width={cols}>
+      <Text color={theme.welcome.title} bold underline>
+        Recent Activity
+      </Text>
+      {recentSessions.length === 0 ? (
+        <Text color={theme.welcome.subtitle} dimColor>
+          No recent activity
+        </Text>
+      ) : (
+        recentSessions.map((session) => {
+          const relativeTime = formatRelativeTime(session.timestamp);
+          const displayText = session.topic || session.lastMessage;
+          const maxTextLen = cols - 40;
+          const truncatedText =
+            displayText && displayText.length > maxTextLen ? `${displayText.slice(0, maxTextLen)}...` : displayText;
+          const status = getSessionStatus(session.lastMessage, session.messageCount);
+          const badge = getMessageCountBadge(session.messageCount);
 
-              return (
-                <Box key={session.sessionId} flexDirection="row">
-                  <Box>
-                    <Text color={status.color}>{`${status.icon} `}</Text>
-                    <Text color={theme.welcome.subtitle} dimColor>
-                      {relativeTime}
-                      {' · '}
-                    </Text>
-                  </Box>
-                  <Box>
-                    <Text color={theme.welcome.subtitle} dimColor>
-                      {truncatedText}
-                      {' · '}
-                    </Text>
-                  </Box>
-                  <Box>
-                    <Text color={badge.color} dimColor>
-                      {badge.text}
-                    </Text>
-                  </Box>
-                </Box>
-              );
-            })
-          )}
-        </Box>
-      </Box>
+          return (
+            <Box key={session.sessionId} flexDirection="row">
+              <Box>
+                <Text color={status.color}>{`${status.icon} `}</Text>
+                <Text color={theme.welcome.subtitle} dimColor>
+                  {relativeTime}
+                  {' · '}
+                </Text>
+              </Box>
+              <Box>
+                <Text color={theme.welcome.subtitle} dimColor>
+                  {truncatedText}
+                  {' · '}
+                </Text>
+              </Box>
+              <Box>
+                <Text color={badge.color} dimColor>
+                  {badge.text}
+                </Text>
+              </Box>
+            </Box>
+          );
+        })
+      )}
     </Box>
   );
 };

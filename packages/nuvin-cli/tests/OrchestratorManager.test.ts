@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OrchestratorManager } from '../source/services/OrchestratorManager.js';
-import type { ConfigManager } from '../source/config/manager.js';
 import type { MessageLine } from '../source/adapters/index.js';
-import type { MCPServerManager } from '../source/services/MCPServerManager.js';
 
 const createMockHandlers = () => {
   const messages: MessageLine[] = [];
@@ -23,30 +20,38 @@ const createMockHandlers = () => {
   };
 };
 
-const createMockConfigManager = () => {
-  return {
-    getConfig: vi.fn().mockReturnValue({
+// Use vi.hoisted to create mock before module is loaded
+const { mockConfigManager } = vi.hoisted(() => {
+  const instance = {
+    getConfig: vi.fn(() => ({
       activeProvider: 'openrouter',
       model: 'openai/gpt-4',
       requireToolApproval: false,
       thinking: 'OFF',
       streamingChunks: false,
       mcp: undefined,
-    }),
-    get: vi.fn().mockReturnValue(undefined),
-    set: vi.fn().mockResolvedValue(undefined),
-    getProfileManager: vi.fn().mockReturnValue(undefined),
-    getCurrentProfile: vi.fn().mockReturnValue('default'),
-    // biome-ignore lint/suspicious/noExplicitAny: test mock
-  } as any;
-};
+    })),
+    get: vi.fn(() => undefined),
+    set: vi.fn(),
+    getProfileManager: vi.fn(() => undefined),
+    getCurrentProfile: vi.fn(() => 'default'),
+  };
+
+  return { mockConfigManager: instance };
+});
+
+vi.mock('../source/config/manager.js', () => ({
+  ConfigManager: {
+    getInstance: vi.fn(() => mockConfigManager),
+  },
+}));
+
+// Import after mocking
+import { OrchestratorManager } from '../source/services/OrchestratorManager.js';
 
 describe('OrchestratorManager', () => {
-  let mockConfigManager: ConfigManager;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockConfigManager = createMockConfigManager();
   });
 
   afterEach(() => {
@@ -54,7 +59,7 @@ describe('OrchestratorManager', () => {
   });
 
   it('getMCPServers returns empty array when no manager initialized', () => {
-    const manager = new OrchestratorManager(mockConfigManager);
+    const manager = new OrchestratorManager();
 
     const servers = manager.getMCPServers();
 
@@ -62,19 +67,19 @@ describe('OrchestratorManager', () => {
   });
 
   it('getStatus returns Initializing before init', () => {
-    const manager = new OrchestratorManager(mockConfigManager);
+    const manager = new OrchestratorManager();
 
     expect(manager.getStatus()).toBe('Initializing');
   });
 
   it('getOrchestrator returns null before init', () => {
-    const manager = new OrchestratorManager(mockConfigManager);
+    const manager = new OrchestratorManager();
 
     expect(manager.getOrchestrator()).toBe(null);
   });
 
   it('init initializes orchestrator with openrouter provider', async () => {
-    const manager = new OrchestratorManager(mockConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     const result = await manager.init({ mcpConfigPath: '/non/existent/path/mcp-config.json' }, handlers);
@@ -90,7 +95,7 @@ describe('OrchestratorManager', () => {
   });
 
   it('updateMCPAllowedTools updates orchestrator enabledTools', async () => {
-    const manager = new OrchestratorManager(mockConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     await manager.init({ mcpConfigPath: '/non/existent/path/mcp-config.json' }, handlers);
@@ -140,7 +145,7 @@ describe('OrchestratorManager', () => {
   });
 
   it('updateMCPAllowedTools includes base tools in enabled list', async () => {
-    const manager = new OrchestratorManager(mockConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     await manager.init({ mcpConfigPath: '/non/existent/path/mcp-config.json' }, handlers);
@@ -185,7 +190,7 @@ describe('OrchestratorManager', () => {
   });
 
   it('init passes mcpAllowedTools to MCPServerManager', async () => {
-    const manager = new OrchestratorManager(mockConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     await manager.init({ mcpConfigPath: '/non/existent/path/mcp-config.json' }, handlers);
@@ -201,7 +206,7 @@ describe('OrchestratorManager', () => {
   });
 
   it('init without mcpAllowedTools does not error', async () => {
-    const manager = new OrchestratorManager(mockConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     await manager.init({ mcpConfigPath: '/non/existent/path/mcp-config.json' }, handlers);
@@ -213,7 +218,7 @@ describe('OrchestratorManager', () => {
   });
 
   it('updateMCPAllowedTools changes take effect immediately', async () => {
-    const manager = new OrchestratorManager(mockConfigManager);
+    const manager = new OrchestratorManager();
     const handlers = createMockHandlers();
 
     await manager.init({ mcpConfigPath: '/non/existent/path/mcp-config.json' }, handlers);

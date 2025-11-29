@@ -2,10 +2,8 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { Box, Static } from 'ink';
 import { MessageLine } from './MessageLine.js';
 import type { MessageLine as MessageLineType } from '@/adapters/index.js';
-import { RecentSessions, WelcomeLogo } from './RecentSessions.js';
-
+import { WelcomeLogo } from './RecentSessions.js';
 import type { SessionInfo } from '@/types.js';
-import { getDefaultLogger } from '@/utils/file-logger.js';
 
 type ChatDisplayProps = {
   key: string;
@@ -15,8 +13,6 @@ type ChatDisplayProps = {
   headerKey?: number;
   sessions?: SessionInfo[] | null;
 };
-
-const logger = getDefaultLogger();
 
 /**
  * Merges tool calls with their corresponding tool results for display purposes only.
@@ -200,45 +196,36 @@ const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey,
     return prevStatic;
   }, [mergedMessages, staticCount]);
 
-  // Track if we have shown sessions to ensure we keep them in the list
-  // to preserve Static index alignment
-  const showedSessionsRef = useRef(false);
+  // Stable refs for header items to prevent Static from re-rendering them
+  type HeaderItem = { type: 'logo'; id: string; sessions: SessionInfo[] };
+  const logoItemRef = useRef<HeaderItem | null>(null);
+  const lastStaticItemsWithHeaderRef = useRef<Array<HeaderItem | MessageLineType>>([]);
 
   const staticItemsWithHeader = useMemo(() => {
-    const hasMessages = messages.length > 0;
-    const items: Array<
-      { type: 'logo' | 'sessions' | MessageLineType['type']; id: string; sessions?: SessionInfo[] } | MessageLineType
-    > = [];
-
-    // Always show logo at the start
-    items.push({ type: 'logo' as const, id: `logo-${headerKey}` });
-
-    // Show sessions if:
-    // 1. We have no messages (initial state)
-    // 2. OR we already showed them in this component lifecycle (to preserve Static indices)
-    const shouldShowSessions = (!hasMessages && sessions !== null && sessions.length > 0) || showedSessionsRef.current;
-
-    if (shouldShowSessions && sessions !== null && sessions.length > 0) {
-      items.push({ type: 'sessions' as const, id: `sessions-${headerKey}-${sessions.length}`, sessions });
-      showedSessionsRef.current = true;
+    // Create or reuse stable logo item (only recreate when headerKey changes)
+    const logoId = `logo-${headerKey}`;
+    if (!logoItemRef.current || logoItemRef.current.id !== logoId) {
+      logoItemRef.current = { type: 'logo' as const, id: logoId, sessions: sessions ?? [] };
     }
 
-    // Add all static messages
+    // Build items array using stable references
+    const items: Array<HeaderItem | MessageLineType> = [];
+    items.push(logoItemRef.current);
     items.push(...staticItems);
 
+    // Only return new array if content actually changed
+    const prev = lastStaticItemsWithHeaderRef.current;
+    if (prev.length === items.length && prev.every((item, i) => item === items[i])) {
+      return prev;
+    }
+
+    lastStaticItemsWithHeaderRef.current = items;
     return items;
-  }, [headerKey, sessions, staticItems, messages.length]);
+  }, [headerKey, sessions, staticItems]);
 
   const visible = useMemo(() => {
     return mergedMessages.slice(staticItems.length);
   }, [mergedMessages, staticItems]);
-
-  logger.info('ChatDisplay', {
-    headerKey,
-    staticCount,
-    staticItemsLength: staticItems.length,
-    visibleLength: visible.length,
-  });
 
   /* Render static items using Ink's Static so they don't update after being printed */
   return (
@@ -247,10 +234,7 @@ const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey,
         <Static items={staticItemsWithHeader}>
           {(item) => {
             if (item.type === 'logo') {
-              return <WelcomeLogo key={item.id} />;
-            }
-            if (item.type === 'sessions' && item.sessions) {
-              return <RecentSessions key={item.id} recentSessions={item.sessions} />;
+              return <WelcomeLogo key={item.id} recentSessions={item.sessions} />;
             }
             return <MessageLine key={item.id} message={item as MessageLineType} />;
           }}

@@ -26,7 +26,7 @@ import type { ProviderKey } from '@/const.js';
 import useMessages from '@/hooks/useMessage.js';
 import { useConfig } from '@/contexts/ConfigContext.js';
 import { useExplainMode } from '@/contexts/ExplainModeContext.js';
-import { orchestratorManager, OrchestratorStatus } from '@/services/OrchestratorManager.js';
+import { orchestratorManager } from '@/services/OrchestratorManager.js';
 import type { SessionInfo } from '@/types.js';
 import { createEmptySnapshot } from '@nuvin/nuvin-core';
 
@@ -340,9 +340,18 @@ export default function App({
     previousVimModeRef.current = vimModeEnabled;
   }, [vimModeEnabled]);
 
+  const initialColsRef = useRef(true);
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: cols dependency intentionally excluded to avoid re-renders
   useEffect(() => {
     if (!cols || cols < 10) return;
+
+    // Skip the initial mount to avoid duplicate header rendering
+    if (initialColsRef.current) {
+      initialColsRef.current = false;
+      return;
+    }
+
     try {
       console.log(ansiEscapes.clearTerminal);
       onViewRefresh();
