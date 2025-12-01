@@ -4,14 +4,13 @@ import SelectInput from '@/components/SelectInput/index.js';
 import { AppModal } from '@/components/AppModal.js';
 import type { CommandComponentProps } from '@/modules/commands/types.js';
 import {
-  PROVIDER_ITEMS,
   getProviderAuthMethods,
   type ProviderKey,
   type AuthMethod,
   type ProviderItem,
   type AuthMethodItem,
 } from '@/const.js';
-import { getProviderLabel } from '@/config/providers.js';
+import { buildProviderOptions, getProviderLabel } from '@/config/providers.js';
 
 import { exchangeCodeForToken, createApiKey } from './anthropic-oauth.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
@@ -19,12 +18,14 @@ import { DeviceFlowUI, OAuthUI, TokenInputUI } from '@/components/auth/index.js'
 import { useDeviceFlow } from '@/hooks/useDeviceFlow.js';
 import { useOAuth } from '@/hooks/useOAuth.js';
 import { useAuthStorage } from '@/hooks/useAuthStorage.js';
+import { useNotification } from '@/hooks/useNotification.js';
 
 type Stage = 'provider' | 'method' | 'tokenEntry' | 'deviceFlow' | 'oauthMax' | 'oauthConsole';
 
 type StatusMessage = {
   type: 'info' | 'success' | 'error';
   message: string;
+  close?: boolean;
 } | null;
 
 const getColorForStatus = (status: StatusMessage) => {
@@ -44,6 +45,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
   const [provider, setProvider] = useState<ProviderKey | null>(null);
   const [tokenValue, setTokenValue] = useState('');
   const [status, setStatus] = useState<StatusMessage>(null);
+  const { setNotification } = useNotification();
 
   const deviceFlowState = useDeviceFlow(stage === 'deviceFlow' && provider === 'github');
   const oauthMode = stage === 'oauthMax' ? 'max' : 'console';
@@ -61,12 +63,19 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
     return getProviderAuthMethods(provider);
   }, [provider]);
 
-  const resetToProviderStage = useCallback((message?: StatusMessage) => {
-    setProvider(null);
-    setStage('provider');
-    setTokenValue('');
-    setStatus(message ?? null);
-  }, []);
+  const resetToProviderStage = useCallback(
+    (message?: StatusMessage) => {
+      setProvider(null);
+      setStage('provider');
+      setTokenValue('');
+      setStatus(message ?? null);
+      if (message?.close) {
+        setNotification(message.message, 3000);
+        deactivate();
+      }
+    },
+    [setNotification, deactivate],
+  );
 
   const handleProviderSelect = useCallback((item: ProviderItem) => {
     setProvider(item.value);
@@ -125,6 +134,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
         resetToProviderStage({
           type: 'success',
           message: `${getProviderLabel(provider)} API key saved to configuration.`,
+          close: true,
         });
       } catch (error) {
         resetToProviderStage({
@@ -221,7 +231,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
           <Box marginTop={1} flexDirection="column">
             <Text>Select provider:</Text>
             <Box marginTop={1}>
-              <SelectInput<ProviderKey> items={PROVIDER_ITEMS} onSelect={handleProviderSelect} />
+              <SelectInput<ProviderKey> items={buildProviderOptions()} onSelect={handleProviderSelect} />
             </Box>
           </Box>
         );

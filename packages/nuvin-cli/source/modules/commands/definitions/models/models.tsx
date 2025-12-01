@@ -5,18 +5,17 @@ import TextInput from '@/components/TextInput/index.js';
 import { ComboBox } from '@/components/ComboBox/index.js';
 import type { CommandRegistry, CommandComponentProps } from '@/modules/commands/types.js';
 
-import { type ProviderKey, PROVIDER_MODELS } from '@/const.js';
-import { buildProviderOptions } from '@/config/providers.js';
+import { PROVIDER_MODELS, type ProviderKey } from '@/const.js';
+import { buildProviderOptions, getProviderLabel } from '@/config/providers.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import { useModelsCommandState } from './hooks/useModelsCommandState.js';
+
+const providerOptions = buildProviderOptions();
 
 const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandComponentProps) => {
   const { theme } = useTheme();
 
   const llmFactory = context.orchestratorManager?.getLLMFactory();
-
-  const availableProviders = llmFactory?.getAvailableProviders();
-  const providerOptions = buildProviderOptions(availableProviders);
 
   const { state, selectProvider, selectModel, goToCustomInput, goBack, setCustomModelInput, submitCustomModel } =
     useModelsCommandState(context.config, llmFactory, deactivate, deactivate);
@@ -80,7 +79,8 @@ const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandCompon
         closeOnEnter={false}
       >
         <Text color={theme.model.subtitle} dimColor>
-          Fetching available models from {state.selectedProvider}...
+          Fetching available models from{' '}
+          {state.selectedProvider ? getProviderLabel(state.selectedProvider) : 'selected provider'}...
         </Text>
       </AppModal>
     );
@@ -96,7 +96,7 @@ const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandCompon
     return (
       <AppModal
         visible={true}
-        title={`Select Model for ${state.selectedProvider}`}
+        title={`Select Model for ${state.selectedProvider ? getProviderLabel(state.selectedProvider) : 'Unknown Provider'}`}
         titleColor={theme.model.title}
         type="info"
         onClose={deactivate}
@@ -149,7 +149,8 @@ const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandCompon
         closeOnEnter={false}
       >
         <Text color={theme.model.subtitle} dimColor>
-          Type the exact model name for {state.selectedProvider}
+          Type the exact model name for{' '}
+          {state.selectedProvider ? getProviderLabel(state.selectedProvider) : 'selected provider'}
         </Text>
         <Box marginTop={1}>
           <Text color={theme.model.label}>Model: </Text>

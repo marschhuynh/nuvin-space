@@ -3,9 +3,9 @@ import type { ProviderKey } from './config/providers.js';
 export {
   type ProviderKey,
   type ProviderItem,
-  PROVIDER_ITEMS,
-  PROVIDER_LABELS,
-  PROVIDER_OPTIONS,
+  type ProviderMetadata,
+  buildProviderOptions,
+  getProviderLabel,
 } from './config/providers.js';
 export type AuthMethod = 'device-flow' | 'token' | 'none' | 'oauth-max' | 'oauth-console';
 export type AuthMethodItem = { label: string; value: AuthMethod };

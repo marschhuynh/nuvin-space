@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { stripAnsiAndControls } from '../source/utils.js';
+import { stripAnsiAndControls } from '@nuvin/nuvin-core';
 
 describe('stripAnsiAndControls', () => {
   it('removes basic ANSI color codes', () => {

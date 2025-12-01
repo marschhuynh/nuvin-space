@@ -68,7 +68,7 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
           const sessionDir = getSessionDir(session.sessionId);
 
           if (!context.orchestratorManager?.getOrchestrator()) {
-            throw new Error('Orchestrator not initialized');
+            throw new Error('Orchestrator not initialized, wait a moment');
           }
 
           const switchResult = await context.orchestratorManager.switchToSession({

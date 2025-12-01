@@ -8,7 +8,8 @@ import { useConfig } from '@/contexts/ConfigContext.js';
 import Gradient from 'ink-gradient';
 import { getVersion } from '@/utils/version.js';
 import type { ProviderKey } from '@/config/const.js';
-import { PROVIDER_OPTIONS, getProviderAuthMethods, getProviderModels, type AuthMethod } from '@/const.js';
+import { buildProviderOptions } from '@/config/providers.js';
+import { getProviderAuthMethods, getProviderModels, type AuthMethod, type AuthMethodItem } from '@/const.js';
 import { exchangeCodeForToken, createApiKey } from '@/modules/commands/definitions/auth/anthropic-oauth.js';
 import { DeviceFlowUI, OAuthUI, TokenInputUI } from './auth/index.js';
 import { useDeviceFlow } from '@/hooks/useDeviceFlow.js';
@@ -147,8 +148,39 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
   const [_saving, setSaving] = useState(false);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [providerOptions, setProviderOptions] = useState<any[]>([]);
 
-  const providerOption = PROVIDER_OPTIONS.find((p) => p.value === selectedProvider);
+  // Generate provider options dynamically (using actual available providers)
+  useEffect(() => {
+    const generateProviderOptions = async () => {
+      // // Get actual available providers from LLM factory
+      // const availableProviders = llmFactory?.getAvailableProviders?.() ?? [];
+
+      // // Handle edge case: no providers available
+      // if (availableProviders.length === 0) {
+      //   console.warn('No providers available from LLM factory');
+      //   setProviderOptions([]);
+      //   return;
+      // }
+
+      // Build options using ACTUAL providers, not hardcoded list
+      const options = buildProviderOptions();
+
+      // Set the first available provider as default if current selection not available
+      if (options.length > 0) {
+        const firstProvider = options[0].value;
+        if (!providerOptions.find((opt) => opt.value === selectedProvider)) {
+          setSelectedProvider(firstProvider as ProviderKey);
+        }
+      }
+
+      setProviderOptions(options);
+    };
+
+    generateProviderOptions().catch(console.error);
+  }, [providerOptions.find, selectedProvider]); // Re-run when factory changes to pick up new providers
+
+  const providerOption = providerOptions.find((p) => p.value === selectedProvider);
   const availableAuthMethods = getProviderAuthMethods(selectedProvider);
   const fallbackModels = getProviderModels(selectedProvider);
   const models = availableModels.length > 0 ? availableModels : fallbackModels;
@@ -375,30 +407,38 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
           {step === 'auth-input' && `Enter your ${providerOption?.label} credentials:`}
           {step === 'auth-device-flow' && 'Authenticate through your browser'}
           {step === 'auth-oauth' && 'Complete authentication in your browser'}
-          {step === 'loading-models' && `Fetching available models from ${providerOption?.label}...`}
+          {step === 'loading-models' &&
+            `Fetching available models from ${providerOption?.label || providerOption?.value || 'selected provider'}...`}
           {step === 'model' && 'Choose a model for your conversations:'}
-          {step === 'model-custom' && `Type the exact model name for ${providerOption?.label}:`}
+          {step === 'model-custom' &&
+            `Type the exact model name for ${providerOption?.label || providerOption?.value || 'selected provider'}:`}
           {step === 'complete' && 'Configuration saved! Starting Nuvin...'}
         </Text>
       </Box>
 
       {step === 'provider' && (
         <Box flexDirection="column" alignItems="center" marginTop={1}>
-          <SelectInput
-            items={PROVIDER_OPTIONS.map((p) => {
-              const [label, description] = p.label.includes(' - ') ? p.label.split(' - ', 2) : [p.label, ''];
-              return {
-                key: p.value,
-                value: p.value,
-                label,
-                description,
-              };
-            })}
-            itemComponent={({ isSelected, ...item }) => (
-              <ProviderItem isSelected={!!isSelected} {...(item as SelectItem)} />
-            )}
-            onSelect={handleProviderSubmit}
-          />
+          {providerOptions.length === 0 ? (
+            <Box>
+              <Text color="yellow">⚠ No providers are currently available.</Text>
+            </Box>
+          ) : (
+            <SelectInput
+              items={providerOptions.map((p) => {
+                const [label, description] = p.label.includes(' - ') ? p.label.split(' - ', 2) : [p.label, ''];
+                return {
+                  key: p.value,
+                  value: p.value,
+                  label,
+                  description,
+                };
+              })}
+              itemComponent={({ isSelected, ...item }) => (
+                <ProviderItem isSelected={!!isSelected} {...(item as SelectItem)} />
+              )}
+              onSelect={handleProviderSubmit}
+            />
+          )}
         </Box>
       )}
 
@@ -411,11 +451,11 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
           </Box>
 
           <SelectInput
-            items={availableAuthMethods.map((method) => ({
+            items={availableAuthMethods.map((method: AuthMethodItem) => ({
               key: method.value,
               value: method.value,
-              label: AUTH_METHOD_LABELS[method.value],
-              description: AUTH_METHOD_DESCRIPTIONS[method.value],
+              label: AUTH_METHOD_LABELS[method.value as AuthMethod],
+              description: AUTH_METHOD_DESCRIPTIONS[method.value as AuthMethod],
             }))}
             itemComponent={({ isSelected, ...item }) => (
               <AuthMethodItem isSelected={!!isSelected} {...(item as SelectItem)} />
@@ -562,7 +602,7 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
 
           {models.length > 10 ? (
             <ComboBox
-              items={models.map((model) => ({
+              items={models.map((model: string) => ({
                 label: model,
                 value: model,
               }))}
@@ -575,7 +615,7 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
           ) : (
             <SelectInput
               items={[
-                ...models.map((model) => ({
+                ...models.map((model: string) => ({
                   key: model,
                   value: model,
                   label: model,

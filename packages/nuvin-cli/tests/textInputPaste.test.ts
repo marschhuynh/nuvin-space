@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { canonicalizeTerminalPaste } from '../source/utils.js';
+import { canonicalizeTerminalPaste } from '@nuvin/nuvin-core';
 import { processPasteChunk, createPasteState, type PasteResult } from '../source/utils/pasteHandler.js';
 
 const PASTE_START = '\x1b[200~';

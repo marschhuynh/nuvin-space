@@ -1,7 +1,7 @@
 {
   "providers": [
     {
-      "name": "deepinfra",
+      "key": "deepinfra",
       "type": "openai-compat",
       "baseUrl": "https://api.deepinfra.com/v1/openai",
       "features": {
@@ -10,7 +10,7 @@
       }
     },
     {
-      "name": "openrouter",
+      "key": "openrouter",
       "type": "openai-compat",
       "baseUrl": "https://openrouter.ai/api/v1",
       "features": {
@@ -20,7 +20,7 @@
       }
     },
     {
-      "name": "zai",
+      "key": "zai",
       "type": "openai-compat",
       "baseUrl": "https://api.z.ai/api/coding/paas/v4",
       "features": {
@@ -29,7 +29,7 @@
       }
     },
     {
-      "name": "moonshot",
+      "key": "moonshot",
       "type": "openai-compat",
       "baseUrl": "https://api.moonshot.ai/v1",
       "features": {
@@ -38,7 +38,8 @@
       }
     },
     {
-      "name": "kimi-for-coding",
+      "key": "kimi-for-coding",
+      "label": "Kimi for Coding2",
       "type": "openai-compat",
       "baseUrl": "https://api.kimi.com/coding/v1",
       "features": {

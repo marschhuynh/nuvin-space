@@ -535,7 +535,7 @@ export class OrchestratorManager {
 
   updateConfig(agentConfigUpdates: Partial<AgentConfig>) {
     if (!this.orchestrator) {
-      throw new Error('Orchestrator not initialized');
+      throw new Error('Orchestrator not initialized, wait a moment');
     }
 
     this.orchestrator.updateConfig(agentConfigUpdates);
@@ -700,7 +700,7 @@ export class OrchestratorManager {
     agentConfigOverrides: Partial<AgentConfig> = {},
   ) {
     if (!this.orchestrator) {
-      throw new Error('Orchestrator not initialized');
+      throw new Error('Orchestrator not initialized, wait a moment');
     }
 
     const currentConfig = this.getCurrentConfig();
@@ -788,7 +788,7 @@ export class OrchestratorManager {
 
   async retry(opts: SendMessageOptions = {}, agentConfigOverrides: Partial<AgentConfig> = {}) {
     if (!this.orchestrator) {
-      throw new Error('Orchestrator not initialized');
+      throw new Error('Orchestrator not initialized, wait a moment');
     }
 
     const currentConfig = this.getCurrentConfig();
@@ -884,7 +884,7 @@ export class OrchestratorManager {
    */
   async createNewConversation(config: { sessionId?: string; sessionDir?: string; memPersist?: boolean }) {
     if (!this.orchestrator) {
-      throw new Error('Orchestrator not initialized');
+      throw new Error('Orchestrator not initialized, wait a moment');
     }
 
     if (!this.handlers) {
@@ -936,7 +936,7 @@ export class OrchestratorManager {
    */
   async switchToSession(config: { sessionId: string; sessionDir: string }) {
     if (!this.orchestrator) {
-      throw new Error('Orchestrator not initialized');
+      throw new Error('Orchestrator not initialized, wait a moment');
     }
 
     if (!this.handlers) {

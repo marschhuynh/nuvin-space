@@ -79,7 +79,13 @@ export { DelegationServiceFactory, LLMResolver } from './delegation/index.js';
 
 // LLM providers
 export { GithubLLM, AnthropicAISDKLLM } from './llm-providers/index.js';
-export { createLLM, getAvailableProviders, supportsGetModels, type LLMOptions } from './llm-providers/index.js';
+export {
+  createLLM,
+  getAvailableProviders,
+  supportsGetModels,
+  getProviderLabel,
+  type LLMOptions,
+} from './llm-providers/index.js';
 export {
   normalizeModelLimits,
   normalizeModelInfo,

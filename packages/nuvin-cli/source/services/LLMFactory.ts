@@ -42,6 +42,7 @@ export type LLMOptions = {
 export interface LLMFactoryInterface {
   createLLM(provider: ProviderKey, options?: LLMOptions): LLMPort;
   getModels?(provider: ProviderKey, signal?: AbortSignal): Promise<string[]>;
+  getAvailableProviders?(): string[];
 }
 
 export class LLMFactory implements LLMFactoryInterface {

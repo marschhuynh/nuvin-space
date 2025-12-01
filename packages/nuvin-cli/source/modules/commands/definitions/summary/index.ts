@@ -15,7 +15,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
         eventBus.emit('ui:line', {
           id: crypto.randomUUID(),
           type: 'system',
-          content: 'Orchestrator not initialized',
+          content: 'Orchestrator not initialized, wait a moment',
           metadata: { timestamp: new Date().toISOString() },
           color: 'red',
         });

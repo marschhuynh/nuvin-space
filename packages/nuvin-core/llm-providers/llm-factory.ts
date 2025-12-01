@@ -7,7 +7,8 @@ import { normalizeModelInfo, type ModelInfo } from './model-limits.js';
 type ModelConfig = false | true | string | string[] | Array<{ id: string; name?: string; [key: string]: unknown }>;
 
 interface ProviderConfig {
-  name: string;
+  key: string;
+  label?: string;
   type?: 'openai-compat' | 'anthropic';
   baseUrl: string;
   models?: ModelConfig;
@@ -47,7 +48,12 @@ export class GenericLLM extends BaseLLM implements LLMPort {
   private readonly providerName: string;
   private readonly customHeaders?: Record<string, string>;
 
-  constructor(baseUrl: string, modelConfig: ModelConfig, opts: LLMOptions = {}, customHeaders?: Record<string, string>) {
+  constructor(
+    baseUrl: string,
+    modelConfig: ModelConfig,
+    opts: LLMOptions = {},
+    customHeaders?: Record<string, string>,
+  ) {
     const { enablePromptCaching = false, includeUsage = false, providerName = 'unknown', ...restOpts } = opts;
     super(opts.apiUrl || baseUrl, { enablePromptCaching });
     this.includeUsage = includeUsage;
@@ -65,7 +71,14 @@ export class GenericLLM extends BaseLLM implements LLMPort {
       maxFileSize: 5 * 1024 * 1024,
       captureResponseBody: true,
     });
-    return createTransport(base, this.apiUrl, this.opts.apiKey, this.opts.apiUrl, this.opts.version, this.customHeaders);
+    return createTransport(
+      base,
+      this.apiUrl,
+      this.opts.apiKey,
+      this.opts.apiUrl,
+      this.opts.version,
+      this.customHeaders,
+    );
   }
 
   async getModels(signal?: AbortSignal): Promise<ModelInfo[]> {
@@ -155,7 +168,7 @@ function mergeProviders(customProviders?: Record<string, CustomProviderDefinitio
   const merged = new Map<string, ProviderConfig>();
 
   for (const provider of providers) {
-    merged.set(provider.name.toLowerCase(), provider);
+    merged.set(provider.key.toLowerCase(), provider);
   }
 
   if (customProviders) {
@@ -166,7 +179,7 @@ function mergeProviders(customProviders?: Record<string, CustomProviderDefinitio
 
       const existing = merged.get(name.toLowerCase());
       const providerConfig: ProviderConfig = {
-        name,
+        key: name,
         type: custom.type ?? 'openai-compat',
         baseUrl: custom.baseUrl,
         models: custom.models ?? false,
@@ -191,25 +204,30 @@ export function createLLM(
   customProviders?: Record<string, CustomProviderDefinition>,
 ): LLMPort {
   const allProviders = mergeProviders(customProviders);
-  const config = allProviders.find((p) => p.name.toLowerCase() === providerName.toLowerCase());
+  const config = allProviders.find((p) => p.key.toLowerCase() === providerName.toLowerCase());
 
   if (!config) {
-    throw new Error(`Unknown LLM provider: ${providerName}. Available: ${allProviders.map((p) => p.name).join(', ')}`);
+    throw new Error(`Unknown LLM provider: ${providerName}. Available: ${allProviders.map((p) => p.key).join(', ')}`);
   }
 
   const modelConfig = normalizeModelConfig(config);
 
-  return new GenericLLM(config.baseUrl, modelConfig, {
-    ...options,
-    providerName: config.name,
-    enablePromptCaching: options.enablePromptCaching ?? config.features.promptCaching,
-    includeUsage: options.includeUsage ?? config.features.includeUsage,
-  }, config.customHeaders);
+  return new GenericLLM(
+    config.baseUrl,
+    modelConfig,
+    {
+      ...options,
+      providerName: config.key,
+      enablePromptCaching: options.enablePromptCaching ?? config.features.promptCaching,
+      includeUsage: options.includeUsage ?? config.features.includeUsage,
+    },
+    config.customHeaders,
+  );
 }
 
 export function getAvailableProviders(customProviders?: Record<string, CustomProviderDefinition>): string[] {
   const allProviders = mergeProviders(customProviders);
-  return allProviders.map((p) => p.name);
+  return allProviders.map((p) => p.key);
 }
 
 export function supportsGetModels(
@@ -217,8 +235,17 @@ export function supportsGetModels(
   customProviders?: Record<string, CustomProviderDefinition>,
 ): boolean {
   const allProviders = mergeProviders(customProviders);
-  const config = allProviders.find((p) => p.name.toLowerCase() === providerName.toLowerCase());
+  const config = allProviders.find((p) => p.key.toLowerCase() === providerName.toLowerCase());
   if (!config) return false;
   const modelConfig = normalizeModelConfig(config);
   return modelConfig !== false;
+}
+
+export function getProviderLabel(
+  providerKey: string,
+  customProviders?: Record<string, CustomProviderDefinition>,
+): string | undefined {
+  const allProviders = mergeProviders(customProviders);
+  const config = allProviders.find((p) => p.key.toLowerCase() === providerKey.toLowerCase());
+  return config?.label;
 }
