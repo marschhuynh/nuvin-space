@@ -52,23 +52,6 @@ const formatRelativeTime = (timestamp: string) => {
   });
 };
 
-const getSessionStatus = (lastMessage: string | undefined, messageCount: number) => {
-  if (!lastMessage) return { icon: '○', color: 'gray' };
-  if (lastMessage.includes('Successfully') || lastMessage.includes('successfully')) {
-    return { icon: '✓', color: 'green' };
-  }
-  if (lastMessage.includes('error') || lastMessage.includes('Error')) {
-    return { icon: '✗', color: 'red' };
-  }
-  if (lastMessage.includes('try again')) {
-    return { icon: '⚠', color: 'yellow' };
-  }
-  if (messageCount === 1) {
-    return { icon: '○', color: 'gray' };
-  }
-  return { icon: '●', color: 'blue' };
-};
-
 const getMessageCountBadge = (count: number) => {
   if (count === 1) return { text: '1 msg', color: 'gray' };
   if (count < 10) return { text: `${count} msgs`, color: 'cyan' };
@@ -79,30 +62,23 @@ const getMessageCountBadge = (count: number) => {
 const version = getVersion();
 const ICON_2 = `╭──┴──┴──┴──┴──┴──╮
 │  ●  ●  ● ─────  │
-│                 │
-│  >_  NUVIN      │
-╰──┬──┬──┬──┬──┬──╯
-      │  │  │
-         │  ${version}`;
-
-// const _LOGO = `Welcome to
-// ███╗   ██╗ ██╗   ██╗ ██╗   ██╗ ██╗ ███╗   ██╗
-// ██╔██╗ ██║ ██║   ██║ ██║   ██║ ██║ ██╔██╗ ██║
-// ██║╚██╗██║ ██║   ██║ ╚██╗ ██╔╝ ██║ ██║╚██╗██║
-// ██║ ╚████║ ╚██████╔╝  ╚████╔╝  ██║ ██║ ╚████║
-// ╚═╝  ╚═══╝  ╚═════╝    ╚═══╝   ╚═╝ ╚═╝  ╚═══╝`;
+│  NUVIN          │
+│  >_     ${version.padEnd(7, ' ')} │
+╰──┬──┬──┬──┬──┬──╯`;
 
 const WelcomeLogo = ({ recentSessions }: { recentSessions: SessionInfo[] }) => {
   const [cols, _rows] = useStdoutDimensions();
 
   return (
     <Box flexDirection="row" padding={0} width={cols} marginTop={1} marginBottom={4}>
-      <Box width={40} justifyContent="center">
+      <Box width={24} justifyContent="center" flexDirection="column" alignItems="center">
         <Gradient colors={['#FF5F6D', '#FFC371']}>
           <Text>{`${ICON_2}`}</Text>
         </Gradient>
       </Box>
-      <RecentSessions recentSessions={recentSessions} />
+      <Box width={cols - 24}>
+        <RecentSessions recentSessions={recentSessions} />
+      </Box>
     </Box>
   );
 };
@@ -125,29 +101,24 @@ const RecentSessions = ({ recentSessions }: RecentSessionsProps) => {
         recentSessions.map((session) => {
           const relativeTime = formatRelativeTime(session.timestamp);
           const displayText = session.topic || session.lastMessage;
-          const maxTextLen = cols - 40;
-          const truncatedText =
-            displayText && displayText.length > maxTextLen ? `${displayText.slice(0, maxTextLen)}...` : displayText;
-          const status = getSessionStatus(session.lastMessage, session.messageCount);
           const badge = getMessageCountBadge(session.messageCount);
 
           return (
-            <Box key={session.sessionId} flexDirection="row">
-              <Box>
-                <Text color={status.color}>{`${status.icon} `}</Text>
+            <Box key={session.sessionId} flexDirection="row" flexWrap="nowrap" width={cols - 26}>
+              <Box flexShrink={0}>
                 <Text color={theme.welcome.subtitle} dimColor>
                   {relativeTime}
                   {' · '}
                 </Text>
               </Box>
               <Box>
-                <Text color={theme.welcome.subtitle} dimColor>
-                  {truncatedText}
+                <Text color={theme.welcome.subtitle} dimColor wrap="truncate-end">
+                  {displayText}
                   {' · '}
                 </Text>
               </Box>
-              <Box>
-                <Text color={badge.color} dimColor>
+              <Box flexShrink={0} flexWrap="nowrap">
+                <Text color={badge.color} dimColor wrap="end">
                   {badge.text}
                 </Text>
               </Box>
