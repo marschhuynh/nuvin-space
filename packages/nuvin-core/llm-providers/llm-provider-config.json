@@ -38,8 +38,8 @@
       }
     },
     {
-      "key": "kimi-for-coding",
-      "label": "Kimi for Coding2",
+      "key": "kimi",
+      "label": "Kimi for Coding",
       "type": "openai-compat",
       "baseUrl": "https://api.kimi.com/coding/v1",
       "features": {
