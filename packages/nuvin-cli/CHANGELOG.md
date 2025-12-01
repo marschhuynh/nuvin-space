@@ -1,5 +1,59 @@
 # @nuvin/nuvin-cli
 
+## 1.10.0
+
+### Minor Changes
+
+- [`2a2ab84`](https://github.com/marschhuynh/nuvin-space/commit/2a2ab8483149e4f1ce56473bb4b40bcd7144b979) Thanks [@marschhuynh](https://github.com/marschhuynh)! - feat(cli): enhance authentication flow with notifications
+
+  - Add success notification when API key is saved in auth flow
+  - Improve provider selection UI in InitialConfigSetup
+  - Handle edge case when no providers are available
+  - Enhance auth command with automatic deactivation on success
+  - Add better error handling and user feedback
+
+- [`2a2ab84`](https://github.com/marschhuynh/nuvin-space/commit/2a2ab8483149e4f1ce56473bb4b40bcd7144b979) Thanks [@marschhuynh](https://github.com/marschhuynh)! - refactor(core/cli): migrate to dynamic provider discovery
+
+  - Replace static provider lists with dynamic discovery from core
+  - Add getProviderLabel() to core for centralized label management
+  - Update provider config schema: name → key field with optional label
+  - Enhance InitialConfigSetup to use available providers dynamically
+  - Remove hardcoded PROVIDER\_\* constants in favor of runtime discovery
+
+- [`2a2ab84`](https://github.com/marschhuynh/nuvin-space/commit/2a2ab8483149e4f1ce56473bb4b40bcd7144b979) Thanks [@marschhuynh](https://github.com/marschhuynh)! - feat(cli): improve provider and model selection UX
+
+  - Display provider labels instead of provider keys in UI components
+  - Add fallback text for undefined provider information
+  - Improve model loading and custom model input screens
+  - Enhance provider descriptions and selection behavior
+  - Update models command to use dynamic provider discovery
+
+### Patch Changes
+
+- [`2a2ab84`](https://github.com/marschhuynh/nuvin-space/commit/2a2ab8483149e4f1ce56473bb4b40bcd7144b979) Thanks [@marschhuynh](https://github.com/marschhuynh)! - chore(cli): improve error messages and enable debug logging
+
+  - Add "wait a moment" context to orchestrator initialization errors
+  - Enable debug level logging in file logger by default
+  - Provide more descriptive error messages in command flows
+  - Improve error feedback in history and summary commands
+
+- [`2a2ab84`](https://github.com/marschhuynh/nuvin-space/commit/2a2ab8483149e4f1ce56473bb4b40bcd7144b979) Thanks [@marschhuynh](https://github.com/marschhuynh)! - test(cli): remove outdated test and update imports
+
+  - Delete provider-registry.test.ts (no longer relevant with dynamic providers)
+  - Update stripAnsi and textInputPaste test imports to use core package
+  - Remove hardcoded provider assertion tests that don't apply to dynamic system
+
+- [`2a2ab84`](https://github.com/marschhuynh/nuvin-space/commit/2a2ab8483149e4f1ce56473bb4b40bcd7144b979) Thanks [@marschhuynh](https://github.com/marschhuynh)! - refactor(core/cli): move string utilities to core package
+
+  - Remove CLI utils.ts wrapper file
+  - Update imports to use @nuvin/nuvin-core utilities directly
+  - Move stripAnsiAndControls and canonicalizeTerminalPaste to core exports
+  - Update test imports to reference core package utilities
+  - Ensure consistent utility usage across packages
+
+- Updated dependencies [[`2a2ab84`](https://github.com/marschhuynh/nuvin-space/commit/2a2ab8483149e4f1ce56473bb4b40bcd7144b979), [`2a2ab84`](https://github.com/marschhuynh/nuvin-space/commit/2a2ab8483149e4f1ce56473bb4b40bcd7144b979)]:
+  - @nuvin/nuvin-core@1.4.0
+
 ## 1.9.3
 
 ### Patch Changes
