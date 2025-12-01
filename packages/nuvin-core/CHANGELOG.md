@@ -1,5 +1,25 @@
 # @nuvin/nuvin-core
 
+## 1.4.0
+
+### Minor Changes
+
+- [`2a2ab84`](https://github.com/marschhuynh/nuvin-space/commit/2a2ab8483149e4f1ce56473bb4b40bcd7144b979) Thanks [@marschhuynh](https://github.com/marschhuynh)! - refactor(core/cli): migrate to dynamic provider discovery
+
+  - Replace static provider lists with dynamic discovery from core
+  - Add getProviderLabel() to core for centralized label management
+  - Update provider config schema: name → key field with optional label
+  - Enhance InitialConfigSetup to use available providers dynamically
+  - Remove hardcoded PROVIDER\_\* constants in favor of runtime discovery
+
+- [`2a2ab84`](https://github.com/marschhuynh/nuvin-space/commit/2a2ab8483149e4f1ce56473bb4b40bcd7144b979) Thanks [@marschhuynh](https://github.com/marschhuynh)! - refactor(core/cli): move string utilities to core package
+
+  - Remove CLI utils.ts wrapper file
+  - Update imports to use @nuvin/nuvin-core utilities directly
+  - Move stripAnsiAndControls and canonicalizeTerminalPaste to core exports
+  - Update test imports to reference core package utilities
+  - Ensure consistent utility usage across packages
+
 ## 1.3.2
 
 ### Patch Changes
