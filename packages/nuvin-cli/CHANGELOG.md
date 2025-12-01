@@ -1,5 +1,14 @@
 # @nuvin/nuvin-cli
 
+## 1.10.1
+
+### Patch Changes
+
+- [`6a41065`](https://github.com/marschhuynh/nuvin-space/commit/6a410656e38d5b5020c42e5b94bc83e0ab7900d3) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Update logger level to error for better log management and reduced noise
+
+- Updated dependencies [[`6a41065`](https://github.com/marschhuynh/nuvin-space/commit/6a410656e38d5b5020c42e5b94bc83e0ab7900d3)]:
+  - @nuvin/nuvin-core@1.4.1
+
 ## 1.10.0
 
 ### Minor Changes
