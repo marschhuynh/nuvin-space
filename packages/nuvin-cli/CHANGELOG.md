@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.10.2
+
+### Patch Changes
+
+- [`9480dcd`](https://github.com/marschhuynh/nuvin-space/commit/9480dcd7025ff720702e60f3e805e6c9c62246bd) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Update logo
+
 ## 1.10.1
 
 ### Patch Changes
