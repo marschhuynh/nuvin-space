@@ -41,8 +41,14 @@ const getColorForStatus = (status: StatusMessage) => {
 
 export const AuthCommandComponent = ({ context, deactivate }: CommandComponentProps) => {
   const { theme } = useTheme();
-  const [stage, setStage] = useState<Stage>('provider');
-  const [provider, setProvider] = useState<ProviderKey | null>(null);
+
+  // Parse provider from command arguments (e.g., "/auth anthropic" or "/auth anthropic --return-to-model")
+  const args = context.rawInput.trim().split(/\s+/);
+  const initialProvider = args.length > 1 && !args[1].startsWith('--') ? (args[1] as ProviderKey) : null;
+  const shouldReturnToModel = args.includes('--return-to-model');
+
+  const [stage, setStage] = useState<Stage>(initialProvider ? 'method' : 'provider');
+  const [provider, setProvider] = useState<ProviderKey | null>(initialProvider);
   const [tokenValue, setTokenValue] = useState('');
   const [status, setStatus] = useState<StatusMessage>(null);
   const { setNotification } = useNotification();
@@ -63,6 +69,14 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
     return getProviderAuthMethods(provider);
   }, [provider]);
 
+  // Handle initial provider selection
+  useEffect(() => {
+    if (initialProvider && stage === 'method') {
+      setStatus(null);
+      setTokenValue('');
+    }
+  }, [initialProvider, stage]);
+
   const resetToProviderStage = useCallback(
     (message?: StatusMessage) => {
       setProvider(null);
@@ -72,9 +86,16 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
       if (message?.close) {
         setNotification(message.message, 3000);
         deactivate();
+
+        // If this auth was initiated from /model command, navigate back to /model
+        if (shouldReturnToModel && provider) {
+          setTimeout(() => {
+            context.registry.execute('/model');
+          }, 100); // Small delay to ensure modal closes first
+        }
       }
     },
-    [setNotification, deactivate],
+    [setNotification, deactivate, shouldReturnToModel, provider, context],
   );
 
   const handleProviderSelect = useCallback((item: ProviderItem) => {

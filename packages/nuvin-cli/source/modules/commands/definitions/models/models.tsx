@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Box, Text, useInput } from 'ink';
 import SelectInput from '@/components/SelectInput/index.js';
 import { AppModal } from '@/components/AppModal.js';
@@ -12,21 +13,109 @@ import { useModelsCommandState } from './hooks/useModelsCommandState.js';
 
 const providerOptions = buildProviderOptions();
 
+type AuthNavigationPromptProps = {
+  onNavigate: () => void;
+  onCancel: () => void;
+};
+
+const AuthNavigationPrompt = ({ onNavigate, onCancel }: AuthNavigationPromptProps) => {
+  const [selectedAction, setSelectedAction] = useState(0); // 0=Yes, 1=No
+  const { theme } = useTheme();
+
+  useInput((input, key) => {
+    if (key.tab || key.leftArrow || key.rightArrow) {
+      setSelectedAction((prev) => (prev === 0 ? 1 : 0));
+      return;
+    }
+
+    if (key.return) {
+      if (selectedAction === 0) {
+        onNavigate();
+      } else {
+        onCancel();
+      }
+      return;
+    }
+
+    if (input === '1' || input.toLowerCase() === 'y') {
+      onNavigate();
+      return;
+    }
+
+    if (input === '2' || input.toLowerCase() === 'n') {
+      onCancel();
+      return;
+    }
+  });
+
+  return (
+    <Box flexDirection="column">
+      <Text color={theme.model.subtitle} dimColor>
+        Would you like to configure authentication now?
+      </Text>
+      <Box marginTop={1} flexDirection="row" gap={2}>
+        <Box alignItems="center">
+          <Text color={selectedAction === 0 ? theme.toolApproval?.actionSelected || 'cyan' : 'transparent'} bold>
+            {selectedAction === 0 ? '❯ ' : '  '}
+          </Text>
+          <Text
+            dimColor={selectedAction !== 0}
+            color={selectedAction === 0 ? theme.toolApproval?.actionApprove || 'green' : 'white'}
+            bold
+          >
+            Yes
+          </Text>
+        </Box>
+        <Box alignItems="center">
+          <Text color={selectedAction === 1 ? theme.toolApproval?.actionSelected || 'cyan' : 'transparent'} bold>
+            {selectedAction === 1 ? '❯ ' : '  '}
+          </Text>
+          <Text
+            dimColor={selectedAction !== 1}
+            color={
+              selectedAction === 1
+                ? theme.toolApproval?.actionSelected || 'cyan'
+                : theme.toolApproval?.actionDeny || 'red'
+            }
+            bold
+          >
+            No
+          </Text>
+        </Box>
+      </Box>
+      <Box marginTop={1}>
+        <Text color={theme.model.help || theme.colors?.muted} dimColor>
+          Tab/←→ Navigate • Enter Select • 1/2 or Y/N Quick Select
+        </Text>
+      </Box>
+    </Box>
+  );
+};
+
 const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandComponentProps) => {
   const { theme } = useTheme();
 
   const llmFactory = context.orchestratorManager?.getLLMFactory();
 
-  const { state, selectProvider, selectModel, goToCustomInput, goBack, setCustomModelInput, submitCustomModel } =
-    useModelsCommandState(context.config, llmFactory, deactivate, deactivate);
+  const {
+    state,
+    selectProvider,
+    selectModel,
+    goToCustomInput,
+    goBack,
+    setCustomModelInput,
+    submitCustomModel,
+    clearError,
+    navigateToAuth,
+  } = useModelsCommandState(context.config, llmFactory, deactivate, deactivate, context);
 
   useInput(
     (_input, key) => {
-      if (key.escape) {
+      if (key.escape && !state.showAuthPrompt) {
         goBack();
       }
     },
-    { isActive: isActive },
+    { isActive: isActive && !state.showAuthPrompt },
   );
 
   const handleProviderSelect = async (item: { label: string; value: string }) => {
@@ -92,6 +181,7 @@ const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandCompon
     const modelOptions = models.map((model) => ({ label: model, value: model }));
 
     const shouldUseAutocomplete = state.availableModels.length > 10;
+    const hasAuthError = state.showAuthPrompt;
 
     return (
       <AppModal
@@ -104,17 +194,23 @@ const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandCompon
         closeOnEnter={false}
       >
         {state.error && (
-          <Box marginBottom={1}>
+          <Box marginBottom={1} flexDirection="column">
             <Text color="red">{state.error}</Text>
           </Box>
         )}
-        <Text color={theme.model.subtitle} dimColor>
-          {state.availableModels.length > 0
-            ? `${models.length} models available`
-            : 'Choose a model or enter a custom model name'}
-        </Text>
+
+        {!hasAuthError && (
+          <Text color={theme.model.subtitle} dimColor>
+            {state.availableModels.length > 0
+              ? `${models.length} models available`
+              : 'Choose a model or enter a custom model name'}
+          </Text>
+        )}
+
         <Box marginTop={1}>
-          {shouldUseAutocomplete ? (
+          {hasAuthError ? (
+            <AuthNavigationPrompt onNavigate={navigateToAuth} onCancel={clearError} />
+          ) : shouldUseAutocomplete ? (
             <ComboBox
               items={modelOptions}
               placeholder="Type to search models..."

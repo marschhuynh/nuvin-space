@@ -12,6 +12,7 @@ export interface ModelsCommandState {
   isLoading: boolean;
   error: string | null;
   availableModels: string[];
+  showAuthPrompt: boolean;
 }
 
 export type ModelsCommandAction =
@@ -22,7 +23,8 @@ export type ModelsCommandAction =
   | { type: 'GO_BACK' }
   | { type: 'SET_INPUT'; payload: string }
   | { type: 'SET_INPUT_DONE'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string | null };
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'SET_AUTH_PROMPT'; payload: boolean };
 
 export interface UseModelsCommandStateReturn {
   state: ModelsCommandState;
@@ -33,6 +35,7 @@ export interface UseModelsCommandStateReturn {
   setCustomModelInput: (value: string) => void;
   submitCustomModel: (value: string) => Promise<void>;
   clearError: () => void;
+  navigateToAuth: () => void;
 }
 
 const initialState: ModelsCommandState = {
@@ -42,6 +45,7 @@ const initialState: ModelsCommandState = {
   isLoading: false,
   error: null,
   availableModels: [],
+  showAuthPrompt: false,
 };
 
 function modelsCommandReducer(state: ModelsCommandState, action: ModelsCommandAction): ModelsCommandState {
@@ -113,6 +117,13 @@ function modelsCommandReducer(state: ModelsCommandState, action: ModelsCommandAc
       return {
         ...state,
         error: action.payload,
+        showAuthPrompt: false,
+      };
+
+    case 'SET_AUTH_PROMPT':
+      return {
+        ...state,
+        showAuthPrompt: action.payload,
       };
 
     default:
@@ -131,12 +142,14 @@ async function saveConfiguration(
 
   try {
     // Check if provider has auth configured
-    const providerAuth = config.get<unknown[]>(`providers.${provider}.auth`);
+    const providerLower = provider.toLowerCase();
+    const providerAuth = config.get<unknown[]>(`providers.${providerLower}.auth`);
     const hasAuthConfig = providerAuth && Array.isArray(providerAuth) && providerAuth.length > 0;
 
     if (!hasAuthConfig) {
       dispatch({ type: 'SET_INPUT_DONE', payload: false });
       dispatch({ type: 'SET_ERROR', payload: `Provider '${provider}' is not configured. Please run /auth first.` });
+      dispatch({ type: 'SET_AUTH_PROMPT', payload: true });
     } else {
       await config.set('activeProvider', provider, 'global');
       await config.set('model', model, 'global');
@@ -158,6 +171,7 @@ export function useModelsCommandState(
   llmFactory: LLMFactory | undefined,
   onComplete: () => void,
   onCancel: () => void,
+  context: CommandContext,
 ): UseModelsCommandStateReturn {
   const [state, dispatch] = useReducer(modelsCommandReducer, initialState);
 
@@ -173,11 +187,17 @@ export function useModelsCommandState(
       const modelIds = await llmFactory.getModels(provider);
       dispatch({ type: 'SET_MODELS', payload: modelIds });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch models';
       dispatch({
         type: 'SET_ERROR',
-        payload: error instanceof Error ? error.message : 'Failed to fetch models',
+        payload: errorMessage,
       });
       dispatch({ type: 'SET_MODELS', payload: [] });
+      
+      // Check if this is an auth error and show navigation prompt
+      if (errorMessage.includes('not configured') || errorMessage.includes('/auth')) {
+        dispatch({ type: 'SET_AUTH_PROMPT', payload: true });
+      }
     }
   };
 
@@ -238,6 +258,15 @@ export function useModelsCommandState(
 
   const clearError = () => {
     dispatch({ type: 'SET_ERROR', payload: null });
+    dispatch({ type: 'SET_AUTH_PROMPT', payload: false });
+  };
+
+  const navigateToAuth = () => {
+    onCancel(); // Close the current /model command
+    const authCommand = state.selectedProvider 
+      ? `/auth ${state.selectedProvider} --return-to-model`
+      : '/auth --return-to-model';
+    context.registry.execute(authCommand); // Execute the /auth command with provider parameter
   };
 
   return {
@@ -249,5 +278,6 @@ export function useModelsCommandState(
     setCustomModelInput,
     submitCustomModel,
     clearError,
+    navigateToAuth,
   };
 }
