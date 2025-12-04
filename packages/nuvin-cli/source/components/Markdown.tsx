@@ -6,66 +6,66 @@ import { markdownCache } from '@/utils/MarkdownCache.js';
 import { useStdoutDimensions } from '@/hooks/index.js';
 
 type MarkdownProps = {
-	children: string;
-	disableMarkdown?: boolean;
-	enableCache?: boolean;
+  children: string;
+  disableMarkdown?: boolean;
+  enableCache?: boolean;
+  reflowText?: boolean;
 };
 
 export const Markdown: React.FC<MarkdownProps> = ({
-	children,
-	disableMarkdown,
-	enableCache = true,
+  children,
+  disableMarkdown,
+  enableCache = true,
+  reflowText = true,
 }) => {
-	const [cols] = useStdoutDimensions();
+  const [cols] = useStdoutDimensions();
 
-	const rendererConfig = useMemo(
-		() => ({
-			width: Math.max(20, cols - 10),
-			reflowText: true,
-		}),
-		[cols],
-	);
+  const rendererConfig = useMemo(
+    () => ({
+      width: cols - 3,
+      reflowText,
+    }),
+    [cols, reflowText],
+  );
 
-	const configHash = useMemo(() => JSON.stringify(rendererConfig), [rendererConfig]);
+  const configHash = useMemo(() => JSON.stringify(rendererConfig), [rendererConfig]);
 
-	const parseMarkdown = useCallback(
-		(content: string): string => {
-			if (enableCache) {
-				const cached = markdownCache.get(content, configHash);
-				if (cached) {
-					return cached;
-				}
-			}
+  const parseMarkdown = useCallback(
+    (content: string): string => {
+      if (enableCache) {
+        const cached = markdownCache.get(content, configHash);
+        if (cached) {
+          return cached;
+        }
+      }
 
-			try {
-				const renderer = markdownProvider.getRenderer(rendererConfig);
-				const result = renderer.parse(content, {
-					async: false,
-					breaks: true,
-					gfm: true,
-				}) as string;
+      try {
+        const renderer = markdownProvider.getRenderer(rendererConfig);
+        const result = renderer.parse(content, {
+          async: false,
+          breaks: true,
+          gfm: true,
+        }) as string;
 
-				const trimmed = result.trim();
+        if (enableCache) {
+          markdownCache.set(content, configHash, result);
+        }
 
-				if (enableCache) {
-					markdownCache.set(content, configHash, trimmed);
-				}
+        return result;
+      } catch {
+        return content;
+      }
+    },
+    [rendererConfig, configHash, enableCache],
+  );
 
-				return trimmed;
-			} catch {
-				return content;
-			}
-		},
-		[rendererConfig, configHash, enableCache],
-	);
+  const renderedContent = useMemo(() => {
+    if (disableMarkdown) {
+      return children;
+    }
 
-	const renderedContent = useMemo(() => {
-		if (disableMarkdown) {
-			return children;
-		}
+    return parseMarkdown(children);
+  }, [children, disableMarkdown, parseMarkdown]);
 
-		return parseMarkdown(children);
-	}, [children, disableMarkdown, parseMarkdown]);
-
-	return <Text>{renderedContent}</Text>;
+  return <Text wrap="end">{renderedContent}</Text>;
 };

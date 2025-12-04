@@ -1,6 +1,5 @@
-import ansiRegex from 'ansi-regex';
+import stringWidth from 'string-width';
 
-const ANSI_REGEXP = ansiRegex();
 const HARD_RETURN = '\r';
 const HARD_RETURN_RE = new RegExp(HARD_RETURN);
 const TAB_ALLOWED_CHARACTERS = ['\t'];
@@ -33,7 +32,7 @@ export function unescapeEntities(html: string): string {
 }
 
 export function textLength(str: string): number {
-	return str.replace(ANSI_REGEXP, '').length;
+	return stringWidth(str);
 }
 
 export function fixHardReturn(text: string, reflow: boolean): string {

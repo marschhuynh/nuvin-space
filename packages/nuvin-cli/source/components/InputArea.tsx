@@ -241,7 +241,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
       setMenuVisibility(false);
       setMenuHasFocus(false);
       onInputChanged?.('');
-      await onInputSubmit?.(trimmed);
+      await onInputSubmit?.(value);
     };
 
     return (

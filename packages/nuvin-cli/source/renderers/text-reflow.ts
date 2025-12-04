@@ -4,85 +4,110 @@ const HARD_RETURN = '\r';
 const HARD_RETURN_RE = new RegExp(HARD_RETURN);
 const HARD_RETURN_GFM_RE = new RegExp(`${HARD_RETURN}|<br />`);
 
+function reflowLine(line: string, width: number): string[] {
+  const leadingMatch = line.match(/^([ \t]*)/);
+  const leadingIndent = leadingMatch ? leadingMatch[1] : '';
+  const indentWidth = leadingIndent.replace(/\t/g, '    ').length;
+  const content = line.slice(leadingIndent.length);
+
+  if (!content) return [leadingIndent];
+
+  const effectiveWidth = width - indentWidth;
+  if (effectiveWidth <= 0) return [line];
+
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: ANSI escape sequences are intentional for terminal formatting
+  const fragments = content.split(/(\u001b\[(?:\d{1,3})(?:;\d{1,3})*m)/g);
+  const reflowed: string[] = [];
+  let column = 0;
+  let currentLine = leadingIndent;
+  let lastWasEscapeChar = false;
+
+  while (fragments.length) {
+    const fragment = fragments[0];
+
+    if (fragment === '') {
+      fragments.splice(0, 1);
+      lastWasEscapeChar = false;
+      continue;
+    }
+
+    if (!textLength(fragment)) {
+      currentLine += fragment;
+      fragments.splice(0, 1);
+      lastWasEscapeChar = true;
+      continue;
+    }
+
+    const words = fragment.split(/ +/);
+
+    for (let i = 0; i < words.length; i++) {
+      let word = words[i];
+      let wordWidth = textLength(word);
+      let addSpace = column !== 0;
+      if (lastWasEscapeChar) addSpace = false;
+
+      if (column + wordWidth + (addSpace ? 1 : 0) > effectiveWidth) {
+        if (wordWidth <= effectiveWidth) {
+          reflowed.push(currentLine);
+          currentLine = leadingIndent + word;
+          column = wordWidth;
+        } else {
+          let w = word.substr(0, effectiveWidth - column - (addSpace ? 1 : 0));
+          let wWidth = textLength(w);
+          if (addSpace) currentLine += ' ';
+          currentLine += w;
+          reflowed.push(currentLine);
+          currentLine = leadingIndent;
+          column = 0;
+
+          word = word.substr(w.length);
+          wordWidth = textLength(word);
+          while (wordWidth) {
+            w = word.substr(0, effectiveWidth);
+            wWidth = textLength(w);
+            if (!wWidth) break;
+
+            if (wWidth < effectiveWidth) {
+              currentLine = leadingIndent + w;
+              column = wWidth;
+              break;
+            } else {
+              reflowed.push(leadingIndent + w);
+              word = word.substr(effectiveWidth);
+              wordWidth = textLength(word);
+            }
+          }
+        }
+      } else {
+        if (addSpace) {
+          currentLine += ' ';
+          column++;
+        }
+        currentLine += word;
+        column += wordWidth;
+      }
+
+      lastWasEscapeChar = false;
+    }
+
+    fragments.splice(0, 1);
+  }
+
+  if (textLength(currentLine)) reflowed.push(currentLine);
+
+  return reflowed;
+}
+
 export function reflowText(text: string, width: number, gfm?: boolean): string {
   const splitRe = gfm ? HARD_RETURN_GFM_RE : HARD_RETURN_RE;
   const sections = text.split(splitRe);
   const reflowed: string[] = [];
 
   sections.forEach((section) => {
-    // biome-ignore lint/suspicious/noControlCharactersInRegex: ANSI escape sequences are intentional for terminal formatting
-    const fragments = section.split(/(\u001b\[(?:\d{1,3})(?:;\d{1,3})*m)/g);
-    let column = 0;
-    let currentLine = '';
-    let lastWasEscapeChar = false;
-
-    while (fragments.length) {
-      const fragment = fragments[0];
-
-      if (fragment === '') {
-        fragments.splice(0, 1);
-        lastWasEscapeChar = false;
-        continue;
-      }
-
-      if (!textLength(fragment)) {
-        currentLine += fragment;
-        fragments.splice(0, 1);
-        lastWasEscapeChar = true;
-        continue;
-      }
-
-      const words = fragment.split(/[ \t\n]+/);
-
-      for (let i = 0; i < words.length; i++) {
-        let word = words[i];
-        let addSpace = column !== 0;
-        if (lastWasEscapeChar) addSpace = false;
-
-        if (column + word.length + (addSpace ? 1 : 0) > width) {
-          if (word.length <= width) {
-            reflowed.push(currentLine);
-            currentLine = word;
-            column = word.length;
-          } else {
-            let w = word.substr(0, width - column - (addSpace ? 1 : 0));
-            if (addSpace) currentLine += ' ';
-            currentLine += w;
-            reflowed.push(currentLine);
-            currentLine = '';
-            column = 0;
-
-            word = word.substr(w.length);
-            while (word.length) {
-              w = word.substr(0, width);
-              if (!w.length) break;
-
-              if (w.length < width) {
-                currentLine = w;
-                column = w.length;
-                break;
-              } else {
-                reflowed.push(w);
-                word = word.substr(width);
-              }
-            }
-          }
-        } else {
-          if (addSpace) {
-            currentLine += ' ';
-            column++;
-          }
-          currentLine += word;
-          column += word.length;
-        }
-
-        lastWasEscapeChar = false;
-      }
-
-      fragments.splice(0, 1);
+    const lines = section.split('\n');
+    for (const line of lines) {
+      reflowed.push(...reflowLine(line, width));
     }
-
-    if (textLength(currentLine)) reflowed.push(currentLine);
   });
 
   return reflowed.join('\n');

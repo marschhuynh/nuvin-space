@@ -58,7 +58,7 @@ class MarkdownProvider {
         return this.parser.parseInline(text.tokens);
       }
       return originalText.call(this, text);
-    // biome-ignore lint/suspicious/noExplicitAny: marked library requires type assertion
+      // biome-ignore lint/suspicious/noExplicitAny: marked library requires type assertion
     } as any;
 
     this.markedInstance.use(renderer);

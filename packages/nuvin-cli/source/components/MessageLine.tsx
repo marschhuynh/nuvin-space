@@ -35,7 +35,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
               </Text>
             </Box>
             <Box flexDirection="column" flexGrow={1}>
-              <Text>{streamingContent}</Text>
+              <Markdown enableCache={!isStreaming}>{streamingContent}</Markdown>
             </Box>
           </Box>
         );

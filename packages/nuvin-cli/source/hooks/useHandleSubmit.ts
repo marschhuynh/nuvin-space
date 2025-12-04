@@ -70,7 +70,7 @@ export function useHandleSubmit(deps: {
       let submission: UserMessagePayload;
       try {
         const clipboardFiles = globalThis.__clipboardFiles ?? [];
-        submission = await prepareUserSubmission(trimmed, clipboardFiles);
+        submission = await prepareUserSubmission(value, clipboardFiles);
         globalThis.__clipboardFiles = undefined;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);

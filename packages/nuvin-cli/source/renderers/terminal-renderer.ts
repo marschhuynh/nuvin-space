@@ -43,7 +43,7 @@ const defaultOptions: InternalRendererOptions = {
   width: 80,
   showSectionPrefix: true,
   reflowText: false,
-  tab: 4,
+  tab: 2,
   tableOptions: {},
 };
 
@@ -91,7 +91,6 @@ class Renderer {
   code(code: string | { text: string; lang?: string; escaped?: boolean }, lang?: string, _escaped?: boolean): string {
     if (typeof code === 'object') {
       lang = code.lang;
-      // const escaped = !!code.escaped; // unused
       code = code.text;
     }
     return section(indent(this.tab, highlight(code, lang, this.o.code, this.o.reflowText, this.highlightOptions)));
@@ -303,7 +302,11 @@ class Renderer {
     return this.o.del(delText);
   }
 
-  link(href: string | { href: string; title?: string; tokens: MarkedToken[] }, _titleParam?: string, text?: string): string {
+  link(
+    href: string | { href: string; title?: string; tokens: MarkedToken[] },
+    _titleParam?: string,
+    text?: string,
+  ): string {
     if (typeof href === 'object') {
       text = this.parser.parseInline(href.tokens);
       href = href.href;
@@ -403,7 +406,7 @@ export function terminalRenderer(options?: RendererOptions, highlightOptions?: H
           return (method as any).apply(r, args);
         }
         return '';
-      // biome-ignore lint/suspicious/noExplicitAny: marked library type compatibility
+        // biome-ignore lint/suspicious/noExplicitAny: marked library type compatibility
       } as any;
       return extension;
     },
