@@ -36,19 +36,19 @@
 	"keywords": [],
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@ai-sdk/anthropic": "^2.0.30",
-		"@modelcontextprotocol/sdk": "^1.18.0",
-		"ai": "^5.0.76",
+		"@ai-sdk/anthropic": "^2.0.53",
+		"@modelcontextprotocol/sdk": "^1.24.2",
+		"ai": "^5.0.106",
 		"cheerio": "^1.1.2",
-		"turndown": "^7.2.1",
-		"yaml": "^2.6.1"
+		"turndown": "^7.2.2",
+		"yaml": "^2.8.2"
 	},
 	"devDependencies": {
 		"@sindresorhus/tsconfig": "^3.0.1",
-		"@types/turndown": "^5.0.5",
-		"javascript-obfuscator": "^4.1.1",
-		"tsup": "^8.5.0",
-		"typescript": "^5.0.3",
+		"@types/turndown": "^5.0.6",
+		"javascript-obfuscator": "^4.2.0",
+		"tsup": "^8.5.1",
+		"typescript": "^5.9.3",
 		"vitest": "^3.2.4"
 	}
 }

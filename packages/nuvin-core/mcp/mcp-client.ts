@@ -81,7 +81,7 @@ export class CoreMCPClient {
     // Create SDK client and connect
     this.client = new Client(
       { name: 'nuvin-core-cli', version: '1.0.0' },
-      { capabilities: { tools: {}, resources: { subscribe: true }, prompts: {}, logging: {} } },
+      { capabilities: { roots: { listChanged: true } } },
     );
     await this.client.connect(this.transport);
     this.connected = true;
