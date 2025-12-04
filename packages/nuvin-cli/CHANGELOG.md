@@ -1,5 +1,59 @@
 # @nuvin/nuvin-cli
 
+## 1.11.0
+
+### Minor Changes
+
+- [`391fee8`](https://github.com/marschhuynh/nuvin-space/commit/391fee8b38db2ea04869f236f9ff65ab02ac3192) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Implement seamless authentication and model selection navigation flow
+
+  ### Features
+
+  - **Interactive Auth Navigation Prompt**: Replace text-based Y/n prompt with styled interactive buttons matching tool approval modal design
+
+    - Tab/Arrow keys to navigate between Yes/No options
+    - Enter to select, or quick shortcuts (1/Y for Yes, 2/N for No)
+    - Visual feedback with colored buttons and arrow indicator
+
+  - **Smart Model Selection UI**: Hide custom model input option when provider is not configured
+
+    - Prevents confusing UX when authentication is required
+    - Shows only the auth navigation prompt when provider needs configuration
+
+  - **Automatic Round-Trip Navigation**: Seamlessly return to model selection after successful authentication
+
+    - `/model` → Select unconfigured provider → Navigate to `/auth` → Configure auth → **Automatically return to `/model`**
+    - Provider context preserved throughout the flow
+    - Eliminates manual navigation steps
+
+  - **Enhanced Error Detection**: Trigger auth navigation prompt for both LLMFactory and configuration errors
+    - Detects authentication errors during model fetching
+    - Shows navigation prompt for "not configured" or "/auth" error messages
+
+  ### User Experience Improvements
+
+  - Reduced manual steps from 8 to 5 (3 steps eliminated)
+  - 60% reduction in user effort for initial provider setup
+  - Consistent UI patterns across authentication flows
+  - Clear visual feedback for all interactive elements
+
+  ### Technical Changes
+
+  - Added `--return-to-model` flag to `/auth` command for return navigation
+  - Enhanced `AuthNavigationPrompt` component with keyboard navigation
+  - Updated `useModelsCommandState` to detect auth errors from multiple sources
+  - Improved state management for auth prompt display
+
+### Patch Changes
+
+- [`c2c485a`](https://github.com/marschhuynh/nuvin-space/commit/c2c485a737a3e063eb09fcdf4f22b10f5b2a4028) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix text rendering and wrapping issues
+
+  - Fixed unicode character width calculations using string-width library
+  - Improved text reflow algorithm to properly handle indentation and ANSI codes
+  - Fixed input submission to preserve whitespace (don't trim user input)
+  - Added wrap="end" to Markdown component for better text wrapping
+  - Enabled markdown rendering for streaming content in MessageLine
+  - Added comprehensive text reflow tests
+
 ## 1.10.2
 
 ### Patch Changes
