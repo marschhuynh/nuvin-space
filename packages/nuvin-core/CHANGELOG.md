@@ -1,5 +1,11 @@
 # @nuvin/nuvin-core
 
+## 1.4.2
+
+### Patch Changes
+
+- [`239c907`](https://github.com/marschhuynh/nuvin-space/commit/239c9073545c42b1ed4c9341f15a6a9ad9bc943f) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Update dependencies to latest versions
+
 ## 1.4.1
 
 ### Patch Changes
