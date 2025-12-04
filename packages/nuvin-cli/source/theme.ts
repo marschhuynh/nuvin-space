@@ -3,17 +3,35 @@
  * Contains all color values used across the application
  */
 
+export function lightenColor(hex: string, percent: number): string {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = Math.min(255, Math.floor((num >> 16) + (255 - (num >> 16)) * percent));
+  const g = Math.min(255, Math.floor(((num >> 8) & 0x00ff) + (255 - ((num >> 8) & 0x00ff)) * percent));
+  const b = Math.min(255, Math.floor((num & 0x0000ff) + (255 - (num & 0x0000ff)) * percent));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+}
+
+export function darkenColor(hex: string, percent: number): string {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = Math.max(0, Math.floor((num >> 16) * (1 - percent)));
+  const g = Math.max(0, Math.floor(((num >> 8) & 0x00ff) * (1 - percent)));
+  const b = Math.max(0, Math.floor((num & 0x0000ff) * (1 - percent)));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+}
+
 // 253,88,91
 export const COLOR_TOKENS = {
-  green: '#1baf6a',
+  green: '#61de89',
+  greenBright: darkenColor('#61de89', 0.3),
   cyan: '#00d9ff',
-  red: '#FF5F6D',
+  red: '#cb675e',
+  redBright: darkenColor('#cb675e', 0.3),
   orange: '#de935f',
   yellow: '#FFC371',
   blue: '#81a2be',
   magenta: '#ff79c6',
   white: '#ffffff',
-  gray: '#6c6c6c',
+  gray: '#9b9b9b',
   black: '#282a36',
   dim: '#303030',
   transparent: 'transparent',
@@ -201,6 +219,28 @@ export const theme = {
     searchHeader: COLOR_TOKENS.green,
     replaceHeader: COLOR_TOKENS.red,
     error: COLOR_TOKENS.red,
+  },
+
+  // Diff view colors
+  diff: {
+    lineNumber: COLOR_TOKENS.gray,
+    prefix: {
+      add: COLOR_TOKENS.green,
+      remove: COLOR_TOKENS.red,
+      context: COLOR_TOKENS.gray,
+    },
+    background: {
+      add: COLOR_TOKENS.green,
+      remove: COLOR_TOKENS.red,
+      addHighlight: COLOR_TOKENS.greenBright,
+      removeHighlight: COLOR_TOKENS.redBright,
+    },
+    text: COLOR_TOKENS.black,
+    contextText: COLOR_TOKENS.gray,
+    blockSeparator: COLOR_TOKENS.magenta,
+    noChanges: COLOR_TOKENS.gray,
+    noBlocks: COLOR_TOKENS.red,
+    pathLabel: COLOR_TOKENS.cyan,
   },
 } as const;
 

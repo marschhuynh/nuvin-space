@@ -1,5 +1,6 @@
 import { Box, Text } from 'ink';
 import { useStdoutDimensions } from '@/hooks';
+import { theme } from '@/theme';
 
 export type DiffSegment = {
   text: string;
@@ -251,26 +252,31 @@ export function DiffLineView({ line, lineNumWidth = 3 }: DiffLineViewProps) {
   if (line.type === 'modify' && line.segments) {
     const prefix = line.oldLineNum ? '-' : '+';
     const isRemoveLine = !!line.oldLineNum;
-    const lineBaseBg = isRemoveLine ? 'red' : 'green';
+    const prefixColor = isRemoveLine ? theme.diff.prefix.remove : theme.diff.prefix.add;
+    const lineBaseBg = isRemoveLine ? theme.diff.background.remove : theme.diff.background.add;
 
     return (
       <Box>
         <Box>
-          <Text dimColor color="gray">
+          <Text dimColor color={theme.diff.lineNumber}>
             {lineNumStr}
           </Text>
-          <Text color="white">{prefix}</Text>
+          <Text color={prefixColor}>{prefix}</Text>
         </Box>
         <Box flexDirection="row" flexWrap="wrap" width={cols - lineNumStr.length - 5}>
           {line.segments.map((segment, segIdx) => {
-            const segmentFg = 'white';
-            const segmentBg =
-              segment.type === 'add' ? 'greenBright' : line.type === 'remove' ? 'redBright' : lineBaseBg;
+            const isHighlighted =
+              (isRemoveLine && segment.type === 'remove') || (!isRemoveLine && segment.type === 'add');
+            const segmentBg = isHighlighted
+              ? isRemoveLine
+                ? theme.diff.background.removeHighlight
+                : theme.diff.background.addHighlight
+              : lineBaseBg;
 
             const text = segment.text.replace(/\t/g, '  ');
 
             return (
-              <Text key={`${lineNum}-${segIdx}-${segment.type}`} backgroundColor={segmentBg} color={segmentFg}>
+              <Text key={`${lineNum}-${segIdx}-${segment.type}`} backgroundColor={segmentBg} color={theme.diff.text}>
                 {text}
               </Text>
             );
@@ -281,17 +287,24 @@ export function DiffLineView({ line, lineNumWidth = 3 }: DiffLineViewProps) {
   }
 
   const prefix = line.type === 'add' ? '+' : line.type === 'remove' ? '-' : ' ';
-  const bgColor = line.type === 'add' ? 'green' : line.type === 'remove' ? 'red' : undefined;
-  const fgColor = line.type === 'add' || line.type === 'remove' ? 'white' : 'gray';
+  const prefixColor =
+    line.type === 'add'
+      ? theme.diff.prefix.add
+      : line.type === 'remove'
+        ? theme.diff.prefix.remove
+        : theme.diff.prefix.context;
+  const bgColor =
+    line.type === 'add' ? theme.diff.background.add : line.type === 'remove' ? theme.diff.background.remove : undefined;
+  const fgColor = line.type === 'add' || line.type === 'remove' ? theme.diff.text : theme.diff.contextText;
   const content = line.content.replace(/\t/g, '  ');
 
   return (
     <Box>
       <Box>
-        <Text dimColor color="gray">
+        <Text dimColor color={theme.diff.lineNumber}>
           {lineNumStr}
         </Text>
-        <Text color="white">{prefix}</Text>
+        <Text color={prefixColor}>{prefix}</Text>
       </Box>
       <Box flexWrap="wrap" width={cols - lineNumStr.length - 5}>
         <Text backgroundColor={bgColor} color={fgColor}>
@@ -314,7 +327,7 @@ export function FileDiffView({ blocks, filePath, showPath = true, lineNumbers }:
     <Box flexDirection="column">
       {showPath && filePath && (
         <Box marginLeft={2}>
-          <Text color="cyan">path: </Text>
+          <Text color={theme.diff.pathLabel}>path: </Text>
           <Text>{filePath}</Text>
         </Box>
       )}
@@ -322,14 +335,13 @@ export function FileDiffView({ blocks, filePath, showPath = true, lineNumbers }:
         const diff = createSimpleDiff(b.search, b.replace, lineNumbers);
         const hasChanges = diff.some((d) => d.type !== 'context');
 
-        // Calculate max line number width for proper alignment
         const maxLineNum = Math.max(...diff.map((line) => Math.max(line.oldLineNum || 0, line.newLineNum || 0)));
         const lineNumWidth = String(maxLineNum).length;
 
         return (
           <Box key={`block-${b.replace}`} flexDirection="column">
             {blocks.length > 1 && (
-              <Text color="magentaBright" dimColor>
+              <Text color={theme.diff.blockSeparator} dimColor>
                 ─── Block {idx + 1}/{blocks.length} ───
               </Text>
             )}
@@ -341,7 +353,7 @@ export function FileDiffView({ blocks, filePath, showPath = true, lineNumbers }:
                 })}
               </Box>
             ) : (
-              <Text color="gray" dimColor>
+              <Text color={theme.diff.noChanges} dimColor>
                 {' '}
                 (no changes)
               </Text>
@@ -351,7 +363,7 @@ export function FileDiffView({ blocks, filePath, showPath = true, lineNumbers }:
       })}
       {blocks.length === 0 && (
         <Box marginLeft={2}>
-          <Text color="red">No changes to display</Text>
+          <Text color={theme.diff.noBlocks}>No changes to display</Text>
         </Box>
       )}
     </Box>
