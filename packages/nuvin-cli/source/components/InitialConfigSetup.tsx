@@ -8,7 +8,7 @@ import { useConfig } from '@/contexts/ConfigContext.js';
 import Gradient from 'ink-gradient';
 import { getVersion } from '@/utils/version.js';
 import type { ProviderKey } from '@/config/const.js';
-import { buildProviderOptions } from '@/config/providers.js';
+import { buildProviderOptions, type ProviderItem } from '@/config/providers.js';
 import { getProviderAuthMethods, getProviderModels, type AuthMethod, type AuthMethodItem } from '@/const.js';
 import { exchangeCodeForToken, createApiKey } from '@/modules/commands/definitions/auth/anthropic-oauth.js';
 import { DeviceFlowUI, OAuthUI, TokenInputUI } from './auth/index.js';
@@ -84,7 +84,7 @@ const TOKEN_HELP_LINKS: Record<ProviderKey, string> = {
   echo: '',
 };
 
-const ProviderItem: React.FC<Pick<SelectInputItemProps, 'isSelected' | 'label' | 'description'>> = ({
+const ProviderItemComponent: React.FC<Pick<SelectInputItemProps, 'isSelected' | 'label' | 'description'>> = ({
   isSelected,
   label,
   description,
@@ -107,7 +107,7 @@ const ProviderItem: React.FC<Pick<SelectInputItemProps, 'isSelected' | 'label' |
   );
 };
 
-const AuthMethodItem: React.FC<Pick<SelectInputItemProps, 'isSelected' | 'label' | 'description'>> = ({
+const AuthMethodItemComponent: React.FC<Pick<SelectInputItemProps, 'isSelected' | 'label' | 'description'>> = ({
   isSelected,
   label,
   description,
@@ -148,7 +148,7 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
   const [_saving, setSaving] = useState(false);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [providerOptions, setProviderOptions] = useState<any[]>([]);
+  const [providerOptions, setProviderOptions] = useState<ProviderItem[]>([]);
 
   // Generate provider options dynamically (using actual available providers)
   useEffect(() => {
@@ -434,7 +434,7 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
                 };
               })}
               itemComponent={({ isSelected, ...item }) => (
-                <ProviderItem isSelected={!!isSelected} {...(item as SelectItem)} />
+                <ProviderItemComponent isSelected={!!isSelected} {...(item as SelectItem)} />
               )}
               onSelect={handleProviderSubmit}
             />
@@ -458,7 +458,7 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
               description: AUTH_METHOD_DESCRIPTIONS[method.value as AuthMethod],
             }))}
             itemComponent={({ isSelected, ...item }) => (
-              <AuthMethodItem isSelected={!!isSelected} {...(item as SelectItem)} />
+              <AuthMethodItemComponent isSelected={!!isSelected} {...(item as SelectItem)} />
             )}
             onSelect={handleAuthMethodSubmit}
           />

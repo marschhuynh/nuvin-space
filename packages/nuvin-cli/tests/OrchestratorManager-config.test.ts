@@ -29,6 +29,7 @@ const { mockConfigManager } = vi.hoisted(() => {
     getConfig: vi.fn(() => JSON.parse(JSON.stringify(currentConfig))),
     get: vi.fn((key: string) => {
       const keys = key.split('.');
+      // biome-ignore lint/suspicious/noExplicitAny: Dynamic config access requires any type
       let current: any = currentConfig;
       for (const k of keys) {
         if (current && typeof current === 'object' && k in current) {

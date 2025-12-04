@@ -1,13 +1,13 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import { Markdown } from './Markdown.js';
+import { Markdown } from './Markdown';
 import type { ToolCall } from '@nuvin/nuvin-core';
-import type { MessageLine as MessageLineType } from '@/adapters/index.js';
+import type { MessageLine as MessageLineType } from '@/adapters';
 import { useTheme } from '@/contexts/ThemeContext.js';
-import { ToolCallViewer } from './ToolCallViewer/index.js';
+import { ToolCallViewer } from './ToolCallViewer';
 import { SubAgentActivity } from './SubAgentActivity.js';
 import type { SubAgentState } from '@/utils/eventProcessor.js';
-// import { useStreamingMarkdown } from '@/hooks/index.js';
+// import { useStreamingMarkdown } from '@/hooks';
 
 type MessageLineProps = {
   key: string;

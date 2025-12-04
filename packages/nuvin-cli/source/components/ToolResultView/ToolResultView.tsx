@@ -2,7 +2,7 @@ import type React from 'react';
 import { Box, Text } from 'ink';
 import { type ToolExecutionResult, type ToolCall, ErrorReason } from '@nuvin/nuvin-core';
 import { useTheme } from '@/contexts/ThemeContext.js';
-import { Markdown } from '@/components/Markdown.js';
+import { Markdown } from '@/components/Markdown/index.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import { TodoWriteRenderer } from './renderers/TodoWriteRenderer.js';
 import { FileEditRenderer } from './renderers/FileEditRenderer.js';
@@ -288,9 +288,9 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       {showDone && (
         <Box flexDirection="row">
           {durationText && (toolResult.durationMs ?? 0) > 1000 ? (
-            <Text dimColor={!!toolResult.result} color={color}>{`└─ Done in ${durationText}`}</Text>
+            <Text dimColor color={color}>{`└─ Done in ${durationText}`}</Text>
           ) : (
-            <Text dimColor={!!toolResult.result} color={color}>{`└─ Done`}</Text>
+            <Text dimColor color={color}>{`└─ Done`}</Text>
           )}
         </Box>
       )}
