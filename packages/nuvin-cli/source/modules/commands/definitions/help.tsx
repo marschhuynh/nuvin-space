@@ -9,7 +9,7 @@ const { version, commit } = getVersionInfo();
 
 const HelpModal = ({ deactivate }: CommandComponentProps) => {
   return (
-    <AppModal visible={true} title="Help" type="info" onClose={deactivate} closeOnEscape={true} closeOnEnter={true}>
+    <AppModal visible={true} title="Help" onClose={deactivate} closeOnEscape={true} closeOnEnter={true}>
       <Text color="gray" dimColor>
         {`@nuvin/cli v${version}${commit ? ` (${commit})` : ''}`}
       </Text>

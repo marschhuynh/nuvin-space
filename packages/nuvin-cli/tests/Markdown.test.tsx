@@ -1,6 +1,6 @@
 import { render } from 'ink-testing-library';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Markdown } from '../source/components/Markdown.tsx';
+import { Markdown } from '../source/components/Markdown/index.tsx';
 
 // Mock the markdown cache to avoid caching in tests
 vi.mock('../source/utils/MarkdownCache.ts', () => {

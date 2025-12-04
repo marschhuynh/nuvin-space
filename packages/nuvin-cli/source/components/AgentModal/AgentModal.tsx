@@ -64,7 +64,6 @@ export const AgentModal: React.FC<AgentModalProps> = ({
       visible={visible}
       title="Agent Configuration"
       titleColor={theme.colors.primary}
-      type="default"
       onClose={undefined}
       closeOnEscape={false}
       paddingX={2}

@@ -567,14 +567,15 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
       }
     },
     [
-      context.config, 
-      creationPreview, 
-      editingAgentId, 
-      loadAgents, 
-      navigationState.navigationSource, 
-      transitionToConfig, 
-      deactivate, 
-      navigationState.preservedState?.selectedAgentIndex, context.orchestratorManager?.getOrchestrator
+      context.config,
+      creationPreview,
+      editingAgentId,
+      loadAgents,
+      navigationState.navigationSource,
+      transitionToConfig,
+      deactivate,
+      navigationState.preservedState?.selectedAgentIndex,
+      context.orchestratorManager?.getOrchestrator,
     ],
   );
 
@@ -604,7 +605,6 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
         visible={true}
         title="Agent Configuration"
         titleColor={theme.colors.primary}
-        type="default"
         onClose={deactivate}
         closeOnEscape={true}
       >

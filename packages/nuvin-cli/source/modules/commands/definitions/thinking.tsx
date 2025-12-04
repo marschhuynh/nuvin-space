@@ -64,7 +64,6 @@ const ThinkingCommandComponent = ({ context, deactivate }: CommandComponentProps
       visible={true}
       title="Thinking Configuration"
       titleColor={theme.thinking.title}
-      type="default"
       onClose={deactivate}
       closeOnEscape={true}
       closeOnEnter={false}

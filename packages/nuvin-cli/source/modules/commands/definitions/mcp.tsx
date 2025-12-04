@@ -123,7 +123,12 @@ const MCPCommandComponent = ({ context, deactivate }: CommandComponentProps) => 
       context.eventBus.off('ui:mcp:toolPermissionChanged', handleToolPermissionChanged);
       context.eventBus.off('ui:mcp:batchToolPermissionChanged', handleBatchToolPermissionChanged);
     };
-  }, [context.eventBus, context.config, context.orchestratorManager?.getMCPServers, context.orchestratorManager?.updateMCPAllowedTools]);
+  }, [
+    context.eventBus,
+    context.config,
+    context.orchestratorManager?.getMCPServers,
+    context.orchestratorManager?.updateMCPAllowedTools,
+  ]);
 
   if (loading) {
     return (
@@ -131,7 +136,6 @@ const MCPCommandComponent = ({ context, deactivate }: CommandComponentProps) => 
         visible={true}
         title="MCP Server Configuration"
         titleColor={theme.colors.primary}
-        type="default"
         onClose={deactivate}
         closeOnEscape={true}
       >

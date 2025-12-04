@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { reflowText, indent, hr, section } from '../source/renderers/text-reflow.js';
-import { textLength } from '../source/renderers/text-utils.js';
+import { reflowText, indent, hr, section } from '../source/components/Markdown/renderers/text-reflow.js';
+import { textLength } from '../source/components/Markdown/renderers/text-utils.js';
 
 describe('textLength', () => {
   it('returns correct length for plain text', () => {
@@ -50,12 +50,14 @@ describe('reflowText', () => {
       const result = reflowText('one two three four', 10);
       expect(result).toBe('one two\nthree four');
     });
-    it('reflows multiple words - width 91', () => {
+    it('reflows multiple words - width 87', () => {
       const result = reflowText(
         'Acknowledged. Leading whitespace in user input is now preserved since useHandleSubmit.ts at line 68 passes the original value to prepareUserSubmission instead of a trimmed one.',
         87,
       );
-      expect(result).toBe('one two\nthree four');
+      expect(result).toBe(
+        'Acknowledged. Leading whitespace in user input is now preserved since\nuseHandleSubmit.ts at line 68 passes the original value to prepareUserSubmission\ninstead of a trimmed one.',
+      );
     });
 
     it('preserves existing newlines', () => {

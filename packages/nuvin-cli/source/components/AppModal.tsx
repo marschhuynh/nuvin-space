@@ -86,7 +86,7 @@ export const AppModal: FC<AppModalProps> = ({
   if (!visible) return null;
 
   return (
-    <Box flexDirection="column" borderStyle="single" borderColor={finalBorderColor} width={'100%'}>
+    <Box flexDirection="column" borderStyle="round" borderColor={finalBorderColor} width={'100%'}>
       <Box
         borderStyle="single"
         borderLeft={false}
