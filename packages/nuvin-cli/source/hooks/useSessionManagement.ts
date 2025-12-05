@@ -49,12 +49,8 @@ const scanPromises = new Map<number | undefined, Promise<SessionData>>();
 const logger = getDefaultLogger();
 
 // Export standalone functions for use in commands
-export const scanAvailableSessions = async (limit?: number): Promise<
-  SessionInfo[]
-> => {
+export const scanAvailableSessions = async (limit?: number): Promise<SessionInfo[]> => {
   // Check cache
-
-  logger.info('scanAvailableSessions with limit:', limit);
 
   const cached = sessionCache.get(limit);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
@@ -115,9 +111,10 @@ export const scanAvailableSessions = async (limit?: number): Promise<
           const metadataKey = '__metadata__cli';
           const metadataArray = historyData?.[metadataKey] as unknown[];
           const metadata = metadataArray && metadataArray.length > 0 ? metadataArray[0] : null;
-          const topic = metadata && typeof metadata === 'object' && 'topic' in metadata
-            ? (metadata as { topic?: string }).topic
-            : undefined;
+          const topic =
+            metadata && typeof metadata === 'object' && 'topic' in metadata
+              ? (metadata as { topic?: string }).topic
+              : undefined;
 
           const timestamp = new Date(parseInt(sessionIdStr, 10)).toLocaleString();
           sessions.push({
@@ -127,8 +124,7 @@ export const scanAvailableSessions = async (limit?: number): Promise<
             messageCount: cliMessages.length,
             topic,
           });
-        } catch (_err) {
-        }
+        } catch (_err) {}
       }
 
       // Update cache
@@ -157,7 +153,7 @@ export const createNewSession = async (customId?: string): Promise<{ sessionId: 
   const sessionDir = path.join(dir, id);
   try {
     await fsp.mkdir(sessionDir, { recursive: true });
-  } catch { }
+  } catch {}
   return { sessionId: id, sessionDir };
 };
 
@@ -208,9 +204,7 @@ export const getSessionDir = (sessionId: string): string => {
 };
 
 export const useSessionManagement = () => {
-  const [availableSessions, setAvailableSessions] = useState<
-    SessionInfo[]
-  >([]);
+  const [availableSessions, setAvailableSessions] = useState<SessionInfo[]>([]);
 
   return {
     availableSessions,

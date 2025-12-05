@@ -53,9 +53,11 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
   const [status, setStatus] = useState<StatusMessage>(null);
   const { setNotification } = useNotification();
 
-  const deviceFlowState = useDeviceFlow(stage === 'deviceFlow' && provider === 'github');
+  const { state: deviceFlowState, openAndPoll: openDeviceFlow } = useDeviceFlow(
+    stage === 'deviceFlow' && provider === 'github',
+  );
   const oauthMode = stage === 'oauthMax' ? 'max' : 'console';
-  const oauthState = useOAuth(
+  const { state: oauthState, openBrowser: openOAuthBrowser } = useOAuth(
     (stage === 'oauthMax' || stage === 'oauthConsole') && provider === 'anthropic',
     oauthMode,
   );
@@ -296,6 +298,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
             </Text>
             <DeviceFlowUI
               state={deviceFlowState}
+              onOpenBrowser={openDeviceFlow}
               theme={{
                 waiting: theme.auth.waiting,
                 link: theme.auth.link,
@@ -321,6 +324,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
               onSubmit={(value) =>
                 oauthState.status === 'pending' && handleOAuthCodeSubmit(value, oauthState.verifier, mode)
               }
+              onOpenBrowser={openOAuthBrowser}
               theme={{
                 waiting: theme.auth.waiting,
                 link: theme.auth.link,
@@ -346,11 +350,6 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
       closeOnEnter={false}
     >
       {renderStage()}
-
-      <Box marginTop={1} flexDirection="column">
-        <Text color={theme.colors.muted}>Use arrows + Enter to choose.</Text>
-        <Text color={theme.colors.muted}>Press ESC to cancel.</Text>
-      </Box>
 
       {status ? (
         <Box marginTop={1}>

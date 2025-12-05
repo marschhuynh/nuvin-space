@@ -604,16 +604,16 @@ export class OrchestratorManager {
     if (!this.sessionId) return;
 
     const metrics = sessionMetricsService.getSnapshot(this.sessionId);
-    if (!metrics.currentPromptTokens) return;
-
     const llm = this.orchestrator?.getLLM();
-    const limits = await modelLimitsCache.getLimit(provider, model, llm?.getModels);
+    const limits = await modelLimitsCache.getLimit(provider, model, llm?.getModels?.bind(llm));
 
     if (!limits) return;
 
-    const usage = metrics.currentPromptTokens / limits.contextWindow;
+    const usage = metrics.currentPromptTokens ? metrics.currentPromptTokens / limits.contextWindow : 0;
 
     sessionMetricsService.setContextWindow(this.sessionId, limits.contextWindow, usage);
+
+    if (!metrics.currentPromptTokens) return;
 
     if (usage >= OrchestratorManager.AUTO_SUMMARY_THRESHOLD) {
       eventBus.emit('ui:line', {

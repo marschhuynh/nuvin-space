@@ -185,9 +185,9 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
   const fallbackModels = getProviderModels(selectedProvider);
   const models = availableModels.length > 0 ? availableModels : fallbackModels;
 
-  const deviceFlowState = useDeviceFlow(step === 'auth-device-flow' && selectedProvider === 'github');
+  const { state: deviceFlowState, openAndPoll: openDeviceFlow } = useDeviceFlow(step === 'auth-device-flow' && selectedProvider === 'github');
   const oauthMode = selectedAuthMethod === 'oauth-max' ? 'max' : 'console';
-  const oauthState = useOAuth(step === 'auth-oauth' && selectedProvider === 'anthropic', oauthMode);
+  const { state: oauthState, openBrowser: openOAuthBrowser } = useOAuth(step === 'auth-oauth' && selectedProvider === 'anthropic', oauthMode);
   const { saveApiKeyAuth, saveOAuthAuth } = useAuthStorage({ get, set });
 
   useInput((_input, key) => {
@@ -524,6 +524,7 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
 
             <DeviceFlowUI
               state={deviceFlowState}
+              onOpenBrowser={openDeviceFlow}
               showCode={true}
               theme={{
                 waiting: 'cyan',
@@ -557,6 +558,7 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
               code={oauthCode}
               onCodeChange={setOAuthCode}
               onSubmit={handleOAuthCodeSubmit}
+              onOpenBrowser={openOAuthBrowser}
               theme={{
                 waiting: 'cyan',
                 link: 'blue',

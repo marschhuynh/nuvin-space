@@ -1,8 +1,9 @@
-import { Box, Text } from 'ink';
+import { Box, Text, useInput } from 'ink';
 import type { DeviceFlowState } from '@/hooks/useDeviceFlow.js';
 
 type Props = {
   state: DeviceFlowState;
+  onOpenBrowser?: () => void;
   showCode?: boolean;
   theme?: {
     waiting?: string;
@@ -12,16 +13,22 @@ type Props = {
   };
 };
 
-export function DeviceFlowUI({ state, showCode = true, theme = {} }: Props) {
+export function DeviceFlowUI({ state, onOpenBrowser, showCode = true, theme = {} }: Props) {
+  useInput(
+    (_input, key) => {
+      if (state.status === 'ready' && key.return && onOpenBrowser) {
+        onOpenBrowser();
+      }
+    },
+    { isActive: state.status === 'ready' },
+  );
+
   return (
     <Box flexDirection="column">
       {state.status === 'requesting' && <Text color={theme.waiting || 'cyan'}>Starting device flow...</Text>}
 
-      {(state.status === 'pending' || state.status === 'polling') && (
+      {state.status === 'ready' && (
         <Box flexDirection="column">
-          <Text color={theme.waiting || 'cyan'}>
-            {state.status === 'pending' ? 'Opening browser...' : 'Waiting for authorization...'}
-          </Text>
           {showCode && (
             <>
               <Box marginTop={1}>
@@ -39,7 +46,34 @@ export function DeviceFlowUI({ state, showCode = true, theme = {} }: Props) {
               </Box>
             </>
           )}
-          {!showCode && <Text dimColor>Browser opened automatically. Please authorize.</Text>}
+          <Box marginY={1}>
+            <Text color={theme.waiting || 'cyan'}>Press Enter to open browser...</Text>
+          </Box>
+        </Box>
+      )}
+
+      {state.status === 'polling' && (
+        <Box flexDirection="column">
+          {showCode && (
+            <>
+              <Box marginTop={1}>
+                <Text dimColor>
+                  Visit: <Text color={theme.link || 'blue'}>{state.verificationUri}</Text>
+                </Text>
+              </Box>
+              <Box>
+                <Text dimColor>
+                  Enter code:{' '}
+                  <Text bold color={theme.code || 'yellow'}>
+                    {state.userCode}
+                  </Text>
+                </Text>
+              </Box>
+            </>
+          )}
+          <Box marginY={1}>
+            <Text color={theme.waiting || 'cyan'}>Waiting for authorization...</Text>
+          </Box>
         </Box>
       )}
 
