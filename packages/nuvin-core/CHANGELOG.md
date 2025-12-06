@@ -1,5 +1,11 @@
 # @nuvin/nuvin-core
 
+## 1.4.3
+
+### Patch Changes
+
+- [`e59a2c5`](https://github.com/marschhuynh/nuvin-space/commit/e59a2c5e5e9fd1c39c553e2d6c814063070c6feb) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Refactor project structure: move all source files into `src/` directory for better organization and standard TypeScript project layout
+
 ## 1.4.2
 
 ### Patch Changes
