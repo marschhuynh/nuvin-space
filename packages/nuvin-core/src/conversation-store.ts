@@ -20,6 +20,7 @@ export type ConversationMetadata = {
   toolCallCount?: number;
   totalTimeMs?: number;
   totalPrice?: number;
+  summarizedFrom?: string;
 };
 
 export type Conversation = {

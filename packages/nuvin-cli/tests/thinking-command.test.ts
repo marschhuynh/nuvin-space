@@ -106,9 +106,9 @@ describe('/thinking command', () => {
   beforeEach(() => {
     registry = new CommandRegistry();
     mockEventBus = createMockEventBus();
-    
+
     // Replace global event bus for the test
-    (registry as unknown as { createContext: (input: string) => unknown }).createContext = function(input: string) {
+    (registry as unknown as { createContext: (input: string) => unknown }).createContext = function (input: string) {
       const config = ConfigManager.getInstance();
       return {
         rawInput: input,
@@ -140,7 +140,7 @@ describe('/thinking command', () => {
   it('should show interactive mode when no arguments provided', async () => {
     const result = await registry.execute('/thinking');
     expect(result.success).toBe(true);
-    
+
     // Should activate component (not run handler)
     const activeCommand = registry.getActive();
     expect(activeCommand).not.toBeNull();
@@ -157,7 +157,7 @@ describe('/thinking command', () => {
 
     // Should emit success message
     const capturedEvents = mockEventBus.getCapturedEvents();
-    const uiLineEvents = capturedEvents.filter(e => e.event === 'ui:line');
+    const uiLineEvents = capturedEvents.filter((e) => e.event === 'ui:line');
     expect(uiLineEvents.length).toBeGreaterThan(0);
     expect(uiLineEvents[0].data.content).toContain('OFF');
   });
@@ -170,7 +170,7 @@ describe('/thinking command', () => {
     expect(activeCommand).toBeNull();
 
     const capturedEvents = mockEventBus.getCapturedEvents();
-    const uiLineEvents = capturedEvents.filter(e => e.event === 'ui:line');
+    const uiLineEvents = capturedEvents.filter((e) => e.event === 'ui:line');
     expect(uiLineEvents.length).toBeGreaterThan(0);
     expect(uiLineEvents[0].data.content).toContain('LOW');
   });
@@ -183,7 +183,7 @@ describe('/thinking command', () => {
     expect(activeCommand).toBeNull();
 
     const capturedEvents = mockEventBus.getCapturedEvents();
-    const uiLineEvents = capturedEvents.filter(e => e.event === 'ui:line');
+    const uiLineEvents = capturedEvents.filter((e) => e.event === 'ui:line');
     expect(uiLineEvents.length).toBeGreaterThan(0);
     expect(uiLineEvents[0].data.content).toContain('MEDIUM');
   });
@@ -196,7 +196,7 @@ describe('/thinking command', () => {
     expect(activeCommand).toBeNull();
 
     const capturedEvents = mockEventBus.getCapturedEvents();
-    const uiLineEvents = capturedEvents.filter(e => e.event === 'ui:line');
+    const uiLineEvents = capturedEvents.filter((e) => e.event === 'ui:line');
     expect(uiLineEvents.length).toBeGreaterThan(0);
     expect(uiLineEvents[0].data.content).toContain('HIGH');
   });
@@ -209,7 +209,7 @@ describe('/thinking command', () => {
     expect(activeCommand).toBeNull();
 
     const capturedEvents = mockEventBus.getCapturedEvents();
-    const uiLineEvents = capturedEvents.filter(e => e.event === 'ui:line');
+    const uiLineEvents = capturedEvents.filter((e) => e.event === 'ui:line');
     expect(uiLineEvents[0].data.content).toContain('OFF');
   });
 
@@ -221,10 +221,8 @@ describe('/thinking command', () => {
     expect(activeCommand).toBeNull();
 
     const capturedEvents = mockEventBus.getCapturedEvents();
-    const errorEvents = capturedEvents.filter(e => e.event === 'ui:line' && e.data.type === 'error');
+    const errorEvents = capturedEvents.filter((e) => e.event === 'ui:line' && e.data.type === 'error');
     expect(errorEvents.length).toBeGreaterThan(0);
     expect(errorEvents[0].data.content).toContain('Invalid thinking level');
   });
-
-
 });

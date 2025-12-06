@@ -1,14 +1,12 @@
 import * as crypto from 'node:crypto';
 import type { CommandRegistry } from '@/modules/commands/types.js';
-import { sessionMetricsService } from '@/services/SessionMetricsService.js';
 import { compressConversation } from './compression.js';
 
 export function registerSummaryCommand(registry: CommandRegistry) {
   registry.register({
     id: '/summary',
     type: 'function',
-    description:
-      'Summarize the current conversation and replace the history with the summary. Use "/summary beta" for compression-based summarization.',
+    description: 'Summarize the current conversation and create a new session with the summary',
     category: 'session',
     async handler({ eventBus, orchestratorManager, rawInput }) {
       if (!orchestratorManager) {
@@ -33,8 +31,6 @@ export function registerSummaryCommand(registry: CommandRegistry) {
         });
         return;
       }
-
-      const sessionId = orchestratorManager.getSession().sessionId;
 
       const history = await memory.get('cli');
       if (!history || history.length === 0) {
@@ -62,19 +58,14 @@ export function registerSummaryCommand(registry: CommandRegistry) {
         });
 
         try {
-          const { compressed, stats } = compressConversation(history);
-
-          await memory.set('cli', compressed);
+          const result = await orchestratorManager.compressAndCreateNewSession(compressConversation);
 
           eventBus.emit('ui:lines:clear');
-          if (sessionId) {
-            sessionMetricsService.reset(sessionId);
-          }
 
           eventBus.emit('ui:line', {
             id: crypto.randomUUID(),
             type: 'system',
-            content: `✓ Conversation compressed successfully`,
+            content: `✓ Conversation compressed and new session created`,
             metadata: { timestamp: new Date().toISOString() },
             color: 'green',
           });
@@ -82,7 +73,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
           eventBus.emit('ui:line', {
             id: crypto.randomUUID(),
             type: 'system',
-            content: `📊 Compression stats: ${stats.original} → ${stats.compressed} messages (-${stats.removed}, ${((stats.removed / stats.original) * 100).toFixed(1)}% reduction)`,
+            content: `Compression stats: ${result.stats.original} → ${result.stats.compressed} messages (-${result.stats.removed}, ${((result.stats.removed / result.stats.original) * 100).toFixed(1)}% reduction)`,
             metadata: { timestamp: new Date().toISOString() },
             color: 'cyan',
           });
@@ -90,7 +81,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
           eventBus.emit('ui:line', {
             id: crypto.randomUUID(),
             type: 'system',
-            content: `🗑️  Removed: ${stats.staleReads} stale reads, ${stats.staleEdits} stale edits, ${stats.staleBash} stale bash, ${stats.failedBash} failed bash`,
+            content: `Removed: ${result.stats.staleReads} stale reads, ${result.stats.staleEdits} stale edits, ${result.stats.staleBash} stale bash, ${result.stats.failedBash} failed bash`,
             metadata: { timestamp: new Date().toISOString() },
             color: 'cyan',
           });
@@ -117,37 +108,14 @@ export function registerSummaryCommand(registry: CommandRegistry) {
       });
 
       try {
-        const orchestrator = orchestratorManager.getOrchestrator();
-        if (!orchestrator) {
-          eventBus.emit('ui:line', {
-            id: crypto.randomUUID(),
-            type: 'system',
-            content: 'Orchestrator not available',
-            metadata: { timestamp: new Date().toISOString() },
-            color: 'red',
-          });
-          return;
-        }
-        const summary = await orchestratorManager.summarize();
-
-        const summaryMessage = {
-          id: crypto.randomUUID(),
-          role: 'user' as const,
-          content: `Previous conversation summary:\n\n${summary}`,
-          timestamp: new Date().toISOString(),
-        };
-
-        await memory.set('cli', [summaryMessage]);
+        const result = await orchestratorManager.summarizeAndCreateNewSession({ skipEvents: true });
 
         eventBus.emit('ui:lines:clear');
-        if (sessionId) {
-          sessionMetricsService.reset(sessionId);
-        }
 
         eventBus.emit('ui:line', {
           id: crypto.randomUUID(),
           type: 'system',
-          content: '✓ Conversation summarized successfully',
+          content: '✓ Conversation summarized and new session created',
           metadata: { timestamp: new Date().toISOString() },
           color: 'green',
         });
@@ -155,8 +123,8 @@ export function registerSummaryCommand(registry: CommandRegistry) {
         eventBus.emit('ui:line', {
           id: crypto.randomUUID(),
           type: 'user',
-          content: summaryMessage.content,
-          metadata: { timestamp: summaryMessage.timestamp },
+          content: `Previous conversation summary:\n\n${result.summary}`,
+          metadata: { timestamp: new Date().toISOString() },
         });
 
         eventBus.emit('ui:header:refresh');

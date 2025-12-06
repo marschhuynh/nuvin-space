@@ -1,5 +1,5 @@
 import { eventBus } from '@/services/EventBus.js';
-import { orchestratorManager, type OrchestratorManager } from '@/services/OrchestratorManager.js';
+import type { OrchestratorManager } from '@/services/OrchestratorManager.js';
 import type {
   CommandDefinition,
   CommandContext,
@@ -13,10 +13,6 @@ export class CommandRegistry implements ICommandRegistry {
   private activeCommand: ActiveCommand | null = null;
   private configFunctions: CommandContext['config'] | null = null;
   private orchestratorManager: OrchestratorManager | null = null;
-
-  constructor(orchestratorManager: OrchestratorManager) {
-    this.orchestratorManager = orchestratorManager;
-  }
 
   register(command: CommandDefinition): void {
     this.commands.set(command.id, command);
@@ -183,4 +179,4 @@ export class CommandRegistry implements ICommandRegistry {
   }
 }
 
-export const commandRegistry = new CommandRegistry(orchestratorManager);
+export const commandRegistry = new CommandRegistry();

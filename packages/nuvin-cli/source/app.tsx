@@ -72,12 +72,11 @@ export default function App({
   const previousVimModeRef = useRef<boolean | null>(null);
   const inputAreaRef = useRef<InputAreaHandle>(null);
 
-  const newConversationInProgressRef = useRef(false);
   const historyLoadedRef = useRef(false);
 
-  const { createNewSession, loadHistoryFromFile } = useSessionManagement();
+  const { loadHistoryFromFile } = useSessionManagement();
 
-  const { status, send, createNewConversation, reinit, sessionId } = useOrchestrator({
+  const { status, send, reinit, sessionId } = useOrchestrator({
     appendLine,
     updateLine,
     updateLineMetadata,
@@ -140,38 +139,11 @@ export default function App({
       });
     };
 
-    const onNewConversation = async (event: { memPersist: boolean }) => {
-      if (newConversationInProgressRef.current) {
-        return;
-      }
-
-      newConversationInProgressRef.current = true;
-
-      try {
-        const session = event.memPersist ? await createNewSession() : { sessionId: undefined, sessionDir: undefined };
-        await createNewConversation({ ...session, memPersist: event.memPersist });
-
-        appendLine({
-          id: crypto.randomUUID(),
-          type: 'info',
-          content: event.memPersist ? 'Started new conversation session' : 'Started new conversation',
-          metadata: { timestamp: new Date().toISOString() },
-          color: 'green',
-        });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        handleError(`Failed to start new conversation: ${message}`);
-      } finally {
-        newConversationInProgressRef.current = false;
-      }
-    };
-
     eventBus.on('ui:line', onLine);
     eventBus.on('ui:error', onErr);
     eventBus.on('ui:lines:clear', clearMessages);
     eventBus.on('ui:lines:set', setLines);
     eventBus.on('ui:clear:complete', onClearComplete);
-    eventBus.on('ui:new:conversation', onNewConversation);
 
     return () => {
       eventBus.off('ui:line', onLine);
@@ -179,9 +151,8 @@ export default function App({
       eventBus.off('ui:lines:clear', clearMessages);
       eventBus.off('ui:lines:set', setLines);
       eventBus.off('ui:clear:complete', onClearComplete);
-      eventBus.off('ui:new:conversation', onNewConversation);
     };
-  }, [appendLine, handleError, createNewConversation, createNewSession, clearMessages, setLines]);
+  }, [appendLine, handleError, clearMessages, setLines]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: We only want to load once at startup
   useEffect(() => {

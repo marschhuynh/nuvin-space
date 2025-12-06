@@ -1,44 +1,31 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { CommandRegistry } from '../source/modules/commands/registry.js';
 import { registerClearCommand } from '../source/modules/commands/definitions/clear.js';
 import { registerNewCommand } from '../source/modules/commands/definitions/new.js';
 import { registerSudoCommand } from '../source/modules/commands/definitions/sudo.js';
-import type { TypedEventBus } from '../source/services/EventBus.js';
 import type { OrchestratorManager } from '../source/services/OrchestratorManager.js';
+import type { CommandContext } from '../source/modules/commands/types.js';
 
-const createMockConfigFunctions = () => ({
+const mockEventBus = vi.hoisted(() => ({
+  on: vi.fn(),
+  off: vi.fn(),
+  once: vi.fn(),
+  emit: vi.fn(),
+}));
+
+vi.mock('../source/services/EventBus.js', () => ({
+  eventBus: mockEventBus,
+  TypedEventBus: vi.fn(),
+}));
+
+const createMockConfigFunctions = (): CommandContext['config'] => ({
   get: vi.fn((key: string) => {
     if (key === 'memPersist') return false;
     return undefined;
-  }),
-  set: vi.fn(),
+  }) as CommandContext['config']['get'],
+  set: vi.fn().mockResolvedValue(undefined),
+  delete: vi.fn().mockResolvedValue(undefined),
 });
-
-type EventHandler = (...args: unknown[]) => void;
-
-const createMockEventBus = (): TypedEventBus => {
-  const listeners = new Map<string, Set<EventHandler>>();
-
-  return {
-    on: vi.fn((event: string, handler: EventHandler) => {
-      if (!listeners.has(event)) {
-        listeners.set(event, new Set());
-      }
-      listeners.get(event)?.add(handler);
-    }),
-    off: vi.fn((event: string, handler: EventHandler) => {
-      listeners.get(event)?.delete(handler);
-    }),
-    emit: vi.fn((event: string, ...args: unknown[]) => {
-      const handlers = listeners.get(event);
-      if (handlers) {
-        for (const handler of handlers) {
-          handler(...args);
-        }
-      }
-    }),
-  } as TypedEventBus;
-};
 
 const createMockMemory = () => ({
   get: vi.fn(),
@@ -51,32 +38,21 @@ const createMockMemory = () => ({
 
 describe('/clear command', () => {
   let registry: CommandRegistry;
-  let mockEventBus: TypedEventBus;
   let mockMemory: ReturnType<typeof createMockMemory>;
   let mockOrchestratorManager: OrchestratorManager;
 
   beforeEach(() => {
-    mockEventBus = createMockEventBus();
+    vi.clearAllMocks();
     mockMemory = createMockMemory();
-    
+
     mockOrchestratorManager = {
       getMemory: vi.fn(() => mockMemory),
       getSession: vi.fn(() => ({ sessionId: 'test-session-id' })),
     } as unknown as OrchestratorManager;
 
-    registry = new CommandRegistry(mockOrchestratorManager);
+    registry = new CommandRegistry();
     registry.setConfigFunctions(createMockConfigFunctions());
-
-    // Replace the global eventBus with our mock
-    (registry as { createContext: (input: string) => CommandContext }).createContext = function (input: string) {
-      return {
-        rawInput: input,
-        eventBus: mockEventBus,
-        registry: this,
-        config: this.configFunctions,
-        orchestratorManager: this.orchestratorManager,
-      };
-    };
+    registry.setOrchestrator(mockOrchestratorManager);
 
     registerClearCommand(registry);
   });
@@ -111,35 +87,29 @@ describe('/clear command', () => {
 
 describe('/new command', () => {
   let registry: CommandRegistry;
-  let mockEventBus: TypedEventBus;
   let mockMemory: ReturnType<typeof createMockMemory>;
   let mockConfig: ReturnType<typeof createMockConfigFunctions>;
   let mockOrchestratorManager: OrchestratorManager;
 
   beforeEach(() => {
-    mockEventBus = createMockEventBus();
+    vi.clearAllMocks();
     mockMemory = createMockMemory();
     mockConfig = createMockConfigFunctions();
-    
+
     mockOrchestratorManager = {
       getStatus: vi.fn(() => 'Ready'),
       getMemory: vi.fn(() => mockMemory),
       getSession: vi.fn(() => ({ sessionId: 'test-session-id' })),
+      createNewConversation: vi.fn().mockResolvedValue({
+        sessionId: 'new-session-id',
+        sessionDir: '/tmp/new-session',
+        memory: mockMemory,
+      }),
     } as unknown as OrchestratorManager;
 
-    registry = new CommandRegistry(mockOrchestratorManager);
+    registry = new CommandRegistry();
     registry.setConfigFunctions(mockConfig);
-
-    // Replace the global eventBus with our mock
-    (registry as { createContext: (input: string) => CommandContext }).createContext = function (input: string) {
-      return {
-        rawInput: input,
-        eventBus: mockEventBus,
-        registry: this,
-        config: this.configFunctions,
-        orchestratorManager: this.orchestratorManager,
-      };
-    };
+    registry.setOrchestrator(mockOrchestratorManager);
 
     registerNewCommand(registry);
   });
@@ -165,21 +135,31 @@ describe('/new command', () => {
     expect(mockMemory.delete).not.toHaveBeenCalled();
   });
 
-  it('should emit ui:new:conversation with memPersist=false by default', async () => {
+  it('should call createNewConversation with memPersist=false by default', async () => {
     await registry.execute('/new');
 
-    expect(mockEventBus.emit).toHaveBeenCalledWith('ui:new:conversation', { memPersist: false });
+    expect(mockOrchestratorManager.createNewConversation).toHaveBeenCalledWith(
+      expect.objectContaining({ memPersist: false }),
+    );
   });
 
-  it('should emit ui:new:conversation with memPersist=true when configured', async () => {
-    mockConfig.get.mockImplementation((key: string) => {
+  it('should call createNewConversation with memPersist=true when configured', async () => {
+    (mockConfig.get as Mock).mockImplementation((key: string) => {
       if (key === 'session.memPersist') return true;
       return undefined;
     });
 
     await registry.execute('/new');
 
-    expect(mockEventBus.emit).toHaveBeenCalledWith('ui:new:conversation', { memPersist: true });
+    expect(mockOrchestratorManager.createNewConversation).toHaveBeenCalledWith(
+      expect.objectContaining({ memPersist: true }),
+    );
+  });
+
+  it('should emit conversation:created event on success', async () => {
+    await registry.execute('/new');
+
+    expect(mockEventBus.emit).toHaveBeenCalledWith('conversation:created', { memPersist: false });
   });
 
   it('should get session.memPersist config', async () => {
@@ -191,24 +171,11 @@ describe('/new command', () => {
 
 describe('/sudo command', () => {
   let registry: CommandRegistry;
-  let mockEventBus: TypedEventBus;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     registry = new CommandRegistry();
     registry.setConfigFunctions(createMockConfigFunctions());
-    mockEventBus = createMockEventBus();
-
-    // Replace the global eventBus with our mock
-    (registry as { createContext: (input: string) => CommandContext }).createContext = function (input: string) {
-      return {
-        rawInput: input,
-        eventBus: mockEventBus,
-        registry: this,
-        config: this.configFunctions,
-        memory: this.memory,
-        orchestrator: this.orchestrator,
-      };
-    };
 
     registerSudoCommand(registry);
   });
@@ -229,8 +196,7 @@ describe('/sudo command', () => {
   });
 
   it('should handle execution errors gracefully', async () => {
-    // Make emit throw an error
-    (mockEventBus.emit as vi.Mock).mockImplementation(() => {
+    (mockEventBus.emit as Mock).mockImplementationOnce(() => {
       throw new Error('Event bus error');
     });
 

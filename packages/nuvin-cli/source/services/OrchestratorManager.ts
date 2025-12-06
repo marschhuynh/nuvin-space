@@ -625,7 +625,7 @@ export class OrchestratorManager {
       });
 
       try {
-        await this.autoSummarizeAndReplace();
+        await this.summarizeAndCreateNewSession();
         eventBus.emit('ui:line', {
           id: crypto.randomUUID(),
           type: 'system',
@@ -653,7 +653,19 @@ export class OrchestratorManager {
     }
   }
 
-  private async autoSummarizeAndReplace(): Promise<void> {
+  /**
+   * Summarize current conversation and create a new session with the summary.
+   * The original session history is preserved, and the new session links back via metadata.
+   *
+   * @param options.skipEvents - If true, skip emitting UI events (caller handles UI)
+   * @returns Summary result with session info
+   */
+  async summarizeAndCreateNewSession(options: { skipEvents?: boolean } = {}): Promise<{
+    summary: string;
+    previousSessionId: string;
+    newSessionId: string;
+    newSessionDir: string;
+  }> {
     if (!this.memory) {
       throw new Error('Memory not initialized');
     }
@@ -662,7 +674,25 @@ export class OrchestratorManager {
       throw new Error('Session ID not set');
     }
 
+    const previousSessionId = this.sessionId;
+
     const summary = await this.summarize();
+
+    const result = await this.createNewConversation({ memPersist: true });
+
+    if (!result.sessionId || !result.sessionDir) {
+      throw new Error('Failed to create new session');
+    }
+
+    const newSessionId = result.sessionId;
+    const newSessionDir = result.sessionDir;
+
+    if (this.conversationStore) {
+      await this.conversationStore.updateMetadata('cli', {
+        summarizedFrom: previousSessionId,
+        topic: `Summary of session ${previousSessionId}`,
+      });
+    }
 
     const summaryMessage: Message = {
       id: crypto.randomUUID(),
@@ -670,21 +700,93 @@ export class OrchestratorManager {
       content: `Previous conversation summary:\n\n${summary}`,
       timestamp: new Date().toISOString(),
     };
+    await this.memory?.append('cli', [summaryMessage]);
 
-    await this.memory.set('cli', [summaryMessage]);
+    if (!options.skipEvents) {
+      eventBus.emit('ui:lines:clear');
 
-    eventBus.emit('ui:lines:clear');
+      eventBus.emit('ui:line', {
+        id: crypto.randomUUID(),
+        type: 'user',
+        content: summaryMessage.content as string,
+        metadata: { timestamp: summaryMessage.timestamp },
+      });
 
-    eventBus.emit('ui:line', {
-      id: crypto.randomUUID(),
-      type: 'user',
-      content: summaryMessage.content as string,
-      metadata: { timestamp: summaryMessage.timestamp },
-    });
+      eventBus.emit('ui:header:refresh');
+    }
 
-    eventBus.emit('ui:header:refresh');
+    sessionMetricsService.reset(newSessionId);
 
-    sessionMetricsService.reset(this.sessionId);
+    eventBus.emit('conversation:created', { memPersist: true });
+
+    return {
+      summary,
+      previousSessionId,
+      newSessionId,
+      newSessionDir,
+    };
+  }
+
+  /**
+   * Compress current conversation and create a new session with compressed messages.
+   * The original session history is preserved, and the new session links back via metadata.
+   *
+   * @param compressFn - Function that compresses messages and returns stats
+   * @returns Compression result with session info and stats
+   */
+  async compressAndCreateNewSession<TStats>(
+    compressFn: (messages: Message[]) => { compressed: Message[]; stats: TStats },
+  ): Promise<{
+    previousSessionId: string;
+    newSessionId: string;
+    newSessionDir: string;
+    stats: TStats;
+  }> {
+    if (!this.memory) {
+      throw new Error('Memory not initialized');
+    }
+
+    if (!this.sessionId) {
+      throw new Error('Session ID not set');
+    }
+
+    const previousSessionId = this.sessionId;
+
+    const history = await this.memory.get('cli');
+    if (!history || history.length === 0) {
+      throw new Error('No conversation history to compress');
+    }
+
+    const { compressed, stats } = compressFn(history);
+
+    const result = await this.createNewConversation({ memPersist: true });
+
+    if (!result.sessionId || !result.sessionDir) {
+      throw new Error('Failed to create new session');
+    }
+
+    const newSessionId = result.sessionId;
+    const newSessionDir = result.sessionDir;
+
+    if (this.conversationStore) {
+      await this.conversationStore.updateMetadata('cli', {
+        summarizedFrom: previousSessionId,
+        topic: `Compressed from session ${previousSessionId}`,
+      });
+    }
+
+    await this.memory?.set('cli', compressed);
+
+    sessionMetricsService.reset(newSessionId);
+
+    eventBus.emit('conversation:created', { memPersist: true });
+
+    return {
+      previousSessionId,
+      newSessionId,
+      newSessionDir,
+      stats,
+    };
   }
 
   async getModelContextLimit(): Promise<number | null> {
@@ -881,8 +983,15 @@ export class OrchestratorManager {
   /**
    * Creates a new conversation session without reinitializing MCP servers.
    * This is more efficient than full reinit when you just want to start fresh conversation.
+   *
+   * @param config.memPersist - If true, creates session directory and persists to disk
+   * @returns Session info including generated sessionId and sessionDir
    */
-  async createNewConversation(config: { sessionId?: string; sessionDir?: string; memPersist?: boolean }) {
+  async createNewConversation(config: { memPersist?: boolean } = {}): Promise<{
+    sessionId: string | null;
+    sessionDir: string | null;
+    memory: MemoryPort<Message>;
+  }> {
     if (!this.orchestrator) {
       throw new Error('Orchestrator not initialized, wait a moment');
     }
@@ -891,32 +1000,25 @@ export class OrchestratorManager {
       throw new Error('Handlers not initialized');
     }
 
-    const { sessionId, sessionDir } = this.resolveSession(config);
-
-    // Use memPersist from parameter, or fall back to the initial setting
     const memPersist = config.memPersist ?? this.memPersist;
 
-    // Create session directories if memPersist is enabled
+    const { sessionId, sessionDir } = this.resolveSession({});
+
     if (memPersist) {
       this.createSessionDirectories(sessionDir);
     }
 
-    // Get persistence settings from config
     const currentConfig = this.getCurrentConfig();
     const persistEventLog = currentConfig.config.session?.persistEventLog ?? false;
 
-    // Create new memory instance
     const newMemory = this.createMemory(sessionDir, memPersist);
 
-    // Create new event adapter for the new session
     const newEventAdapter = this.createEventAdapter(sessionDir, this.handlers, persistEventLog, this.streamingChunks);
 
-    // Update orchestrator with new memory, events, and metrics
     this.orchestrator.setMemory(newMemory);
     this.orchestrator.setEvents(newEventAdapter);
     this.orchestrator.setMetrics(new SessionBoundMetricsPort(sessionId, sessionMetricsService));
 
-    // Update internal state
     this.memory = newMemory;
     this.conversationStore = new ConversationStore(newMemory);
     this.memPersist = memPersist;
@@ -927,7 +1029,7 @@ export class OrchestratorManager {
       sessionId: this.sessionId,
       sessionDir: this.sessionDir,
       memory: this.memory,
-    } as const;
+    };
   }
 
   /**

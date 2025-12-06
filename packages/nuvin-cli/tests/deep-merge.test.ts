@@ -7,7 +7,7 @@ describe('deepMerge', () => {
       const target = { a: 1, b: 2 };
       const source = { c: 3, d: 4 };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({ a: 1, b: 2, c: 3, d: 4 });
     });
 
@@ -15,7 +15,7 @@ describe('deepMerge', () => {
       const target = { a: 1, b: 2 };
       const source = { b: 3, c: 4 };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({ a: 1, b: 3, c: 4 });
     });
 
@@ -23,7 +23,7 @@ describe('deepMerge', () => {
       const target = { a: 1, b: 2 };
       const source = { b: undefined, c: 3 };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({ a: 1, b: 2, c: 3 });
     });
 
@@ -31,9 +31,9 @@ describe('deepMerge', () => {
       const target = { a: 1, b: 2 };
       const targetCopy = { ...target };
       const source = { c: 3 };
-      
+
       deepMerge(target, source);
-      
+
       expect(target).toEqual(targetCopy);
     });
   });
@@ -49,7 +49,7 @@ describe('deepMerge', () => {
         settings: { fontSize: 14 },
       };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({
         user: { name: 'John', age: 31, email: 'john@example.com' },
         settings: { theme: 'dark', fontSize: 14 },
@@ -73,7 +73,7 @@ describe('deepMerge', () => {
         },
       };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({
         level1: {
           level2: {
@@ -88,7 +88,7 @@ describe('deepMerge', () => {
       const target = { a: 'string' };
       const source = { a: { nested: true } };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({ a: { nested: true } });
     });
 
@@ -96,7 +96,7 @@ describe('deepMerge', () => {
       const target = { a: { nested: true } };
       const source = { a: 'string' };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({ a: 'string' });
     });
   });
@@ -104,13 +104,16 @@ describe('deepMerge', () => {
   describe('array merging', () => {
     it('should merge array elements by index', () => {
       const target = {
-        items: [{ id: 1, name: 'First' }, { id: 2, name: 'Second' }],
+        items: [
+          { id: 1, name: 'First' },
+          { id: 2, name: 'Second' },
+        ],
       };
       const source = {
         items: [{ id: 1, name: 'Updated First' }],
       };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({
         items: [
           { id: 1, name: 'Updated First' },
@@ -127,7 +130,7 @@ describe('deepMerge', () => {
         auth: [{ 'api-key': 'new-key' }],
       };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({
         auth: [{ type: 'api-key', 'api-key': 'new-key' }],
       });
@@ -141,7 +144,7 @@ describe('deepMerge', () => {
         items: [{ id: 1 }, { id: 2 }, { id: 3 }],
       };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({
         items: [{ id: 1 }, { id: 2 }, { id: 3 }],
       });
@@ -154,7 +157,7 @@ describe('deepMerge', () => {
         items: [sourceObj],
       };
       const result = deepMerge(target, source);
-      
+
       expect(result.items).toEqual([{ name: 'test' }]);
       expect(result.items[0]).not.toBe(sourceObj);
     });
@@ -167,7 +170,7 @@ describe('deepMerge', () => {
         tags: ['c', 'd', 'e'],
       };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({
         tags: ['c', 'd', 'e'],
       });
@@ -177,7 +180,7 @@ describe('deepMerge', () => {
       const target = { items: 'not-an-array' };
       const source = { items: [1, 2, 3] };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({ items: [1, 2, 3] });
     });
 
@@ -189,7 +192,7 @@ describe('deepMerge', () => {
         mixed: [{ id: 1, name: 'updated' }, 'new-string'],
       };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({
         mixed: [{ id: 1, name: 'updated' }, 'new-string', 123],
       });
@@ -213,7 +216,7 @@ describe('deepMerge', () => {
         },
       };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({
         providers: {
           openrouter: {
@@ -237,7 +240,7 @@ describe('deepMerge', () => {
         },
       };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({
         providers: {
           openrouter: { model: 'gpt-4', apiKey: 'key1' },
@@ -251,7 +254,7 @@ describe('deepMerge', () => {
       const target = {};
       const source = { a: 1, b: { c: 2 } };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({ a: 1, b: { c: 2 } });
     });
 
@@ -259,7 +262,7 @@ describe('deepMerge', () => {
       const target = { a: 1, b: 2 };
       const source = {};
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({ a: 1, b: 2 });
     });
   });
@@ -269,7 +272,7 @@ describe('deepMerge', () => {
       const target = { a: 1 };
       const source = { a: null };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({ a: null });
     });
 
@@ -277,7 +280,7 @@ describe('deepMerge', () => {
       const target = { items: [1, 2, 3] };
       const source = { items: [] };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({ items: [1, 2, 3] });
     });
 
@@ -289,7 +292,7 @@ describe('deepMerge', () => {
         items: [{ nested: { value: 'updated', new: true } }],
       };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({
         items: [{ id: 1, nested: { value: 'updated', new: true } }],
       });
@@ -303,7 +306,7 @@ describe('deepMerge', () => {
         items: [{ id: 1 }, { id: 2 }],
       };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({
         items: [{ id: 1 }, { id: 2 }, { id: 3 }],
       });
@@ -317,7 +320,7 @@ describe('deepMerge', () => {
         items: [10, 20],
       };
       const result = deepMerge(target, source);
-      
+
       expect(result).toEqual({
         items: [10, 20, 3, 4, 5],
       });

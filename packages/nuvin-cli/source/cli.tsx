@@ -379,7 +379,7 @@ const cli = meow(
   }
 
   // Register commands
-  registerCommands();
+  registerCommands(orchestratorManager);
 
   console.log(ansiEscapes.clearTerminal);
 

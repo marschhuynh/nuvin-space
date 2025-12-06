@@ -1,4 +1,5 @@
 import { commandRegistry } from '@/modules/commands/registry.js';
+import type { OrchestratorManager } from '@/services/OrchestratorManager.js';
 
 import { registerExitCommand } from './exit.js';
 import { registerHelpCommand } from './help.js';
@@ -15,7 +16,8 @@ import { registerNewCommand } from './new.js';
 import { registerVimCommand } from './vim.js';
 import { registerSummaryCommand } from './summary/index.js';
 
-export function registerCommands() {
+export function registerCommands(orchestratorManager: OrchestratorManager) {
+  commandRegistry.setOrchestrator(orchestratorManager);
   registerExitCommand(commandRegistry);
   registerHelpCommand(commandRegistry);
   registerAuthCommand(commandRegistry);

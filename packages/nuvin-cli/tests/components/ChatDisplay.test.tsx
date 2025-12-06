@@ -8,7 +8,9 @@ import type { SessionInfo } from '../../source/types.js';
 // Mock child components to simplify output verification
 vi.mock('../../source/components/MessageLine.js', () => ({
   MessageLine: ({ message }: { message: MessageLineType }) => (
-    <Text>[Message id={message.id} content={message.content}]</Text>
+    <Text>
+      [Message id={message.id} content={message.content}]
+    </Text>
   ),
 }));
 
@@ -34,13 +36,7 @@ vi.mock('../../source/utils/file-logger.js', () => ({
 
 describe('ChatDisplay', () => {
   it('renders welcome logo when no messages', () => {
-    const { lastFrame } = render(
-      <ChatDisplay
-        key="test"
-        messages={[]}
-        headerKey={1}
-      />
-    );
+    const { lastFrame } = render(<ChatDisplay key="test" messages={[]} headerKey={1} />);
 
     expect(lastFrame()).toContain('[WelcomeLogo]');
   });
@@ -61,13 +57,7 @@ describe('ChatDisplay', () => {
       },
     ];
 
-    const { lastFrame } = render(
-      <ChatDisplay
-        key="test"
-        messages={messages}
-        headerKey={1}
-      />
-    );
+    const { lastFrame } = render(<ChatDisplay key="test" messages={messages} headerKey={1} />);
 
     expect(lastFrame()).toContain('[WelcomeLogo]');
     expect(lastFrame()).toContain('[Message id=msg-1 content=Hello]');
@@ -93,13 +83,7 @@ describe('ChatDisplay', () => {
       },
     ];
 
-    const { lastFrame } = render(
-      <ChatDisplay
-        key="test"
-        messages={messages}
-        headerKey={1}
-      />
-    );
+    const { lastFrame } = render(<ChatDisplay key="test" messages={messages} headerKey={1} />);
 
     expect(lastFrame()).toContain('[Message id=msg-1 content=Hello]');
     expect(lastFrame()).toContain('[Message id=msg-2 content=Streaming...]');
@@ -116,13 +100,7 @@ describe('ChatDisplay', () => {
       },
     };
 
-    const { lastFrame, rerender } = render(
-      <ChatDisplay
-        key="test"
-        messages={[streamingMsg]}
-        headerKey={1}
-      />
-    );
+    const { lastFrame, rerender } = render(<ChatDisplay key="test" messages={[streamingMsg]} headerKey={1} />);
 
     expect(lastFrame()).toContain('[Message id=msg-1 content=Streaming...]');
 
@@ -136,13 +114,7 @@ describe('ChatDisplay', () => {
       },
     };
 
-    rerender(
-      <ChatDisplay
-        key="test"
-        messages={[finalizedMsg]}
-        headerKey={1}
-      />
-    );
+    rerender(<ChatDisplay key="test" messages={[finalizedMsg]} headerKey={1} />);
 
     expect(lastFrame()).toContain('[Message id=msg-1 content=Finalized.]');
   });
@@ -159,33 +131,22 @@ describe('ChatDisplay', () => {
       },
     };
 
-    const { lastFrame } = render(
-      <ChatDisplay
-        key="test"
-        messages={[pendingToolCall]}
-        headerKey={1}
-      />
-    );
+    const { lastFrame } = render(<ChatDisplay key="test" messages={[pendingToolCall]} headerKey={1} />);
 
     expect(lastFrame()).toContain('[Message id=msg-1 content=tool_call]');
   });
 
   it('renders first message correctly when transitioning from sessions view', () => {
-    const sessions: SessionInfo[] = [{
-      sessionId: 's1',
-      timestamp: new Date().toISOString(),
-      lastMessage: 'test',
-      messageCount: 1,
-    }];
+    const sessions: SessionInfo[] = [
+      {
+        sessionId: 's1',
+        timestamp: new Date().toISOString(),
+        lastMessage: 'test',
+        messageCount: 1,
+      },
+    ];
 
-    const { lastFrame, rerender } = render(
-      <ChatDisplay
-        key="test"
-        messages={[]}
-        headerKey={1}
-        sessions={sessions}
-      />
-    );
+    const { lastFrame, rerender } = render(<ChatDisplay key="test" messages={[]} headerKey={1} sessions={sessions} />);
 
     expect(lastFrame()).toContain('[WelcomeLogo]');
     expect(lastFrame()).toContain('[RecentSessions]');
@@ -198,14 +159,7 @@ describe('ChatDisplay', () => {
       metadata: { timestamp: new Date().toISOString() },
     };
 
-    rerender(
-      <ChatDisplay
-        key="test"
-        messages={[msg1]}
-        headerKey={1}
-        sessions={sessions}
-      />
-    );
+    rerender(<ChatDisplay key="test" messages={[msg1]} headerKey={1} sessions={sessions} />);
 
     // Should still contain sessions (to preserve Static indices)
     expect(lastFrame()).toContain('[RecentSessions]');

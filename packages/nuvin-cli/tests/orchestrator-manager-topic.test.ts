@@ -51,7 +51,7 @@ describe.skip('OrchestratorManager - Topic Analysis', () => {
       }),
       get: vi.fn().mockReturnValue(undefined),
       set: vi.fn().mockResolvedValue(undefined),
-    // biome-ignore lint/suspicious/noExplicitAny: test mock
+      // biome-ignore lint/suspicious/noExplicitAny: test mock
     } as any;
 
     manager = new OrchestratorManager(mockConfigManager);

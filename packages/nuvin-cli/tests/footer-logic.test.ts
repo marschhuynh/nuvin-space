@@ -37,17 +37,32 @@ describe('Footer Sudo Mode Logic', () => {
     // Initial state: tool approval required (sudo OFF)
     let toolApprovalMode = true;
     const thinkingLevel = 'OFF';
-    let statusText = ['echo', 'test-model', thinkingLevel !== 'OFF' ? `Thinking: ${thinkingLevel}` : '', !toolApprovalMode ? 'SUDO' : ''].filter(Boolean);
+    let statusText = [
+      'echo',
+      'test-model',
+      thinkingLevel !== 'OFF' ? `Thinking: ${thinkingLevel}` : '',
+      !toolApprovalMode ? 'SUDO' : '',
+    ].filter(Boolean);
     expect(statusText).not.toContain('SUDO');
 
     // Toggle: disable tool approval (sudo ON)
     toolApprovalMode = false;
-    statusText = ['echo', 'test-model', thinkingLevel !== 'OFF' ? `Thinking: ${thinkingLevel}` : '', !toolApprovalMode ? 'SUDO' : ''].filter(Boolean);
+    statusText = [
+      'echo',
+      'test-model',
+      thinkingLevel !== 'OFF' ? `Thinking: ${thinkingLevel}` : '',
+      !toolApprovalMode ? 'SUDO' : '',
+    ].filter(Boolean);
     expect(statusText).toContain('SUDO');
 
     // Toggle back: enable tool approval (sudo OFF)
     toolApprovalMode = true;
-    statusText = ['echo', 'test-model', thinkingLevel !== 'OFF' ? `Thinking: ${thinkingLevel}` : '', !toolApprovalMode ? 'SUDO' : ''].filter(Boolean);
+    statusText = [
+      'echo',
+      'test-model',
+      thinkingLevel !== 'OFF' ? `Thinking: ${thinkingLevel}` : '',
+      !toolApprovalMode ? 'SUDO' : '',
+    ].filter(Boolean);
     expect(statusText).not.toContain('SUDO');
   });
 
@@ -57,7 +72,12 @@ describe('Footer Sudo Mode Logic', () => {
     const provider = 'github';
     const model = 'gpt-4';
 
-    const statusTextParts = [provider, model, thinking !== 'OFF' ? `Thinking: ${thinking}` : '', !toolApprovalMode ? 'SUDO' : ''].filter(Boolean);
+    const statusTextParts = [
+      provider,
+      model,
+      thinking !== 'OFF' ? `Thinking: ${thinking}` : '',
+      !toolApprovalMode ? 'SUDO' : '',
+    ].filter(Boolean);
 
     expect(statusTextParts).toEqual(['github', 'gpt-4', 'Thinking: MEDIUM', 'SUDO']);
     expect(statusTextParts).toHaveLength(4);
@@ -69,7 +89,12 @@ describe('Footer Sudo Mode Logic', () => {
     const provider = 'github';
     const model = 'gpt-4';
 
-    const statusTextParts = [provider, model, thinking !== 'OFF' ? `Thinking: ${thinking}` : '', !toolApprovalMode ? 'SUDO' : ''].filter(Boolean);
+    const statusTextParts = [
+      provider,
+      model,
+      thinking !== 'OFF' ? `Thinking: ${thinking}` : '',
+      !toolApprovalMode ? 'SUDO' : '',
+    ].filter(Boolean);
 
     expect(statusTextParts).toEqual(['github', 'gpt-4']);
     expect(statusTextParts).not.toContain('Thinking: OFF');
@@ -82,7 +107,12 @@ describe('Footer Sudo Mode Logic', () => {
     const provider = 'github';
     const model = 'gpt-4';
 
-    const statusTextParts = [provider, model, thinking !== 'OFF' ? `Thinking: ${thinking}` : '', !toolApprovalMode ? 'SUDO' : ''].filter(Boolean);
+    const statusTextParts = [
+      provider,
+      model,
+      thinking !== 'OFF' ? `Thinking: ${thinking}` : '',
+      !toolApprovalMode ? 'SUDO' : '',
+    ].filter(Boolean);
 
     expect(statusTextParts).toContain('Thinking: MEDIUM');
     expect(statusTextParts).toEqual(['github', 'gpt-4', 'Thinking: MEDIUM']);
@@ -94,7 +124,12 @@ describe('Footer Sudo Mode Logic', () => {
     const provider = 'github';
     const model = 'gpt-4';
 
-    const statusTextParts = [provider, model, thinking && thinking !== 'OFF' ? `Thinking: ${thinking}` : '', !toolApprovalMode ? 'SUDO' : ''].filter(Boolean);
+    const statusTextParts = [
+      provider,
+      model,
+      thinking && thinking !== 'OFF' ? `Thinking: ${thinking}` : '',
+      !toolApprovalMode ? 'SUDO' : '',
+    ].filter(Boolean);
 
     expect(statusTextParts).toEqual(['github', 'gpt-4']);
     expect(statusTextParts).not.toContain('Thinking: undefined');

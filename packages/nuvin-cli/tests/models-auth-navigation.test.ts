@@ -54,7 +54,7 @@ describe('Models Command Authentication Navigation', () => {
     executedCommands = [];
     mockEventBus = createMockEventBus();
     mockConfig = createMockConfigFunctions();
-    
+
     mockOrchestratorManager = {
       getLLMFactory: vi.fn(() => undefined), // No LLM factory for testing
     } as unknown as OrchestratorManager;
@@ -108,7 +108,7 @@ describe('Models Command Authentication Navigation', () => {
         // Simulate the authentication check that happens in saveConfiguration
         const providerAuth = mockConfig.get<unknown[]>('providers.anthropic.auth');
         const hasAuthConfig = providerAuth && Array.isArray(providerAuth) && providerAuth.length > 0;
-        
+
         if (!hasAuthConfig) {
           return "Provider 'anthropic' is not configured. Please run /auth first.";
         }
@@ -124,7 +124,7 @@ describe('Models Command Authentication Navigation', () => {
   it('should properly format auth command with provider parameter', () => {
     const authCommandWithProvider = '/auth anthropic';
     const parts = authCommandWithProvider.trim().split(/\s+/);
-    
+
     expect(parts.length).toBe(2);
     expect(parts[0]).toBe('/auth');
     expect(parts[1]).toBe('anthropic');
@@ -134,7 +134,7 @@ describe('Models Command Authentication Navigation', () => {
     // Test that the navigation mechanism works
     const authCommand = '/auth anthropic';
     const result = await registry.execute(authCommand);
-    
+
     expect(result.success).toBe(true);
     expect(result.commandId).toBe('/auth');
     expect(executedCommands).toContain('/auth anthropic');
@@ -143,7 +143,7 @@ describe('Models Command Authentication Navigation', () => {
   it('should handle navigation without provider parameter', async () => {
     const authCommand = '/auth';
     const result = await registry.execute(authCommand);
-    
+
     expect(result.success).toBe(true);
     expect(result.commandId).toBe('/auth');
     expect(executedCommands).toContain('/auth');
@@ -168,10 +168,10 @@ describe('Models Command Authentication Navigation', () => {
   it('should trigger auth prompt when LLMFactory throws auth error', () => {
     // Simulate the error message from LLMFactory
     const errorMessage = 'kimi API key not configured. Please run /auth first.';
-    
+
     // Check if the error message would trigger the auth prompt
     const shouldShowPrompt = errorMessage.includes('not configured') || errorMessage.includes('/auth');
-    
+
     expect(shouldShowPrompt).toBe(true);
   });
 
@@ -195,7 +195,7 @@ describe('Models Command Authentication Navigation', () => {
     // instead of the model selection UI
     const hasAuthError = true;
     const shouldShowModelSelection = !hasAuthError;
-    
+
     expect(shouldShowModelSelection).toBe(false);
   });
 
@@ -203,10 +203,10 @@ describe('Models Command Authentication Navigation', () => {
     // The AuthNavigationPrompt component renders interactive buttons
     // similar to the ToolApprovalPrompt component
     const hasAuthPrompt = true;
-    
+
     // Verify that the prompt should be shown
     expect(hasAuthPrompt).toBe(true);
-    
+
     // The component supports keyboard navigation:
     // - Tab/Arrow keys to navigate between Yes/No
     // - Enter to select
@@ -216,10 +216,10 @@ describe('Models Command Authentication Navigation', () => {
   it('should include --return-to-model flag when navigating to auth', () => {
     const provider = 'anthropic';
     const authCommand = `/auth ${provider} --return-to-model`;
-    
+
     // Parse the command to verify structure
     const parts = authCommand.trim().split(/\s+/);
-    
+
     expect(parts[0]).toBe('/auth');
     expect(parts[1]).toBe(provider);
     expect(parts[2]).toBe('--return-to-model');
@@ -229,10 +229,10 @@ describe('Models Command Authentication Navigation', () => {
   it('should parse --return-to-model flag from auth command', () => {
     const authCommand = '/auth anthropic --return-to-model';
     const args = authCommand.trim().split(/\s+/);
-    
+
     const shouldReturnToModel = args.includes('--return-to-model');
     const provider = args.length > 1 && !args[1].startsWith('--') ? args[1] : null;
-    
+
     expect(shouldReturnToModel).toBe(true);
     expect(provider).toBe('anthropic');
   });
@@ -241,9 +241,9 @@ describe('Models Command Authentication Navigation', () => {
     // Simulate the flow
     const authCommandWithReturn = '/auth openrouter --return-to-model';
     const shouldReturnToModel = authCommandWithReturn.includes('--return-to-model');
-    
+
     expect(shouldReturnToModel).toBe(true);
-    
+
     // After successful auth, /model should be executed
     const nextCommand = '/model';
     expect(nextCommand).toBe('/model');

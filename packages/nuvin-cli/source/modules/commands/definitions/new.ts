@@ -1,7 +1,8 @@
+import * as crypto from 'node:crypto';
+import ansiEscapes from 'ansi-escapes';
 import type { CommandRegistry } from '@/modules/commands/types.js';
 import { OrchestratorStatus } from '@/services/OrchestratorManager.js';
 import { sessionMetricsService } from '@/services/SessionMetricsService.js';
-import ansiEscapes from 'ansi-escapes';
 
 export function registerNewCommand(registry: CommandRegistry) {
   registry.register({
@@ -21,17 +22,31 @@ export function registerNewCommand(registry: CommandRegistry) {
       }
 
       const memPersist = config?.get<boolean>('session.memPersist') ?? false;
-      const sessionId = orchestratorManager.getSession().sessionId;
 
       eventBus.emit('ui:lines:clear');
       console.log(ansiEscapes.clearTerminal);
       eventBus.emit('ui:header:refresh');
 
-      if (sessionId) {
-        sessionMetricsService.reset(sessionId);
-      }
+      try {
+        const { sessionId } = await orchestratorManager.createNewConversation({ memPersist });
 
-      eventBus.emit('ui:new:conversation', { memPersist });
+        if (sessionId) {
+          sessionMetricsService.reset(sessionId);
+        }
+
+        eventBus.emit('conversation:created', { memPersist });
+
+        eventBus.emit('ui:line', {
+          id: crypto.randomUUID(),
+          type: 'info',
+          content: 'Started new conversation',
+          metadata: { timestamp: new Date().toISOString() },
+          color: 'green',
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        eventBus.emit('ui:error', `Failed to start new conversation: ${message}`);
+      }
     },
   });
 }

@@ -126,12 +126,12 @@ export function ToolApprovalProvider({
     };
 
     eventBus.on('ui:toolApprovalRequired', onToolApprovalRequired);
-    eventBus.on('ui:new:conversation', onNewConversation);
+    eventBus.on('conversation:created', onNewConversation);
     eventBus.on('ui:lines:clear', onClearChat);
 
     return () => {
       eventBus.off('ui:toolApprovalRequired', onToolApprovalRequired);
-      eventBus.off('ui:new:conversation', onNewConversation);
+      eventBus.off('conversation:created', onNewConversation);
       eventBus.off('ui:lines:clear', onClearChat);
     };
   }, [clearSessionApprovedTools, orchestratorManager?.getOrchestrator]);

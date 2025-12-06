@@ -104,7 +104,7 @@ describe('ConfigManager Array Notation', () => {
     const config = manager.getConfig();
     // biome-ignore lint/suspicious/noExplicitAny: test assertion for dynamic config
     const auth = config.providers?.openrouter?.auth as any[];
-    
+
     expect(auth).toBeDefined();
     expect(Array.isArray(auth)).toBe(true);
     expect(auth[0]).toEqual({ type: 'api-key', 'api-key': 'sk-or-xxx' });

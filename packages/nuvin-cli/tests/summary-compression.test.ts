@@ -1,8 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import type { Message, ToolCall } from '@nuvin/nuvin-core';
 import { compressConversation } from '../source/modules/commands/definitions/summary/compression.js';
-import { analyzeFileOperations, isStaleFileRead, isStaleFileEdit } from '../source/modules/commands/definitions/summary/file-operations.js';
-import { analyzeBashOperations, isStaleBashCommand, hasErrors } from '../source/modules/commands/definitions/summary/bash-operations.js';
+import {
+  analyzeFileOperations,
+  isStaleFileRead,
+  isStaleFileEdit,
+} from '../source/modules/commands/definitions/summary/file-operations.js';
+import {
+  analyzeBashOperations,
+  isStaleBashCommand,
+  hasErrors,
+} from '../source/modules/commands/definitions/summary/bash-operations.js';
 
 function createMessage(
   id: string,
@@ -11,7 +19,7 @@ function createMessage(
   timestamp: string,
   toolCalls?: ToolCall[],
   toolCallId?: string,
-  name?: string
+  name?: string,
 ): Message {
   return {
     id,
