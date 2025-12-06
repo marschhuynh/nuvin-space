@@ -64,6 +64,9 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
 
   const handleInputSubmit = useCallback(
     async (value: string) => {
+      if (!value.trim()) {
+        return;
+      }
       if (busy && !value.startsWith('/')) {
         setQueuedMessages((prev) => [...prev, value]);
         onNotification?.(`Message queued, will be sent when current request completes`, 1000);
