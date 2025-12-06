@@ -193,16 +193,22 @@ export class LLMFactory implements LLMFactoryInterface {
     const customProviders = this.getCustomProviders();
     const isSupportedInCore = supportsGetModels(provider, customProviders);
     const isGithub = provider === 'github';
+    const isAnthropic = provider === 'anthropic';
 
-    // If not supported in core AND not github, return empty
-    if (!isSupportedInCore && !isGithub) {
+    // If not supported in core AND not github AND not anthropic, return empty
+    if (!isSupportedInCore && !isGithub && !isAnthropic) {
       return [];
     }
 
     const config = this.getProviderConfig(provider);
 
-    if (!config.apiKey) {
+    // Anthropic can use either API key or OAuth
+    if (!config.apiKey && !config.oauthConfig?.anthropic && provider !== 'anthropic') {
       throw new Error(`${provider} API key not configured. Please run /auth first.`);
+    }
+
+    if (provider === 'anthropic' && !config.apiKey && !config.oauthConfig?.anthropic) {
+      throw new Error(`${provider} authentication not configured. Please run /auth first.`);
     }
 
     // Use the factory's createLLM to handle both core and special providers (like github)

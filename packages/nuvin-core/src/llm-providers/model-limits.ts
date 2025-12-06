@@ -24,6 +24,9 @@ export function normalizeModelLimits(provider: string, model: RawModelResponse):
         maxOutput: limits?.max_output_tokens as number | undefined,
       };
     }
+    case 'anthropic': {
+      return getFallbackLimits('anthropic', model.id as string);
+    }
     case 'deepinfra': {
       const metadata = model.metadata as Record<string, unknown> | undefined;
       const contextLength = metadata?.context_length as number | undefined;
@@ -90,10 +93,18 @@ const FALLBACK_LIMITS: Record<string, Record<string, ModelLimits>> = {
     'kimi-k2-turbo-preview': { contextWindow: 262144 },
   },
   anthropic: {
+    'claude-opus-4-5-20251101': { contextWindow: 200000, maxOutput: 16000 },
+    'claude-haiku-4-5-20251001': { contextWindow: 200000, maxOutput: 16000 },
+    'claude-sonnet-4-5-20250929': { contextWindow: 200000, maxOutput: 16000 },
+    'claude-opus-4-1-20250805': { contextWindow: 200000, maxOutput: 16000 },
+    'claude-opus-4-20250514': { contextWindow: 200000, maxOutput: 16000 },
+    'claude-sonnet-4-20250514': { contextWindow: 200000, maxOutput: 16000 },
+    'claude-3-7-sonnet-20250219': { contextWindow: 200000, maxOutput: 8192 },
+    'claude-3-5-haiku-20241022': { contextWindow: 200000, maxOutput: 8192 },
+    'claude-3-haiku-20240307': { contextWindow: 200000, maxOutput: 4096 },
+    'claude-3-opus-20240229': { contextWindow: 200000, maxOutput: 4096 },
     'claude-sonnet-4-5': { contextWindow: 200000, maxOutput: 16000 },
     'claude-3-5-sonnet-20241022': { contextWindow: 200000, maxOutput: 8192 },
-    'claude-3-opus-20240229': { contextWindow: 200000, maxOutput: 4096 },
-    'claude-3-haiku-20240307': { contextWindow: 200000, maxOutput: 4096 },
   },
 };
 
@@ -105,7 +116,12 @@ export function getFallbackLimits(provider: string, model: string): ModelLimits 
 
 export function normalizeModelInfo(provider: string, model: RawModelResponse): ModelInfo {
   const id = model.id as string;
-  const name = (model.name as string | undefined) ?? id;
+  let name = (model.name as string | undefined) ?? id;
+  
+  if (provider.toLowerCase() === 'anthropic' && model.display_name) {
+    name = model.display_name as string;
+  }
+  
   const limits = normalizeModelLimits(provider, model);
 
   return {

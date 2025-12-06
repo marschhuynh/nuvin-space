@@ -12,6 +12,7 @@ import {
   type FilePart,
 } from 'ai';
 import { LLMError } from './base-llm.js';
+import { normalizeModelInfo, type ModelInfo } from './model-limits.js';
 
 const CLIENT_ID = '9d1c250a-e61b-44d9-88ed-5944d1962f5e';
 
@@ -566,6 +567,64 @@ export class AnthropicAISDKLLM {
       };
     } catch (error) {
       this.handleError(error);
+    }
+  }
+
+  async getModels(signal?: AbortSignal): Promise<ModelInfo[]> {
+    const baseURL = this.opts.baseURL || this.opts.apiUrl || 'https://api.anthropic.com/v1';
+    const url = `${baseURL}/models`;
+
+    const headers: Record<string, string> = {
+      'anthropic-version': '2023-06-01',
+      'anthropic-beta': ' oauth-2025-04-20,fine-grained-tool-streaming-2025-05-14',
+    };
+
+    if (this.opts.oauth) {
+      headers.authorization = `Bearer ${this.opts.oauth.access}`;
+    } else if (this.opts.apiKey) {
+      headers['x-api-key'] = this.opts.apiKey;
+    } else {
+      throw new LLMError('No API key or OAuth credentials provided', 401, false);
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers,
+        signal,
+      });
+
+      if (!response.ok) {
+        if ((response.status === 401 || response.status === 403) && this.opts.oauth) {
+          await this.ensureValidToken();
+          headers.authorization = `Bearer ${this.opts.oauth.access}`;
+
+          const retryResponse = await fetch(url, {
+            method: 'GET',
+            headers,
+            signal,
+          });
+
+          if (!retryResponse.ok) {
+            const text = await retryResponse.text();
+            throw new LLMError(text || `Failed to fetch models: ${retryResponse.status}`, retryResponse.status);
+          }
+
+          const data = await retryResponse.json();
+          return data.data.map((model: Record<string, unknown>) => normalizeModelInfo('anthropic', model));
+        }
+
+        const text = await response.text();
+        throw new LLMError(text || `Failed to fetch models: ${response.status}`, response.status);
+      }
+
+      const data = await response.json();
+      return data.data.map((model: Record<string, unknown>) => normalizeModelInfo('anthropic', model));
+    } catch (error) {
+      if (error instanceof LLMError) {
+        throw error;
+      }
+      throw new LLMError(error instanceof Error ? error.message : 'Failed to fetch models', undefined, false, error);
     }
   }
 }
