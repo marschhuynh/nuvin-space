@@ -436,6 +436,7 @@ export default function App({
             busy={busy}
             vimModeEnabled={vimModeEnabled}
             hasActiveCommand={!!activeCommand}
+            memory={orchestratorManager.getMemory()}
             abortRef={abortRef}
             onNotification={setNotification}
             onBusyChange={setBusy}

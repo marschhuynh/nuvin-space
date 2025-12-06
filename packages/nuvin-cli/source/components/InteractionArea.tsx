@@ -1,6 +1,7 @@
 import { forwardRef, useMemo, useCallback, useRef, useEffect, useState } from 'react';
 import { Box, Text } from 'ink';
 import { useInput } from 'ink';
+import type { MemoryPort, Message } from '@nuvin/nuvin-core';
 import { ToolApprovalPrompt } from './ToolApprovalPrompt/ToolApprovalPrompt.js';
 import { ActiveCommand } from '@/modules/commands/components/ActiveCommand.js';
 import { InputArea, type InputAreaHandle } from './InputArea.js';
@@ -13,6 +14,7 @@ type InteractionAreaProps = {
   messageQueueLength?: number;
   vimModeEnabled?: boolean;
   hasActiveCommand?: boolean;
+  memory?: MemoryPort<Message> | null;
 
   abortRef?: React.MutableRefObject<AbortController | null>;
   onNotification?: (message: string | null, duration?: number) => void;
@@ -30,6 +32,7 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
     messageQueueLength = 0,
     vimModeEnabled = false,
     hasActiveCommand = false,
+    memory,
 
     abortRef,
     onNotification,
@@ -197,6 +200,7 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
             showToolApproval={!!pendingApproval}
             commandItems={commandItems}
             vimModeEnabled={vimModeEnabled}
+            memory={memory}
             onInputChanged={onInputChanged}
             onInputSubmit={handleInputSubmit}
             onVimModeToggle={onVimModeToggle}

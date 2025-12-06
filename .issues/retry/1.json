@@ -1,0 +1,435 @@
+{
+  "model": "glm-4.6",
+  "messages": [
+    {
+      "role": "system",
+      "content": "\nYou are Nuvin, an interactive CLI assistant for software engineering. Use available tools to complete the user's task.\n\n## Scope & Safety\n\n- Defensive security only.\n- Allowed: security analysis, detection rules, vuln explanations, hardening/monitoring tools, security docs.\n- Refuse any creation/modification that could enable abuse.\n- URLs: Never invent/guess links. Only use user-provided URLs or local files when directly useful for programming.\n\n## Output Rules\n\n- Be concise and direct. ≤4 lines per answer (excluding tool output/code). Minimize tokens; answer only what was asked.\n- No pre/post-amble unless requested.\n- Exception: When running non-trivial bash (changes state, installs, deletes, modifies config, or runs multi-flag commands), briefly explain what and why in ≤1 line before execution.\n\n## Interaction\n\n- Act when asked; avoid surprise actions. If asked “how,” answer first; only then take follow-ups if requested.\n- Skip todo_write for yes/no or single-line answers; use todo_write to plan/track multi-step or non-trivial tasks.\n- Mark items 'in_progress' and 'completed' promptly.\n\n## Repository Conventions\n\n- Detect and follow existing code style, libs, patterns.\n- DO NOT assume libraries—verify via manifests/imports.\n- New components mirror existing architecture, naming, typing.\n- Never expose/log secrets; never commit secrets.\n\n## Code Style\n- DO NOT add comments unless the user asks.\n- Follow existing code style, naming, and patterns.\n\n## Doing Tasks\n- Plan(todo_write) → search/inspect codebase → implement → verify/tests.\n- Don't assume test/build commands; find them(README/package scripts).\n- If unknown, ask and propose documenting.\n- For multi-step tasks, use todo_write to plan and track progress.\n- DO NOT create any kind of summary document after finish a task.\n\n## Searching\n- Use rg for code searches; prefer specific terms (e.g., function/class names) over generic ones (e.g., 'the', 'a').\n- When rg is unavailable, use grep as fallback.\n- Do using the search pattern too generically may yield too many results.\n- For config files, use grep if rg is unavailable.\n- When searching, include relevant context (e.g., function name, surrounding lines).\n\n## Tool Usage\n- Prefer Assign tools to reduce context. Use specialized agents when appropriate.\n- Batch independent tool calls in one message when possible. Prefer 'rg' over 'grep'.\n- For the bash_tool do not batch commands; run one at a time.\n- If a hook blocks an action, adapt; otherwise ask the user to adjust hooks.\n\n## Bash Execution Policy\n- Non-trivial bash requires a one-line rationale. Trivial(e.g., 'ls', 'cat file') needs none.\n\n## Refusals\n- If refusing for safety, reply in one line with a brief reason and offer a safe alternative.\n\n## Code References\n- Cite locations as 'file_path: line_number' (e.g., 'src/services/process.ts: 712').\n\n## Environment Placeholders\n\n<env>\nSystem info:\n- Today's date: 12/6/2025, 1:34:11 PM\n- Platform: darwin arm64\n- Temp: /var/folders/0t/qplx0wn51n79hvx959t05rfr0000gn/T\n- Working directory: /Users/marsch/Projects/nuvin-space-public/packages/nuvin-cli\n\nFolder structure:\nnuvin-cli/\ndocs/\n  agents.md\n  commands.md\n  configuration.md\n  development.md\n  mcp-integration.md\nscripts/\n  build.js\n  fix-imports.js\n  generate-version.js\nsource/\n  adapters/\n    index.ts\n    ui-event-adapter.tsx\n  components/\n    AgentCreation/\n    AgentModal/\n    auth/\n    ComboBox/\n    Markdown/\n    SelectInput/\n    TextInput/\n    ToolApprovalPrompt/\n    ToolCallViewer/\n    ToolContentRenderer/\n    ToolResultView/\n    AppModal.tsx\n    ChatDisplay.tsx\n    ConfigBridge.tsx\n    ErrorBoundary.tsx\n    FileDiffView.tsx\n    Footer.tsx\n    Gradient.tsx\n    HelpText.tsx\n    HistorySelection.tsx\n    index.ts\n    InitialConfigSetup.tsx\n    InputArea.tsx\n    InteractionArea.tsx\n    MCPModal.tsx\n    MCPServerItem.tsx\n    MCPToolItem.tsx\n    MessageLine.tsx\n    RecentSessions.tsx\n    SubAgentActivity.tsx\n    ToolTimer.tsx\n  config/\n    cli-handler.ts\n    const.ts\n    index.ts\n    manager.ts\n    profile-handler.ts\n    profile-manager.ts\n    profile-types.ts\n    providers.ts\n    types.ts\n    utils.ts\n  contexts/\n    ConfigContext.tsx\n    ExplainModeContext.tsx\n    NotificationContext.tsx\n    StdoutDimensionsContext.tsx\n    ThemeContext.tsx\n    ToolApprovalContext.tsx\n  hooks/\n    index.ts\n    useAuthStorage.ts\n    useCursor.ts\n    useDeviceFlow.ts\n    useGlobalKeyboard.ts\n    useHandleSubmit.ts\n    useKeyboardInput.ts\n    useMessage.ts\n    useNotification.ts\n    useOAuth.ts\n    useOrchestrator.ts\n    useSessionManagement.ts\n    useStdoutDimensions.ts\n    useStreamingMarkdown.ts\n  modules/\n    commands/\n  providers/\n    MarkdownProvider.ts\n  services/\n    AgentCreator.ts\n    AutoUpdater.ts\n    EventBus.ts\n    LLMFactory.ts\n    MCPServerManager.ts\n    ModelLimitsCache.ts\n    OrchestratorManager.ts\n    SessionMetricsService.ts\n    UpdateChecker.ts\n  types/\n    orchestrator.ts\n  utils/\n    __tests__/\n    autoExport.ts\n    clipboard.ts\n    enrichToolCalls.ts\n    error-classification.ts\n    eventProcessor.ts\n    eventReplay.ts\n    file-logger.ts\n    index.ts\n    MarkdownCache.ts\n    messageProcessor.ts\n    pasteHandler.ts\n    retry-utils.ts\n    textNavigation.ts\n    userSubmission.ts\n    version.ts\n  app.tsx\n  cli.tsx\n  const.ts\n  demo-mode.tsx\n  prompt.ts\n  react-dev.md\n  shims.d.ts\n  swe.md\n  theme.ts\n  types.ts\ntests/\n  __snapshots__/\n    FileDiffView.snapshot.test.tsx.snap\n    Markdown.test.tsx.snap\n  components/\n    ChatDisplay.test.tsx\n  chatDisplayMerge.test.ts\n  chatDisplayPending.test.ts\n  chatDisplayStreaming.test.ts\n  commandRegistry.test.ts\n  commands.test.ts\n  config-array-notation.test.ts\n  config-manager.test.ts\n  context-window-auto-summary.test.ts\n  deep-merge.test.ts\n  enrichToolCalls.test.ts\n  eventProcessor.fixed.test.ts\n  eventProcessor.test.ts\n  FileDiffView.snapshot.test.tsx\n  FileDiffView.test.ts\n  footer-cost-display.test.ts\n  footer-logic.test.ts\n  Markdown.test.tsx\n  MCPServerManager.test.ts\n  MergedToolCall.test.ts\n  mergeToolCallsWithResults.test.ts\n  messageProcessor.test.ts\n  models-auth-navigation.test.ts\n  orchestrator-manager-topic.test.ts\n  OrchestratorManager-config.test.ts\n  OrchestratorManager.test.ts\n  stripAnsi.test.ts\n  sudo-command.test.ts\n  summary-compression.test.ts\n  TEST_COVERAGE_MERGE.md\n  text-reflow.test.ts\n  textInputMultiline.test.ts\n  textInputPaste.test.ts\n  textInputWordWrap.test.ts\n  thinking-command.test.ts\n  utils.test.ts\nbiome.json\nCHANGELOG.md\npackage.json\nREADME.md\ntest.json\ntsconfig.json\ntsup.config.ts\nvitest.config.ts\n\nAvailable specialist agents (use assign_task tool to delegate):\n- solution-architect: Use this agent when you need to design or refactor a solution with emphasis on architecture quality, design patterns, and maintainability. For example, invoke this agent when planning a new feature's architecture, refactoring legacy code for better patterns, or when you need guidance on applying SOLID principles and clean code practices to ensure performance and long-term maintainability.\n</env>\n\n## Defensive Examples(allowed)\n\n* “Write Sigma rule to detect anomalous PowerShell downloads.”\n* “Explain CVE root cause and how to patch.”\n* “Add rate-limiting and input validation to this API.”\n\nAlways enforce defensive-only security and consistent todo_write planning for non-trivial work.\n\nIMPORTANT: NEVER create any kind of summary document"
+    },
+    {
+      "role": "user",
+      "content": "hi"
+    },
+    {
+      "id": "ba8e036d-4e4a-49f7-b918-a3a66ef48913",
+      "role": "assistant",
+      "content": "Hello! How can I help you today?",
+      "timestamp": "2025-12-06T06:34:15.416Z",
+      "usage": {
+        "prompt_tokens": 4307,
+        "completion_tokens": 14,
+        "total_tokens": 4321,
+        "prompt_tokens_details": {
+          "cached_tokens": 3149
+        }
+      }
+    },
+    {
+      "role": "user",
+      "content": "hello"
+    },
+    {
+      "id": "131fb991-a5f7-4f8c-83af-c18f2c4116bc",
+      "role": "assistant",
+      "content": "Hello! What can I help you with?",
+      "timestamp": "2025-12-06T06:34:20.833Z",
+      "usage": {
+        "prompt_tokens": 4324,
+        "completion_tokens": 14,
+        "total_tokens": 4338,
+        "prompt_tokens_details": {
+          "cached_tokens": 43
+        }
+      }
+    },
+    {
+      "role": "user",
+      "content": "let review the current code changes"
+    },
+    {
+      "id": "0ac12080-1f78-4e93-9c4c-a57478b499e0",
+      "role": "assistant",
+      "content": "I'll check the current code changes for you.\n",
+      "timestamp": "2025-12-06T06:34:45.893Z",
+      "tool_calls": [
+        {
+          "id": "call_2b726e523d2a44c9a9f7df87",
+          "index": 0,
+          "type": "function",
+          "function": {
+            "name": "bash_tool",
+            "arguments": "{\"cmd\":\"git status\",\"description\":\"Check git status to see current changes\"}"
+          }
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 4346,
+        "completion_tokens": 43,
+        "total_tokens": 4389,
+        "prompt_tokens_details": {
+          "cached_tokens": 3149
+        }
+      }
+    },
+    {
+      "role": "tool",
+      "content": "On branch main\nYour branch is ahead of 'origin/main' by 1 commit.\n  (use \"git push\" to publish your local commits)\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   source/app.tsx\n\tmodified:   source/components/InputArea.tsx\n\tmodified:   source/components/InteractionArea.tsx\n\tmodified:   source/components/TextInput/TextInput.tsx\n\tmodified:   source/components/TextInput/index.ts\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\n",
+      "tool_call_id": "call_2b726e523d2a44c9a9f7df87",
+      "name": "bash_tool"
+    },
+    {
+      "role": "user",
+      "content": "let review the current code changes"
+    },
+    {
+      "content": "",
+      "tool_calls": [
+        {
+          "id": "call_2e6804e6db1446a0a92c628c",
+          "index": 0,
+          "type": "function",
+          "function": {
+            "name": "bash_tool",
+            "arguments": "{\"cmd\":\"git diff --stat\",\"description\":\"Show summary of changed files\"}"
+          }
+        }
+      ],
+      "reasoning_content": "\n",
+      "role": "assistant"
+    },
+    {
+      "role": "tool",
+      "content": " packages/nuvin-cli/source/app.tsx                  |   1 +\n packages/nuvin-cli/source/components/InputArea.tsx | 129 ++++++++++++++++++++-\n .../source/components/InteractionArea.tsx          |   4 +\n .../source/components/TextInput/TextInput.tsx      |  28 ++++-\n .../nuvin-cli/source/components/TextInput/index.ts |   4 +-\n 5 files changed, 157 insertions(+), 9 deletions(-)\n",
+      "tool_call_id": "call_2e6804e6db1446a0a92c628c",
+      "name": "bash_tool"
+    }
+  ],
+  "temperature": 1,
+  "top_p": 1,
+  "stream": true,
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "bash_tool",
+        "description": "Execute shell commands with timeout protection. Captures stdout/stderr. Does not support interactive commands that require user input (e.g., npm init, pnpm changeset, interactive installers, git add -p, vim, nano).",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Explanation of what this command will do (e.g., \"Get git commit log\")"
+            },
+            "cmd": {
+              "type": "string",
+              "description": "Shell command to run."
+            },
+            "cwd": {
+              "type": "string",
+              "description": "Working directory."
+            },
+            "timeoutMs": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Timeout in ms. Default: 30000."
+            }
+          },
+          "required": [
+            "cmd"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "dir_ls",
+        "description": "List files and directories in a specified directory.\nReturns entries sorted alphabetically by name in ls -la format.\n\nTypical uses:\n1) List all files in current directory\n2) List only directories with metadata\n3) List files including hidden ones",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "List contents of this directory path"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Maximum number of directory entries to return"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "file_new",
+        "description": "Create a new file with text content. IMPORTANT: The file_path must be absolute, not relative",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "file_path": {
+              "type": "string",
+              "description": "Path where the new file will be created"
+            },
+            "content": {
+              "type": "string",
+              "description": "Text content to write to the new file"
+            }
+          },
+          "required": [
+            "file_path",
+            "content"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "file_edit",
+        "description": "\n      Edits an existing file by replacing exact text matches. The file must already exist.\n\n      - Finds the first occurrence of old_text in the file\n      - Replaces it with new_text\n      - Preserves the file's line ending style (LF or CRLF)\n\n      IMPORTANT: old_text must match exactly, including all whitespace, indentation, and line breaks.\n      To make a unique match, include enough surrounding context.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Explanation of what changes are being made and why (e.g., \"Update import path to use new module structure\")"
+            },
+            "file_path": {
+              "type": "string",
+              "description": "Path to the target file. \"~\" expands to the user's home directory. Relative paths are resolved within the workspace root."
+            },
+            "old_text": {
+              "type": "string",
+              "description": "The exact text to find in the file. Must match precisely including whitespace and line breaks."
+            },
+            "new_text": {
+              "type": "string",
+              "description": "The text to replace it with. Can be empty string to delete the old_text."
+            },
+            "dry_run": {
+              "type": "boolean",
+              "default": false,
+              "description": "Validate only; do not write to disk."
+            }
+          },
+          "required": [
+            "file_path",
+            "old_text",
+            "new_text"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "file_read",
+        "description": "Read files from workspace. Optionally specify line ranges (lineStart, lineEnd).",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Explanation of what file is being read and why (e.g., \"Read package.json to check dependencies\")"
+            },
+            "path": {
+              "type": "string",
+              "description": "Read contents of this file"
+            },
+            "lineStart": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Start reading from this line number (1-based)"
+            },
+            "lineEnd": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Stop reading at this line number (inclusive)"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "todo_write",
+        "description": "Use this tool to create and manage a structured task list for your current coding session. This helps you track progress, organize complex tasks, and demonstrate thoroughness to the user.\nIt also helps the user understand the progress of the task and overall progress of their requests.\n\n## When to Use This Tool\nUse this tool proactively in these scenarios:\n\n1. Complex multi-step tasks - When a task requires 3 or more distinct steps or actions\n2. Non-trivial and complex tasks - Tasks that require careful planning or multiple operations\n3. User explicitly requests todo list - When the user directly asks you to use the todo list\n4. User provides multiple tasks - When users provide a list of things to be done (numbered or comma-separated)\n5. After receiving new instructions - Immediately capture user requirements as todos\n6. When you start working on a task - Mark it as in_progress BEFORE beginning work. Ideally you should only have one todo as in_progress at a time\n7. After completing a task - Mark it as completed and add any new follow-up tasks discovered during implementation\n\n## When NOT to Use This Tool\n\nSkip using this tool when:\n1. There is only a single, straightforward task\n2. The task is trivial and tracking it provides no organizational benefit\n3. The task can be completed in less than 3 trivial steps\n4. The task is purely conversational or informational\n\nNOTE that you should not use this tool if there is only one trivial task to do. In this case you are better off just doing the task directly.\n\n## Task States and Management\n\n1. **Task States**: Use these states to track progress:\n   - pending: Task not yet started\n   - in_progress: Currently working on (limit to ONE task at a time)\n   - completed: Task finished successfully\n\n2. **Task Management**:\n   - Update task status in real-time as you work\n   - Mark tasks complete IMMEDIATELY after finishing (don't batch completions)\n   - Only have ONE task in_progress at any time\n   - Complete current tasks before starting new ones\n   - Remove tasks that are no longer relevant from the list entirely\n\n3. **Task Completion Requirements**:\n   - ONLY mark a task as completed when you have FULLY accomplished it\n   - If you encounter errors, blockers, or cannot finish, keep the task as in_progress\n   - When blocked, create a new task describing what needs to be resolved\n   - Never mark a task as completed if:\n     - Tests are failing\n     - Implementation is partial\n     - You encountered unresolved errors\n     - You couldn't find necessary files or dependencies\n\n4. **Task Breakdown**:\n   - Create specific, actionable items\n   - Break complex tasks into smaller, manageable steps\n   - Use clear, descriptive task names\n\nWhen in doubt, use this tool. Being proactive with task management demonstrates attentiveness and ensures you complete all requirements successfully.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "todos": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "in_progress",
+                      "completed"
+                    ]
+                  },
+                  "priority": {
+                    "type": "string",
+                    "enum": [
+                      "high",
+                      "medium",
+                      "low"
+                    ]
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "content",
+                  "status",
+                  "priority",
+                  "id"
+                ]
+              },
+              "description": "Updated todo list"
+            }
+          },
+          "required": [
+            "todos"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "web_search",
+        "description": "Google Programmable Search Engine only (no scraping). Requires GOOGLE_CSE_KEY and GOOGLE_CSE_CX.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Explanation of what is being searched for and why (e.g., \"Search for React hooks best practices\")"
+            },
+            "query": {
+              "type": "string",
+              "description": "Search the web for this query"
+            },
+            "count": {
+              "type": "number",
+              "description": "Return this many search results (1-50, default 10)"
+            },
+            "offset": {
+              "type": "number",
+              "description": "Skip this many results before returning (pagination)"
+            },
+            "domains": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Only search within these domains"
+            },
+            "recencyDays": {
+              "type": "number",
+              "description": "Only return results from the last N days"
+            },
+            "lang": {
+              "type": "string",
+              "description": "Return results in this language, e.g. 'en', 'vi'"
+            },
+            "region": {
+              "type": "string",
+              "description": "Return results from this region, e.g. 'US', 'VN'"
+            },
+            "safe": {
+              "type": "boolean",
+              "description": "Enable safe search filtering (default true)"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "web",
+                "images"
+              ],
+              "description": "Search for web pages or images (default web)"
+            },
+            "hydrateMeta": {
+              "type": "boolean",
+              "description": "Fetch additional metadata from result pages (slower)"
+            }
+          },
+          "required": [
+            "query"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "web_fetch",
+        "description": "Fetch web page content and convert to Markdown format",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Explanation of what web page is being fetched and why (e.g., \"Fetch documentation page for API usage examples\")"
+            },
+            "url": {
+              "type": "string",
+              "description": "Fetch and convert this web page URL to Markdown"
+            }
+          },
+          "required": [
+            "url"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "assign_task",
+        "description": "Delegate a task to a specialist agent for focused, independent execution.\n\nAvailable agents:\n- solution-architect: Use this agent when you need to design or refactor a solution with emphasis on architecture quality, design patterns, and maintainability. For example, invoke this agent when planning a new feature's architecture, refactoring legacy code for better patterns, or when you need guidance on applying SOLID principles and clean code practices to ensure performance and long-term maintainability.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Explanation of why this task is being delegated (e.g., \"Delegate code review to specialist agent\")"
+            },
+            "agent": {
+              "type": "string",
+              "description": "Agent ID from registry (e.g., \"code-reviewer\", \"researcher\")"
+            },
+            "task": {
+              "type": "string",
+              "description": "Task description (3-4 sentences explaining what to do)"
+            }
+          },
+          "required": [
+            "agent",
+            "task"
+          ]
+        }
+      }
+    }
+  ],
+  "tool_choice": "auto"
+}

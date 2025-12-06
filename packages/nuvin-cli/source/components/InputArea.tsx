@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { Box, Text, useInput } from 'ink';
-import SelectInput from './SelectInput/index.js';
+import type { MemoryPort, Message } from '@nuvin/nuvin-core';
 import Spinner from 'ink-spinner';
-
-import TextInput from './TextInput/index.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
+import { useInputHistory } from '@/hooks/useInputHistory.js';
+import SelectInput from './SelectInput/index.js';
+import TextInput from './TextInput/index.js';
 
 type VimMode = 'insert' | 'normal';
 
@@ -25,6 +26,7 @@ type InputAreaProps = {
 
   commandItems: Array<{ label: string; value: string }>;
   vimModeEnabled?: boolean;
+  memory?: MemoryPort<Message> | null;
 
   onInputChanged?: (value: string) => void;
   onInputSubmit?: (value: string) => Promise<void>;
@@ -40,6 +42,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
 
       commandItems,
       vimModeEnabled = false,
+      memory,
 
       onInputChanged,
       onInputSubmit,
@@ -54,6 +57,21 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
     const [menuHasFocus, setMenuHasFocus] = useState(false);
     const [_vimMode, setVimMode] = useState<VimMode>('insert');
     const [cols] = useStdoutDimensions();
+
+    const onRecall = useCallback(
+      (message: string) => {
+        setInput(message);
+        setFocusKey((prev) => prev + 1);
+        onInputChanged?.(message);
+      },
+      [onInputChanged],
+    );
+
+    const { handleUpArrow, handleDownArrow, addMessage } = useInputHistory({
+      memory,
+      currentInput: input,
+      onRecall,
+    });
 
     const setMenuVisibility = useCallback((visible: boolean) => {
       setShowCommandMenu(visible);
@@ -101,7 +119,6 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
       [setMenuVisibility, onInputChanged, input],
     );
 
-    // Filter command items based on current input
     const filteredCommandItems = commandItems.filter((item) => {
       const inputParts = input.split(/\s+/);
       const commandPart = inputParts[0];
@@ -120,7 +137,6 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
       }
     }, [vimModeEnabled]);
 
-    // Subscribe to external input control events
     const handleChange = (value: string) => {
       setInput(value);
       const shouldShowMenu = value.startsWith('/');
@@ -201,7 +217,6 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
     );
 
     const handleSubmit = async (value: string, fromCommandMenu?: boolean) => {
-      // If the submission is from the command menu but the menu doesn't have focus, ignore it
       if (fromCommandMenu && !menuHasFocus) {
         return;
       }
@@ -237,6 +252,10 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
         }
       }
 
+      if (trimmed && !trimmed.startsWith('/')) {
+        addMessage(trimmed);
+      }
+
       setInput('');
       setMenuVisibility(false);
       setMenuHasFocus(false);
@@ -265,6 +284,8 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
               focus={!showToolApproval && !menuHasFocus}
               vimModeEnabled={vimModeEnabled}
               onVimModeChange={handleVimModeChange}
+              onUpArrow={handleUpArrow}
+              onDownArrow={handleDownArrow}
             />
           </Box>
         </Box>

@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Text, useInput } from 'ink';
 import type { Except } from 'type-fest';
 import { eventBus } from '@/services/EventBus.js';
-import { moveCursorVertically } from '@/utils/textNavigation.js';
+import { moveCursorVertically, getLineInfo } from '@/utils/textNavigation.js';
+import type { LineInfo } from '@/utils/textNavigation.js';
+
+export type { LineInfo };
 import { useVimMode } from './useVimMode.js';
 import { usePaste } from './usePaste.js';
 import { useCursorRenderer } from './useCursorRenderer.js';
@@ -19,6 +22,8 @@ export type Props = {
   readonly onSubmit?: (value: string) => void;
   readonly vimModeEnabled?: boolean;
   readonly onVimModeChange?: (mode: 'insert' | 'normal') => void;
+  readonly onUpArrow?: (lineInfo: LineInfo) => void;
+  readonly onDownArrow?: (lineInfo: LineInfo) => void;
 };
 
 function TextInput({
@@ -31,6 +36,8 @@ function TextInput({
   onSubmit,
   vimModeEnabled = false,
   onVimModeChange,
+  onUpArrow,
+  onDownArrow,
 }: Props) {
   const {
     mode: vimMode,
@@ -146,6 +153,13 @@ function TextInput({
         if (!showCursor) {
           return;
         }
+        const lineInfo = getLineInfo(currentValue, currentCursorOffset);
+        if (onUpArrow) {
+          onUpArrow(lineInfo);
+          if (lineInfo.lineIndex === 0) {
+            return;
+          }
+        }
         const target = moveCursorVertically(currentValue, currentCursorOffset, 'up');
         if (target !== null) {
           moveCursor(target);
@@ -153,6 +167,13 @@ function TextInput({
       } else if (key.downArrow) {
         if (!showCursor) {
           return;
+        }
+        const lineInfo = getLineInfo(currentValue, currentCursorOffset);
+        if (onDownArrow) {
+          onDownArrow(lineInfo);
+          if (lineInfo.lineIndex === lineInfo.lines.length - 1) {
+            return;
+          }
         }
         const target = moveCursorVertically(currentValue, currentCursorOffset, 'down');
         if (target !== null) {
@@ -199,7 +220,6 @@ type UncontrolledProps = {
 } & Except<Props, 'value' | 'onChange'>;
 
 export function UncontrolledTextInput({ initialValue = '', ...props }: UncontrolledProps) {
-  const [value, setValue] = useState(initialValue);
-
+  const [value, setValue] = React.useState(initialValue);
   return <TextInput {...props} value={value} onChange={setValue} />;
 }
