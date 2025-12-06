@@ -1,0 +1,52 @@
+{
+  "cli": [
+    {
+      "id": "2d2b4514-a991-4f44-9183-b7f1ea385ac5",
+      "role": "user",
+      "content": "hi",
+      "timestamp": "2025-12-06T03:25:14.278Z"
+    },
+    {
+      "id": "5747b9fa-b6e9-4047-b9e5-d56922b625b4",
+      "role": "assistant",
+      "content": "Hello! How can I assist you with your software engineering tasks today?",
+      "timestamp": "2025-12-06T03:25:16.265Z",
+      "usage": {
+        "prompt_tokens": 3545,
+        "completion_tokens": 15,
+        "total_tokens": 3560,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "id": "89636ac8-ee35-42d1-ad20-7e76e5552e5a",
+      "role": "user",
+      "content": "let gen me a sample markdown content about software development, with table block, image, text, code block, mermaid block",
+      "timestamp": "2025-12-06T03:25:22.792Z"
+    },
+    {
+      "id": "8af7d6b1-03c8-4d86-b939-43b03eaf15d0",
+      "role": "assistant",
+      "content": "Here's a sample Markdown content with the requested elements:\n\n```markdown\n# Introduction to Software Development\n\nSoftware development is the process of conceiving, specifying, designing, programming, documenting, testing, and bug fixing involved in creating and maintaining applications, frameworks, or other software components.\n\n## Development Lifecycle\n\n| Phase          | Description                           |\n| -------------- | ------------------------------------- |\n| Requirements   | Gather user needs                     |\n| Design         | Plan architecture & UI                |\n| Implementation | Write the code                        |\n| Testing        | Ensure software works as expected     |\n| Deployment     | Release to users                      |\n\n## Code Example\n\n```javascript\nfunction greet(name) {\n  return `Hello, ${name}!`;\n}\nconsole.log(greet('Developer'));\n```\n```\n\n## Sample Image\n\n![Software Development Lifecycle](https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Software_Development_Process.svg/440px-Software_Development_Process.svg.png)\n\n## Simple Flowchart (Mermaid)\n\n```mermaid\nflowchart TD\n    A[Start] --> B[Development]\n    B --> C{Testing}\n    C -->|Pass| D[Deploy]\n    C -->|Fail| E[Bug Fix]\n    E --> B\n    D --> F[End]\n```\n\nLet me know if you need a different topic or more details!",
+      "timestamp": "2025-12-06T03:25:27.111Z",
+      "usage": {
+        "prompt_tokens": 3592,
+        "completion_tokens": 276,
+        "total_tokens": 3868,
+        "prompt_tokens_details": {
+          "cached_tokens": 3456
+        },
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    }
+  ]
+}

@@ -22,12 +22,11 @@
     "allowJs": false
   },
   "include": [
-    "index.ts",
-    "**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "dist/**/*",
-    "tests/**/*",
+    "src/tests/**/*",
     "**/*.test.ts",
     "**/*.spec.ts",
     "node_modules"

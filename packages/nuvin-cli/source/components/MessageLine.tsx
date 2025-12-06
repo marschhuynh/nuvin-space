@@ -28,14 +28,14 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
     switch (message.type) {
       case 'user':
         return (
-          <Box flexDirection="row" marginY={1}>
+          <Box flexDirection="column" marginY={1}>
             <Box flexShrink={0} marginRight={1}>
-              <Text color={theme.colors.accent} bold>
-                ❯
+              <Text color={theme.messageTypes.user} bold>
+                ❯ [you]
               </Text>
             </Box>
-            <Box flexDirection="column" flexGrow={1}>
-              <Markdown enableCache={!isStreaming}>{streamingContent}</Markdown>
+            <Box marginX={2}>
+              <Markdown>{streamingContent}</Markdown>
             </Box>
           </Box>
         );
@@ -48,7 +48,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
                 ● [assistant]
               </Text>
             </Box>
-            <Box flexDirection="column" flexGrow={1} marginLeft={2} marginRight={2}>
+            <Box marginX={2}>
               <Markdown enableCache={!isStreaming}>{streamingContent}</Markdown>
             </Box>
           </Box>

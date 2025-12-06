@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 import { execSync } from 'child_process';
-import { existsSync, cpSync, mkdirSync } from 'fs';
+import { existsSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = join(__filename, '..');
 const distDir = join(__dirname, '../dist');
-const libDir = join(__dirname, '../lib');
 
 console.log('🚀 Building nuvin-core...');
 

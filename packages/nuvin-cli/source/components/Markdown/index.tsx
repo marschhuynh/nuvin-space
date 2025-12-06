@@ -22,7 +22,7 @@ export const Markdown: React.FC<MarkdownProps> = ({
 
   const rendererConfig = useMemo(
     () => ({
-      width: cols - 3,
+      width: cols - 2,
       reflowText,
     }),
     [cols, reflowText],
@@ -64,7 +64,7 @@ export const Markdown: React.FC<MarkdownProps> = ({
       return children;
     }
 
-    return parseMarkdown(children);
+    return parseMarkdown(children).trimEnd();
   }, [children, disableMarkdown, parseMarkdown]);
 
   return <Text wrap="end">{renderedContent}</Text>;
