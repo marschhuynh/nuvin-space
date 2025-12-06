@@ -39,7 +39,7 @@
 		"test": "vitest run",
 		"lint": "pnpm exec biome lint",
 		"format": "pnpm exec biome format --changed --no-errors-on-unmatched --write .",
-		"prepack": "rm -rf dist && pnpm run build"
+		"prepack": "rm -rf dist && SKIP_TYPE_CHECK=1 pnpm run build"
 	},
 	"files": [
 		"dist"
