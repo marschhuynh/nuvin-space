@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.11.3
+
+### Patch Changes
+
+- [`6b0cf9c`](https://github.com/marschhuynh/nuvin-space/commit/6b0cf9c29b3c3ffe1b6d77c43a0064da4fae9436) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix publish failure by skipping redundant type check during prepack
+
 ## 1.11.2
 
 ### Patch Changes
