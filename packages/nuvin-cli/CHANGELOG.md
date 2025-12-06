@@ -1,5 +1,42 @@
 # @nuvin/nuvin-cli
 
+## 1.12.0
+
+### Minor Changes
+
+- [`7e9140f`](https://github.com/marschhuynh/nuvin-space/commit/7e9140f306fa1a68bb50474003d58bcf561d15c8) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Refactor /new and /summary commands to preserve session history
+
+  **Session Management:**
+
+  - `/new` command now creates new session via `OrchestratorManager.createNewConversation()`
+  - Replace `ui:new:conversation` event with `conversation:created` event
+  - `ToolApprovalContext` listens to `conversation:created` to clear session-approved tools
+
+  **Auto-Summary & /summary Refactoring:**
+
+  - Auto-summary (at 95% context window) now creates a new session instead of replacing memory in-place
+  - `/summary` and `/summary beta` commands create new sessions with summary, preserving original
+  - Add `summarizedFrom` field to `ConversationMetadata` to track session lineage
+  - Add `summarizeAndCreateNewSession()` and `compressAndCreateNewSession()` methods to share logic
+
+  **Test Fixes:**
+
+  - Fix `commands.test.ts`: use `vi.hoisted()` for proper mock hoisting
+  - Fix `context-window-auto-summary.test.ts`: update constructor call, fix types
+  - Apply biome formatting to all test files
+
+- [`8168642`](https://github.com/marschhuynh/nuvin-space/commit/8168642871eea28f657f2c25a4550b497806dbbd) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add input history navigation with up/down arrow keys
+
+  - Press ↑/↓ to recall previously submitted messages
+  - Loads history from memory on startup, with fallback to last session's message
+  - Multi-line input requires double-press at first/last line to navigate history
+  - Extracts history logic into reusable `useInputHistory` hook
+
+### Patch Changes
+
+- Updated dependencies [[`7e9140f`](https://github.com/marschhuynh/nuvin-space/commit/7e9140f306fa1a68bb50474003d58bcf561d15c8)]:
+  - @nuvin/nuvin-core@1.4.4
+
 ## 1.11.3
 
 ### Patch Changes
