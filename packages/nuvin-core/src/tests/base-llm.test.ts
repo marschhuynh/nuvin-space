@@ -1,25 +1,44 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { BaseLLM } from '../llm-providers/base-llm';
 import type { HttpTransport } from '../transports/index.js';
+import type { TransportResponse } from '../transports/transport.js';
 import type { CompletionParams } from '../ports.js';
-
-// Mock transport implementation
-const createMockTransport = (): HttpTransport => ({
-  postJson: vi.fn(),
-  postStream: vi.fn(),
-});
 
 // Concrete implementation for testing
 class TestLLM extends BaseLLM {
-  public mockTransport: HttpTransport;
+  private _transport: HttpTransport;
 
   constructor(apiUrl: string) {
     super(apiUrl);
-    this.mockTransport = createMockTransport();
+
+    this._transport = {
+      post: async () =>
+        ({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            choices: [{ message: { content: 'test' } }],
+            usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
+          }),
+          text: async () => '',
+        }) as Response,
+      get: async (): Promise<TransportResponse> => ({
+        ok: true,
+        status: 200,
+        json: async <T>() => ({}) as T,
+        text: async () => '',
+      }),
+    };
+
+    this.transport = this._transport;
   }
 
   protected createTransport(): HttpTransport {
-    return this.mockTransport;
+    return this._transport;
+  }
+
+  public getTransportForSpy(): HttpTransport {
+    return this._transport;
   }
 }
 
@@ -29,6 +48,10 @@ describe('BaseLLM', () => {
 
   beforeEach(() => {
     llm = new TestLLM(apiUrl);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe('constructor', () => {
@@ -42,11 +65,16 @@ describe('BaseLLM', () => {
         json: () => Promise.resolve({ choices: [{ message: { content: 'test' } }] }),
         text: () => Promise.resolve(''),
       };
-      vi.mocked(llm.mockTransport.postJson).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
-      await llm.generateCompletion({ model: 'test', messages: [] });
+      await llm.generateCompletion({
+        model: 'test',
+        messages: [],
+        temperature: 0,
+        topP: 0,
+      });
 
-      expect(llm.mockTransport.postJson).toHaveBeenCalled();
+      expect(vi.mocked(llm.getTransportForSpy().post)).toHaveBeenCalled();
     });
   });
 
@@ -61,12 +89,13 @@ describe('BaseLLM', () => {
           }),
         text: () => Promise.resolve(''),
       };
-      vi.mocked(llm.mockTransport.postJson).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [{ role: 'user', content: 'Hello' }],
         temperature: 0.7,
+        topP: 0,
       };
 
       const result = await llm.generateCompletion(params);
@@ -77,7 +106,7 @@ describe('BaseLLM', () => {
         completion_tokens: 5,
         total_tokens: 15,
       });
-      expect(llm.mockTransport.postJson).toHaveBeenCalledWith(
+      expect(vi.mocked(llm.getTransportForSpy().post)).toHaveBeenCalledWith(
         '/chat/completions',
         expect.objectContaining({
           model: 'gpt-4',
@@ -96,18 +125,19 @@ describe('BaseLLM', () => {
         json: () => Promise.resolve({ choices: [{ message: { content: 'test' } }] }),
         text: () => Promise.resolve(''),
       };
-      vi.mocked(llm.mockTransport.postJson).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
         maxTokens: 100,
         topP: 0.9,
+        temperature: 0,
       };
 
       await llm.generateCompletion(params);
 
-      expect(llm.mockTransport.postJson).toHaveBeenCalledWith(
+      expect(vi.mocked(llm.getTransportForSpy().post)).toHaveBeenCalledWith(
         '/chat/completions',
         expect.objectContaining({
           max_tokens: 100,
@@ -140,7 +170,7 @@ describe('BaseLLM', () => {
           }),
         text: () => Promise.resolve(''),
       };
-      vi.mocked(llm.mockTransport.postJson).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const tools = [
         {
@@ -157,13 +187,15 @@ describe('BaseLLM', () => {
         model: 'gpt-4',
         messages: [],
         tools,
+        temperature: 1,
+        topP: 1,
       };
 
       const result = await llm.generateCompletion(params);
 
       expect(result.tool_calls).toHaveLength(1);
       expect(result.tool_calls?.[0].function.name).toBe('get_weather');
-      expect(llm.mockTransport.postJson).toHaveBeenCalledWith(
+      expect(vi.mocked(llm.getTransportForSpy().post)).toHaveBeenCalledWith(
         '/chat/completions',
         expect.objectContaining({
           tools,
@@ -179,7 +211,7 @@ describe('BaseLLM', () => {
         json: () => Promise.resolve({ choices: [{ message: { content: 'test' } }] }),
         text: () => Promise.resolve(''),
       };
-      vi.mocked(llm.mockTransport.postJson).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const tools = [
         {
@@ -197,11 +229,13 @@ describe('BaseLLM', () => {
         messages: [],
         tools,
         tool_choice: 'auto',
+        temperature: 1,
+        topP: 1,
       };
 
       await llm.generateCompletion(params);
 
-      expect(llm.mockTransport.postJson).toHaveBeenCalledWith(
+      expect(vi.mocked(llm.getTransportForSpy().post)).toHaveBeenCalledWith(
         '/chat/completions',
         expect.objectContaining({
           tools,
@@ -218,17 +252,19 @@ describe('BaseLLM', () => {
         json: () => Promise.resolve({ choices: [{ message: { content: 'test' } }] }),
         text: () => Promise.resolve(''),
       };
-      vi.mocked(llm.mockTransport.postJson).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
         tools: [],
+        temperature: 0,
+        topP: 0,
       };
 
       await llm.generateCompletion(params);
 
-      expect(llm.mockTransport.postJson).toHaveBeenCalledWith(
+      expect(vi.mocked(llm.getTransportForSpy().post)).toHaveBeenCalledWith(
         '/chat/completions',
         expect.not.objectContaining({
           tools: expect.anything(),
@@ -244,17 +280,19 @@ describe('BaseLLM', () => {
         json: () => Promise.resolve({ choices: [{ message: { content: 'test' } }] }),
         text: () => Promise.resolve(''),
       };
-      vi.mocked(llm.mockTransport.postJson).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
         reasoning: { effort: 'high' },
+        temperature: 1,
+        topP: 1,
       };
 
       await llm.generateCompletion(params);
 
-      expect(llm.mockTransport.postJson).toHaveBeenCalledWith(
+      expect(vi.mocked(llm.getTransportForSpy().post)).toHaveBeenCalledWith(
         '/chat/completions',
         expect.objectContaining({
           reasoning: { effort: 'high' },
@@ -270,17 +308,19 @@ describe('BaseLLM', () => {
         json: () => Promise.resolve({ choices: [{ message: { content: 'test' } }] }),
         text: () => Promise.resolve(''),
       };
-      vi.mocked(llm.mockTransport.postJson).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const abortController = new AbortController();
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 1,
+        topP: 1,
       };
 
       await llm.generateCompletion(params, abortController.signal);
 
-      expect(llm.mockTransport.postJson).toHaveBeenCalledWith(
+      expect(vi.mocked(llm.getTransportForSpy().post)).toHaveBeenCalledWith(
         '/chat/completions',
         expect.anything(),
         undefined,
@@ -294,11 +334,13 @@ describe('BaseLLM', () => {
         status: 400,
         text: () => Promise.resolve('Bad Request: Invalid model'),
       };
-      vi.mocked(llm.mockTransport.postJson).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'invalid',
         messages: [],
+        temperature: 1,
+        topP: 1,
       };
 
       await expect(llm.generateCompletion(params)).rejects.toThrow('Bad Request: Invalid model');
@@ -310,11 +352,13 @@ describe('BaseLLM', () => {
         status: 500,
         text: () => Promise.resolve(''),
       };
-      vi.mocked(llm.mockTransport.postJson).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 1,
+        topP: 1,
       };
 
       await expect(llm.generateCompletion(params)).rejects.toThrow('LLM error 500');
@@ -330,11 +374,13 @@ describe('BaseLLM', () => {
           }),
         text: () => Promise.resolve(''),
       };
-      vi.mocked(llm.mockTransport.postJson).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.generateCompletion(params);
@@ -352,11 +398,13 @@ describe('BaseLLM', () => {
         json: () => Promise.resolve({ choices: [{ message: { content: 'test' } }] }),
         text: () => Promise.resolve(''),
       };
-      vi.mocked(llm.mockTransport.postJson).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 1,
+        topP: 1,
       };
 
       const result = await llm.generateCompletion(params);
@@ -395,17 +443,19 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [{ role: 'user', content: 'Hi' }],
+        temperature: 1,
+        topP: 1,
       };
 
       const result = await llm.streamCompletion(params);
 
       expect(result.content).toBe('Hello world');
-      expect(llm.mockTransport.postStream).toHaveBeenCalledWith(
+      expect(vi.mocked(llm.getTransportForSpy().post)).toHaveBeenCalledWith(
         '/chat/completions',
         expect.objectContaining({
           model: 'gpt-4',
@@ -424,12 +474,14 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const onChunk = vi.fn();
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 1,
+        topP: 1,
       };
 
       await llm.streamCompletion(params, { onChunk });
@@ -448,11 +500,13 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const onToolCallDelta = vi.fn();
       const params: CompletionParams = {
         model: 'gpt-4',
+        temperature: 1,
+        topP: 1,
         messages: [],
       };
 
@@ -472,10 +526,12 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
+        temperature: 1,
+        topP: 1,
         messages: [],
       };
 
@@ -492,18 +548,19 @@ describe('BaseLLM', () => {
       const chunks = ['data: {"choices":[{"delta":{"content":"test"}}]}', 'data: [DONE]'];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
         maxTokens: 100,
         topP: 0.9,
+        temperature: 0,
       };
 
       await llm.streamCompletion(params);
 
-      expect(llm.mockTransport.postStream).toHaveBeenCalledWith(
+      expect(vi.mocked(llm.getTransportForSpy().post)).toHaveBeenCalledWith(
         '/chat/completions',
         expect.objectContaining({
           max_tokens: 100,
@@ -518,7 +575,7 @@ describe('BaseLLM', () => {
       const chunks = ['data: {"choices":[{"delta":{"content":"test"}}]}', 'data: [DONE]'];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const tools = [
         {
@@ -540,7 +597,7 @@ describe('BaseLLM', () => {
 
       await llm.streamCompletion(params);
 
-      expect(llm.mockTransport.postStream).toHaveBeenCalledWith(
+      expect(vi.mocked(llm.getTransportForSpy().post)).toHaveBeenCalledWith(
         '/chat/completions',
         expect.objectContaining({
           tools,
@@ -556,17 +613,19 @@ describe('BaseLLM', () => {
       const chunks = ['data: {"choices":[{"delta":{"content":"test"}}]}', 'data: [DONE]'];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
         reasoning: { effort: 'medium' },
+        temperature: 0,
+        topP: 0,
       };
 
       await llm.streamCompletion(params);
 
-      expect(llm.mockTransport.postStream).toHaveBeenCalledWith(
+      expect(vi.mocked(llm.getTransportForSpy().post)).toHaveBeenCalledWith(
         '/chat/completions',
         expect.objectContaining({
           reasoning: { effort: 'medium' },
@@ -581,17 +640,19 @@ describe('BaseLLM', () => {
       const chunks = ['data: {"choices":[{"delta":{"content":"test"}}]}', 'data: [DONE]'];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const abortController = new AbortController();
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       await llm.streamCompletion(params, {}, abortController.signal);
 
-      expect(llm.mockTransport.postStream).toHaveBeenCalledWith(
+      expect(vi.mocked(llm.getTransportForSpy().post)).toHaveBeenCalledWith(
         '/chat/completions',
         expect.anything(),
         { Accept: 'text/event-stream' },
@@ -605,11 +666,13 @@ describe('BaseLLM', () => {
         status: 401,
         text: () => Promise.resolve('Unauthorized'),
       };
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       await expect(llm.streamCompletion(params)).rejects.toThrow('Unauthorized');
@@ -621,11 +684,13 @@ describe('BaseLLM', () => {
         body: null,
         text: () => Promise.resolve(''),
       };
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params);
@@ -642,11 +707,13 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params);
@@ -662,11 +729,13 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params);
@@ -685,11 +754,13 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params);
@@ -701,11 +772,13 @@ describe('BaseLLM', () => {
       const chunks = ['data: {"choices":[{"delta":{"content":"test"}}]}', 'data: [DONE]'];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params);
@@ -720,11 +793,13 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params);
@@ -740,12 +815,14 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const onChunk = vi.fn();
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       await llm.streamCompletion(params, { onChunk });
@@ -764,11 +841,13 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params);
@@ -787,11 +866,13 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params);
@@ -808,11 +889,13 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params);
@@ -864,11 +947,13 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'glm-4.5',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params);
@@ -903,11 +988,13 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const params: CompletionParams = {
         model: 'glm-4.6',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params);
@@ -944,12 +1031,14 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const onToolCallDelta = vi.fn();
       const params: CompletionParams = {
         model: 'claude-sonnet-4.5',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params, { onToolCallDelta });
@@ -988,12 +1077,14 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const onChunk = vi.fn();
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params, { onChunk });
@@ -1013,12 +1104,14 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const onChunk = vi.fn();
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params, { onChunk });
@@ -1038,12 +1131,14 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const onChunk = vi.fn();
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params, { onChunk });
@@ -1067,7 +1162,7 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const onChunk = vi.fn();
       const onStreamFinish = vi.fn();
@@ -1076,6 +1171,8 @@ describe('BaseLLM', () => {
       const params: CompletionParams = {
         model: 'minimax/minimax-m2:free',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params, { onChunk, onStreamFinish, onToolCallDelta });
@@ -1083,7 +1180,7 @@ describe('BaseLLM', () => {
       // Verify content chunks were emitted
       expect(onChunk).toHaveBeenCalledWith('The user');
       expect(onChunk).toHaveBeenCalledWith(' wants me to help');
-      expect(onChunk).toHaveBeenCalledWith('I\'ll help you review the latest commit.\n');
+      expect(onChunk).toHaveBeenCalledWith("I'll help you review the latest commit.\n");
 
       // Verify stream_finish was emitted with both finish_reason and usage
       expect(onStreamFinish).toHaveBeenCalledTimes(1);
@@ -1121,7 +1218,7 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const onChunk = vi.fn();
       const onStreamFinish = vi.fn();
@@ -1129,6 +1226,8 @@ describe('BaseLLM', () => {
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 0,
+        topP: 0,
       };
 
       const result = await llm.streamCompletion(params, { onChunk, onStreamFinish });
@@ -1157,13 +1256,15 @@ describe('BaseLLM', () => {
       ];
 
       const mockResponse = createMockStreamResponse(chunks);
-      vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+      vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
       const onStreamFinish = vi.fn();
 
       const params: CompletionParams = {
         model: 'gpt-4',
         messages: [],
+        temperature: 1,
+        topP: 1,
       };
 
       const result = await llm.streamCompletion(params, { onStreamFinish });

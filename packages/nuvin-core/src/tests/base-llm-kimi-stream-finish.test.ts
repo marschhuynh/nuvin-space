@@ -1,22 +1,40 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { BaseLLM } from '../llm-providers/base-llm.js';
+import type { HttpTransport } from '../transports/index.js';
+import type { TransportResponse } from '../transports/transport.js';
 import type { CompletionParams } from '../ports.js';
 
-const createMockTransport = (): any => ({
-  postJson: vi.fn(),
-  postStream: vi.fn(),
-});
-
 class TestLLM extends BaseLLM {
-  public mockTransport: any;
+  private _transport: HttpTransport;
 
   constructor() {
     super('https://test.api', {});
-    this.mockTransport = createMockTransport();
+
+    this._transport = {
+      post: async () =>
+        ({
+          ok: true,
+          status: 200,
+          json: async () => ({}),
+          text: async () => '',
+        }) as Response,
+      get: async (): Promise<TransportResponse> => ({
+        ok: true,
+        status: 200,
+        json: async <T>() => ({}) as T,
+        text: async () => '',
+      }),
+    };
+
+    this.transport = this._transport;
   }
 
-  protected createTransport(): any {
-    return this.mockTransport;
+  protected createTransport(): HttpTransport {
+    return this._transport;
+  }
+
+  public getTransportForSpy(): HttpTransport {
+    return this._transport;
   }
 }
 
@@ -44,8 +62,11 @@ describe('BaseLLM - Kimi/Moonshot stream_finish', () => {
     llm = new TestLLM();
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('should emit stream_finish when finish_reason and usage arrive in same chunk (Kimi pattern)', async () => {
-    // Real Kimi streaming pattern from kimi.txt - abbreviated for test
     const chunks = [
       'data: {"id":"chatcmpl-6911668985355ab7ab43bc2b","object":"chat.completion.chunk","created":1762748041,"model":"kimi-k2-0905-preview","choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":null}],"system_fingerprint":"fpv0_41b1161c"}\n\n',
       'data: {"id":"chatcmpl-6911668985355ab7ab43bc2b","object":"chat.completion.chunk","created":1762748041,"model":"kimi-k2-0905-preview","choices":[{"index":0,"delta":{"content":"I"},"finish_reason":null}],"system_fingerprint":"fpv0_41b1161c"}\n\n',
@@ -58,7 +79,7 @@ describe('BaseLLM - Kimi/Moonshot stream_finish', () => {
     ];
 
     const mockResponse = createMockStreamResponse(chunks);
-    vi.mocked(llm.mockTransport.postStream).mockResolvedValueOnce(mockResponse as any);
+    const postSpy = vi.spyOn(llm.getTransportForSpy(), 'post').mockResolvedValueOnce(mockResponse as Response);
 
     const onChunk = vi.fn();
     const onStreamFinish = vi.fn();
@@ -66,6 +87,8 @@ describe('BaseLLM - Kimi/Moonshot stream_finish', () => {
     const params: CompletionParams = {
       model: 'kimi-k2-0905-preview',
       messages: [],
+      temperature: 1,
+      topP: 0,
     };
 
     const result = await llm.streamCompletion(params, { onChunk, onStreamFinish });

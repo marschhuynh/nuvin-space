@@ -375,21 +375,19 @@ export class AnthropicAISDKLLM {
     return 'auto' as const;
   }
 
-  private transformUsage(
-    rawUsage: {
-      // AI SDK format (camelCase)
-      inputTokens?: number;
-      outputTokens?: number;
-      cachedInputTokens?: number;
-      cacheCreationInputTokens?: number;
-      cacheReadInputTokens?: number;
-      // Raw Anthropic API format (snake_case)
-      input_tokens?: number;
-      output_tokens?: number;
-      cache_creation_input_tokens?: number;
-      cache_read_input_tokens?: number;
-    },
-  ): UsageData {
+  private transformUsage(rawUsage: {
+    // AI SDK format (camelCase)
+    inputTokens?: number;
+    outputTokens?: number;
+    cachedInputTokens?: number;
+    cacheCreationInputTokens?: number;
+    cacheReadInputTokens?: number;
+    // Raw Anthropic API format (snake_case)
+    input_tokens?: number;
+    output_tokens?: number;
+    cache_creation_input_tokens?: number;
+    cache_read_input_tokens?: number;
+  }): UsageData {
     if (!rawUsage) {
       return { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
     }
@@ -398,7 +396,7 @@ export class AnthropicAISDKLLM {
     const outputTokens = rawUsage.outputTokens ?? rawUsage.output_tokens ?? 0;
     const cacheCreation = rawUsage.cacheCreationInputTokens ?? rawUsage.cache_creation_input_tokens ?? 0;
     const cacheRead = rawUsage.cacheReadInputTokens ?? rawUsage.cache_read_input_tokens ?? 0;
-    const cachedTokens = rawUsage.cachedInputTokens ?? (cacheCreation + cacheRead);
+    const cachedTokens = rawUsage.cachedInputTokens ?? cacheCreation + cacheRead;
 
     const promptTokens = inputTokens + cachedTokens;
     const totalTokens = promptTokens + outputTokens;
@@ -539,7 +537,7 @@ export class AnthropicAISDKLLM {
       maxOutputTokens: params.maxTokens,
       temperature: params.temperature,
       abortSignal: signal,
-      maxRetries: 3,
+      maxRetries: 10,
       onError: (event) => {
         streamError = event.error;
       },

@@ -1,24 +1,40 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import type { CompletionParams, LLMPort } from '../ports.js';
+
+// Type for mocked HttpTransport where methods are vi.fn() mocks
+type MockedHttpTransport = {
+  post: Mock;
+  get: Mock;
+};
+
+// Create a shared mock transport that we can configure per test
+const mockTransport: MockedHttpTransport = {
+  post: vi.fn(),
+  get: vi.fn(),
+};
+
+// Mock the transports module
+vi.mock('../transports/index.js', () => ({
+  FetchTransport: vi.fn().mockImplementation(() => mockTransport),
+  createTransport: vi.fn().mockImplementation(() => mockTransport),
+}));
+
 import { createLLM } from '../llm-providers/llm-factory.js';
-import type { CompletionParams } from '../ports.js';
 
 describe('OpenRouterLLM Prompt Caching - Verification Against Docs', () => {
-  let llm: any;
-  let mockTransport: any;
+  let llm: LLMPort;
 
   beforeEach(() => {
-    mockTransport = {
-      postJson: vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          choices: [{ message: { content: 'test response' } }],
-          usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
-        }),
+    vi.clearAllMocks();
+    mockTransport.post = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: 'test response' } }],
+        usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
       }),
-    };
-
+    });
+    mockTransport.get = vi.fn();
     llm = createLLM('openrouter', { apiKey: 'test-key' });
-    (llm as any).transport = mockTransport;
   });
 
   it('VERIFICATION: Anthropic system message caching example from docs', async () => {
@@ -54,7 +70,7 @@ describe('OpenRouterLLM Prompt Caching - Verification Against Docs', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
 
     expect(sentBody.messages[0].content[1].cache_control).toEqual({ type: 'ephemeral' });
     expect(sentBody.messages[1].content[0].cache_control).toEqual({ type: 'ephemeral' });
@@ -88,7 +104,7 @@ describe('OpenRouterLLM Prompt Caching - Verification Against Docs', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
 
     expect(sentBody.messages[0].content[0].cache_control).toBeUndefined();
     expect(sentBody.messages[0].content[1].cache_control).toBeUndefined();
@@ -128,7 +144,7 @@ describe('OpenRouterLLM Prompt Caching - Verification Against Docs', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
 
     expect(sentBody.messages[0].content[1].cache_control).toEqual({ type: 'ephemeral' });
     expect(sentBody.messages[1].content[0].cache_control).toEqual({ type: 'ephemeral' });
@@ -162,7 +178,7 @@ describe('OpenRouterLLM Prompt Caching - Verification Against Docs', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
 
     expect(sentBody.messages[0].content[2].cache_control).toEqual({ type: 'ephemeral' });
   });
@@ -186,7 +202,7 @@ describe('OpenRouterLLM Prompt Caching - Verification Against Docs', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
 
     expect(sentBody.messages[0].content[0].cache_control).toEqual({ type: 'ephemeral' });
     expect(sentBody.messages[1].content[0].cache_control).toEqual({ type: 'ephemeral' });
@@ -214,12 +230,27 @@ describe('OpenRouterLLM Prompt Caching - Verification Against Docs', () => {
 
     await llm.generateCompletion(params);
 
-    expect((originalContent[0] as any).cache_control).toBeUndefined();
+    expect((originalContent[0] as { cache_control?: unknown }).cache_control).toBeUndefined();
     expect(params.messages[0].content).toBe(originalContent);
   });
 
   it('VERIFICATION: Works with both streaming and non-streaming', async () => {
-    mockTransport.postStream = vi.fn().mockResolvedValue({
+    const params: CompletionParams = {
+      model: 'anthropic/claude-3-5-sonnet',
+      messages: [
+        { role: 'system', content: [{ type: 'text', text: 'System' }] },
+        { role: 'user', content: [{ type: 'text', text: 'User' }] },
+      ],
+      temperature: 0.7,
+      topP: 1,
+    };
+
+    // First test non-streaming (uses the beforeEach mock which has json())
+    await llm.generateCompletion(params);
+    const nonStreamBody = mockTransport.post.mock.calls[0][1];
+
+    // Now set up streaming mock
+    mockTransport.post = vi.fn().mockResolvedValue({
       ok: true,
       body: {
         getReader: () => ({
@@ -234,21 +265,8 @@ describe('OpenRouterLLM Prompt Caching - Verification Against Docs', () => {
       },
     });
 
-    const params: CompletionParams = {
-      model: 'anthropic/claude-3-5-sonnet',
-      messages: [
-        { role: 'system', content: [{ type: 'text', text: 'System' }] },
-        { role: 'user', content: [{ type: 'text', text: 'User' }] },
-      ],
-      temperature: 0.7,
-      topP: 1,
-    };
-
-    await llm.generateCompletion(params);
-    const nonStreamBody = mockTransport.postJson.mock.calls[0][1];
-
     await llm.streamCompletion(params);
-    const streamBody = mockTransport.postStream.mock.calls[0][1];
+    const streamBody = mockTransport.post.mock.calls[0][1];
 
     expect(nonStreamBody.messages[0].content[0].cache_control).toEqual(streamBody.messages[0].content[0].cache_control);
     expect(nonStreamBody.messages[1].content[0].cache_control).toEqual(streamBody.messages[1].content[0].cache_control);

@@ -1,24 +1,40 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import type { CompletionParams, LLMPort } from '../ports.js';
+
+// Type for mocked HttpTransport where methods are vi.fn() mocks
+type MockedHttpTransport = {
+  post: Mock;
+  get: Mock;
+};
+
+// Create a shared mock transport that we can configure per test
+const mockTransport: MockedHttpTransport = {
+  post: vi.fn(),
+  get: vi.fn(),
+};
+
+// Mock the transports module
+vi.mock('../transports/index.js', () => ({
+  FetchTransport: vi.fn().mockImplementation(() => mockTransport),
+  createTransport: vi.fn().mockImplementation(() => mockTransport),
+}));
+
 import { createLLM } from '../llm-providers/llm-factory.js';
-import type { CompletionParams } from '../ports.js';
 
 describe('OpenRouterLLM Cache Payload Format', () => {
-  let llm: any;
-  let mockTransport: any;
+  let llm: LLMPort;
 
   beforeEach(() => {
-    mockTransport = {
-      postJson: vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          choices: [{ message: { content: 'test response' } }],
-          usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
-        }),
+    vi.clearAllMocks();
+    mockTransport.post = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: 'test response' } }],
+        usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
       }),
-    };
-
+    });
+    mockTransport.get = vi.fn();
     llm = createLLM('openrouter', { apiKey: 'test-key' });
-    (llm as any).transport = mockTransport;
   });
 
   it('should show exact payload format for string content messages', async () => {
@@ -40,7 +56,7 @@ describe('OpenRouterLLM Cache Payload Format', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
 
     expect(sentBody.messages[0].content).toEqual([
       {
@@ -86,7 +102,7 @@ describe('OpenRouterLLM Cache Payload Format', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
 
     expect(sentBody.messages[0].content).toEqual([
       { type: 'text', text: 'System context here', cache_control: { type: 'ephemeral' } },
@@ -104,7 +120,6 @@ describe('OpenRouterLLM Cache Payload Format', () => {
 
   it('should preserve original format when caching is disabled', async () => {
     llm = createLLM('openrouter', { apiKey: 'test-key', enablePromptCaching: false });
-    (llm as any).transport = mockTransport;
 
     const params: CompletionParams = {
       model: 'anthropic/claude-3-5-sonnet',
@@ -118,7 +133,7 @@ describe('OpenRouterLLM Cache Payload Format', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
 
     expect(sentBody.messages[0].content).toBe('System');
     expect(sentBody.messages[1].content).toBe('User');

@@ -243,7 +243,7 @@ export abstract class BaseLLM implements LLMPort {
     if (enhancedParams.tool_choice && enhancedParams.tools && enhancedParams.tools.length > 0)
       body.tool_choice = enhancedParams.tool_choice;
 
-    const res = await this.getTransport().postJson('/chat/completions', body, undefined, signal);
+    const res = await this.getTransport().post('/chat/completions', body, undefined, signal);
 
     if (!res.ok) {
       const text = await res.text();
@@ -283,12 +283,7 @@ export abstract class BaseLLM implements LLMPort {
     if (enhancedParams.tool_choice && enhancedParams.tools && enhancedParams.tools.length > 0)
       body.tool_choice = enhancedParams.tool_choice;
 
-    const res = await this.getTransport().postStream(
-      '/chat/completions',
-      body,
-      { Accept: 'text/event-stream' },
-      signal,
-    );
+    const res = await this.getTransport().post('/chat/completions', body, { Accept: 'text/event-stream' }, signal);
 
     if (!res.ok) {
       const text = await res.text();

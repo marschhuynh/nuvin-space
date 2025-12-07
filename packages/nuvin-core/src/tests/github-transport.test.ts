@@ -5,8 +5,8 @@ import type { FetchTransport } from '../transports';
 // Mock the FetchTransport
 const mockFetch = vi.fn();
 const mockInnerTransport = {
-  postJson: mockFetch,
-  postStream: mockFetch,
+  post: mockFetch,
+  get: mockFetch,
 } as unknown as FetchTransport;
 
 describe('GithubAuthTransport', () => {
@@ -30,7 +30,7 @@ describe('GithubAuthTransport', () => {
       status: 200,
     });
 
-    await transport.postJson('https://api.individual.githubcopilot.com/chat/completions', body);
+    await transport.post('https://api.individual.githubcopilot.com/chat/completions', body);
 
     expect(mockFetch).toHaveBeenCalledWith(
       'https://api.individual.githubcopilot.com/chat/completions',
@@ -64,7 +64,7 @@ describe('GithubAuthTransport', () => {
       status: 200,
     });
 
-    await transport.postJson('https://api.individual.githubcopilot.com/chat/completions', body);
+    await transport.post('https://api.individual.githubcopilot.com/chat/completions', body);
 
     expect(mockFetch).toHaveBeenCalledWith(
       'https://api.individual.githubcopilot.com/chat/completions',
@@ -90,7 +90,7 @@ describe('GithubAuthTransport', () => {
       status: 200,
     });
 
-    await transport.postJson('https://api.individual.githubcopilot.com/chat/completions', body);
+    await transport.post('https://api.individual.githubcopilot.com/chat/completions', body);
 
     expect(mockFetch).toHaveBeenCalledWith(
       'https://api.individual.githubcopilot.com/chat/completions',
@@ -116,7 +116,7 @@ describe('GithubAuthTransport', () => {
       status: 200,
     });
 
-    await transport.postJson('https://api.github.com/some/endpoint', body);
+    await transport.post('https://api.github.com/some/endpoint', body);
 
     expect(mockFetch).toHaveBeenCalledWith(
       'https://api.github.com/some/endpoint',

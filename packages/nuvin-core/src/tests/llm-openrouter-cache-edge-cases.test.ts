@@ -1,24 +1,40 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import type { CompletionParams, LLMPort } from '../ports.js';
+
+// Type for mocked HttpTransport where methods are vi.fn() mocks
+type MockedHttpTransport = {
+  post: Mock;
+  get: Mock;
+};
+
+// Create a shared mock transport that we can configure per test
+const mockTransport: MockedHttpTransport = {
+  post: vi.fn(),
+  get: vi.fn(),
+};
+
+// Mock the transports module
+vi.mock('../transports/index.js', () => ({
+  FetchTransport: vi.fn().mockImplementation(() => mockTransport),
+  createTransport: vi.fn().mockImplementation(() => mockTransport),
+}));
+
 import { createLLM } from '../llm-providers/llm-factory.js';
-import type { CompletionParams } from '../ports.js';
 
 describe('OpenRouterLLM Prompt Caching Edge Cases', () => {
-  let llm: any;
-  let mockTransport: any;
+  let llm: LLMPort;
 
   beforeEach(() => {
-    mockTransport = {
-      postJson: vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          choices: [{ message: { content: 'test response' } }],
-          usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
-        }),
+    vi.clearAllMocks();
+    mockTransport.post = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: 'test response' } }],
+        usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
       }),
-    };
-
+    });
+    mockTransport.get = vi.fn();
     llm = createLLM('openrouter', { apiKey: 'test-key' });
-    (llm as any).transport = mockTransport;
   });
 
   it('should match OpenRouter docs example: system message with multiple parts', async () => {
@@ -54,7 +70,7 @@ describe('OpenRouterLLM Prompt Caching Edge Cases', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
     
     expect(sentBody.messages[0].content[0].cache_control).toBeUndefined();
     expect(sentBody.messages[0].content[1].cache_control).toEqual({ type: 'ephemeral' });
@@ -89,7 +105,7 @@ describe('OpenRouterLLM Prompt Caching Edge Cases', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
     
     expect(sentBody.messages[0].content[0].cache_control).toBeUndefined();
     expect(sentBody.messages[0].content[1].cache_control).toBeUndefined();
@@ -122,7 +138,7 @@ describe('OpenRouterLLM Prompt Caching Edge Cases', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
     
     expect(sentBody.messages[0].content[0].cache_control).toBeUndefined();
     expect(sentBody.messages[0].content[1].cache_control).toBeUndefined();
@@ -149,7 +165,7 @@ describe('OpenRouterLLM Prompt Caching Edge Cases', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
     
     expect(sentBody.messages[0].content[0].cache_control).toEqual({ type: 'ephemeral' });
     expect(sentBody.messages[1].content[0].cache_control).toBeUndefined();
@@ -177,7 +193,7 @@ describe('OpenRouterLLM Prompt Caching Edge Cases', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
     
     expect(sentBody.messages[0].content[0].cache_control).toBeUndefined();
     expect(sentBody.messages[0].content[1].cache_control).toBeUndefined();
@@ -213,7 +229,7 @@ describe('OpenRouterLLM Prompt Caching Edge Cases', () => {
 
     await llm.generateCompletion(params);
 
-    const sentBody = mockTransport.postJson.mock.calls[0][1];
+    const sentBody = mockTransport.post.mock.calls[0][1];
     
     expect(sentBody.messages[0].content[0].cache_control).toEqual({ type: 'ephemeral' });
     expect(sentBody.messages[1].content[0].cache_control).toEqual({ type: 'ephemeral' });

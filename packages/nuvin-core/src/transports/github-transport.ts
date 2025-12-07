@@ -141,6 +141,21 @@ export class GithubAuthTransport implements HttpTransport {
     });
   }
 
+  async post(url: string, body: unknown, headers?: HttpHeaders, signal?: AbortSignal): Promise<Response> {
+    if (!this.apiKey && this.accessToken) {
+      await this.exchangeToken(signal);
+    }
+
+    const fullUrl = this.buildFullUrl(url);
+    let res = await this.inner.post(fullUrl, body, this.makeAuthHeaders(headers, body), signal);
+    if (res.status === 401 && this.accessToken) {
+      await this.exchangeToken(signal);
+      const retryUrl = this.buildFullUrl(url);
+      res = await this.inner.post(retryUrl, body, this.makeAuthHeaders(headers, body), signal);
+    }
+    return res;
+  }
+
   async get(url: string, headers?: HttpHeaders, signal?: AbortSignal): Promise<TransportResponse> {
     if (!this.apiKey && this.accessToken) {
       await this.exchangeToken(signal);
@@ -152,45 +167,6 @@ export class GithubAuthTransport implements HttpTransport {
       await this.exchangeToken(signal);
       const retryUrl = this.buildFullUrl(url);
       res = await this.inner.get(retryUrl, this.makeAuthHeaders(headers), signal);
-    }
-    return res;
-  }
-
-  async postJson(url: string, body: unknown, headers?: HttpHeaders, signal?: AbortSignal): Promise<TransportResponse> {
-    // Ensure we have an API key if possible
-    if (!this.apiKey && this.accessToken) {
-      await this.exchangeToken(signal);
-    }
-
-    const fullUrl = this.buildFullUrl(url);
-    let res = await this.inner.postJson(fullUrl, body, this.makeAuthHeaders(headers, body), signal);
-    if (res.status === 401 && this.accessToken) {
-      // Refresh and retry once
-      await this.exchangeToken(signal);
-      const retryUrl = this.buildFullUrl(url);
-      res = await this.inner.postJson(retryUrl, body, this.makeAuthHeaders(headers, body), signal);
-    }
-    return res;
-  }
-
-  async postStream(url: string, body: unknown, headers?: HttpHeaders, signal?: AbortSignal): Promise<Response> {
-    // Default SSE accept header for Copilot streams if not provided
-    let hdrs = this.makeAuthHeaders({ Accept: 'text/event-stream', ...(headers || {}) }, body);
-
-    // Ensure we have an API key if possible
-    if ((!this.apiKey || !hdrs.Authorization) && this.accessToken) {
-      await this.exchangeToken(signal);
-      hdrs = this.makeAuthHeaders({ Accept: 'text/event-stream', ...(headers || {}) }, body);
-    }
-
-    const fullUrl = this.buildFullUrl(url);
-
-    let res = await this.inner.postStream(fullUrl, body, hdrs, signal);
-    if (res.status === 401 && this.accessToken) {
-      // Refresh and retry once
-      await this.exchangeToken(signal);
-      const retryUrl = this.buildFullUrl(url);
-      res = await this.inner.postStream(retryUrl, body, this.makeAuthHeaders(hdrs, body), signal);
     }
     return res;
   }

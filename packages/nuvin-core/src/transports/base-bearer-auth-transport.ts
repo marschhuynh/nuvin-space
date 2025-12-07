@@ -47,13 +47,8 @@ export abstract class BaseBearerAuthTransport implements HttpTransport {
     return this.inner.get(fullUrl, this.makeAuthHeaders(headers), signal);
   }
 
-  async postJson(url: string, body: unknown, headers?: HttpHeaders, signal?: AbortSignal): Promise<TransportResponse> {
+  async post(url: string, body: unknown, headers?: HttpHeaders, signal?: AbortSignal): Promise<Response> {
     const fullUrl = this.buildFullUrl(url);
-    return this.inner.postJson(fullUrl, body, this.makeAuthHeaders(headers), signal);
-  }
-
-  async postStream(url: string, body: unknown, headers?: HttpHeaders, signal?: AbortSignal): Promise<Response> {
-    const fullUrl = this.buildFullUrl(url);
-    return this.inner.postStream(fullUrl, body, this.makeAuthHeaders(headers), signal);
+    return this.inner.post(fullUrl, body, this.makeAuthHeaders(headers), signal);
   }
 }
