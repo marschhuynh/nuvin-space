@@ -7,7 +7,7 @@ export function registerExitCommand(registry: CommandRegistry) {
     type: 'function',
     description: 'Exit the application after cleaning up resources.',
     category: 'session',
-    async handler({ eventBus }) {
+    async handler({ eventBus, orchestratorManager }) {
       // Emit cleanup message
       eventBus.emit('ui:line', {
         id: crypto.randomUUID(),
@@ -17,8 +17,7 @@ export function registerExitCommand(registry: CommandRegistry) {
         color: 'cyan',
       });
 
-      // Simulate cleanup delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await orchestratorManager?.cleanup();
 
       // Emit completion message
       eventBus.emit('ui:line', {
@@ -31,6 +30,7 @@ export function registerExitCommand(registry: CommandRegistry) {
 
       // Exit the application
       setTimeout(() => {
+        process.stdout.write('\x1b[?2004l');
         process.exit(0);
       }, 500);
     },

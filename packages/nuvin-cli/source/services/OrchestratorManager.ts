@@ -501,9 +501,7 @@ export class OrchestratorManager {
   }
 
   async cleanup() {
-    if (this.mcpManager) {
-      await this.mcpManager.disconnectAllServers();
-    }
+    await this.mcpManager?.disconnectAllServers?.();
   }
 
   private async initializeMCPServersInBackground(mcpManager: MCPServerManager, handlers: UIHandlers): Promise<void> {

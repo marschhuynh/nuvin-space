@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { eventBus } from '@/services/EventBus.js';
 import type { InputAreaHandle } from '@/components/index.js';
 import { useExplainMode } from '@/contexts/ExplainModeContext.js';
+import { orchestratorManager } from '@/services/OrchestratorManager.js';
 
 declare global {
   var __clipboardFiles: Buffer[] | undefined;
@@ -23,7 +24,7 @@ export const useGlobalKeyboard = ({
   const ctrlCArmedRef = useRef(false);
   const { toggleExplainMode } = useExplainMode();
 
-  const handleCtrlC = useCallback(() => {
+  const handleCtrlC = useCallback(async () => {
     if (!ctrlCArmedRef.current) {
       ctrlCArmedRef.current = true;
       onNotification('Press Ctrl+C again to exit', 1000);
@@ -33,8 +34,31 @@ export const useGlobalKeyboard = ({
     } else {
       ctrlCArmedRef.current = false;
       onNotification(null);
-      process.stdout.write('\x1b[?2004l');
-      process.exit(0);
+
+      const crypto = await import('node:crypto');
+
+      eventBus.emit('ui:line', {
+        id: crypto.randomUUID(),
+        type: 'info',
+        content: 'Cleaning up resources...',
+        metadata: { timestamp: new Date().toISOString() },
+        color: 'cyan',
+      });
+
+      await orchestratorManager?.cleanup();
+
+      eventBus.emit('ui:line', {
+        id: crypto.randomUUID(),
+        type: 'info',
+        content: 'Cleanup complete. Exiting now.',
+        metadata: { timestamp: new Date().toISOString() },
+        color: 'cyan',
+      });
+
+      setTimeout(() => {
+        process.stdout.write('\x1b[?2004l');
+        process.exit(0);
+      }, 500);
     }
   }, [onNotification]);
 
