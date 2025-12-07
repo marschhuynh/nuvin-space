@@ -1,5 +1,42 @@
 # @nuvin/nuvin-core
 
+## 1.5.0
+
+### Minor Changes
+
+- [`b5a0214`](https://github.com/marschhuynh/nuvin-space/commit/b5a0214b6437261edb8c024ed36d44be30a45e87) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add getModels support for Anthropic provider
+
+  **Core Changes:**
+
+  - Implement `getModels()` method in `AnthropicAISDKLLM` class
+  - Fetch models from Anthropic API endpoint: `https://api.anthropic.com/v1/models`
+  - Support both API key and OAuth authentication for model fetching
+  - Handle OAuth token refresh on 401/403 errors during model listing
+  - Add Anthropic case to `normalizeModelLimits()` function
+  - Use `display_name` field from API response for Anthropic model names
+  - Update fallback limits with all current Claude models (Opus 4.5, Haiku 4.5, Sonnet 4.5, etc.)
+
+  **CLI Changes:**
+
+  - Update `LLMFactory.getModels()` to support Anthropic OAuth credentials
+  - Allow model fetching with either API key or OAuth authentication for Anthropic
+
+  **Tests:**
+
+  - Add comprehensive unit tests for getModels functionality
+  - Add integration tests for real API calls (skipped without credentials)
+  - All existing tests continue to pass
+
+### Patch Changes
+
+- [`ec26a90`](https://github.com/marschhuynh/nuvin-space/commit/ec26a9092e872ca0ee2769e04047936a9045a652) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Refactor usage data transformation to provider-owned pattern
+
+  - Add `transformUsage()` method to BaseLLM for generic OpenAI/Anthropic field name mapping
+  - Implement provider-specific `transformUsage()` in AnthropicAISDKLLM, GithubLLM
+  - Remove centralized `normalizeUsage()` utility in favor of provider-owned transformation
+  - Improve Anthropic token calculation: `prompt_tokens = input_tokens + cache_creation_input_tokens + cache_read_input_tokens`
+  - Ensure accurate context window tracking across all providers
+
 ## 1.4.4
 
 ### Patch Changes
