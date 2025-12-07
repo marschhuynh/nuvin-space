@@ -1,4 +1,4 @@
-import type { LLMPort } from '../ports.js';
+import type { LLMPort, UsageData } from '../ports.js';
 import { BaseLLM, LLMError } from './base-llm.js';
 import { FetchTransport, GithubAuthTransport } from '../transports/index.js';
 import { normalizeModelInfo, type ModelInfo } from './model-limits.js';
@@ -38,14 +38,38 @@ export class GithubLLM extends BaseLLM implements LLMPort {
       persistFile: this.opts.httpLogFile,
       logLevel: 'INFO',
       enableConsoleLog: false,
-      maxFileSize: 5 * 1024 * 1024, // 5MB before rotation
-      captureResponseBody: true, // Disable for better performance
+      maxFileSize: 5 * 1024 * 1024,
+      captureResponseBody: true,
     });
     return new GithubAuthTransport(base, {
       baseUrl: this.opts.apiUrl,
       apiKey: this.opts.apiKey,
       accessToken: this.opts.accessToken,
     });
+  }
+
+  protected transformUsage(rawUsage: unknown): UsageData | undefined {
+    if (!rawUsage) return undefined;
+
+    const usage = rawUsage as {
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      total_tokens?: number;
+      prompt_tokens_details?: {
+        cached_tokens?: number;
+      };
+      completion_tokens_details?: {
+        reasoning_tokens?: number;
+      };
+    };
+
+    return {
+      prompt_tokens: usage.prompt_tokens,
+      completion_tokens: usage.completion_tokens,
+      total_tokens: usage.total_tokens,
+      prompt_tokens_details: usage.prompt_tokens_details,
+      completion_tokens_details: usage.completion_tokens_details,
+    };
   }
 
   async getModels(signal?: AbortSignal): Promise<ModelInfo[]> {

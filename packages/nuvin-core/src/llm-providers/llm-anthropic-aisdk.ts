@@ -5,7 +5,7 @@ import {
   generateText,
   jsonSchema,
   APICallError,
-  type CoreMessage,
+  type ModelMessage,
   type TextPart,
   type ImagePart,
   type ToolCallPart,
@@ -180,8 +180,8 @@ export class AnthropicAISDKLLM {
     return provider(modelName);
   }
 
-  private transformMessages(messages: CompletionParams['messages']): CoreMessage[] {
-    const transformed: CoreMessage[] = [];
+  private transformMessages(messages: CompletionParams['messages']): ModelMessage[] {
+    const transformed: ModelMessage[] = [];
 
     const systemMessages = messages.filter((msg) => msg.role === 'system');
     if (systemMessages.length > 0) {
@@ -225,9 +225,9 @@ export class AnthropicAISDKLLM {
       }
     }
 
-    const nonSystemMessages: CoreMessage[] = messages
+    const nonSystemMessages: ModelMessage[] = messages
       .filter((msg) => msg.role !== 'system')
-      .map((msg): CoreMessage => {
+      .map((msg): ModelMessage => {
         if (msg.role === 'tool') {
           return {
             role: 'tool' as const,
@@ -375,6 +375,46 @@ export class AnthropicAISDKLLM {
     return 'auto' as const;
   }
 
+  private transformUsage(
+    rawUsage: {
+      // AI SDK format (camelCase)
+      inputTokens?: number;
+      outputTokens?: number;
+      cachedInputTokens?: number;
+      cacheCreationInputTokens?: number;
+      cacheReadInputTokens?: number;
+      // Raw Anthropic API format (snake_case)
+      input_tokens?: number;
+      output_tokens?: number;
+      cache_creation_input_tokens?: number;
+      cache_read_input_tokens?: number;
+    },
+  ): UsageData {
+    if (!rawUsage) {
+      return { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
+    }
+
+    const inputTokens = rawUsage.inputTokens ?? rawUsage.input_tokens ?? 0;
+    const outputTokens = rawUsage.outputTokens ?? rawUsage.output_tokens ?? 0;
+    const cacheCreation = rawUsage.cacheCreationInputTokens ?? rawUsage.cache_creation_input_tokens ?? 0;
+    const cacheRead = rawUsage.cacheReadInputTokens ?? rawUsage.cache_read_input_tokens ?? 0;
+    const cachedTokens = rawUsage.cachedInputTokens ?? (cacheCreation + cacheRead);
+
+    const promptTokens = inputTokens + cachedTokens;
+    const totalTokens = promptTokens + outputTokens;
+
+    return {
+      prompt_tokens: promptTokens,
+      completion_tokens: outputTokens,
+      total_tokens: totalTokens,
+      prompt_tokens_details: {
+        cached_tokens: cachedTokens,
+      },
+      ...(cacheCreation > 0 && { cache_creation_input_tokens: cacheCreation }),
+      ...(cacheRead > 0 && { cache_read_input_tokens: cacheRead }),
+    };
+  }
+
   private handleError(error: unknown): never {
     if (error instanceof LLMError) {
       throw error;
@@ -459,21 +499,11 @@ export class AnthropicAISDKLLM {
             }))
           : undefined;
 
-      const rawUsage = result.usage;
-      const usage: UsageData = rawUsage
-        ? {
-            prompt_tokens: rawUsage.inputTokens || 0,
-            completion_tokens: rawUsage.outputTokens || 0,
-            total_tokens: rawUsage.totalTokens || 0,
-            prompt_tokens_details: {
-              cached_tokens: rawUsage.cachedInputTokens || 0,
-            },
-          }
-        : {
-            prompt_tokens: 0,
-            completion_tokens: 0,
-            total_tokens: 0,
-          };
+      const rawUsage = result.usage as typeof result.usage & {
+        cacheCreationInputTokens?: number;
+        cacheReadInputTokens?: number;
+      };
+      const usage = this.transformUsage(rawUsage);
 
       return {
         content: result.text,
@@ -506,9 +536,10 @@ export class AnthropicAISDKLLM {
       messages,
       tools,
       toolChoice,
-      maxOutputTokens: params.maxTokens ?? 10240,
+      maxOutputTokens: params.maxTokens,
       temperature: params.temperature,
       abortSignal: signal,
+      maxRetries: 3,
       onError: (event) => {
         streamError = event.error;
       },
@@ -541,21 +572,11 @@ export class AnthropicAISDKLLM {
             }))
           : undefined;
 
-      const rawUsage = await result.usage;
-      const usage: UsageData = rawUsage
-        ? {
-            prompt_tokens: rawUsage.inputTokens || 0,
-            completion_tokens: rawUsage.outputTokens || 0,
-            total_tokens: rawUsage.totalTokens || 0,
-            prompt_tokens_details: {
-              cached_tokens: rawUsage.cachedInputTokens || 0,
-            },
-          }
-        : {
-            prompt_tokens: 0,
-            completion_tokens: 0,
-            total_tokens: 0,
-          };
+      const rawUsage = (await result.usage) as Awaited<typeof result.usage> & {
+        cacheCreationInputTokens?: number;
+        cacheReadInputTokens?: number;
+      };
+      const usage = this.transformUsage(rawUsage);
 
       const finishReason = await result.finishReason;
       await handlers.onStreamFinish?.(finishReason, usage);

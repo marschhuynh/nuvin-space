@@ -104,6 +104,8 @@ export type UsageData = {
   cost_details?: {
     upstream_inference_cost?: number;
   };
+  cache_creation_input_tokens?: number;
+  cache_read_input_tokens?: number;
 };
 
 export type CompletionResult = {
@@ -178,7 +180,9 @@ export interface LLMPort {
     },
     signal?: AbortSignal,
   ): Promise<CompletionResult>;
-  getModels?(signal?: AbortSignal): Promise<Array<{ id: string; limits?: { contextWindow: number; maxOutput?: number }; [key: string]: unknown }>>;
+  getModels?(
+    signal?: AbortSignal,
+  ): Promise<Array<{ id: string; limits?: { contextWindow: number; maxOutput?: number }; [key: string]: unknown }>>;
 }
 
 export type LLMConfig = {

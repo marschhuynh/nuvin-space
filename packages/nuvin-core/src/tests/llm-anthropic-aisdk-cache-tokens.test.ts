@@ -22,16 +22,15 @@ describe('AnthropicAISDKLLM Cache Token Mapping', () => {
     llm = new AnthropicAISDKLLM({ apiKey: 'test-key' });
   });
 
-  it('should map cachedInputTokens to cached_tokens in non-streaming', async () => {
+  it('should calculate prompt_tokens as inputTokens + cachedInputTokens in non-streaming', async () => {
     const { generateText } = await import('ai');
-    
+
     vi.mocked(generateText).mockResolvedValue({
       text: 'Response',
       toolCalls: [],
       usage: {
         inputTokens: 200,
         outputTokens: 50,
-        totalTokens: 250,
         cachedInputTokens: 150,
       } as any,
       finishReason: 'stop',
@@ -50,18 +49,18 @@ describe('AnthropicAISDKLLM Cache Token Mapping', () => {
     const result = await llm.generateCompletion(params);
 
     expect(result.usage).toMatchObject({
-      prompt_tokens: 200,
+      prompt_tokens: 350,
       completion_tokens: 50,
-      total_tokens: 250,
+      total_tokens: 400,
       prompt_tokens_details: {
         cached_tokens: 150,
       },
     });
   });
 
-  it('should map cachedInputTokens to cached_tokens in streaming', async () => {
+  it('should calculate prompt_tokens as inputTokens + cachedInputTokens in streaming', async () => {
     const { streamText } = await import('ai');
-    
+
     const mockTextStream = (async function* () {
       yield 'Response';
     })();
@@ -72,7 +71,6 @@ describe('AnthropicAISDKLLM Cache Token Mapping', () => {
       usage: Promise.resolve({
         inputTokens: 200,
         outputTokens: 50,
-        totalTokens: 250,
         cachedInputTokens: 150,
       } as any),
       finishReason: Promise.resolve('stop'),
@@ -92,31 +90,36 @@ describe('AnthropicAISDKLLM Cache Token Mapping', () => {
     const result = await llm.streamCompletion(params, { onStreamFinish });
 
     expect(result.usage).toMatchObject({
-      prompt_tokens: 200,
+      prompt_tokens: 350,
       completion_tokens: 50,
-      total_tokens: 250,
+      total_tokens: 400,
       prompt_tokens_details: {
         cached_tokens: 150,
       },
     });
 
-    expect(onStreamFinish).toHaveBeenCalledWith('stop', expect.objectContaining({
-      prompt_tokens_details: {
-        cached_tokens: 150,
-      },
-    }));
+    expect(onStreamFinish).toHaveBeenCalledWith(
+      'stop',
+      expect.objectContaining({
+        prompt_tokens: 350,
+        completion_tokens: 50,
+        total_tokens: 400,
+        prompt_tokens_details: {
+          cached_tokens: 150,
+        },
+      }),
+    );
   });
 
   it('should handle zero cached tokens', async () => {
     const { generateText } = await import('ai');
-    
+
     vi.mocked(generateText).mockResolvedValue({
       text: 'Response',
       toolCalls: [],
       usage: {
         inputTokens: 200,
         outputTokens: 50,
-        totalTokens: 250,
         cachedInputTokens: 0,
       } as any,
       finishReason: 'stop',
@@ -146,14 +149,13 @@ describe('AnthropicAISDKLLM Cache Token Mapping', () => {
 
   it('should handle missing cachedInputTokens field', async () => {
     const { generateText } = await import('ai');
-    
+
     vi.mocked(generateText).mockResolvedValue({
       text: 'Response',
       toolCalls: [],
       usage: {
         inputTokens: 200,
         outputTokens: 50,
-        totalTokens: 250,
       } as any,
       finishReason: 'stop',
     } as any);

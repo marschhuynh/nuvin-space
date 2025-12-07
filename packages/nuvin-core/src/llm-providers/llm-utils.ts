@@ -1,6 +1,5 @@
-import type { ProviderContentPart, ToolCall, UsageData } from '../ports.js';
+import type { ProviderContentPart, ToolCall } from '../ports.js';
 
-// Merge provider choices into a single content string and combined tool_calls
 export function mergeChoices(
   choices:
     | Array<
@@ -43,7 +42,6 @@ export function mergeChoices(
     if (Array.isArray(msg.tool_calls)) mergedToolCalls.push(...msg.tool_calls);
 
     const knownKeys = ['content', 'tool_calls', 'role'];
-    // Flatten unknown keys into root
     for (const key of Object.keys(msg)) {
       if (!knownKeys.includes(key)) {
         extraFields[key] = msg[key];
@@ -58,33 +56,5 @@ export function mergeChoices(
     content,
     ...(tool_calls ? { tool_calls } : {}),
     ...extraFields,
-  };
-}
-
-// Normalize usage data across providers (e.g., input/output vs prompt/completion)
-export function normalizeUsage(
-  usage?: (Partial<UsageData> & { input_tokens?: number; output_tokens?: number; estimated_cost?: number }) | null,
-): UsageData | undefined {
-  if (!usage) return undefined;
-  const usageObj = usage as Record<string, unknown>;
-  const prompt_tokens =
-    usage.prompt_tokens ?? (typeof usageObj.input_tokens === 'number' ? usageObj.input_tokens : undefined);
-  const completion_tokens =
-    usage.completion_tokens ?? (typeof usageObj.output_tokens === 'number' ? usageObj.output_tokens : undefined);
-  const total_tokens =
-    usage.total_tokens ??
-    (prompt_tokens != null && completion_tokens != null ? prompt_tokens + completion_tokens : undefined);
-  const cost =
-    usage.cost ?? (typeof usageObj.estimated_cost === 'number' ? usageObj.estimated_cost : undefined);
-
-  return {
-    prompt_tokens,
-    completion_tokens,
-    total_tokens,
-    ...(usage.reasoning_tokens !== undefined && { reasoning_tokens: usage.reasoning_tokens }),
-    ...(usage.prompt_tokens_details && { prompt_tokens_details: usage.prompt_tokens_details }),
-    ...(usage.completion_tokens_details && { completion_tokens_details: usage.completion_tokens_details }),
-    ...(cost !== undefined && { cost }),
-    ...(usage.cost_details && { cost_details: usage.cost_details }),
   };
 }

@@ -1,6 +1,6 @@
 import type { CompletionParams, CompletionResult, LLMPort, UsageData, ToolCall } from '../ports.js';
 import type { HttpTransport } from '../transports/index.js';
-import { mergeChoices, normalizeUsage } from './llm-utils.js';
+import { mergeChoices } from './llm-utils.js';
 
 export class LLMError extends Error {
   constructor(
@@ -123,6 +123,38 @@ export abstract class BaseLLM implements LLMPort {
   // Implemented by provider to inject auth, headers, refresh, etc.
   protected abstract createTransport(): HttpTransport;
 
+  protected transformUsage(rawUsage: unknown): UsageData | undefined {
+    if (!rawUsage) return undefined;
+
+    const usage = rawUsage as Partial<UsageData> & {
+      input_tokens?: number;
+      output_tokens?: number;
+      estimated_cost?: number;
+    };
+
+    const promptTokens = usage.prompt_tokens ?? usage.input_tokens;
+    const completionTokens = usage.completion_tokens ?? usage.output_tokens;
+    const totalTokens =
+      usage.total_tokens ??
+      (promptTokens != null && completionTokens != null ? promptTokens + completionTokens : undefined);
+    const cost = usage.cost ?? usage.estimated_cost;
+
+    return {
+      prompt_tokens: promptTokens,
+      completion_tokens: completionTokens,
+      total_tokens: totalTokens,
+      ...(usage.reasoning_tokens !== undefined && { reasoning_tokens: usage.reasoning_tokens }),
+      ...(usage.prompt_tokens_details && { prompt_tokens_details: usage.prompt_tokens_details }),
+      ...(usage.completion_tokens_details && { completion_tokens_details: usage.completion_tokens_details }),
+      ...(cost !== undefined && { cost }),
+      ...(usage.cost_details && { cost_details: usage.cost_details }),
+      ...(usage.cache_creation_input_tokens !== undefined && {
+        cache_creation_input_tokens: usage.cache_creation_input_tokens,
+      }),
+      ...(usage.cache_read_input_tokens !== undefined && { cache_read_input_tokens: usage.cache_read_input_tokens }),
+    };
+  }
+
   protected getTransport(): HttpTransport {
     if (!this.transport) this.transport = this.createTransport();
     return this.transport;
@@ -221,7 +253,7 @@ export abstract class BaseLLM implements LLMPort {
 
     const data: LLMCompletionResponse = await res.json();
     const merged = mergeChoices(data.choices);
-    const usage: UsageData | undefined = normalizeUsage(data.usage);
+    const usage = this.transformUsage(data.usage);
     return { ...merged, ...(usage ? { usage } : {}) };
   }
 
@@ -297,7 +329,7 @@ export abstract class BaseLLM implements LLMPort {
         const usageData = evt.usage || (choices[0] as LLMStreamEvent)?.usage;
 
         if (usageData) {
-          usage = normalizeUsage(usageData);
+          usage = this.transformUsage(usageData);
           if (lastFinishReason && handlers.onStreamFinish) {
             handlers.onStreamFinish(lastFinishReason, usage);
           } else {
