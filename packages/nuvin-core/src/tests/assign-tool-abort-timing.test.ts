@@ -182,7 +182,7 @@ describe('AssignTool - Abort Timing Tests', () => {
               function: { name: 'test_tool', arguments: '{}' },
             },
           ],
-        } as CompletionResult)
+        } as unknown as CompletionResult)
         .mockResolvedValue({
           content: 'Done with tools',
           tool_calls: undefined,

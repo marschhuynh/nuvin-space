@@ -23,7 +23,7 @@ export class AssignTool implements FunctionTool<AssignParams, ToolExecutionConte
       },
       task: {
         type: 'string',
-        description: 'Task description (3-4 sentences explaining what to do)',
+        description: 'Task description explaining what to do',
       },
     },
     required: ['agent', 'task'],

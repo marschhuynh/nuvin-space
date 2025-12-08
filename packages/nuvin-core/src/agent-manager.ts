@@ -10,7 +10,7 @@ import { SystemClock } from './clock.js';
 import { SimpleCost } from './cost.js';
 import { NoopReminders } from './reminders.js';
 
-const DEFAULT_TIMEOUT_MS = 300000; // 5 minutes
+const DEFAULT_TIMEOUT_MS = 3000000; // 50 minutes
 const MAX_DELEGATION_DEPTH = 3;
 
 /**
@@ -258,31 +258,36 @@ export class AgentManager {
     timeoutMs: number,
     signal?: AbortSignal,
   ): Promise<MessageResponse> {
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        reject(new Error(`Task execution timeout after ${timeoutMs}ms`));
-      }, timeoutMs);
+    const timeoutController = new AbortController();
+    const combinedSignal = signal ? AbortSignal.any([signal, timeoutController.signal]) : timeoutController.signal;
 
-      const abortHandler = () => {
-        clearTimeout(timer);
-        reject(new Error('Sub-agent execution aborted by user'));
-      };
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-      signal?.addEventListener('abort', abortHandler);
-
-      orchestrator
-        .send(taskDescription, { conversationId: 'default', signal })
-        .then((response) => {
-          clearTimeout(timer);
-          signal?.removeEventListener('abort', abortHandler);
-          resolve(response);
-        })
-        .catch((error) => {
-          clearTimeout(timer);
-          signal?.removeEventListener('abort', abortHandler);
-          reject(error);
-        });
-    });
+    try {
+      return await Promise.race([
+        orchestrator.send(taskDescription, {
+          conversationId: 'default',
+          signal: combinedSignal,
+        }),
+        new Promise<never>((_, reject) => {
+          if (signal?.aborted) {
+            reject(new Error('Sub-agent execution aborted by user'));
+            return;
+          }
+          signal?.addEventListener('abort', () => reject(new Error('Sub-agent execution aborted by user')), {
+            once: true,
+          });
+        }),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(() => {
+            timeoutController.abort();
+            reject(new Error(`Task execution timeout after ${timeoutMs}ms`));
+          }, timeoutMs);
+        }),
+      ]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
   }
 
   /**

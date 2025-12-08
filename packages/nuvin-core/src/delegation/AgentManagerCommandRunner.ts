@@ -14,6 +14,7 @@ export class AgentManagerCommandRunner implements AgentCommandRunner {
   async run(config: Parameters<AgentManager['executeTask']>[0], context?: ToolExecutionContext) {
     const eventPort = context?.eventPort;
     const signal = context?.signal;
+
     const agentManager = new AgentManager(
       this.delegatingConfig,
       this.delegatingTools,
