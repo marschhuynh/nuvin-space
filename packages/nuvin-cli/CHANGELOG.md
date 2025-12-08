@@ -1,5 +1,14 @@
 # @nuvin/nuvin-cli
 
+## 1.12.2
+
+### Patch Changes
+
+- [`49b6608`](https://github.com/marschhuynh/nuvin-space/commit/49b660831f3e71044aede300095ca73cc8a3a630) Thanks [@marschhuynh](https://github.com/marschhuynh)! - UI/UX improvements: Add footer support to AppModal, improve responsive layout with flexWrap for Footer and MessageLine, enhance text wrapping for better terminal display
+
+- Updated dependencies [[`dadaace`](https://github.com/marschhuynh/nuvin-space/commit/dadaace3556ea0c9423aa54b37202b5ac67de533)]:
+  - @nuvin/nuvin-core@1.5.2
+
 ## 1.12.1
 
 ### Patch Changes
