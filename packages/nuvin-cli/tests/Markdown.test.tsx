@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Markdown } from '../source/components/Markdown/index.tsx';
 
 // Mock the markdown cache to avoid caching in tests
-vi.mock('../source/utils/MarkdownCache.ts', () => {
+vi.mock('../source/utils/markdownCache.ts', () => {
   return {
     markdownCache: {
       get: vi.fn().mockReturnValue(null),

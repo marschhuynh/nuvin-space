@@ -91,34 +91,25 @@ const RecentSessions = ({ recentSessions }: RecentSessionsProps) => {
   return (
     <Box flexDirection="column" width={cols}>
       <Text color={theme.welcome.title} bold underline>
-        Recent Activity
+        Recent Sessions
       </Text>
       {recentSessions.length === 0 ? (
         <Text color={theme.welcome.subtitle} dimColor>
-          No recent activity
+          No recent sessions
         </Text>
       ) : (
         recentSessions.map((session) => {
           const relativeTime = formatRelativeTime(session.timestamp);
-          const displayText = session.topic || session.lastMessage;
+          const displayText = (session.topic || session.lastMessage).split('\n').join(' ');
           const badge = getMessageCountBadge(session.messageCount);
 
           return (
             <Box key={session.sessionId} flexDirection="row" flexWrap="nowrap" width={cols - 26}>
-              <Box flexShrink={0}>
-                <Text color={theme.welcome.subtitle} dimColor>
-                  {relativeTime}
-                  {' · '}
-                </Text>
-              </Box>
-              <Box>
-                <Text color={theme.welcome.subtitle} dimColor wrap="truncate-end">
-                  {displayText}
-                  {' · '}
-                </Text>
-              </Box>
-              <Box flexShrink={0} flexWrap="nowrap">
-                <Text color={badge.color} dimColor wrap="end">
+              <Text color={theme.welcome.subtitle} dimColor wrap="truncate">
+                {`${relativeTime} - ${displayText}`}
+              </Text>
+              <Box flexWrap="nowrap" flexShrink={0} marginLeft={1}>
+                <Text color={badge.color} dimColor>
                   {badge.text}
                 </Text>
               </Box>
