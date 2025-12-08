@@ -1,5 +1,6 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
+import { useStdoutDimensions } from '@/hooks/index.js';
 import type { ToolParamRendererProps } from './types.js';
 
 /**
@@ -13,6 +14,7 @@ export const FileEditParamRender: React.FC<ToolParamRendererProps> = ({
   statusColor,
   formatValue,
 }: ToolParamRendererProps) => {
+  const [cols] = useStdoutDimensions();
   const filteredArgs = Object.fromEntries(
     Object.entries(args).filter(([key]) => key !== 'old_text' && key !== 'new_text' && key !== 'description'),
   );
@@ -23,7 +25,7 @@ export const FileEditParamRender: React.FC<ToolParamRendererProps> = ({
 
   return (
     <Box
-      flexDirection="column"
+      flexWrap="wrap"
       marginLeft={2}
       borderStyle="single"
       borderDimColor
@@ -32,12 +34,10 @@ export const FileEditParamRender: React.FC<ToolParamRendererProps> = ({
       borderRight={false}
       borderTop={false}
       paddingLeft={2}
+      width={cols - 6}
     >
       {Object.entries(filteredArgs).map(([key, value]) => (
-        <Box key={key} flexDirection="row">
-          <Text dimColor>{key}: </Text>
-          <Text dimColor>{formatValue(value)}</Text>
-        </Box>
+        <Text key={key} dimColor>{`${key}: ${formatValue(value)}`}</Text>
       ))}
     </Box>
   );

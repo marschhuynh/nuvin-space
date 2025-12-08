@@ -1,6 +1,7 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
 import type { ToolParamRendererProps } from './types.js';
+import { useStdoutDimensions } from '@/hooks/index.js';
 
 /**
  * FileNewParamRender - Parameter renderer for file_new tool calls
@@ -13,6 +14,7 @@ export const FileNewParamRender: React.FC<ToolParamRendererProps> = ({
   statusColor,
   formatValue,
 }: ToolParamRendererProps) => {
+  const [cols] = useStdoutDimensions();
   const { content: _content, description: _description, ...displayArgs } = args;
 
   if (Object.keys(displayArgs).length === 0) {
@@ -21,7 +23,7 @@ export const FileNewParamRender: React.FC<ToolParamRendererProps> = ({
 
   return (
     <Box
-      flexDirection="column"
+      flexWrap="wrap"
       marginLeft={2}
       borderStyle="single"
       borderDimColor
@@ -30,12 +32,10 @@ export const FileNewParamRender: React.FC<ToolParamRendererProps> = ({
       borderRight={false}
       borderTop={false}
       paddingLeft={2}
+      width={cols - 6}
     >
       {Object.entries(displayArgs).map(([key, value]) => (
-        <Box key={key} flexDirection="row">
-          <Text dimColor>{key}: </Text>
-          <Text dimColor>{formatValue(value)}</Text>
-        </Box>
+        <Text key={key} dimColor>{`${key}: ${formatValue(value)}`}</Text>
       ))}
     </Box>
   );

@@ -1,5 +1,6 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
+import { useStdoutDimensions } from '@/hooks/index.js';
 import type { ToolParamRendererProps } from './types.js';
 
 /**
@@ -13,6 +14,7 @@ export const AssignTaskParamRender: React.FC<ToolParamRendererProps> = ({
   statusColor,
   formatValue,
 }: ToolParamRendererProps) => {
+  const [cols] = useStdoutDimensions();
   const filteredArgs = Object.fromEntries(Object.entries(args).filter(([key]) => key !== 'description'));
 
   if (Object.keys(filteredArgs).length === 0) {
@@ -30,12 +32,10 @@ export const AssignTaskParamRender: React.FC<ToolParamRendererProps> = ({
       borderRight={false}
       borderTop={false}
       paddingLeft={2}
+      width={cols - 6}
     >
       {Object.entries(filteredArgs).map(([key, value]) => (
-        <Box key={key} flexDirection="row">
-          <Text dimColor>{key}: </Text>
-          <Text dimColor>{formatValue(value)}</Text>
-        </Box>
+        <Text key={key} dimColor>{`${key}: ${formatValue(value)}`}</Text>
       ))}
     </Box>
   );

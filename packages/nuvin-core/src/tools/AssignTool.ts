@@ -15,7 +15,7 @@ export class AssignTool implements FunctionTool<AssignParams, ToolExecutionConte
       description: {
         type: 'string',
         description:
-          'Explanation of why this task is being delegated (e.g., "Delegate code review to specialist agent")',
+          'A summary of the task to be performed by the delegated agent. Be specific about the desired outcome. From 5-10 words.',
       },
       agent: {
         type: 'string',
@@ -23,10 +23,10 @@ export class AssignTool implements FunctionTool<AssignParams, ToolExecutionConte
       },
       task: {
         type: 'string',
-        description: 'Task description explaining what to do',
+        description: 'Detailed description of the task to be performed by the agent.',
       },
     },
-    required: ['agent', 'task'],
+    required: ['agent', 'task', 'description'],
   } as const;
 
   constructor(private readonly delegationService: DelegationService) {}

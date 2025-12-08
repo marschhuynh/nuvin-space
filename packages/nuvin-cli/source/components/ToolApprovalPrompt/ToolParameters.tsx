@@ -2,7 +2,7 @@ import type React from 'react';
 import type { ToolCall } from '@nuvin/nuvin-core';
 import { Box, Text } from 'ink';
 import { useTheme } from '@/contexts/ThemeContext.js';
-import { ToolContentRenderer } from '@/components/ToolContentRenderer/index.js';
+import { ToolContentRenderer } from './ToolContentRenderer';
 
 type ToolParametersProps = {
   toolCall: ToolCall;
@@ -48,7 +48,7 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({ toolCall }) => {
             <Text color={theme.toolApproval.statusText}>Parameters:</Text>
           </Box>
           {toolArgs.map(([key, value]) => (
-            <Box key={key} marginLeft={2} flexDirection="column">
+            <Box key={key} marginLeft={2} flexWrap="wrap">
               <Text dimColor>{`${key}: ${formatParameterValue(value)}`}</Text>
             </Box>
           ))}

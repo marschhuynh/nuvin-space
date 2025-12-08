@@ -185,6 +185,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
         return { text: isSuccess ? 'Completed' : 'Failed', color: statusColor, paramText };
     }
   };
+
   const renderContent = () => {
     switch (toolResult.name) {
       case 'assign_task': {
@@ -194,7 +195,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
         // Replace escaped newlines with actual newlines
         resultStr = resultStr.replace(/\\n/g, '\n');
 
-        return <Markdown>{resultStr}</Markdown>;
+        return <Markdown maxWidth={cols - 12}>{resultStr}</Markdown>;
       }
       case 'todo_write':
         return <TodoWriteRenderer toolResult={toolResult} messageId={messageId} fullMode={fullMode} />;
@@ -252,9 +253,12 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
   const hasResult = toolResult.result !== null && toolResult.result !== undefined && toolResult.result !== '';
   const shouldShowContent =
     (hasResult || toolResult.name === 'todo_write') &&
-    ((toolResult.name !== 'file_read' && toolResult.name !== 'file_new') || fullMode);
+    ((toolResult.name !== 'file_read' && toolResult.name !== 'file_new' && toolResult.name !== 'assign_task') ||
+      fullMode);
 
-  const shouldShowDone = (toolResult.name !== 'file_read' && toolResult.name !== 'file_new') || fullMode;
+  const shouldShowDone =
+    (toolResult.name !== 'file_read' && toolResult.name !== 'file_new' && toolResult.name !== 'assign_task') ||
+    fullMode;
   const shouldShowStatus = hasResult || toolResult.name === 'todo_write';
 
   const showStatusTop = shouldShowStatus && statusPosition === 'top';

@@ -40,7 +40,7 @@ class MarkdownProvider {
       {
         reflowText: config.reflowText ?? true,
         width: config.width,
-        hr: () => `\n${'⎼'.repeat(Math.min(config.width, 80))}\n`,
+        // hr: () => `\n${'⎼'.repeat(Math.min(config.width, 80))}\n`,
       },
       {},
     );

@@ -132,7 +132,7 @@ class Renderer {
   }
 
   hr(): string {
-    return section(this.o.hr(hr('-', this.o.reflowText && this.o.width)));
+    return section(this.o.hr(hr('⎼', this.o.reflowText && this.o.width)));
   }
 
   list(body: string | { ordered: boolean; items: MarkedToken[] }, ordered?: boolean): string {

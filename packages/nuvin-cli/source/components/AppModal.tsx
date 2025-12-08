@@ -1,6 +1,6 @@
 import type { ReactNode, FC } from 'react';
 import { Box, Text, useInput } from 'ink';
-import { theme } from '@/theme';
+import { theme as globalTheme } from '@/theme';
 
 export type AppModalType = 'info' | 'error' | 'warning' | 'success' | 'default';
 
@@ -28,7 +28,7 @@ const MODAL_THEMES: Record<AppModalType, ModalTheme> = {
   },
   default: {
     borderColor: 'white',
-    titleColor: theme.colors.accent,
+    titleColor: globalTheme.colors.accent,
   },
 };
 
@@ -36,6 +36,7 @@ export interface AppModalProps {
   visible: boolean;
   title?: string;
   rightTitle?: string | ReactNode;
+  footer?: string | ReactNode;
   type?: AppModalType;
   titleColor?: string;
   borderColor?: string;
@@ -64,6 +65,7 @@ export const AppModal: FC<AppModalProps> = ({
   paddingY = 0,
   marginX = 1,
   marginY = 0,
+  footer,
 }) => {
   const theme = MODAL_THEMES[type];
   const finalBorderColor = borderColor || theme.borderColor;
@@ -88,6 +90,7 @@ export const AppModal: FC<AppModalProps> = ({
   return (
     <Box flexDirection="column" borderStyle="round" borderColor={finalBorderColor} width={'100%'}>
       <Box
+        flexWrap="wrap"
         borderStyle="single"
         borderLeft={false}
         borderRight={false}
@@ -102,15 +105,36 @@ export const AppModal: FC<AppModalProps> = ({
         ) : null}
 
         {rightTitle ? (
-          <Text color={finalTitleColor} bold>
-            {rightTitle}{' '}
-          </Text>
+          <Box alignItems="flex-end" alignSelf="flex-end" justifyContent="flex-end" flexGrow={1}>
+            <Text color={finalTitleColor} bold>
+              {rightTitle}{' '}
+            </Text>
+          </Box>
         ) : null}
       </Box>
-      <Box paddingX={paddingX} paddingY={paddingY} marginX={marginX} marginY={marginY} width={'100%'}>
-        <Box flexDirection="column" width={'100%'}>
+      <Box flexDirection="column" width={'100%'}>
+        <Box
+          flexDirection="column"
+          width={'100%'}
+          paddingX={paddingX}
+          paddingY={paddingY}
+          marginX={marginX}
+          marginY={marginY}
+        >
           {children}
         </Box>
+        {footer ? (
+          <Box
+            flexGrow={1}
+            borderStyle="single"
+            borderLeft={false}
+            borderRight={false}
+            borderBottom={false}
+            borderColor={globalTheme.tokens.gray}
+          >
+            {footer}
+          </Box>
+        ) : null}
       </Box>
     </Box>
   );

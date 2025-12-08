@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { markdownCache } from '@/utils/MarkdownCache.js';
+import { markdownCache } from '@/utils/markdownCache.js';
 
 interface StreamingOptions {
   debounceMs?: number;
@@ -17,11 +17,7 @@ export const useStreamingMarkdown = (content: string, isStreaming: boolean, opti
       return;
     }
 
-    if (
-      debouncedContent &&
-      content.startsWith(debouncedContent) &&
-      content.length - debouncedContent.length < 50
-    ) {
+    if (debouncedContent && content.startsWith(debouncedContent) && content.length - debouncedContent.length < 50) {
       return;
     }
 

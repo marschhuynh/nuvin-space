@@ -12,18 +12,18 @@ type FileNewRendererProps = {
   fullMode?: boolean;
 };
 
-function addLineNumbers(content: string): Array<{lineNumber: string, content: string}> {
+function addLineNumbers(content: string): Array<{ lineNumber: string; content: string }> {
   if (!content) return [];
-  
+
   const lines = content.split('\n');
   const maxLineNumber = lines.length;
   const lineNumberWidth = maxLineNumber.toString().length;
-  
+
   return lines.map((line, index) => {
     const lineNumber = (index + 1).toString().padStart(lineNumberWidth, ' ');
     return {
       lineNumber: `${lineNumber} | `,
-      content: line.replace(/\t/g, '  ')
+      content: line.replace(/\t/g, '  '),
     };
   });
 }
@@ -54,7 +54,7 @@ export const FileNewRenderer: React.FC<FileNewRendererProps> = ({ toolResult, to
   const linesWithNumbers = addLineNumbers(fileContent);
 
   return (
-    <Box flexDirection="column" width={cols - 10}>
+    <Box flexDirection="column" width={cols - 10} backgroundColor={'greenBright'}>
       {linesWithNumbers.map((line) => (
         <Box key={`${line.lineNumber}-${line.content.slice(0, 20)}`}>
           <Text dimColor>{line.lineNumber}</Text>

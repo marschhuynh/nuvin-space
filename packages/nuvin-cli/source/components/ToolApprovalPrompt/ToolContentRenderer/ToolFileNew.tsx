@@ -1,0 +1,76 @@
+import { useMemo } from 'react';
+import type { ToolCall } from '@nuvin/nuvin-core';
+import { Box, Text } from 'ink';
+import { useStdoutDimensions } from '@/hooks';
+
+type FileNewArgs = {
+  file_path: string;
+  content: string;
+};
+
+function parseArgs(call: ToolCall): FileNewArgs | null {
+  try {
+    return call.function.arguments ? (JSON.parse(call.function.arguments) as FileNewArgs) : null;
+  } catch {
+    return null;
+  }
+}
+
+function addLineNumbers(content: string): {
+  lines: Array<{ lineNumber: string; content: string }>;
+  lineNumberWidth: number;
+} {
+  if (!content) return { lines: [], lineNumberWidth: 0 };
+
+  const lines = content.split('\n');
+  const maxLineNumber = lines.length;
+  const lineNumberWidth = maxLineNumber.toString().length;
+
+  return {
+    lines: lines.map((line, index) => {
+      const lineNumber = (index + 1).toString().padStart(lineNumberWidth, ' ');
+      return {
+        lineNumber: lineNumber,
+        content: line.replace(/\t/g, '  '),
+      };
+    }),
+    lineNumberWidth,
+  };
+}
+
+export function FileNewToolContent({ call }: { call: ToolCall }) {
+  const args = useMemo(() => parseArgs(call), [call]);
+  const [width] = useStdoutDimensions();
+
+  if (!args)
+    return (
+      <Box marginTop={1}>
+        <Text color="red">Invalid arguments</Text>
+      </Box>
+    );
+
+  const { lines, lineNumberWidth } = addLineNumbers(args.content);
+
+  return (
+    <Box flexDirection="column" marginTop={1} width={width - 8} overflow="hidden">
+      {lines.map((line) => (
+        <Box key={`${line.lineNumber}-${line.content.slice(0, 20)}`}>
+          <Box flexWrap="nowrap" width={lineNumberWidth + 1}>
+            <Text dimColor>{line.lineNumber}</Text>
+          </Box>
+          <Box
+            borderStyle={'single'}
+            borderDimColor
+            borderBottom={false}
+            borderTop={false}
+            borderRight={false}
+            marginRight={1}
+            paddingLeft={1}
+          >
+            <Text>{line.content}</Text>
+          </Box>
+        </Box>
+      ))}
+    </Box>
+  );
+}

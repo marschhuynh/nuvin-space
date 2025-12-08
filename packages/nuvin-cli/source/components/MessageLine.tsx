@@ -4,10 +4,10 @@ import { Markdown } from './Markdown';
 import type { ToolCall } from '@nuvin/nuvin-core';
 import type { MessageLine as MessageLineType } from '@/adapters';
 import { useTheme } from '@/contexts/ThemeContext.js';
-import { ToolCallViewer } from './ToolCallViewer';
-import { SubAgentActivity } from './SubAgentActivity.js';
 import type { SubAgentState } from '@/utils/eventProcessor.js';
-// import { useStreamingMarkdown } from '@/hooks';
+import { useStdoutDimensions } from '@/hooks/useStdoutDimensions';
+import { ToolCallViewer } from './ToolCallViewer';
+import { SubAgentActivity } from './ToolResultView/SubAgentActivity.js';
 
 type MessageLineProps = {
   key: string;
@@ -19,9 +19,9 @@ type MessageLineProps = {
 };
 
 const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundColor }) => {
+  const [cols] = useStdoutDimensions();
   const { theme } = useTheme();
   const isStreaming = message.metadata?.isStreaming === true;
-  // const streamingContent = useStreamingMarkdown(message.content, isStreaming);
   const streamingContent = message.content;
 
   const renderMessage = () => {
@@ -179,7 +179,11 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
     }
   };
 
-  return <Box backgroundColor={backgroundColor}>{renderMessage()}</Box>;
+  return (
+    <Box width={cols} backgroundColor={backgroundColor}>
+      {renderMessage()}
+    </Box>
+  );
 };
 
 export const MessageLine = React.memo(MessageLineComponent);

@@ -122,11 +122,14 @@ export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
     <AppModal
       visible
       title={currentTool.function.name}
-      rightTitle={
-        <Text color={theme.toolApproval.description} dimColor>
-          Tab/←→ Navigate • Enter Select • 1/2/3 Quick Select
-        </Text>
+      footer={
+        <Box marginLeft={1}>
+          <Text color={theme.toolApproval.description} dimColor>
+            1/2/3 Quick Select • Tab/←→ Navigate • Enter Select
+          </Text>
+        </Box>
       }
+      rightTitle={<ToolProgressInfo currentIndex={currentToolIndex} totalTools={toolCalls.length} />}
     >
       <Box flexDirection="column" width="100%">
         {/* Parameters / Specialized Content */}
@@ -135,7 +138,6 @@ export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
         {/* Action Buttons at Bottom */}
         <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginTop={1}>
           <ToolActions selectedAction={selectedAction} />
-          <ToolProgressInfo currentIndex={currentToolIndex} totalTools={toolCalls.length} />
         </Box>
       </Box>
     </AppModal>

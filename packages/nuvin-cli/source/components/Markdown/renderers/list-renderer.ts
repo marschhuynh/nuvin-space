@@ -1,4 +1,3 @@
-
 const BULLET_POINT_REGEX = '\\*';
 const NUMBERED_POINT_REGEX = '\\d+\\.';
 const POINT_REGEX = `(?:${[BULLET_POINT_REGEX, NUMBERED_POINT_REGEX].join('|')})`;

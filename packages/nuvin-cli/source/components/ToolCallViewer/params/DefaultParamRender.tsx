@@ -1,7 +1,7 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
 import type { ToolParamRendererProps } from './types.js';
-import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
+import { useStdoutDimensions } from '@/hooks/index.js';
 
 /**
  * DefaultParamRender - Parameter renderer for generic tool calls
@@ -23,20 +23,18 @@ export const DefaultParamRender: React.FC<ToolParamRendererProps> = ({
       flexDirection="column"
       marginLeft={2}
       borderStyle="single"
+      borderDimColor
       borderColor={statusColor}
       borderBottom={false}
       borderRight={false}
       borderTop={false}
       paddingLeft={2}
-      width={cols - 10}
-      borderDimColor
+      width={cols - 6}
     >
       {Object.entries(args)
         .filter(([key]) => key !== 'description')
         .map(([key, value]) => (
-          <Box key={key} flexDirection="row">
-            <Text dimColor>{`${key}: ${formatValue(value)}`}</Text>
-          </Box>
+          <Text key={key} dimColor>{`${key}: ${formatValue(value)}`}</Text>
         ))}
     </Box>
   );

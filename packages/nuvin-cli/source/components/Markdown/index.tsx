@@ -2,7 +2,7 @@ import type React from 'react';
 import { useMemo, useCallback } from 'react';
 import { Text } from 'ink';
 import { markdownProvider } from '@/providers/MarkdownProvider.js';
-import { markdownCache } from '@/utils/MarkdownCache.js';
+import { markdownCache } from '@/utils/markdownCache.js';
 import { useStdoutDimensions } from '@/hooks/index.js';
 
 type MarkdownProps = {
@@ -10,6 +10,7 @@ type MarkdownProps = {
   disableMarkdown?: boolean;
   enableCache?: boolean;
   reflowText?: boolean;
+  maxWidth?: number;
 };
 
 export const Markdown: React.FC<MarkdownProps> = ({
@@ -17,15 +18,16 @@ export const Markdown: React.FC<MarkdownProps> = ({
   disableMarkdown,
   enableCache = true,
   reflowText = true,
+  maxWidth,
 }) => {
   const [cols] = useStdoutDimensions();
 
   const rendererConfig = useMemo(
     () => ({
-      width: cols - 2,
+      width: maxWidth ?? cols - 2,
       reflowText,
     }),
-    [cols, reflowText],
+    [cols, reflowText, maxWidth],
   );
 
   const configHash = useMemo(() => JSON.stringify(rendererConfig), [rendererConfig]);
@@ -67,5 +69,5 @@ export const Markdown: React.FC<MarkdownProps> = ({
     return parseMarkdown(children).trimEnd();
   }, [children, disableMarkdown, parseMarkdown]);
 
-  return <Text wrap="end">{renderedContent}</Text>;
+  return <Text wrap="wrap">{renderedContent}</Text>;
 };
