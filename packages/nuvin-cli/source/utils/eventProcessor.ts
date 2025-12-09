@@ -1,5 +1,5 @@
 import * as crypto from 'node:crypto';
-import { AgentEventTypes, ErrorReason, type AgentEvent, type ToolCall } from '@nuvin/nuvin-core';
+import { AgentEventTypes, ErrorReason, type AgentEvent, type ToolCall, type MetricsSnapshot } from '@nuvin/nuvin-core';
 import type { MessageLine, LineMetadata } from '@/adapters/index.js';
 import { renderToolCall, flattenError } from './messageProcessor.js';
 import { enrichToolCallsWithLineNumbers } from './enrichToolCalls.js';
@@ -36,6 +36,7 @@ export type SubAgentState = {
   finalStatus?: 'success' | 'error' | 'timeout';
   toolCallMessageId?: string;
   toolCallId?: string;
+  metrics?: MetricsSnapshot;
 };
 
 export type EventProcessorState = {
@@ -360,6 +361,22 @@ export function processAgentEvent(
       subAgent.finalStatus = event.status;
       subAgent.resultMessage = event.resultMessage;
       subAgent.totalDurationMs = event.totalDurationMs;
+
+      // Update the tool call message metadata using the dynamic key
+      if (subAgent.toolCallMessageId && subAgent.toolCallId) {
+        callbacks.updateLineMetadata?.(subAgent.toolCallMessageId, {
+          [`subAgentState_${subAgent.toolCallId}`]: subAgent,
+        });
+      }
+
+      return state;
+    }
+
+    case AgentEventTypes.SubAgentMetrics: {
+      const subAgent = state.subAgents.get(event.agentId);
+      if (!subAgent) return state;
+
+      subAgent.metrics = event.metrics;
 
       // Update the tool call message metadata using the dynamic key
       if (subAgent.toolCallMessageId && subAgent.toolCallId) {

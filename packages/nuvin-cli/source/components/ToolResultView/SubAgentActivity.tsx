@@ -8,22 +8,9 @@ import { ToolResultView } from './ToolResultView.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import { ToolTimer } from '../ToolTimer.js';
 import { GradientRunText } from '../Gradient.js';
+import type { SubAgentState } from '@/utils/eventProcessor.js';
 
-export type SubAgentState = {
-  agentId: string;
-  agentName: string;
-  status: 'starting' | 'running' | 'completed';
-  toolCalls: Array<{
-    id: string;
-    name: string;
-    arguments?: string;
-    durationMs?: number;
-    status?: 'success' | 'error';
-  }>;
-  resultMessage?: string;
-  totalDurationMs?: number;
-  finalStatus?: 'success' | 'error' | 'timeout';
-};
+export type { SubAgentState };
 
 type SubAgentActivityProps = {
   toolCall: ToolCall;
@@ -211,10 +198,17 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
             └─{' '}
           </Text>
           <GradientRunText text="Working ..." />
-          {/* <Text>Working ...</Text> */}
           {!explainMode && (
             <Box marginLeft={1}>
               <ToolTimer hasResult={isCompleted} finalDuration={subAgentState.totalDurationMs} />
+            </Box>
+          )}
+          {subAgentState.metrics && (
+            <Box marginLeft={1}>
+              <Text dimColor>
+                • {subAgentState.metrics.llmCallCount} calls • {subAgentState.metrics.totalTokens} tokens
+                {subAgentState.metrics.totalCost > 0 && ` • $${subAgentState.metrics.totalCost.toFixed(4)}`}
+              </Text>
             </Box>
           )}
         </Box>
@@ -229,6 +223,7 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
             messageId={`${messageId}-result-${toolCall.id}`}
             messageContent={toolResult.content || ''}
             fullMode={explainMode}
+            subAgentMetrics={subAgentState.metrics}
           />
         </Box>
       ) : null}

@@ -366,6 +366,7 @@ export const AgentEventTypes = {
   SubAgentToolCall: 'sub_agent_tool_call',
   SubAgentToolResult: 'sub_agent_tool_result',
   SubAgentCompleted: 'sub_agent_completed',
+  SubAgentMetrics: 'sub_agent_metrics',
 } as const;
 
 export type ToolApprovalDecision = 'approve' | 'deny' | 'approve_all';
@@ -485,6 +486,14 @@ export type AgentEvent =
       status: 'success' | 'error' | 'timeout';
       resultMessage: string;
       totalDurationMs: number;
+    }
+  | {
+      type: typeof AgentEventTypes.SubAgentMetrics;
+      conversationId: string;
+      messageId: string;
+      agentId: string;
+      toolCallId: string;
+      metrics: MetricsSnapshot;
     };
 
 export interface EventPort {

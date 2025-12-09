@@ -9,6 +9,7 @@ import { SimpleId } from './id.js';
 import { SystemClock } from './clock.js';
 import { SimpleCost } from './cost.js';
 import { NoopReminders } from './reminders.js';
+import { InMemoryMetricsPort } from './metrics.js';
 
 const DEFAULT_TIMEOUT_MS = 3000000; // 50 minutes
 const MAX_DELEGATION_DEPTH = 3;
@@ -139,6 +140,18 @@ export class AgentManager {
       reasoningEffort: freshConfig.reasoningEffort ?? this.delegatingConfig.reasoningEffort,
     };
 
+    // Create metrics port for this specialist agent
+    const metricsPort = new InMemoryMetricsPort((snapshot) => {
+      this.eventCallback?.({
+        type: AgentEventTypes.SubAgentMetrics,
+        conversationId: config.conversationId ?? 'default',
+        messageId: config.messageId ?? '',
+        agentId: config.agentId,
+        toolCallId: config.toolCallId ?? '',
+        metrics: snapshot,
+      });
+    });
+
     // Determine which LLM to use
     const llm = this.resolveLLM(config);
 
@@ -153,6 +166,7 @@ export class AgentManager {
       cost: new SimpleCost(),
       reminders: new NoopReminders(),
       events: eventPort,
+      metrics: metricsPort,
     });
 
     this.activeAgents.set(agentId, specialistOrchestrator);

@@ -27,7 +27,7 @@ describe('AgentRegistry', () => {
     const retrieved = registry.get('custom-agent');
     expect(retrieved).toMatchObject(customAgent);
     expect(retrieved?.temperature).toBe(0.7);
-    expect(retrieved?.maxTokens).toBe(4000);
+    expect(retrieved?.maxTokens).toBe(64000);
   });
 
   it('should unregister an agent', () => {

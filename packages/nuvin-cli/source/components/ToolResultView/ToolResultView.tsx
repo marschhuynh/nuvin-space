@@ -1,6 +1,6 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
-import { type ToolExecutionResult, type ToolCall, ErrorReason } from '@nuvin/nuvin-core';
+import { type ToolExecutionResult, type ToolCall, type MetricsSnapshot, ErrorReason } from '@nuvin/nuvin-core';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import { Markdown } from '@/components/Markdown/index.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
@@ -18,6 +18,7 @@ type ToolResultViewProps = {
   messageContent?: string;
   messageColor?: string;
   fullMode?: boolean;
+  subAgentMetrics?: MetricsSnapshot;
 };
 
 export const ToolResultView: React.FC<ToolResultViewProps> = ({
@@ -27,6 +28,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
   messageContent,
   messageColor,
   fullMode = false,
+  subAgentMetrics,
 }) => {
   const { theme } = useTheme();
   const [cols] = useStdoutDimensions();
@@ -138,12 +140,27 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
 
     // Tool-specific status messages
     switch (toolResult.name) {
-      case 'assign_task':
+      case 'assign_task': {
+        const meta = toolResult.metadata as
+          | { executionTimeMs?: number; toolCallsExecuted?: number; tokensUsed?: number }
+          | undefined;
+        const parts: string[] = [isSuccess ? 'Done' : 'Error'];
+        if (subAgentMetrics) {
+          parts.push(`${subAgentMetrics.llmCallCount} calls`);
+          parts.push(`${subAgentMetrics.totalTokens} tokens`);
+          if (subAgentMetrics.totalCost > 0) parts.push(`$${subAgentMetrics.totalCost.toFixed(4)}`);
+          if (meta?.executionTimeMs) parts.push(`${meta.executionTimeMs}ms`);
+        } else {
+          if (meta?.toolCallsExecuted) parts.push(`${meta.toolCallsExecuted} tools`);
+          if (meta?.tokensUsed) parts.push(`${meta.tokensUsed} tokens`);
+          if (meta?.executionTimeMs) parts.push(`${meta.executionTimeMs}ms`);
+        }
         return {
-          text: isSuccess ? 'Success' : 'Error',
+          text: parts.join(' • '),
           color: statusColor,
           paramText,
         };
+      }
       case 'file_edit':
         return { text: isSuccess ? 'Edited' : 'Edit failed', color: statusColor, paramText };
       case 'file_read': {

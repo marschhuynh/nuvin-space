@@ -87,7 +87,7 @@ export class AgentRegistry {
       systemPrompt: partial.systemPrompt,
       tools,
       temperature: partial.temperature ?? 0.7,
-      maxTokens: partial.maxTokens ?? 4000,
+      maxTokens: partial.maxTokens ?? 64000,
       provider: partial.provider,
       model: partial.model,
       topP: partial.topP,
