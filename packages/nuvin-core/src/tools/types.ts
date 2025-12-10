@@ -1,6 +1,29 @@
-import type { ToolDefinition, ToolExecutionResult, EventPort } from '../ports.js';
+import type { ToolDefinition, EventPort, ErrorReason } from '../ports.js';
 
-export type ExecResult = Omit<ToolExecutionResult, 'id' | 'name'>;
+export type ExecResultSuccess =
+  | {
+      status: 'success';
+      type: 'text';
+      result: string;
+      metadata?: Record<string, unknown>;
+    }
+  | {
+      status: 'success';
+      type: 'json';
+      result: Record<string, unknown> | unknown[];
+      metadata?: Record<string, unknown>;
+    };
+
+export type ExecResultError = {
+  status: 'error';
+  type: 'text';
+  result: string;
+  metadata?: Record<string, unknown> & {
+    errorReason?: ErrorReason;
+  };
+};
+
+export type ExecResult = ExecResultSuccess | ExecResultError;
 
 export type ToolExecutionContext = {
   conversationId?: string;
@@ -13,14 +36,15 @@ export type ToolExecutionContext = {
   signal?: AbortSignal;
 } & Record<string, unknown>;
 
-export interface FunctionTool<P = Record<string, unknown>, C = ToolExecutionContext> {
-  // Identifier and JSON Schema parameters for this tool
+export interface FunctionTool<
+  P = Record<string, unknown>,
+  C = ToolExecutionContext,
+  R extends ExecResult = ExecResult,
+> {
   name: string;
   parameters: object;
 
-  // Full function definition used by LLM providers
   definition(): ToolDefinition['function'];
 
-  // Execute the tool with provider-supplied params
-  execute(params: P, context?: C): Promise<ExecResult> | ExecResult;
+  execute(params: P, context?: C): Promise<R> | R;
 }

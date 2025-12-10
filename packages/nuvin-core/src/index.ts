@@ -55,6 +55,84 @@ export { NoopReminders } from './reminders.js';
 export { ToolRegistry } from './tools.js';
 export { CompositeToolPort } from './tools-composite.js';
 export { BashTool } from './tools/BashTool.js';
+export type {
+  ExecResult,
+  ExecResultSuccess,
+  ExecResultError,
+  FunctionTool,
+  ToolExecutionContext,
+} from './tools/types.js';
+export type { BashResult, BashSuccessResult, BashErrorResult, BashParams } from './tools/BashTool.js';
+
+// Tool parameters (for parsing and type guards)
+export type {
+  BashToolArgs,
+  FileReadArgs,
+  FileEditArgs,
+  FileNewArgs,
+  DirLsArgs,
+  WebSearchArgs,
+  WebFetchArgs,
+  TodoWriteArgs,
+  AssignTaskArgs,
+  ToolArguments,
+} from './tools/tool-params.js';
+export {
+  parseToolArguments,
+  isBashToolArgs,
+  isFileReadArgs,
+  isFileEditArgs,
+  isFileNewArgs,
+  isDirLsArgs,
+  isWebSearchArgs,
+  isWebFetchArgs,
+  isTodoWriteArgs,
+  isAssignTaskArgs,
+} from './tools/tool-params.js';
+export type { FileReadResult, FileReadSuccessResult, FileReadErrorResult, FileReadParams } from './tools/FileReadTool.js';
+export type { FileEditResult, FileEditSuccessResult } from './tools/FileEditTool.js';
+export type { FileNewResult, FileNewSuccessResult, FileNewParams } from './tools/FileNewTool.js';
+export type { DirLsResult, DirLsSuccessResult, DirLsParams, DirEntry } from './tools/DirLsTool.js';
+export type { WebSearchToolResult, WebSearchSuccessResult, WebSearchParams, WebSearchResult } from './tools/WebSearchTool.js';
+export type { WebFetchResult, WebFetchSuccessResult, WebFetchParams } from './tools/WebFetchTool.js';
+export type { TodoWriteResult, TodoWriteSuccessResult } from './tools/TodoWriteTool.js';
+export type { AssignResult, AssignSuccessResult, AssignErrorResult } from './tools/AssignTool.js';
+export type {
+  FileMetadata,
+  LineRangeMetadata,
+  CommandMetadata,
+  ErrorMetadata,
+  DelegationMetadata,
+} from './tools/metadata-types.js';
+export {
+  isSuccess,
+  isError,
+  isTextResult,
+  isJsonResult,
+  isSuccessText,
+  isSuccessJson,
+} from './tools/type-guards.js';
+export {
+  isBashResult,
+  isBashSuccess,
+  isFileReadResult,
+  isFileReadSuccess,
+  isFileEditResult,
+  isFileEditSuccess,
+  isFileNewResult,
+  isFileNewSuccess,
+  isDirLsResult,
+  isDirLsSuccess,
+  isWebSearchResult,
+  isWebSearchSuccess,
+  isWebFetchResult,
+  isWebFetchSuccess,
+  isTodoWriteResult,
+  isTodoWriteSuccess,
+  isAssignResult,
+  isAssignSuccess,
+} from './tools/tool-type-guards.js';
+export { okText, okJson, err } from './tools/result-helpers.js';
 
 // Agent delegation
 export { AgentRegistry } from './agent-registry.js';
@@ -67,6 +145,10 @@ export type {
   SpecialistAgentResult,
   AssignParams,
 } from './agent-types.js';
+
+// Sub-agent types
+export type { SubAgentState, SubAgentToolCall } from './sub-agent-types.js';
+export { parseSubAgentToolCallArguments } from './sub-agent-types.js';
 export {
   DefaultDelegationService,
   DefaultDelegationPolicy,

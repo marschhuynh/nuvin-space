@@ -1,8 +1,30 @@
 import TurndownService from 'turndown';
 import type { ToolDefinition } from '../ports.js';
-import type { FunctionTool, ExecResult, ToolExecutionContext } from './types.js';
+import { ErrorReason } from '../ports.js';
+import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
+import { okText, err } from './result-helpers.js';
 
-export class WebFetchTool implements FunctionTool<{ url: string }, ToolExecutionContext> {
+export type WebFetchParams = {
+  url: string;
+};
+
+export type WebFetchSuccessResult = {
+  status: 'success';
+  type: 'text';
+  result: string;
+  metadata: {
+    url: string;
+    contentType: string;
+    statusCode: number;
+    format: 'markdown' | 'json' | 'text';
+    size: number;
+    fetchedAt: string;
+  };
+};
+
+export type WebFetchResult = WebFetchSuccessResult | ExecResultError;
+
+export class WebFetchTool implements FunctionTool<WebFetchParams, ToolExecutionContext, WebFetchResult> {
   name = 'web_fetch';
   parameters = {
     type: 'object',
@@ -37,15 +59,15 @@ export class WebFetchTool implements FunctionTool<{ url: string }, ToolExecution
     };
   }
 
-  async execute(params: { url: string }, ctx?: ToolExecutionContext): Promise<ExecResult> {
+  async execute(params: WebFetchParams, ctx?: ToolExecutionContext): Promise<WebFetchResult> {
     const target = String(params.url ?? '');
 
     if (!target) {
-      return { status: 'error', type: 'text', result: 'URL parameter is required' };
+      return err('URL parameter is required', undefined, ErrorReason.InvalidInput);
     }
 
     if (ctx?.signal?.aborted) {
-      return { status: 'error', type: 'text', result: 'Fetch aborted by user' };
+      return err('Fetch aborted by user', undefined, ErrorReason.Aborted);
     }
 
     try {
@@ -57,33 +79,43 @@ export class WebFetchTool implements FunctionTool<{ url: string }, ToolExecution
       });
 
       if (!res.ok) {
-        return {
-          status: 'error',
-          type: 'text',
-          result: `HTTP ${res.status} ${res.statusText}`,
-        };
+        return err(`HTTP ${res.status} ${res.statusText}`, { url: target }, ErrorReason.NetworkError);
       }
 
       const contentType = res.headers.get('content-type') || '';
       const text = await res.text();
+      const fetchedAt = new Date().toISOString();
+
+      let finalText: string;
+      let format: 'markdown' | 'json' | 'text';
 
       if (contentType.includes('application/json')) {
-        const markdown = `\`\`\`json\n${text}\n\`\`\``;
-        return { status: 'success', type: 'text', result: markdown };
+        finalText = `\`\`\`json\n${text}\n\`\`\``;
+        format = 'json';
       } else if (contentType.includes('text/html')) {
-        const markdown = this.turndownService.turndown(text);
-        return { status: 'success', type: 'text', result: markdown };
+        finalText = this.turndownService.turndown(text);
+        format = 'markdown';
       } else {
-        return { status: 'success', type: 'text', result: text };
+        finalText = text;
+        format = 'text';
       }
+
+      return okText(finalText, {
+        url: target,
+        contentType,
+        statusCode: res.status,
+        format,
+        size: text.length,
+        fetchedAt,
+      });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const isAborted = errorMessage.includes('aborted') || (error as Error).name === 'AbortError';
-      return {
-        status: 'error',
-        type: 'text',
-        result: isAborted ? 'Fetch aborted by user' : errorMessage,
-      };
+      return err(
+        isAborted ? 'Fetch aborted by user' : errorMessage, 
+        { url: target }, 
+        isAborted ? ErrorReason.Aborted : ErrorReason.NetworkError
+      );
     }
   }
 }

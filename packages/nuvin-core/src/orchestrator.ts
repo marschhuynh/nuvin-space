@@ -586,11 +586,7 @@ export class AgentOrchestrator {
       const toolResultMsgs: Message[] = [];
       for (const tr of toolResults) {
         const contentStr =
-          tr.status === 'error'
-            ? String(tr.result)
-            : typeof tr.result === 'string'
-              ? tr.result
-              : JSON.stringify(tr.result);
+          tr.status === 'error' ? tr.result : tr.type === 'text' ? tr.result : JSON.stringify(tr.result, null, 2);
 
         toolResultMsgs.push({
           id: tr.id,
@@ -623,11 +619,7 @@ export class AgentOrchestrator {
       });
       for (const tr of toolResults) {
         const contentStr =
-          tr.status === 'error'
-            ? String(tr.result)
-            : typeof tr.result === 'string'
-              ? tr.result
-              : JSON.stringify(tr.result);
+          tr.status === 'error' ? tr.result : tr.type === 'text' ? tr.result : JSON.stringify(tr.result, null, 2);
         accumulatedMessages.push({ role: 'tool', content: contentStr, tool_call_id: tr.id, name: tr.name });
       }
 

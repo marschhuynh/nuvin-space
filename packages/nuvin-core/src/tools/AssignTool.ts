@@ -1,13 +1,31 @@
 import type { ToolDefinition } from '../ports.js';
-import type { FunctionTool, ExecResult, ToolExecutionContext } from './types.js';
+import { ErrorReason } from '../ports.js';
+import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
+import { okText, err } from './result-helpers.js';
 import type { AssignParams } from '../agent-types.js';
 import type { DelegationService } from '../delegation/types.js';
-import { ok, err } from './result-helpers.js';
+import type { DelegationMetadata } from './metadata-types.js';
 
-/**
- * AssignTool - delegates tasks to specialist agents
- */
-export class AssignTool implements FunctionTool<AssignParams, ToolExecutionContext> {
+export type AssignSuccessResult = {
+  status: 'success';
+  type: 'text';
+  result: string;
+  metadata: DelegationMetadata;
+};
+
+export type AssignErrorResult = ExecResultError & {
+  metadata?: {
+    agentId?: string;
+    errorReason?: ErrorReason;
+    delegationDepth?: number;
+    policyDenied?: boolean;
+    agentNotFound?: boolean;
+  };
+};
+
+export type AssignResult = AssignSuccessResult | AssignErrorResult;
+
+export class AssignTool implements FunctionTool<AssignParams, ToolExecutionContext, AssignResult> {
   name = 'assign_task';
   parameters = {
     type: 'object',
@@ -57,24 +75,57 @@ ${agentList}`,
   }
 
   /**
-   * Execute task delegation
+   * Delegate a task to a specialist agent for focused execution
+   *
+   * @param params - Agent ID and task description to delegate
+   * @param context - Execution context including delegation depth tracking
+   * @returns Delegation result with comprehensive metrics including cost breakdown
+   *
+   * @example
+   * ```typescript
+   * const result = await assignTool.execute({
+   *   agent: 'code-reviewer',
+   *   task: 'Review the changes in src/tools/*.ts',
+   *   description: 'Code review of tool implementations'
+   * });
+   * if (result.status === 'success' && result.type === 'text') {
+   *   console.log(result.result); // Agent's response
+   *   console.log(result.metadata.metrics?.totalCost); // Cost in USD
+   *   console.log(result.metadata.executionTimeMs); // Duration
+   *   console.log(result.metadata.toolCallsExecuted); // Number of tool calls
+   * }
+   * ```
    */
-  async execute(params: AssignParams, context?: ToolExecutionContext): Promise<ExecResult> {
-    // Validate parameters
+  async execute(params: AssignParams, context?: ToolExecutionContext): Promise<AssignResult> {
     if (!params.agent || typeof params.agent !== 'string') {
-      return err('Parameter "agent" is required and must be a string');
+      return err('Parameter "agent" is required and must be a string', undefined, ErrorReason.InvalidInput);
     }
 
     if (!params.task || typeof params.task !== 'string') {
-      return err('Parameter "task" is required and must be a string');
+      return err('Parameter "task" is required and must be a string', undefined, ErrorReason.InvalidInput);
     }
 
-    // Look up agent template
     const outcome = await this.delegationService.delegate(params, context);
     if (!outcome.success || !outcome.summary) {
-      return err(outcome.error ?? 'Failed to delegate task.');
+      const isNotFound = outcome.error?.includes('not found');
+      const isPolicyDenied = outcome.error?.includes('policy') || outcome.error?.includes('denied');
+      return err(
+        outcome.error ?? 'Failed to delegate task.',
+        {
+          agentId: params.agent,
+          agentNotFound: isNotFound,
+          policyDenied: isPolicyDenied,
+          delegationDepth: context?.delegationDepth,
+        },
+        ErrorReason.Unknown,
+      );
     }
 
-    return ok(outcome.summary, outcome.metadata);
+    const metadata = outcome.metadata as DelegationMetadata;
+    return okText(outcome.summary, {
+      ...metadata,
+      taskDescription: params.task,
+      delegationDepth: (context?.delegationDepth ?? 0) + 1,
+    });
   }
 }

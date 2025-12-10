@@ -1,6 +1,20 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
-import type { ToolCall, ToolExecutionResult } from '@nuvin/nuvin-core';
+import {
+  type ToolCall,
+  type ToolExecutionResult,
+  type SubAgentState,
+  parseToolArguments,
+  isBashToolArgs,
+  isFileReadArgs,
+  isFileEditArgs,
+  isFileNewArgs,
+  isDirLsArgs,
+  isWebSearchArgs,
+  isWebFetchArgs,
+  isTodoWriteArgs,
+  isAssignTaskArgs,
+} from '@nuvin/nuvin-core';
 import type { MessageLine as MessageLineType } from '@/adapters/index.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import { useExplainMode } from '@/contexts/ExplainModeContext.js';
@@ -8,9 +22,6 @@ import { ToolResultView } from './ToolResultView.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import { ToolTimer } from '../ToolTimer.js';
 import { GradientRunText } from '../Gradient.js';
-import type { SubAgentState } from '@/utils/eventProcessor.js';
-
-export type { SubAgentState };
 
 type SubAgentActivityProps = {
   toolCall: ToolCall;
@@ -122,42 +133,52 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
           {subAgentState.toolCalls.map((toolCall) => {
             // Parse arguments if available
             let argsDisplay = '';
+            const detailsDisplay: string | null = null;
+
             if (toolCall.arguments) {
               try {
-                const args =
-                  typeof toolCall.arguments === 'string' ? JSON.parse(toolCall.arguments) : toolCall.arguments;
+                const args = parseToolArguments(toolCall.arguments);
 
-                // Prefer description if available
+                // Build parameter display based on tool type using type guards
                 let relevantValue: string | undefined;
 
+                // Always prefer description if available
                 if (args.description) {
                   relevantValue = args.description;
                 }
-                // For bash/shell tools, show the command
-                else if (args.command) {
-                  relevantValue = args.command;
-                }
-                // For file operations, show the path
-                else if (args.path || args.file_path) {
-                  relevantValue = args.path || args.file_path;
-                }
-                // For search/grep, show the pattern
-                else if (args.pattern) {
-                  relevantValue = `pattern: ${args.pattern}`;
-                }
-                // For other tools, show the first meaningful string parameter
-                else {
-                  const keys = Object.keys(args);
-                  for (const key of keys) {
-                    if (typeof args[key] === 'string' && args[key].length > 0 && key !== 'type') {
-                      relevantValue = args[key];
-                      break;
-                    }
+                // Tool-specific parameter extraction with type safety
+                else if (isBashToolArgs(args)) {
+                  relevantValue = args.cmd;
+                } else if (isFileReadArgs(args)) {
+                  relevantValue = args.path;
+                  if (args.lineStart && args.lineEnd) {
+                    relevantValue += ` (lines ${args.lineStart}-${args.lineEnd})`;
                   }
+                } else if (isFileEditArgs(args)) {
+                  relevantValue = args.file_path;
+                } else if (isFileNewArgs(args)) {
+                  relevantValue = args.file_path;
+                } else if (isDirLsArgs(args)) {
+                  relevantValue = args.path || '.';
+                  if (args.limit) {
+                    relevantValue += ` (limit: ${args.limit})`;
+                  }
+                } else if (isWebSearchArgs(args)) {
+                  relevantValue = args.query;
+                  if (args.count) {
+                    relevantValue += ` (${args.count} results)`;
+                  }
+                } else if (isWebFetchArgs(args)) {
+                  relevantValue = args.url;
+                } else if (isAssignTaskArgs(args)) {
+                  relevantValue = `${args.agent}: ${args.description || args.task.substring(0, 50)}`;
+                } else if (isTodoWriteArgs(args)) {
+                  const todoCount = args.todos.length;
+                  relevantValue = `${todoCount} todos`;
                 }
 
                 if (relevantValue) {
-                  const maxLen = Math.max(40, cols - 25);
+                  const maxLen = Math.max(50, cols - 30);
                   const truncated =
                     relevantValue.length > maxLen ? `${relevantValue.slice(0, maxLen)}...` : relevantValue;
                   argsDisplay = ` "${truncated}"`;
@@ -179,13 +200,22 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
             }
 
             return (
-              <Box key={toolCall.id} flexDirection="row">
-                {statusIcon ? <Text color={statusIconColor}>{statusIcon}</Text> : null}
-                <Text dimColor>
-                  {toolCall.name}
-                  {argsDisplay}
-                  {toolCall.durationMs !== undefined ? ` (${toolCall.durationMs}ms)` : ''}
-                </Text>
+              <Box key={toolCall.id} flexDirection="column">
+                <Box flexDirection="row">
+                  {statusIcon ? <Text color={statusIconColor}>{statusIcon}</Text> : null}
+                  <Text dimColor>
+                    {toolCall.name}
+                    {argsDisplay}
+                    {toolCall.durationMs !== undefined ? ` (${toolCall.durationMs}ms)` : ''}
+                  </Text>
+                </Box>
+                {detailsDisplay && explainMode && (
+                  <Box marginLeft={3}>
+                    <Text dimColor color={theme.colors.textDim}>
+                      {detailsDisplay}
+                    </Text>
+                  </Box>
+                )}
               </Box>
             );
           })}

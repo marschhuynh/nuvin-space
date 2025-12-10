@@ -3,9 +3,10 @@ import * as os from 'node:os';
 import * as fs from 'node:fs';
 import type { ToolDefinition } from '../ports.js';
 import { ErrorReason } from '../ports.js';
-import type { FunctionTool, ExecResult, ToolExecutionContext } from './types.js';
-import { ok, err } from './result-helpers.js';
+import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
+import { okText, err } from './result-helpers.js';
 import { stripAnsiAndControls } from '../string-utils.js';
+import type { CommandMetadata } from './metadata-types.js';
 
 export type BashParams = {
   cmd: string;
@@ -13,13 +14,32 @@ export type BashParams = {
   timeoutMs?: number;
 };
 
+export type BashSuccessResult = {
+  status: 'success';
+  type: 'text';
+  result: string;
+  metadata?: CommandMetadata & {
+    stdout?: string;
+    stderr?: string;
+    stripped?: boolean;
+  };
+};
+
+export type BashErrorResult = ExecResultError & {
+  metadata?: CommandMetadata & {
+    errorReason?: ErrorReason;
+  };
+};
+
+export type BashResult = BashSuccessResult | BashErrorResult;
+
 const DEFAULTS = {
   maxOutputBytes: 1 * 1024 * 1024,
   timeoutMs: 30_000,
   stripAnsi: true,
 };
 
-export class BashTool implements FunctionTool<BashParams, ToolExecutionContext> {
+export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, BashResult> {
   name = 'bash_tool' as const;
 
   parameters = {
@@ -45,7 +65,24 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext> 
     };
   }
 
-  async execute(p: BashParams, ctx?: ToolExecutionContext): Promise<ExecResult> {
+  /**
+   * Execute bash command with timeout protection
+   *
+   * @param p - Command parameters including cmd, cwd, and optional timeout
+   * @param ctx - Execution context with optional abort signal
+   * @returns Structured result with command output and execution metadata
+   *
+   * @example
+   * ```typescript
+   * const result = await bashTool.execute({ cmd: 'ls -la' });
+   * if (result.status === 'success' && result.type === 'text') {
+   *   console.log(result.result); // command output
+   *   console.log(result.metadata?.code); // exit code
+   *   console.log(result.metadata?.cwd); // working directory
+   * }
+   * ```
+   */
+  async execute(p: BashParams, ctx?: ToolExecutionContext): Promise<BashResult> {
     try {
       return await this.execOnce(p, ctx?.signal);
     } catch (e: unknown) {
@@ -57,7 +94,7 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext> 
     }
   }
 
-  private async execOnce(p: BashParams, signal?: AbortSignal): Promise<ExecResult> {
+  private async execOnce(p: BashParams, signal?: AbortSignal): Promise<BashResult> {
     if (signal?.aborted) {
       return err('Command execution aborted by user', undefined, ErrorReason.Aborted);
     }
@@ -176,7 +213,7 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext> 
         return err(output, metadata);
       }
 
-      return ok(output, { code, signal: exitSignal, cwd });
+      return okText(output, { code, signal: exitSignal, cwd, stripped: stripAnsi });
     } catch (e) {
       if (timer) clearTimeout(timer);
       const message = e instanceof Error ? e.message : String(e);

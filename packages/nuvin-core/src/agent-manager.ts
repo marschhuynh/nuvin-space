@@ -47,6 +47,7 @@ export class AgentManager {
         result: 'Sub-agent execution aborted by user',
         metadata: {
           agentId,
+          agentName: config.agentName,
           toolCallsExecuted: 0,
           executionTimeMs: 0,
           errorMessage: 'Aborted before execution',
@@ -62,6 +63,7 @@ export class AgentManager {
         result: `Maximum delegation depth (${MAX_DELEGATION_DEPTH}) exceeded`,
         metadata: {
           agentId,
+          agentName: config.agentName,
           toolCallsExecuted: 0,
           executionTimeMs: Date.now() - startTime,
           errorMessage: 'Max delegation depth exceeded',
@@ -190,6 +192,9 @@ export class AgentManager {
         }
       }
 
+      // Capture final metrics snapshot
+      const snapshot = metricsPort.getSnapshot();
+
       // Emit SubAgentCompleted event
       this.eventCallback?.({
         type: AgentEventTypes.SubAgentCompleted,
@@ -207,11 +212,13 @@ export class AgentManager {
         result: response.content || '',
         metadata: {
           agentId,
+          agentName: config.agentName,
           tokensUsed: totalTokens || response.metadata?.totalTokens,
           toolCallsExecuted,
           executionTimeMs,
           conversationHistory,
           events,
+          metrics: snapshot,
         },
       };
     } catch (error) {
@@ -238,6 +245,7 @@ export class AgentManager {
         result: errorMessage,
         metadata: {
           agentId,
+          agentName: config.agentName,
           toolCallsExecuted: events.filter((e) => e.type === 'tool_calls').length,
           executionTimeMs,
           errorMessage,

@@ -1,5 +1,11 @@
 import * as crypto from 'node:crypto';
-import { AgentEventTypes, ErrorReason, type AgentEvent, type ToolCall, type MetricsSnapshot } from '@nuvin/nuvin-core';
+import {
+  AgentEventTypes,
+  ErrorReason,
+  type AgentEvent,
+  type ToolCall,
+  type SubAgentState,
+} from '@nuvin/nuvin-core';
 import type { MessageLine, LineMetadata } from '@/adapters/index.js';
 import { renderToolCall, flattenError } from './messageProcessor.js';
 import { enrichToolCallsWithLineNumbers } from './enrichToolCalls.js';
@@ -20,24 +26,7 @@ export interface EventProcessorCallbacks {
   streamingEnabled?: boolean;
 }
 
-export type SubAgentState = {
-  agentId: string;
-  agentName: string;
-  status: 'starting' | 'running' | 'completed';
-  toolCalls: Array<{
-    id: string;
-    name: string;
-    arguments?: string;
-    durationMs?: number;
-    status?: 'success' | 'error';
-  }>;
-  resultMessage?: string;
-  totalDurationMs?: number;
-  finalStatus?: 'success' | 'error' | 'timeout';
-  toolCallMessageId?: string;
-  toolCallId?: string;
-  metrics?: MetricsSnapshot;
-};
+export type { SubAgentState };
 
 export type EventProcessorState = {
   toolCallCount: number;

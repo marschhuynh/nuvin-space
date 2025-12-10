@@ -16,13 +16,11 @@ export const parseDetailLines = ({
     result = errorText ? errorText.split(/\r?\n/) : [];
   }
 
-  if (typeof toolResult.result === 'string') {
+  if (toolResult.type === 'text') {
     const cleaned = stripAnsiAndControls(toolResult.result);
     const trimmed = cleaned.trim();
     result = trimmed ? trimmed.split(/\r?\n/) : [];
-  }
-
-  if (toolResult.result && typeof toolResult.result === 'object') {
+  } else if (toolResult.type === 'json') {
     result = JSON.stringify(toolResult.result, null, 2).split(/\r?\n/);
   }
 

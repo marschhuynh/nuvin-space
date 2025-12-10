@@ -24,7 +24,9 @@ interface MCPContent {
   text?: string;
 }
 
-function flattenMcpContent(content: MCPContent[] | undefined): { type: 'text' | 'json'; value: string | object } {
+function flattenMcpContent(
+  content: MCPContent[] | undefined,
+): { type: 'text'; value: string } | { type: 'json'; value: Record<string, unknown> | unknown[] } {
   if (!content || content.length === 0) return { type: 'text', value: '' };
   const allText = content.every((c) => c && c.type === 'text' && typeof c.text === 'string');
   if (allText) return { type: 'text', value: content.map((c) => c.text).join('\n') };
@@ -121,7 +123,11 @@ export class MCPToolPort implements ToolPort {
           try {
             const res = await this.client.callTool({ name: original, arguments: c.parameters || {} });
             const flat = flattenMcpContent((res as MCPToolCallResponse).content);
-            return { id: c.id, name: c.name, status: 'success', type: flat.type, result: flat.value };
+            if (flat.type === 'text') {
+              return { id: c.id, name: c.name, status: 'success' as const, type: 'text' as const, result: flat.value };
+            } else {
+              return { id: c.id, name: c.name, status: 'success' as const, type: 'json' as const, result: flat.value };
+            }
           } catch (err: unknown) {
             const message = err instanceof Error ? err.message : String(err);
             return { id: c.id, name: c.name, status: 'error', type: 'text', result: message };

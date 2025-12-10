@@ -1,5 +1,7 @@
 import type { ToolDefinition } from '../ports.js';
-import type { FunctionTool, ExecResult, ToolExecutionContext } from './types.js';
+import { ErrorReason } from '../ports.js';
+import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
+import { okJson, err } from './result-helpers.js';
 
 /**
  * WebSearchTool — Google Programmable Search Engine (CSE) ONLY
@@ -29,12 +31,36 @@ export interface WebSearchResult {
   snippet?: string;
   displayUrl?: string;
   favicon?: string;
-  publishedAt?: string; // ISO if discoverable via pagemap.metatags
+  publishedAt?: string;
   source: {
     engine: 'google-cse';
-    rank: number; // 1-based within this response
+    rank: number;
   };
 }
+
+export type WebSearchSuccessResult = {
+  status: 'success';
+  type: 'json';
+  result: {
+    engine: 'google-cse';
+    count: number;
+    items: WebSearchResult[];
+    query: string;
+    appliedFilters?: {
+      domains?: string[];
+      recencyDays?: number;
+      lang?: string;
+      region?: string;
+    };
+  };
+  metadata?: {
+    offset: number;
+    totalRequested: number;
+    hydrated: boolean;
+  };
+};
+
+export type WebSearchToolResult = WebSearchSuccessResult | ExecResultError;
 
 // ------------------------- Helpers -----------------------------------------
 
@@ -287,7 +313,7 @@ class GoogleCseProvider implements Provider {
 
 // ------------------------- Tool --------------------------------------------
 
-export class WebSearchTool implements FunctionTool<WebSearchParams, ToolExecutionContext> {
+export class WebSearchTool implements FunctionTool<WebSearchParams, ToolExecutionContext, WebSearchToolResult> {
   name = 'web_search' as const;
 
   parameters = {
@@ -322,21 +348,35 @@ export class WebSearchTool implements FunctionTool<WebSearchParams, ToolExecutio
 
   private provider: Provider = new GoogleCseProvider();
 
-  async execute(params: WebSearchParams, ctx?: ToolExecutionContext): Promise<ExecResult> {
+  /**
+   * Execute web search using Google Programmable Search Engine
+   *
+   * @param params - Search query and optional filters (domains, recency, language, region)
+   * @param ctx - Execution context with optional abort signal
+   * @returns Structured JSON with search results including title, URL, snippet, and metadata
+   *
+   * @example
+   * ```typescript
+   * const result = await webSearchTool.execute({
+   *   query: 'TypeScript discriminated unions',
+   *   count: 10,
+   *   lang: 'en'
+   * });
+   * if (result.status === 'success' && result.type === 'json') {
+   *   console.log(result.result.count); // number of results
+   *   result.result.items.forEach(item => {
+   *     console.log(`${item.title}: ${item.url}`);
+   *   });
+   * }
+   * ```
+   */
+  async execute(params: WebSearchParams, ctx?: ToolExecutionContext): Promise<WebSearchToolResult> {
     if (ctx?.signal?.aborted) {
-      return {
-        type: 'text',
-        status: 'error',
-        result: 'Search aborted by user',
-      };
+      return err('Search aborted by user', undefined, ErrorReason.Aborted);
     }
     const query = typeof params.query === 'string' ? params.query : '';
     if (!query) {
-      return {
-        type: 'text',
-        status: 'error',
-        result: 'Missing required parameter: query',
-      };
+      return err('Missing required parameter: query', undefined, ErrorReason.InvalidInput);
     }
 
     const p: Required<WebSearchParams> = {
@@ -353,15 +393,11 @@ export class WebSearchTool implements FunctionTool<WebSearchParams, ToolExecutio
     };
 
     if (!p.query) {
-      return { status: 'error', type: 'text', result: "Missing 'query'" };
+      return err("Missing 'query'", undefined, ErrorReason.InvalidInput);
     }
 
     if (!process.env.GOOGLE_CSE_KEY || !process.env.GOOGLE_CSE_CX) {
-      return {
-        status: 'error',
-        type: 'text',
-        result: 'GOOGLE_CSE_KEY and GOOGLE_CSE_CX are required for this tool (Google CSE only).',
-      };
+      return err('GOOGLE_CSE_KEY and GOOGLE_CSE_CX are required for this tool (Google CSE only).', undefined, ErrorReason.InvalidInput);
     }
 
     try {
@@ -381,23 +417,31 @@ export class WebSearchTool implements FunctionTool<WebSearchParams, ToolExecutio
         })
         .slice(0, p.count);
 
-      return {
-        status: 'success',
-        type: 'json',
-        result: {
-          engine: this.provider.name,
-          count: results.length,
-          items: results,
-        },
-      };
+      const appliedFilters: WebSearchSuccessResult['result']['appliedFilters'] = {};
+      if (p.domains.length > 0) appliedFilters.domains = p.domains;
+      if (p.recencyDays > 0) appliedFilters.recencyDays = p.recencyDays;
+      if (p.lang && p.lang !== 'en') appliedFilters.lang = p.lang;
+      if (p.region) appliedFilters.region = p.region;
+
+      return okJson({
+        engine: this.provider.name as 'google-cse',
+        count: results.length,
+        items: results,
+        query: p.query,
+        appliedFilters: Object.keys(appliedFilters).length > 0 ? appliedFilters : undefined,
+      }, {
+        offset: p.offset,
+        totalRequested: p.count,
+        hydrated: p.hydrateMeta,
+      });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       const isAborted = message.includes('aborted by user');
-      return {
-        status: 'error',
-        type: 'text',
-        result: isAborted ? 'Search aborted by user' : message.slice(0, 500),
-      };
+      return err(
+        isAborted ? 'Search aborted by user' : message.slice(0, 500), 
+        undefined, 
+        isAborted ? ErrorReason.Aborted : ErrorReason.Unknown
+      );
     }
   }
 }

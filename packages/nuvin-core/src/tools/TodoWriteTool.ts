@@ -1,5 +1,7 @@
 import type { ToolDefinition } from '../ports.js';
-import type { FunctionTool, ExecResult, ToolExecutionContext } from './types.js';
+import { ErrorReason } from '../ports.js';
+import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
+import { okText, err } from './result-helpers.js';
 import type { TodoStore, TodoItem as StoreTodo } from '../todo-store.js';
 
 type TodoWriteParams = {
@@ -12,7 +14,27 @@ type TodoWriteParams = {
   }>;
 };
 
-export class TodoWriteTool implements FunctionTool<TodoWriteParams, ToolExecutionContext> {
+export type TodoWriteSuccessResult = {
+  status: 'success';
+  type: 'text';
+  result: string;
+  metadata: {
+    recentChanges: boolean;
+    stats: {
+      total: number;
+      pending: number;
+      inProgress: number;
+      completed: number;
+    };
+    progress: string;
+    allCompleted: boolean;
+    conversationId: string;
+  };
+};
+
+export type TodoWriteResult = TodoWriteSuccessResult | ExecResultError;
+
+export class TodoWriteTool implements FunctionTool<TodoWriteParams, ToolExecutionContext, TodoWriteResult> {
   name = 'todo_write';
   parameters = {
     type: 'object',
@@ -99,36 +121,35 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
     };
   }
 
-  async execute(params: TodoWriteParams, context?: ToolExecutionContext): Promise<ExecResult> {
+  async execute(params: TodoWriteParams, context?: ToolExecutionContext): Promise<TodoWriteResult> {
     const todos = params?.todos;
     const ctx = context;
     if (!Array.isArray(todos) || todos.length === 0) {
-      return { status: 'error', type: 'text', result: 'Parameter "todos" must be a non-empty array' };
+      return err('Parameter "todos" must be a non-empty array', undefined, ErrorReason.InvalidInput);
     }
 
-    // Validate items
     for (let i = 0; i < todos.length; i++) {
       const t = todos[i];
       if (!t) continue;
 
       if (!t.content || typeof t.content !== 'string' || !t.content.trim()) {
-        return { status: 'error', type: 'text', result: `Todo ${i + 1}: content required` };
+        return err(`Todo ${i + 1}: content required`, undefined, ErrorReason.InvalidInput);
       }
       if (!['pending', 'in_progress', 'completed'].includes(String(t.status))) {
-        return { status: 'error', type: 'text', result: `Todo ${i + 1}: invalid status` };
+        return err(`Todo ${i + 1}: invalid status`, undefined, ErrorReason.InvalidInput);
       }
       if (!['high', 'medium', 'low'].includes(String(t.priority))) {
-        return { status: 'error', type: 'text', result: `Todo ${i + 1}: invalid priority` };
+        return err(`Todo ${i + 1}: invalid priority`, undefined, ErrorReason.InvalidInput);
       }
       if (!t.id || typeof t.id !== 'string' || !t.id.trim()) {
-        return { status: 'error', type: 'text', result: `Todo ${i + 1}: id required` };
+        return err(`Todo ${i + 1}: id required`, undefined, ErrorReason.InvalidInput);
       }
     }
 
     const ids = todos.map((t) => t.id);
     const unique = new Set(ids);
     if (unique.size !== ids.length) {
-      return { status: 'error', type: 'text', result: 'Todo items must have unique IDs' };
+      return err('Todo items must have unique IDs', undefined, ErrorReason.InvalidInput);
     }
 
     const conversationId = ctx?.sessionId || ctx?.conversationId || 'default';
@@ -172,16 +193,12 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
       ? `All ${items.length} todo items have been completed successfully!\n\n<system-reminder>\nAll todo items are now completed! Ask about next steps. Completed list:\n[${serialized}].\n</system-reminder>`
       : `Todos have been modified successfully. Continue with current tasks if applicable.\n\n<system-reminder>\nYour todo list has changed. DO NOT mention this explicitly to the user. Latest contents:\n[${serialized}].\n</system-reminder>`;
 
-    return {
-      status: 'success',
-      type: 'text',
-      result: systemReminder,
-      metadata: {
-        recentChanges: true,
-        stats,
-        progress: `${progress}%`,
-        allCompleted,
-      },
-    };
+    return okText(systemReminder, {
+      recentChanges: true,
+      stats,
+      progress: `${progress}%`,
+      allCompleted,
+      conversationId,
+    });
   }
 }

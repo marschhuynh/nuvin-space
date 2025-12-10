@@ -1,14 +1,12 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import type { ToolDefinition } from '../ports.js';
-import type { FunctionTool, ExecResult, ToolExecutionContext } from './types.js';
-import { ok, err } from './result-helpers.js';
+import { ErrorReason } from '../ports.js';
+import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
+import { okJson, err } from './result-helpers.js';
 
 export type DirLsParams = {
-  /** Directory path relative to workspace root. Defaults to current directory if not provided. */
   path?: string;
-
-  /** Maximum number of entries to return. Default: 1000 */
   limit?: number;
 };
 
@@ -29,7 +27,24 @@ export type DirEntry = {
   lineCount?: number;
 };
 
-export class DirLsTool implements FunctionTool<DirLsParams, ToolExecutionContext> {
+export type DirLsSuccessResult = {
+  status: 'success';
+  type: 'json';
+  result: {
+    path: string;
+    entries: DirEntry[];
+    truncated: boolean;
+    total: number;
+  };
+  metadata?: {
+    limit: number;
+    includeHidden: boolean;
+  };
+};
+
+export type DirLsResult = DirLsSuccessResult | ExecResultError;
+
+export class DirLsTool implements FunctionTool<DirLsParams, ToolExecutionContext, DirLsResult> {
   name = 'dir_ls' as const;
 
   private readonly rootDir: string;
@@ -61,7 +76,7 @@ export class DirLsTool implements FunctionTool<DirLsParams, ToolExecutionContext
       name: this.name,
       description: [
         'List files and directories in a specified directory.',
-        'Returns entries sorted alphabetically by name in ls -la format.',
+        'Returns entries sorted alphabetically by name as structured JSON.',
         '',
         'Typical uses:',
         '1) List all files in current directory',
@@ -98,7 +113,26 @@ export class DirLsTool implements FunctionTool<DirLsParams, ToolExecutionContext
     }
   }
 
-  async execute(params: DirLsParams, context?: ToolExecutionContext): Promise<ExecResult> {
+  /**
+   * List directory contents as structured JSON
+   *
+   * @param params - Directory path and optional limit
+   * @param context - Execution context with optional workspace directory
+   * @returns Structured JSON with directory entries including name, type, size, and metadata
+   *
+   * @example
+   * ```typescript
+   * const result = await dirLsTool.execute({ path: 'src/tools', limit: 50 });
+   * if (result.status === 'success' && result.type === 'json') {
+   *   console.log(result.result.path); // 'src/tools'
+   *   console.log(result.result.total); // number of entries
+   *   result.result.entries.forEach(entry => {
+   *     console.log(`${entry.name} (${entry.type}): ${entry.size} bytes`);
+   *   });
+   * }
+   * ```
+   */
+  async execute(params: DirLsParams, context?: ToolExecutionContext): Promise<DirLsResult> {
     try {
       const targetPath = params.path ?? '.';
       const includeHidden = true;
@@ -108,10 +142,10 @@ export class DirLsTool implements FunctionTool<DirLsParams, ToolExecutionContext
 
       const st = await fs.stat(abs).catch(() => null);
       if (!st) {
-        return err(`Directory not found: ${targetPath}`);
+        return err(`Directory not found: ${targetPath}`, undefined, ErrorReason.NotFound);
       }
       if (!st.isDirectory()) {
-        return err(`Path is not a directory: ${targetPath}`);
+        return err(`Path is not a directory: ${targetPath}`, undefined, ErrorReason.InvalidInput);
       }
 
       const entries = await fs.readdir(abs);
@@ -160,48 +194,23 @@ export class DirLsTool implements FunctionTool<DirLsParams, ToolExecutionContext
 
       results.sort((a, b) => a.name.localeCompare(b.name));
 
-      const lines = results.map((entry) => this.formatAsLsLine(entry));
-      const output = lines.join('\n');
-
-      return ok(output);
+      const result: DirLsSuccessResult = okJson(
+        {
+          path: targetPath,
+          entries: results,
+          truncated: entries.length > limit,
+          total: results.length,
+        },
+        {
+          limit,
+          includeHidden,
+        },
+      );
+      return result;
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      return err(message);
+      return err(message, undefined, ErrorReason.Unknown);
     }
-  }
-
-  private formatAsLsLine(entry: DirEntry): string {
-    const mode = entry.mode ? this.formatMode(entry.mode) : '----------';
-    const size = entry.size !== undefined ? entry.size.toString().padStart(10) : '         0';
-
-    const date = entry.mtime ? new Date(entry.mtime) : new Date();
-    const month = date.toLocaleString('en-US', { month: 'short' });
-    const day = date.getDate().toString().padStart(2);
-    const time = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-    const dateStr = `${month} ${day} ${time}`;
-
-    const typeIndicator = entry.type === 'directory' ? '/' : entry.type === 'symlink' ? '@' : '';
-    const name = `${entry.name}${typeIndicator}`;
-
-    return `${mode} ${size} ${dateStr} ${name}`;
-  }
-
-  private formatMode(mode: number): string {
-    const fileType = (mode & 0o170000) === 0o040000 ? 'd' : (mode & 0o170000) === 0o120000 ? 'l' : '-';
-
-    const perms = [
-      mode & 0o400 ? 'r' : '-',
-      mode & 0o200 ? 'w' : '-',
-      mode & 0o100 ? 'x' : '-',
-      mode & 0o040 ? 'r' : '-',
-      mode & 0o020 ? 'w' : '-',
-      mode & 0o010 ? 'x' : '-',
-      mode & 0o004 ? 'r' : '-',
-      mode & 0o002 ? 'w' : '-',
-      mode & 0o001 ? 'x' : '-',
-    ];
-
-    return fileType + perms.join('');
   }
 
   private resolveSafePath(target: string, context?: ToolExecutionContext): string {

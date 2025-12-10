@@ -1,6 +1,20 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
-import { type ToolExecutionResult, type ToolCall, type MetricsSnapshot, ErrorReason } from '@nuvin/nuvin-core';
+import {
+  type ToolExecutionResult,
+  type ToolCall,
+  type MetricsSnapshot,
+  ErrorReason,
+  isBashSuccess,
+  isFileReadSuccess,
+  isFileEditSuccess,
+  isFileNewSuccess,
+  isDirLsSuccess,
+  isWebSearchSuccess,
+  isWebFetchSuccess,
+  isTodoWriteSuccess,
+  isAssignSuccess,
+} from '@nuvin/nuvin-core';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import { Markdown } from '@/components/Markdown/index.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
@@ -141,60 +155,103 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
     // Tool-specific status messages
     switch (toolResult.name) {
       case 'assign_task': {
-        const meta = toolResult.metadata as
-          | { executionTimeMs?: number; toolCallsExecuted?: number; tokensUsed?: number }
-          | undefined;
-        const parts: string[] = [isSuccess ? 'Done' : 'Error'];
-        if (subAgentMetrics) {
-          parts.push(`${subAgentMetrics.llmCallCount} calls`);
-          parts.push(`${subAgentMetrics.totalTokens} tokens`);
-          if (subAgentMetrics.totalCost > 0) parts.push(`$${subAgentMetrics.totalCost.toFixed(4)}`);
-          if (meta?.executionTimeMs) parts.push(`${meta.executionTimeMs}ms`);
-        } else {
-          if (meta?.toolCallsExecuted) parts.push(`${meta.toolCallsExecuted} tools`);
-          if (meta?.tokensUsed) parts.push(`${meta.tokensUsed} tokens`);
-          if (meta?.executionTimeMs) parts.push(`${meta.executionTimeMs}ms`);
+        if (isAssignSuccess(toolResult)) {
+          const parts: string[] = ['Done'];
+          if (subAgentMetrics) {
+            parts.push(`${subAgentMetrics.llmCallCount} calls`);
+            parts.push(`${subAgentMetrics.totalTokens} tokens`);
+            if (subAgentMetrics.totalCost > 0) parts.push(`$${subAgentMetrics.totalCost.toFixed(4)}`);
+            if (toolResult.metadata.executionTimeMs) parts.push(`${toolResult.metadata.executionTimeMs}ms`);
+          } else {
+            if (toolResult.metadata.toolCallsExecuted) parts.push(`${toolResult.metadata.toolCallsExecuted} tools`);
+            if (toolResult.metadata.tokensUsed) parts.push(`${toolResult.metadata.tokensUsed} tokens`);
+            if (toolResult.metadata.executionTimeMs) parts.push(`${toolResult.metadata.executionTimeMs}ms`);
+          }
+          return {
+            text: parts.join(' • '),
+            color: statusColor,
+            paramText,
+          };
         }
         return {
-          text: parts.join(' • '),
+          text: 'Error',
           color: statusColor,
           paramText,
         };
       }
-      case 'file_edit':
-        return { text: isSuccess ? 'Edited' : 'Edit failed', color: statusColor, paramText };
+      case 'file_edit': {
+        if (isFileEditSuccess(toolResult)) {
+          const bytesWritten = toolResult.metadata?.bytesWritten;
+          const text = bytesWritten ? `Edited (${bytesWritten} bytes)` : 'Edited';
+          return { text, color: statusColor, paramText };
+        }
+        return { text: 'Edit failed', color: statusColor, paramText };
+      }
       case 'file_read': {
-        if (isSuccess) {
-          const fileContent = typeof toolResult.result === 'string' ? toolResult.result : '';
-          const lineCount = fileContent.split(/\r?\n/).length;
+        if (isFileReadSuccess(toolResult)) {
+          const lineCount = toolResult.result.split(/\r?\n/).length;
           return { text: `Read ${lineCount} lines`, color: statusColor, paramText };
         }
         return { text: 'Read failed', color: statusColor, paramText };
       }
-      case 'file_new':
-        return { text: isSuccess ? 'Created' : 'Creation failed', color: statusColor, paramText };
-      case 'bash_tool':
-        return { text: isSuccess ? 'Executed' : 'Execution failed', color: statusColor, paramText };
-      case 'web_fetch':
-        return { text: isSuccess ? 'Fetched' : 'Fetch failed', color: statusColor, paramText };
-      case 'web_search':
+      case 'file_new': {
+        if (isFileNewSuccess(toolResult)) {
+          const bytes = toolResult.metadata.bytes;
+          const text = `Created (${bytes} bytes)`;
+          return { text, color: statusColor, paramText };
+        }
+        return { text: 'Creation failed', color: statusColor, paramText };
+      }
+      case 'bash_tool': {
+        if (isBashSuccess(toolResult)) {
+          const code = toolResult.metadata?.code;
+          const text = code !== undefined ? `Executed (exit ${code})` : 'Executed';
+          return { text, color: statusColor, paramText };
+        }
+        return { text: 'Execution failed', color: statusColor, paramText };
+      }
+      case 'web_fetch': {
+        if (isWebFetchSuccess(toolResult)) {
+          const size = toolResult.metadata.size;
+          const statusCode = toolResult.metadata.statusCode;
+          const text = `Fetched (${statusCode}, ${size} bytes)`;
+          return { text, color: statusColor, paramText };
+        }
+        return { text: 'Fetch failed', color: statusColor, paramText };
+      }
+      case 'web_search': {
+        if (isWebSearchSuccess(toolResult)) {
+          const count = toolResult.result.count;
+          const text = `Searched (${count} results)`;
+          return { text, color: statusColor, paramText };
+        }
+        return { text: 'Search failed', color: statusColor, paramText };
+      }
+      case 'todo_write': {
+        if (isTodoWriteSuccess(toolResult)) {
+          const stats = toolResult.metadata.stats;
+          const progress = toolResult.metadata.progress;
+          const text = `Updated (${stats.completed}/${stats.total} - ${progress})`;
+          return {
+            text,
+            color: statusColor,
+            paramText,
+            statusPosition: 'bottom',
+          };
+        }
         return {
-          text: isSuccess ? 'Searched' : 'Search failed',
-          color: statusColor,
-          paramText,
-        };
-      case 'todo_write':
-        return {
-          text: isSuccess ? 'Updated' : 'Update failed',
+          text: 'Update failed',
           color: statusColor,
           paramText,
           statusPosition: 'bottom',
         };
+      }
       case 'dir_ls': {
-        if (isSuccess) {
-          const dirContent = typeof toolResult.result === 'string' ? toolResult.result : '';
-          const entryCount = dirContent.split(/\r?\n/).filter((line) => line.trim()).length;
-          return { text: `Listed ${entryCount} entries`, color: statusColor, paramText };
+        if (isDirLsSuccess(toolResult)) {
+          const entryCount = toolResult.result.entries.length;
+          const truncated = toolResult.result.truncated ? ' (truncated)' : '';
+          const text = `Listed ${entryCount} entries${truncated}`;
+          return { text, color: statusColor, paramText };
         }
         return { text: 'Listing failed', color: statusColor, paramText };
       }
@@ -206,13 +263,12 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
   const renderContent = () => {
     switch (toolResult.name) {
       case 'assign_task': {
-        let resultStr =
-          typeof toolResult.result === 'string' ? toolResult.result : JSON.stringify(toolResult.result, null, 2);
-
-        // Replace escaped newlines with actual newlines
-        resultStr = resultStr.replace(/\\n/g, '\n');
-
-        return <Markdown maxWidth={cols - 12}>{resultStr}</Markdown>;
+        if (isAssignSuccess(toolResult)) {
+          const resultStr = toolResult.result.replace(/\\n/g, '\n');
+          return <Markdown maxWidth={cols - 12}>{resultStr}</Markdown>;
+        }
+        const errorStr = toolResult.type === 'text' ? toolResult.result : JSON.stringify(toolResult.result, null, 2);
+        return <Markdown maxWidth={cols - 12}>{errorStr}</Markdown>;
       }
       case 'todo_write':
         return <TodoWriteRenderer toolResult={toolResult} messageId={messageId} fullMode={fullMode} />;

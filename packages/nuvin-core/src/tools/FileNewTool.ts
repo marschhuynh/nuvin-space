@@ -1,17 +1,30 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import type { ToolDefinition } from '../ports.js';
-import type { FunctionTool, ExecResult, ToolExecutionContext } from './types.js';
-import { ok, err } from './result-helpers.js';
+import { ErrorReason } from '../ports.js';
+import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
+import { okText, err } from './result-helpers.js';
 
 export type FileNewParams = {
-  /** Target path (workspace-relative). */
   file_path: string;
-  /** File content as UTF-8 text. */
   content: string;
 };
 
-export class FileNewTool implements FunctionTool<FileNewParams, ToolExecutionContext> {
+export type FileNewSuccessResult = {
+  status: 'success';
+  type: 'text';
+  result: string;
+  metadata: {
+    file_path: string;
+    bytes: number;
+    created: string;
+    overwritten?: boolean;
+  };
+};
+
+export type FileNewResult = FileNewSuccessResult | ExecResultError;
+
+export class FileNewTool implements FunctionTool<FileNewParams, ToolExecutionContext, FileNewResult> {
   name = 'file_new' as const;
   private readonly rootDir: string;
 
@@ -38,24 +51,29 @@ export class FileNewTool implements FunctionTool<FileNewParams, ToolExecutionCon
     };
   }
 
-  async execute(p: FileNewParams, ctx?: ToolExecutionContext): Promise<ExecResult> {
+  async execute(p: FileNewParams, ctx?: ToolExecutionContext): Promise<FileNewResult> {
     try {
-      if (!p.file_path?.trim()) return err('Parameter "file_path" is required.');
-      if (typeof p.content !== 'string') return err('"content" must be a string.');
+      if (!p.file_path?.trim()) return err('Parameter "file_path" is required.', undefined, ErrorReason.InvalidInput);
+      if (typeof p.content !== 'string') return err('"content" must be a string.', undefined, ErrorReason.InvalidInput);
 
       const abs = this.resolveSafePath(p.file_path, ctx);
 
-      // Ensure parent directories exist
+      const existsBefore = await fs.stat(abs).then(() => true).catch(() => false);
+
       await fs.mkdir(path.dirname(abs), { recursive: true });
 
-      // Write UTF-8 text
       const bytes = Buffer.from(p.content, 'utf8');
       await this.writeAtomic(abs, bytes);
 
-      return ok(`File written at ${p.file_path}.`, { file_path: p.file_path, bytes: bytes.length });
+      return okText(`File written at ${p.file_path}.`, { 
+        file_path: p.file_path, 
+        bytes: bytes.length,
+        created: new Date().toISOString(),
+        overwritten: existsBefore,
+      });
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      return err(message);
+      return err(message, undefined, ErrorReason.Unknown);
     }
   }
 

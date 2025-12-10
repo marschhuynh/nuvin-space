@@ -1,4 +1,4 @@
-import type { AgentEvent, Message } from './ports.js';
+import type { AgentEvent, Message, MetricsSnapshot } from './ports.js';
 
 /**
  * Agent Template - defines a pre-configured specialist agent
@@ -71,12 +71,14 @@ export type SpecialistAgentResult = {
   result: string;
   metadata: {
     agentId: string;
+    agentName: string;
     tokensUsed?: number;
     toolCallsExecuted: number;
     executionTimeMs: number;
     conversationHistory?: Message[];
     events?: AgentEvent[];
     errorMessage?: string;
+    metrics?: MetricsSnapshot;
   };
 };
 

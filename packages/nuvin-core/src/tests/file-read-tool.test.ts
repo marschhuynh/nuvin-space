@@ -63,9 +63,9 @@ describe('FileReadTool', () => {
 
       expect(result.status).toBe('success');
       expect(result.result).toBe('3│Line 3\n4│Line 4\n5│Line 5');
-      expect(result.metadata?.lineStart).toBe(3);
-      expect(result.metadata?.lineEnd).toBe(5);
-      expect(result.metadata?.linesTotal).toBe(10);
+      expect(result.metadata?.lineRange?.lineStart).toBe(3);
+      expect(result.metadata?.lineRange?.lineEnd).toBe(5);
+      expect(result.metadata?.lineRange?.linesTotal).toBe(10);
     });
 
     it('should read from start when only lineEnd specified', async () => {
@@ -76,8 +76,8 @@ describe('FileReadTool', () => {
 
       expect(result.status).toBe('success');
       expect(result.result).toBe('1│Line 1\n2│Line 2\n3│Line 3');
-      expect(result.metadata?.lineStart).toBe(1);
-      expect(result.metadata?.lineEnd).toBe(3);
+      expect(result.metadata?.lineRange?.lineStart).toBe(1);
+      expect(result.metadata?.lineRange?.lineEnd).toBe(3);
     });
 
     it('should read to end when only lineStart specified', async () => {
@@ -88,8 +88,8 @@ describe('FileReadTool', () => {
 
       expect(result.status).toBe('success');
       expect(result.result).toBe('8│Line 8\n9│Line 9\n10│Line 10');
-      expect(result.metadata?.lineStart).toBe(8);
-      expect(result.metadata?.lineEnd).toBe(10);
+      expect(result.metadata?.lineRange?.lineStart).toBe(8);
+      expect(result.metadata?.lineRange?.lineEnd).toBe(10);
     });
 
     it('should handle reversed line ranges', async () => {
@@ -111,7 +111,7 @@ describe('FileReadTool', () => {
       });
 
       expect(result.status).toBe('success');
-      expect(result.metadata?.lineEnd).toBe(10);
+      expect(result.metadata?.lineRange?.lineEnd).toBe(10);
     });
 
     it('should handle single line read', async () => {

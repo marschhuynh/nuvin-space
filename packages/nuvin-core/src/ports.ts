@@ -214,17 +214,36 @@ export enum ErrorReason {
   Unknown = 'unknown',
 }
 
-export type ToolExecutionResult = {
-  id: string;
-  name: string;
-  status: 'success' | 'error';
-  type: 'text' | 'json';
-  result: string | object;
-  metadata?: Record<string, unknown> & {
-    errorReason?: ErrorReason;
-  };
-  durationMs?: number;
-};
+export type ToolExecutionResult =
+  | {
+      id: string;
+      name: string;
+      status: 'success';
+      type: 'text';
+      result: string;
+      metadata?: Record<string, unknown>;
+      durationMs?: number;
+    }
+  | {
+      id: string;
+      name: string;
+      status: 'success';
+      type: 'json';
+      result: Record<string, unknown> | unknown[];
+      metadata?: Record<string, unknown>;
+      durationMs?: number;
+    }
+  | {
+      id: string;
+      name: string;
+      status: 'error';
+      type: 'text';
+      result: string;
+      metadata?: Record<string, unknown> & {
+        errorReason?: ErrorReason;
+      };
+      durationMs?: number;
+    };
 
 export interface ToolPort {
   getToolDefinitions(enabledTools: string[]): ToolDefinition[];

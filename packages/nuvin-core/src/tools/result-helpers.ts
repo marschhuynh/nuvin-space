@@ -1,21 +1,28 @@
-import type { ExecResult } from './types.js';
+import type { ExecResultError } from './types.js';
 import type { ErrorReason } from '../ports.js';
 
-/**
- * Creates a successful execution result
- */
-export function ok(result: string | object, metadata?: Record<string, unknown>): ExecResult {
+export function okText<M extends Record<string, unknown> = Record<string, unknown>>(
+  result: string, 
+  metadata: M
+): { status: 'success'; type: 'text'; result: string; metadata: M } {
   return { status: 'success', type: 'text', result, metadata };
 }
 
-/**
- * Creates an error execution result with optional error reason
- */
+export function okJson<
+  T extends Record<string, unknown> | unknown[],
+  M extends Record<string, unknown> = Record<string, unknown>
+>(
+  result: T,
+  metadata?: M
+): { status: 'success'; type: 'json'; result: T; metadata?: M } {
+  return { status: 'success', type: 'json', result, metadata };
+}
+
 export function err(
-  result: string | object,
+  result: string,
   metadata?: Record<string, unknown>,
-  errorReason?: ErrorReason,
-): ExecResult {
+  errorReason?: ErrorReason
+): ExecResultError {
   const finalMetadata = errorReason ? { ...metadata, errorReason } : metadata;
   return { status: 'error', type: 'text', result, metadata: finalMetadata };
 }

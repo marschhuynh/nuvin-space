@@ -1,14 +1,36 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import type { ToolDefinition } from '../ports.js';
-import type { FunctionTool, ExecResult, ToolExecutionContext } from './types.js';
-import { ok, err } from './result-helpers.js';
+import { ErrorReason } from '../ports.js';
+import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
+import { okText, err } from './result-helpers.js';
+import type { FileMetadata, LineRangeMetadata } from './metadata-types.js';
 
 export type FileReadParams = {
   path: string;
   lineStart?: number;
   lineEnd?: number;
 };
+
+export type FileReadSuccessResult = {
+  status: 'success';
+  type: 'text';
+  result: string;
+  metadata?: FileMetadata & {
+    lineRange?: LineRangeMetadata;
+    encoding?: string;
+    bomStripped?: boolean;
+  };
+};
+
+export type FileReadErrorResult = ExecResultError & {
+  metadata?: {
+    path?: string;
+    errorReason?: ErrorReason;
+  };
+};
+
+export type FileReadResult = FileReadSuccessResult | FileReadErrorResult;
 
 type FileReadToolOptions = {
   /** Workspace root for safe path resolution. Defaults to context.workspaceRoot or process.cwd(). */
@@ -24,7 +46,7 @@ type FileReadToolOptions = {
   allowAbsolute?: boolean;
 };
 
-export class FileReadTool implements FunctionTool<FileReadParams, ToolExecutionContext> {
+export class FileReadTool implements FunctionTool<FileReadParams, ToolExecutionContext, FileReadResult> {
   name = 'file_read' as const;
 
   private readonly rootDir: string;
@@ -61,28 +83,49 @@ export class FileReadTool implements FunctionTool<FileReadParams, ToolExecutionC
     };
   }
 
-  async execute(params: FileReadParams, context?: ToolExecutionContext): Promise<ExecResult> {
+  /**
+   * Read file contents with optional line range selection
+   *
+   * @param params - File path and optional line range (lineStart, lineEnd)
+   * @param context - Execution context with optional workspace directory
+   * @returns File content as text with metadata including path, size, and line range
+   *
+   * @example
+   * ```typescript
+   * const result = await fileReadTool.execute({ path: 'package.json' });
+   * if (result.status === 'success' && result.type === 'text') {
+   *   console.log(result.result); // file contents
+   *   console.log(result.metadata?.path); // resolved file path
+   *   console.log(result.metadata?.size); // file size in bytes
+   * }
+   * ```
+   */
+  async execute(params: FileReadParams, context?: ToolExecutionContext): Promise<FileReadResult> {
     try {
       if (!params.path || typeof params.path !== 'string') {
-        return err('Parameter "path" must be a non-empty string');
+        return err('Parameter "path" must be a non-empty string', undefined, ErrorReason.InvalidInput);
       }
 
       const abs = this.resolveSafePath(params.path, context);
       const st = await fs.stat(abs).catch(() => null);
-      if (!st || !st.isFile()) return err(`File not found: ${params.path}`);
+      if (!st || !st.isFile()) return err(`File not found: ${params.path}`, { path: params.path }, ErrorReason.NotFound);
 
       if (st.size > this.maxBytesHard) {
-        return err(`File too large (${st.size} bytes). Hard cap is ${this.maxBytesHard} bytes.`);
+        return err(`File too large (${st.size} bytes). Hard cap is ${this.maxBytesHard} bytes.`, { path: params.path }, ErrorReason.InvalidInput);
       }
 
       const payload = await fs.readFile(abs);
       let text = payload.toString('utf8');
+      const bomStripped = text.charCodeAt(0) === 0xfeff;
       text = stripUtfBom(text);
 
-      const metadata = {
+      const metadata: FileMetadata & { lineRange?: LineRangeMetadata; encoding?: string; bomStripped?: boolean } = {
         path: params.path,
         created: st.birthtime.toISOString(),
         modified: st.mtime.toISOString(),
+        size: st.size,
+        encoding: 'utf8',
+        bomStripped,
       };
 
       if (params.lineStart || params.lineEnd) {
@@ -98,18 +141,20 @@ export class FileReadTool implements FunctionTool<FileReadParams, ToolExecutionC
         });
         const slice = numberedLines.join('\n');
 
-        return ok(slice, {
+        return okText(slice, {
           ...metadata,
-          linesTotal: totalLines,
-          lineStart: lo,
-          lineEnd: hi,
+          lineRange: {
+            lineStart: lo,
+            lineEnd: hi,
+            linesTotal: totalLines,
+          },
         });
       }
 
-      return ok(text, metadata);
+      return okText(text, metadata);
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      return err(message);
+      return err(message, { path: params.path }, ErrorReason.Unknown);
     }
   }
 

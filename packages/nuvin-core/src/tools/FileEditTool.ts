@@ -3,10 +3,38 @@ import * as path from 'path';
 import * as os from 'os';
 import * as crypto from 'crypto';
 import type { ToolDefinition } from '../ports.js';
-import type { FunctionTool, ExecResult, ToolExecutionContext } from './types.js';
-import { ok, err } from './result-helpers.js';
+import { ErrorReason } from '../ports.js';
+import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
+import { okText, err } from './result-helpers.js';
+import type { FileMetadata } from './metadata-types.js';
 
-export class FileEditTool implements FunctionTool<FileWriteOrEditParams, ToolExecutionContext> {
+export type FileEditSuccessResult = {
+  status: 'success';
+  type: 'text';
+  result: string;
+  metadata: FileMetadata & {
+    eol: 'lf' | 'crlf';
+    oldTextLength: number;
+    newTextLength: number;
+    bytesWritten: number;
+    beforeSha: string;
+    afterSha: string;
+    dryRun: boolean;
+    lineNumbers: {
+      oldStartLine: number;
+      oldEndLine: number;
+      newStartLine: number;
+      newEndLine: number;
+      oldLineCount: number;
+      newLineCount: number;
+    };
+    noChange?: boolean;
+  };
+};
+
+export type FileEditResult = FileEditSuccessResult | ExecResultError;
+
+export class FileEditTool implements FunctionTool<FileWriteOrEditParams, ToolExecutionContext, FileEditResult> {
   name = 'file_edit' as const;
 
   private readonly rootDir: string;
@@ -66,29 +94,27 @@ export class FileEditTool implements FunctionTool<FileWriteOrEditParams, ToolExe
     };
   }
 
-  async execute(p: FileWriteOrEditParams, ctx?: ToolExecutionContext): Promise<ExecResult> {
+  async execute(p: FileWriteOrEditParams, ctx?: ToolExecutionContext): Promise<FileEditResult> {
     try {
-      // Validate inputs
-      if (!p.file_path?.trim()) return err('Parameter "file_path" is required.');
+      if (!p.file_path?.trim()) return err('Parameter "file_path" is required.', undefined, ErrorReason.InvalidInput);
       const abs = resolveAbsoluteWithinRoot(p.file_path, ctx, this.rootDir);
 
       if (typeof p.old_text !== 'string') {
-        return err('old_text must be a string.');
+        return err('old_text must be a string.', undefined, ErrorReason.InvalidInput);
       }
       if (typeof p.new_text !== 'string') {
-        return err('new_text must be a string.');
+        return err('new_text must be a string.', undefined, ErrorReason.InvalidInput);
       }
 
-      // Load existing file
       const st = await fs.stat(abs).catch(() => null);
       const exists = !!st && st.isFile();
 
       if (!exists || !st) {
-        return err('File does not exist. Use a file creation tool to create new files.');
+        return err('File does not exist. Use a file creation tool to create new files.', undefined, ErrorReason.NotFound);
       }
 
       if (st.size > this.maxBytes) {
-        return err(`File too large (${st.size} bytes). Cap is ${this.maxBytes}.`);
+        return err(`File too large (${st.size} bytes). Cap is ${this.maxBytes}.`, undefined, ErrorReason.InvalidInput);
       }
 
       const originalBytes = await fs.readFile(abs);
@@ -96,28 +122,26 @@ export class FileEditTool implements FunctionTool<FileWriteOrEditParams, ToolExe
       const originalText = originalBytes.toString('utf8');
       const originalLF = normalizeToLF(originalText);
 
-      // Normalize search and replace text to LF
       const oldTextLF = normalizeToLF(p.old_text);
       const newTextLF = normalizeToLF(p.new_text);
 
-      // Find the old text
       const idx = originalLF.indexOf(oldTextLF);
       if (idx === -1) {
         const preview = oldTextLF.slice(0, 100).replace(/\n/g, '\\n');
         return err(
           `old_text not found in file. Make sure it matches exactly including whitespace.\nSearching for: "${preview}${oldTextLF.length > 100 ? '...' : ''}"`,
+          undefined,
+          ErrorReason.NotFound
         );
       }
 
-      // Apply replacement
       const resultLF = originalLF.slice(0, idx) + newTextLF + originalLF.slice(idx + oldTextLF.length);
 
-      // Convert back to original EOL style
       const finalText = convertEol(resultLF, originalEol);
       const finalBytes = Buffer.from(finalText, 'utf8');
 
       if (finalBytes.length > this.maxBytes) {
-        return err(`Resulting file too large (${finalBytes.length} bytes). Cap is ${this.maxBytes}.`);
+        return err(`Resulting file too large (${finalBytes.length} bytes). Cap is ${this.maxBytes}.`, undefined, ErrorReason.InvalidInput);
       }
 
       const beforeSha = sha256(originalBytes);
@@ -130,7 +154,7 @@ export class FileEditTool implements FunctionTool<FileWriteOrEditParams, ToolExe
 
       const lineNumbers = this.calculateLineNumbers(originalLF, oldTextLF, newTextLF, idx);
 
-      return ok(
+      return okText(
         noChange
           ? 'No changes (content identical).'
           : p.dry_run
@@ -138,6 +162,9 @@ export class FileEditTool implements FunctionTool<FileWriteOrEditParams, ToolExe
             : 'Edit applied successfully.',
         {
           path: showPath(abs, this.rootDir),
+          created: st.birthtime.toISOString(),
+          modified: st.mtime.toISOString(),
+          size: st.size,
           eol: originalEol,
           oldTextLength: oldTextLF.length,
           newTextLength: newTextLF.length,
@@ -146,10 +173,11 @@ export class FileEditTool implements FunctionTool<FileWriteOrEditParams, ToolExe
           afterSha,
           dryRun: !!p.dry_run,
           lineNumbers,
+          noChange,
         },
       );
     } catch (e: unknown) {
-      return err(e instanceof Error ? e.message : String(e));
+      return err(e instanceof Error ? e.message : String(e), undefined, ErrorReason.Unknown);
     }
   }
 

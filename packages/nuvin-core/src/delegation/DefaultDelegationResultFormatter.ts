@@ -7,10 +7,12 @@ export class DefaultDelegationResultFormatter implements DelegationResultFormatt
       summary: result.result,
       metadata: {
         agentId: agentId,
+        agentName: result.metadata.agentName,
         status: result.status,
         executionTimeMs: result.metadata.executionTimeMs,
         toolCallsExecuted: result.metadata.toolCallsExecuted,
         tokensUsed: result.metadata.tokensUsed,
+        metrics: result.metadata.metrics,
       },
     };
   }
