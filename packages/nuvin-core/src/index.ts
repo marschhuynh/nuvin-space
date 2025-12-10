@@ -89,6 +89,26 @@ export {
   isTodoWriteArgs,
   isAssignTaskArgs,
 } from './tools/tool-params.js';
+export type { ToolParameterMap, ToolName, TypedToolInvocation } from './tools/tool-params.js';
+export type { ParseResult } from './tools/tool-call-parser.js';
+export { parseJSON } from './tools/tool-call-parser.js';
+export type { ValidationResult, ToolValidator } from './tools/tool-validators.js';
+export { toolValidators } from './tools/tool-validators.js';
+export type { ToolCallValidation } from './tools/tool-call-converter.js';
+export { convertToolCall, convertToolCalls } from './tools/tool-call-converter.js';
+export type {
+  BashToolMetadata,
+  FileReadMetadata,
+  FileEditMetadata,
+  FileNewMetadata,
+  DirLsMetadata,
+  WebSearchMetadata,
+  WebFetchMetadata,
+  TodoWriteMetadata,
+  AssignTaskMetadata,
+  ToolErrorMetadata,
+  ToolMetadataMap,
+} from './tools/tool-result-metadata.js';
 export type { FileReadResult, FileReadSuccessResult, FileReadErrorResult, FileReadParams } from './tools/FileReadTool.js';
 export type { FileEditResult, FileEditSuccessResult } from './tools/FileEditTool.js';
 export type { FileNewResult, FileNewSuccessResult, FileNewParams } from './tools/FileNewTool.js';

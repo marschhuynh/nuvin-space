@@ -17,7 +17,8 @@ export const parseDetailLines = ({
   }
 
   if (toolResult.type === 'text') {
-    const cleaned = stripAnsiAndControls(toolResult.result);
+    const textResult = toolResult.result as string;
+    const cleaned = stripAnsiAndControls(textResult);
     const trimmed = cleaned.trim();
     result = trimmed ? trimmed.split(/\r?\n/) : [];
   } else if (toolResult.type === 'json') {

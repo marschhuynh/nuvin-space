@@ -1,6 +1,6 @@
 ---
-'@nuvin/nuvin-core': major
-'@nuvin/nuvin-cli': major
+'@nuvin/nuvin-core': minor
+'@nuvin/nuvin-cli': minor
 ---
 
 # Tool Typing Refactor - Complete Implementation
@@ -21,7 +21,7 @@ type ToolExecutionResult = {
 }
 
 // After
-type ToolExecutionResult = 
+type ToolExecutionResult =
   | { status: 'success'; type: 'text'; result: string; ... }
   | { status: 'success'; type: 'json'; result: Record<string, unknown> | unknown[]; ... }
   | { status: 'error'; type: 'text'; result: string; ... }
@@ -143,7 +143,7 @@ if (isAssignSuccess(result)) {
 ### CLI Enhancements
 
 - Enhanced status messages with rich metadata display:
-  - `bash_tool "npm test" (exit 0)` 
+  - `bash_tool "npm test" (exit 0)`
   - `file_new "package.json" (1234 bytes)`
   - `web_fetch "https://example.com" (200, 15234 bytes)`
   - `todo_write "Updated (3/5 - 60%)"`

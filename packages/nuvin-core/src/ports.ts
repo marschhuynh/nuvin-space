@@ -1,5 +1,28 @@
 // Core ports and types for the agent orchestrator. Self-contained.
 import type { AgentRegistry } from './agent-registry.js';
+import type {
+  BashToolArgs,
+  FileReadArgs,
+  FileEditArgs,
+  FileNewArgs,
+  DirLsArgs,
+  WebSearchArgs,
+  WebFetchArgs,
+  TodoWriteArgs,
+  AssignTaskArgs,
+} from './tools/tool-params.js';
+import type {
+  BashToolMetadata,
+  FileReadMetadata,
+  FileEditMetadata,
+  FileNewMetadata,
+  DirLsMetadata,
+  WebSearchMetadata,
+  WebFetchMetadata,
+  TodoWriteMetadata,
+  AssignTaskMetadata,
+  ToolErrorMetadata,
+} from './tools/tool-result-metadata.js';
 
 // Provider-side types
 export type ToolCall = {
@@ -199,7 +222,17 @@ export type ToolDefinition = {
   function: { name: string; description: string; parameters: object };
 };
 
-export type ToolInvocation = { id: string; name: string; parameters: Record<string, unknown> };
+export type ToolInvocation =
+  | { id: string; name: 'bash_tool'; parameters: BashToolArgs }
+  | { id: string; name: 'file_read'; parameters: FileReadArgs }
+  | { id: string; name: 'file_edit'; parameters: FileEditArgs }
+  | { id: string; name: 'file_new'; parameters: FileNewArgs }
+  | { id: string; name: 'dir_ls'; parameters: DirLsArgs }
+  | { id: string; name: 'web_search'; parameters: WebSearchArgs }
+  | { id: string; name: 'web_fetch'; parameters: WebFetchArgs }
+  | { id: string; name: 'todo_write'; parameters: TodoWriteArgs }
+  | { id: string; name: 'assign_task'; parameters: AssignTaskArgs }
+  | { id: string; name: string; parameters: Record<string, unknown> };
 
 export enum ErrorReason {
   Aborted = 'aborted',
@@ -217,19 +250,91 @@ export enum ErrorReason {
 export type ToolExecutionResult =
   | {
       id: string;
-      name: string;
+      name: 'bash_tool';
       status: 'success';
       type: 'text';
       result: string;
-      metadata?: Record<string, unknown>;
+      metadata?: BashToolMetadata;
+      durationMs?: number;
+    }
+  | {
+      id: string;
+      name: 'file_read';
+      status: 'success';
+      type: 'text';
+      result: string;
+      metadata?: FileReadMetadata;
+      durationMs?: number;
+    }
+  | {
+      id: string;
+      name: 'file_edit';
+      status: 'success';
+      type: 'text';
+      result: string;
+      metadata?: FileEditMetadata;
+      durationMs?: number;
+    }
+  | {
+      id: string;
+      name: 'file_new';
+      status: 'success';
+      type: 'text';
+      result: string;
+      metadata?: FileNewMetadata;
+      durationMs?: number;
+    }
+  | {
+      id: string;
+      name: 'dir_ls';
+      status: 'success';
+      type: 'text';
+      result: string;
+      metadata?: DirLsMetadata;
+      durationMs?: number;
+    }
+  | {
+      id: string;
+      name: 'web_search';
+      status: 'success';
+      type: 'json';
+      result: Record<string, unknown> | unknown[];
+      metadata?: WebSearchMetadata;
+      durationMs?: number;
+    }
+  | {
+      id: string;
+      name: 'web_fetch';
+      status: 'success';
+      type: 'text';
+      result: string;
+      metadata?: WebFetchMetadata;
+      durationMs?: number;
+    }
+  | {
+      id: string;
+      name: 'todo_write';
+      status: 'success';
+      type: 'text';
+      result: string;
+      metadata?: TodoWriteMetadata;
+      durationMs?: number;
+    }
+  | {
+      id: string;
+      name: 'assign_task';
+      status: 'success';
+      type: 'text';
+      result: string;
+      metadata: AssignTaskMetadata;
       durationMs?: number;
     }
   | {
       id: string;
       name: string;
       status: 'success';
-      type: 'json';
-      result: Record<string, unknown> | unknown[];
+      type: 'text' | 'json';
+      result: string | Record<string, unknown> | unknown[];
       metadata?: Record<string, unknown>;
       durationMs?: number;
     }
@@ -239,9 +344,7 @@ export type ToolExecutionResult =
       status: 'error';
       type: 'text';
       result: string;
-      metadata?: Record<string, unknown> & {
-        errorReason?: ErrorReason;
-      };
+      metadata?: ToolErrorMetadata;
       durationMs?: number;
     };
 
@@ -359,6 +462,7 @@ export type AgentConfig = {
   maxToolConcurrency?: number;
   requireToolApproval?: boolean;
   reasoningEffort?: string;
+  strictToolValidation?: boolean;
 };
 
 // Eventing for orchestrator external communication

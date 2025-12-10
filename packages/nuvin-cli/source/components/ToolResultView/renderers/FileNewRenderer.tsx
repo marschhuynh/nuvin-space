@@ -54,7 +54,7 @@ export const FileNewRenderer: React.FC<FileNewRendererProps> = ({ toolResult, to
   const linesWithNumbers = addLineNumbers(fileContent);
 
   return (
-    <Box flexDirection="column" width={cols - 10} backgroundColor={'greenBright'}>
+    <Box flexDirection="column" width={cols - 10}>
       {linesWithNumbers.map((line) => (
         <Box key={`${line.lineNumber}-${line.content.slice(0, 20)}`}>
           <Text dimColor>{line.lineNumber}</Text>

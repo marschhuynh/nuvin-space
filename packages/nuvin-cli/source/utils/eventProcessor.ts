@@ -1,11 +1,5 @@
 import * as crypto from 'node:crypto';
-import {
-  AgentEventTypes,
-  ErrorReason,
-  type AgentEvent,
-  type ToolCall,
-  type SubAgentState,
-} from '@nuvin/nuvin-core';
+import { AgentEventTypes, ErrorReason, type AgentEvent, type ToolCall, type SubAgentState } from '@nuvin/nuvin-core';
 import type { MessageLine, LineMetadata } from '@/adapters/index.js';
 import { renderToolCall, flattenError } from './messageProcessor.js';
 import { enrichToolCallsWithLineNumbers } from './enrichToolCalls.js';
@@ -126,7 +120,7 @@ export function processAgentEvent(
 
     case AgentEventTypes.ToolResult: {
       const tool = event.result;
-      const errorReason = tool.metadata?.errorReason;
+      const errorReason = tool.status === 'error' ? tool.metadata?.errorReason : undefined;
 
       // Use metadata to determine tool execution state
       const isAborted = errorReason === ErrorReason.Aborted;

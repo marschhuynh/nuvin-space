@@ -5,15 +5,7 @@ import {
   type ToolExecutionResult,
   type SubAgentState,
   parseToolArguments,
-  isBashToolArgs,
-  isFileReadArgs,
-  isFileEditArgs,
-  isFileNewArgs,
-  isDirLsArgs,
-  isWebSearchArgs,
-  isWebFetchArgs,
-  isTodoWriteArgs,
-  isAssignTaskArgs,
+  type ToolArguments,
 } from '@nuvin/nuvin-core';
 import type { MessageLine as MessageLineType } from '@/adapters/index.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
@@ -28,6 +20,98 @@ type SubAgentActivityProps = {
   subAgentState: SubAgentState;
   toolResult?: MessageLineType;
   messageId: string;
+};
+
+/**
+ * Extract the most relevant parameter for display based on tool name
+ */
+const extractRelevantParameter = (toolName: string, args: ToolArguments): string | undefined => {
+  // Always prefer description if available
+  if ('description' in args && args.description) {
+    return args.description;
+  }
+
+  // Tool-specific parameter extraction using discriminated union by name
+  switch (toolName) {
+    case 'bash_tool':
+      if ('cmd' in args) return args.cmd;
+      break;
+
+    case 'file_read':
+      if ('path' in args) {
+        let value = args.path;
+        if ('lineStart' in args && 'lineEnd' in args && args.lineStart && args.lineEnd) {
+          value += ` (lines ${args.lineStart}-${args.lineEnd})`;
+        }
+        return value;
+      }
+      break;
+
+    case 'file_edit':
+    case 'file_new':
+      if ('file_path' in args) return args.file_path;
+      break;
+
+    case 'dir_ls':
+      if ('path' in args) {
+        let value = args.path || '.';
+        if ('limit' in args && args.limit) {
+          value += ` (limit: ${args.limit})`;
+        }
+        return value;
+      }
+      return '.';
+
+    case 'web_search':
+      if ('query' in args) {
+        let value = args.query;
+        if ('count' in args && args.count) {
+          value += ` (${args.count} results)`;
+        }
+        return value;
+      }
+      break;
+
+    case 'web_fetch':
+      if ('url' in args) return args.url;
+      break;
+
+    case 'assign_task':
+      if ('agent' in args && 'task' in args) {
+        const taskDisplay = 'description' in args && args.description ? args.description : args.task.substring(0, 50);
+        return `${args.agent}: ${taskDisplay}`;
+      }
+      break;
+
+    case 'todo_write':
+      if ('todos' in args && Array.isArray(args.todos)) {
+        // Check for status changes to show specific item updates
+        const completedItems = args.todos.filter((todo) => todo.status === 'completed');
+        const inProgressItems = args.todos.filter((todo) => todo.status === 'in_progress');
+
+        if (completedItems.length === 1 && args.todos.length > 1) {
+          // Show specific item completion
+          const completedItem = completedItems[0];
+          return `${completedItem.content} => Done`;
+        } else if (inProgressItems.length === 1 && args.todos.length > 1) {
+          // Show specific item started
+          const inProgressItem = inProgressItems[0];
+          return `${inProgressItem.content} => In Progress`;
+        }
+
+        return `${args.todos.length} todos`;
+      }
+      break;
+
+    default:
+      // For unknown tools, try to find a meaningful parameter
+      if ('name' in args && typeof args.name === 'string') return args.name;
+      if ('id' in args && typeof args.id === 'string') return args.id;
+      if ('value' in args && typeof args.value === 'string') return args.value;
+      break;
+  }
+
+  return undefined;
 };
 
 /**
@@ -138,50 +222,13 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
             if (toolCall.arguments) {
               try {
                 const args = parseToolArguments(toolCall.arguments);
-
-                // Build parameter display based on tool type using type guards
-                let relevantValue: string | undefined;
-
-                // Always prefer description if available
-                if (args.description) {
-                  relevantValue = args.description;
-                }
-                // Tool-specific parameter extraction with type safety
-                else if (isBashToolArgs(args)) {
-                  relevantValue = args.cmd;
-                } else if (isFileReadArgs(args)) {
-                  relevantValue = args.path;
-                  if (args.lineStart && args.lineEnd) {
-                    relevantValue += ` (lines ${args.lineStart}-${args.lineEnd})`;
-                  }
-                } else if (isFileEditArgs(args)) {
-                  relevantValue = args.file_path;
-                } else if (isFileNewArgs(args)) {
-                  relevantValue = args.file_path;
-                } else if (isDirLsArgs(args)) {
-                  relevantValue = args.path || '.';
-                  if (args.limit) {
-                    relevantValue += ` (limit: ${args.limit})`;
-                  }
-                } else if (isWebSearchArgs(args)) {
-                  relevantValue = args.query;
-                  if (args.count) {
-                    relevantValue += ` (${args.count} results)`;
-                  }
-                } else if (isWebFetchArgs(args)) {
-                  relevantValue = args.url;
-                } else if (isAssignTaskArgs(args)) {
-                  relevantValue = `${args.agent}: ${args.description || args.task.substring(0, 50)}`;
-                } else if (isTodoWriteArgs(args)) {
-                  const todoCount = args.todos.length;
-                  relevantValue = `${todoCount} todos`;
-                }
+                const relevantValue = extractRelevantParameter(toolCall.name, args);
 
                 if (relevantValue) {
                   const maxLen = Math.max(50, cols - 30);
                   const truncated =
                     relevantValue.length > maxLen ? `${relevantValue.slice(0, maxLen)}...` : relevantValue;
-                  argsDisplay = ` "${truncated}"`;
+                  argsDisplay = ` ${truncated}`;
                 }
               } catch {
                 // Ignore parse errors
@@ -206,7 +253,7 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
                   <Text dimColor>
                     {toolCall.name}
                     {argsDisplay}
-                    {toolCall.durationMs !== undefined ? ` (${toolCall.durationMs}ms)` : ''}
+                    {toolCall.durationMs !== undefined && explainMode ? ` (${toolCall.durationMs}ms)` : ''}
                   </Text>
                 </Box>
                 {detailsDisplay && explainMode && (

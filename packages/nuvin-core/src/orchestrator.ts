@@ -36,6 +36,7 @@ import { SimpleCost } from './cost.js';
 import { NoopReminders } from './reminders.js';
 import { SimpleContextBuilder } from './context.js';
 import { NoopEventPort } from './events.js';
+import { convertToolCalls } from './tools/tool-call-converter.js';
 
 type AssistantChunkEvent = Extract<AgentEvent, { type: typeof AgentEventTypes.AssistantChunk }>;
 type AssistantMessageEvent = Extract<AgentEvent, { type: typeof AgentEventTypes.AssistantMessage }>;
@@ -585,8 +586,14 @@ export class AgentOrchestrator {
 
       const toolResultMsgs: Message[] = [];
       for (const tr of toolResults) {
-        const contentStr =
-          tr.status === 'error' ? tr.result : tr.type === 'text' ? tr.result : JSON.stringify(tr.result, null, 2);
+        let contentStr: string;
+        if (tr.status === 'error') {
+          contentStr = tr.result as string;
+        } else if (tr.type === 'text') {
+          contentStr = tr.result as string;
+        } else {
+          contentStr = JSON.stringify(tr.result, null, 2);
+        }
 
         toolResultMsgs.push({
           id: tr.id,
@@ -618,8 +625,14 @@ export class AgentOrchestrator {
         tool_calls: approvedCalls,
       });
       for (const tr of toolResults) {
-        const contentStr =
-          tr.status === 'error' ? tr.result : tr.type === 'text' ? tr.result : JSON.stringify(tr.result, null, 2);
+        let contentStr: string;
+        if (tr.status === 'error') {
+          contentStr = tr.result as string;
+        } else if (tr.type === 'text') {
+          contentStr = tr.result as string;
+        } else {
+          contentStr = JSON.stringify(tr.result, null, 2);
+        }
         accumulatedMessages.push({ role: 'tool', content: contentStr, tool_call_id: tr.id, name: tr.name });
       }
 
@@ -785,14 +798,9 @@ export class AgentOrchestrator {
   }
 
   private toInvocations(toolCalls: ToolCall[]): ToolInvocation[] {
-    return toolCalls.map((tc) => {
-      let parameters: Record<string, unknown> = {};
-      try {
-        parameters = JSON.parse(tc.function.arguments || '{}') as Record<string, unknown>;
-      } catch {
-        parameters = {};
-      }
-      return { id: tc.id, name: tc.function.name, parameters };
+    return convertToolCalls(toolCalls, {
+      strict: this.cfg.strictToolValidation ?? false,
+      throwOnError: true,
     });
   }
 }

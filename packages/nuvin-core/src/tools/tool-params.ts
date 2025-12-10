@@ -1,7 +1,7 @@
 /**
  * Type definitions for tool call arguments/parameters
  * These types represent the parameters passed to each tool
- * 
+ *
  * These are useful for:
  * - Type-safe tool call argument parsing
  * - UI rendering of tool calls with proper parameter display
@@ -151,3 +151,23 @@ export function isDirLsArgs(args: ToolArguments): args is DirLsArgs {
     !('content' in args)
   );
 }
+
+export type ToolParameterMap = {
+  bash_tool: BashToolArgs;
+  file_read: FileReadArgs;
+  file_edit: FileEditArgs;
+  file_new: FileNewArgs;
+  dir_ls: DirLsArgs;
+  web_search: WebSearchArgs;
+  web_fetch: WebFetchArgs;
+  todo_write: TodoWriteArgs;
+  assign_task: AssignTaskArgs;
+};
+
+export type ToolName = keyof ToolParameterMap;
+
+export type TypedToolInvocation<T extends ToolName = ToolName> = {
+  id: string;
+  name: T;
+  parameters: ToolParameterMap[T];
+};

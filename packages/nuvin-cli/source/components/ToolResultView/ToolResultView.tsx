@@ -74,7 +74,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
 
   const getStatusMessage = () => {
     const isSuccess = toolResult.status === 'success';
-    const errorReason = toolResult.metadata?.errorReason;
+    const errorReason = toolResult.status === 'error' ? toolResult.metadata?.errorReason : undefined;
 
     const keyParam = getKeyParam();
     const paramText = keyParam ?? '';
@@ -221,7 +221,8 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       }
       case 'web_search': {
         if (isWebSearchSuccess(toolResult)) {
-          const count = toolResult.result.count;
+          const resultObj = toolResult.result as { count: number };
+          const count = resultObj.count;
           const text = `Searched (${count} results)`;
           return { text, color: statusColor, paramText };
         }
@@ -248,8 +249,9 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       }
       case 'dir_ls': {
         if (isDirLsSuccess(toolResult)) {
-          const entryCount = toolResult.result.entries.length;
-          const truncated = toolResult.result.truncated ? ' (truncated)' : '';
+          const resultObj = toolResult.result as { entries: unknown[]; truncated?: boolean };
+          const entryCount = resultObj.entries.length;
+          const truncated = resultObj.truncated ? ' (truncated)' : '';
           const text = `Listed ${entryCount} entries${truncated}`;
           return { text, color: statusColor, paramText };
         }
@@ -264,10 +266,11 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
     switch (toolResult.name) {
       case 'assign_task': {
         if (isAssignSuccess(toolResult)) {
-          const resultStr = toolResult.result.replace(/\\n/g, '\n');
+          const resultStr = (toolResult.result as string).replace(/\\n/g, '\n');
           return <Markdown maxWidth={cols - 12}>{resultStr}</Markdown>;
         }
-        const errorStr = toolResult.type === 'text' ? toolResult.result : JSON.stringify(toolResult.result, null, 2);
+        const errorStr =
+          toolResult.type === 'text' ? (toolResult.result as string) : JSON.stringify(toolResult.result, null, 2);
         return <Markdown maxWidth={cols - 12}>{errorStr}</Markdown>;
       }
       case 'todo_write':
