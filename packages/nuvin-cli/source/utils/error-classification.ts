@@ -1,7 +1,19 @@
+/**
+ * @deprecated This module is deprecated. Use error classification from @nuvin/nuvin-core instead.
+ * 
+ * Import from nuvin-core:
+ * ```typescript
+ * import { isRetryableError, isRetryableStatusCode, LLMError } from '@nuvin/nuvin-core';
+ * ```
+ */
+
 import { LLMError } from '@nuvin/nuvin-core';
 
 export { LLMError };
 
+/**
+ * @deprecated Use isRetryableError from @nuvin/nuvin-core instead
+ */
 export function isRetryableError(error: unknown): boolean {
   if (!error) return false;
 
@@ -60,6 +72,9 @@ export function isRetryableError(error: unknown): boolean {
   return true;
 }
 
+/**
+ * @deprecated This function is no longer needed. RetryTransport handles this internally.
+ */
 export function shouldStopRetrying(error: unknown, attempt: number, maxRetries: number): boolean {
   if (attempt >= maxRetries) return true;
 

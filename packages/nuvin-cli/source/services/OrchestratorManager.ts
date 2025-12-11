@@ -40,7 +40,6 @@ import { UIEventAdapter, type MessageLine, type LineMetadata } from '@/adapters/
 import { prompt } from '@/prompt.js';
 import type { ProviderKey } from '@/config/providers.js';
 import { MCPServerManager } from './MCPServerManager.js';
-import { withRetry, AbortError } from '@/utils/retry-utils.js';
 import { eventBus } from './EventBus.js';
 import { ConfigManager } from '@/config/manager.js';
 import { getProviderAuth } from '@/config/utils.js';
@@ -825,148 +824,25 @@ export class OrchestratorManager {
 
     const conversationId = opts.conversationId ?? this.conversationContext.getActiveConversationId();
 
-    try {
-      const result = await withRetry(
-        async () => {
-          return this.orchestrator?.send(content, {
-            ...opts,
-            conversationId,
-          });
-        },
-        {
-          maxRetries: 10,
-          delayMs: 10000,
-          signal: opts.signal,
-          onRetry: (attempt, error, remainingSeconds) => {
-            eventBus.emit('ui:line', {
-              id: crypto.randomUUID(),
-              type: 'system',
-              content: `Request failed (attempt ${attempt}/${10}). Retrying in ${remainingSeconds}s... Error: ${error.message}`,
-              metadata: { timestamp: new Date().toISOString() },
-              color: 'yellow',
-            });
-          },
-          onNonRetryable: (error) => {
-            eventBus.emit('ui:line', {
-              id: crypto.randomUUID(),
-              type: 'system',
-              content: `Request failed with error: ${error.message}`,
-              metadata: { timestamp: new Date().toISOString() },
-              color: 'red',
-            });
-          },
-        },
-      );
+    const result = await this.orchestrator.send(content, {
+      ...opts,
+      conversationId,
+    });
 
-      if (result && this.conversationStore) {
-        await this.updateConversationMetadataAfterSend(conversationId, {
-          promptTokens: result.metadata?.promptTokens,
-          completionTokens: result.metadata?.completionTokens,
-          totalTokens: result.metadata?.totalTokens,
-          toolCalls: result.metadata?.toolCalls,
-          responseTimeMs: result.metadata?.responseTime,
-          cost: result.metadata?.estimatedCost ?? undefined,
-        });
+    if (result && this.conversationStore) {
+      await this.updateConversationMetadataAfterSend(conversationId, {
+        promptTokens: result.metadata?.promptTokens,
+        completionTokens: result.metadata?.completionTokens,
+        totalTokens: result.metadata?.totalTokens,
+        toolCalls: result.metadata?.toolCalls,
+        responseTimeMs: result.metadata?.responseTime,
+        cost: result.metadata?.estimatedCost ?? undefined,
+      });
 
-        await this.checkContextWindowUsage(currentConfig.provider, currentConfig.model);
-      }
-
-      return result;
-    } catch (error) {
-      // Re-throw AbortError as-is to preserve abort semantics
-      if (error instanceof AbortError) {
-        throw error;
-      }
-      // Re-throw any abort-related errors as AbortError for consistency
-      if (error instanceof Error && (error.name === 'AbortError' || /aborted/i.test(error.message))) {
-        throw new AbortError(error.message);
-      }
-      // Don't re-throw other errors as they've already been displayed by onNonRetryable
-      return null;
-    }
-  }
-
-  async retry(opts: SendMessageOptions = {}, agentConfigOverrides: Partial<AgentConfig> = {}) {
-    if (!this.orchestrator) {
-      throw new Error('Orchestrator not initialized, wait a moment');
+      await this.checkContextWindowUsage(currentConfig.provider, currentConfig.model);
     }
 
-    const currentConfig = this.getCurrentConfig();
-    const persistHttpLog = currentConfig.config.session?.persistHttpLog ?? false;
-    const httpLogFile = persistHttpLog && this.sessionDir ? path.join(this.sessionDir, 'http-log.json') : undefined;
-    const newLLM = this.createLLM(httpLogFile);
-    this.orchestrator.setLLM(newLLM);
-
-    const agentConfig: Partial<AgentConfig> = {
-      model: currentConfig.model,
-      reasoningEffort: currentConfig.reasoningEffort,
-      ...agentConfigOverrides,
-    };
-
-    if (Object.keys(agentConfig).length > 0) {
-      this.orchestrator.updateConfig(agentConfig);
-
-      if (agentConfig.model) {
-        this.model = agentConfig.model;
-      }
-    }
-
-    const conversationId = opts.conversationId ?? this.conversationContext.getActiveConversationId();
-
-    try {
-      const result = await withRetry(
-        async () => {
-          return this.orchestrator?.send('', { ...opts, conversationId, retry: true });
-        },
-        {
-          maxRetries: 10,
-          delayMs: 10000,
-          signal: opts.signal,
-          onRetry: (attempt, error, remainingSeconds) => {
-            eventBus.emit('ui:line', {
-              id: crypto.randomUUID(),
-              type: 'system',
-              content: `LLM retry failed (attempt ${attempt}/${10}). Retrying in ${remainingSeconds}s... Error: ${error.message}`,
-              metadata: { timestamp: new Date().toISOString() },
-              color: 'yellow',
-            });
-          },
-          onNonRetryable: (error) => {
-            eventBus.emit('ui:line', {
-              id: crypto.randomUUID(),
-              type: 'system',
-              content: `LLM retry failed with non-retryable error: ${error.message}`,
-              metadata: { timestamp: new Date().toISOString() },
-              color: 'red',
-            });
-          },
-        },
-      );
-
-      if (result && this.conversationStore) {
-        await this.updateConversationMetadataAfterSend(conversationId, {
-          promptTokens: result.metadata?.promptTokens,
-          completionTokens: result.metadata?.completionTokens,
-          totalTokens: result.metadata?.totalTokens,
-          toolCalls: result.metadata?.toolCalls,
-          responseTimeMs: result.metadata?.responseTime,
-          cost: result.metadata?.estimatedCost ?? undefined,
-        });
-
-        await this.checkContextWindowUsage(currentConfig.provider, currentConfig.model);
-      }
-
-      return result;
-    } catch (error) {
-      if (error instanceof AbortError) {
-        throw error;
-      }
-      if (error instanceof Error && (error.name === 'AbortError' || /aborted/i.test(error.message))) {
-        throw new AbortError(error.message);
-      }
-      // Don't re-throw other errors as they've already been displayed by onNonRetryable
-      return null;
-    }
+    return result;
   }
 
   reset() {

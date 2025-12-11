@@ -49,7 +49,7 @@ export const formatDuration = (durationMs: number | null | undefined): string | 
   } else {
     const minutes = Math.floor(durationMs / 60000);
     const seconds = ((durationMs % 60000) / 1000).toFixed(0);
-    return `${minutes}m ${seconds}s`;
+    return `${minutes}m${seconds ? ` ${seconds}s` : ''}`;
   }
 };
 

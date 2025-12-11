@@ -196,6 +196,12 @@ export {
   type ModelInfo,
 } from './llm-providers/index.js';
 export { LLMError } from './llm-providers/base-llm.js';
+export type { BaseLLMOptions } from './llm-providers/base-llm.js';
+
+// Transports (for retry configuration)
+export { AbortError, RetryTransport, DEFAULT_RETRY_CONFIG } from './transports/index.js';
+export type { RetryConfig } from './transports/index.js';
+export { isRetryableError, isRetryableStatusCode } from './transports/index.js';
 
 // MCP
 export { MCPToolPort, CoreMCPClient } from './mcp/index.js';

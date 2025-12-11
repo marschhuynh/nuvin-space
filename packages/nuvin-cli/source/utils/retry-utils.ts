@@ -1,5 +1,18 @@
+/**
+ * @deprecated This module is deprecated. Use RetryTransport from @nuvin/nuvin-core instead.
+ * Retry logic has been moved to the transport layer for better separation of concerns.
+ * 
+ * Import from nuvin-core:
+ * ```typescript
+ * import { AbortError, RetryTransport, type RetryConfig } from '@nuvin/nuvin-core';
+ * ```
+ */
+
 import { isRetryableError } from './error-classification.js';
 
+/**
+ * @deprecated Use RetryConfig from @nuvin/nuvin-core instead
+ */
 export interface RetryOptions {
   maxRetries: number;
   delayMs: number;
@@ -11,8 +24,7 @@ export interface RetryOptions {
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Custom error class to distinguish user-initiated aborts from other failures.
- * This allows proper handling of ESC key aborts without triggering retry logic.
+ * @deprecated Use AbortError from @nuvin/nuvin-core instead
  */
 export class AbortError extends Error {
   constructor(message = 'Operation aborted by user') {
@@ -25,6 +37,11 @@ export class AbortError extends Error {
   }
 }
 
+/**
+ * @deprecated Use RetryTransport from @nuvin/nuvin-core instead.
+ * The new transport-layer retry provides exponential backoff with jitter
+ * and respects Retry-After headers.
+ */
 export async function withRetry<T>(fn: () => Promise<T>, options: RetryOptions): Promise<T> {
   const { maxRetries, delayMs, onRetry, onNonRetryable, signal } = options;
   let lastError: Error | undefined;

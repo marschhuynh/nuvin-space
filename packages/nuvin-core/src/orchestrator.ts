@@ -371,45 +371,38 @@ export class AgentOrchestrator {
       throw new Error('LLM provider not set');
     }
 
-    if (opts.retry) {
-      providerMsgs = this.context.toProviderMessages(history, this.cfg.systemPrompt, []);
-      userMessages = [];
-      userDisplay = '[Retry]';
-      enhanced = [];
+    const normalized =
+      typeof content === 'string'
+        ? { text: content, displayText: content, attachments: [] as UserAttachment[] }
+        : {
+            text: content.text ?? '',
+            displayText: content.displayText,
+            attachments: Array.isArray(content.attachments) ? content.attachments : [],
+          };
+
+    const attachments = normalized.attachments;
+    enhanced = this.reminders.enhance(normalized.text, { conversationId: convo });
+    const enhancedCombined = enhanced.join('\n');
+    const messageParts = buildMessageParts(enhancedCombined, attachments);
+
+    let userContent: MessageContent;
+    if (attachments.length > 0 || messageParts.some((part) => part.type === 'image')) {
+      userContent = { type: 'parts', parts: messageParts };
+    } else if (messageParts.length === 1 && messageParts[0]?.type === 'text') {
+      userContent = messageParts[0].text;
+    } else if (messageParts.length > 0) {
+      userContent = { type: 'parts', parts: messageParts };
     } else {
-      const normalized =
-        typeof content === 'string'
-          ? { text: content, displayText: content, attachments: [] as UserAttachment[] }
-          : {
-              text: content.text ?? '',
-              displayText: content.displayText,
-              attachments: Array.isArray(content.attachments) ? content.attachments : [],
-            };
-
-      const attachments = normalized.attachments;
-      enhanced = this.reminders.enhance(normalized.text, { conversationId: convo });
-      const enhancedCombined = enhanced.join('\n');
-      const messageParts = buildMessageParts(enhancedCombined, attachments);
-
-      let userContent: MessageContent;
-      if (attachments.length > 0 || messageParts.some((part) => part.type === 'image')) {
-        userContent = { type: 'parts', parts: messageParts };
-      } else if (messageParts.length === 1 && messageParts[0]?.type === 'text') {
-        userContent = messageParts[0].text;
-      } else if (messageParts.length > 0) {
-        userContent = { type: 'parts', parts: messageParts };
-      } else {
-        userContent = enhancedCombined;
-      }
-
-      providerMsgs = this.context.toProviderMessages(history, this.cfg.systemPrompt, [userContent]);
-
-      userDisplay = resolveDisplayText(normalized.text, attachments, normalized.displayText);
-      const userTimestamp = this.clock.iso();
-      userMessages = [{ id: this.ids.uuid(), role: 'user', content: userContent, timestamp: userTimestamp }];
-
-      await this.memory.append(convo, userMessages);
+      userContent = enhancedCombined;
     }
+
+    providerMsgs = this.context.toProviderMessages(history, this.cfg.systemPrompt, [userContent]);
+
+    userDisplay = resolveDisplayText(normalized.text, attachments, normalized.displayText);
+    const userTimestamp = this.clock.iso();
+    userMessages = [{ id: this.ids.uuid(), role: 'user', content: userContent, timestamp: userTimestamp }];
+
+    await this.memory.append(convo, userMessages);
 
     if (opts.signal?.aborted) throw new Error('Aborted');
 

@@ -1,9 +1,15 @@
 import type { LLMPort, UsageData } from '../ports.js';
 import { BaseLLM, LLMError } from './base-llm.js';
-import { FetchTransport, GithubAuthTransport } from '../transports/index.js';
+import { FetchTransport, GithubAuthTransport, RetryTransport, type RetryConfig } from '../transports/index.js';
 import { normalizeModelInfo, type ModelInfo } from './model-limits.js';
 
-type GithubOptions = { apiKey?: string; accessToken?: string; apiUrl?: string; httpLogFile?: string };
+type GithubOptions = {
+  apiKey?: string;
+  accessToken?: string;
+  apiUrl?: string;
+  httpLogFile?: string;
+  retry?: Partial<RetryConfig>;
+};
 
 type GithubModel = {
   id: string;
@@ -29,7 +35,7 @@ export class GithubLLM extends BaseLLM implements LLMPort {
   private readonly opts: GithubOptions;
 
   constructor(opts: GithubOptions = {}) {
-    super(opts.apiUrl ?? 'https://api.individual.githubcopilot.com');
+    super(opts.apiUrl ?? 'https://api.individual.githubcopilot.com', { retry: opts.retry });
     this.opts = opts;
   }
 
@@ -41,11 +47,16 @@ export class GithubLLM extends BaseLLM implements LLMPort {
       maxFileSize: 5 * 1024 * 1024,
       captureResponseBody: true,
     });
-    return new GithubAuthTransport(base, {
+    const authTransport = new GithubAuthTransport(base, {
       baseUrl: this.opts.apiUrl,
       apiKey: this.opts.apiKey,
       accessToken: this.opts.accessToken,
     });
+
+    if (this.retryConfig) {
+      return new RetryTransport(authTransport, this.retryConfig);
+    }
+    return authTransport;
   }
 
   protected transformUsage(rawUsage: unknown): UsageData | undefined {

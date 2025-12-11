@@ -49,19 +49,14 @@ function mergeToolCallsWithResults(messages: MessageLineType[]): MessageLineType
       }
 
       // Add the tool call message with enhanced metadata including results
-      // Only create new object if resultsByCallId actually has entries
-      if (resultsByCallId.size > 0) {
-        result.push({
-          ...msg,
-          metadata: {
-            ...msg.metadata,
-            toolResultsByCallId: resultsByCallId,
-          },
-        });
-      } else {
-        // No results yet, push original message
-        result.push(msg);
-      }
+      // Always create new object to ensure metadata updates (like sub-agent state) propagate
+      result.push({
+        ...msg,
+        metadata: {
+          ...msg.metadata,
+          toolResultsByCallId: resultsByCallId.size > 0 ? resultsByCallId : msg.metadata?.toolResultsByCallId,
+        },
+      });
 
       // Add all merged results immediately after
       result.push(...mergedResults);
@@ -129,10 +124,18 @@ const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey,
     // Start from the end and work backwards
     // Keep at least DYNAMIC_COUNT messages dynamic
     let dynamicCount = DYNAMIC_COUNT;
+    let checkedNonTransientCount = 0;
 
     // Check messages from the end, looking for pending tool calls or streaming messages
     for (let i = msgs.length - 1; i >= 0; i--) {
       const msg = msgs[i];
+
+      // Skip transient messages (like retry notifications) - they don't count towards the scan limit
+      if (msg.metadata?.isTransient === true) {
+        continue;
+      }
+
+      checkedNonTransientCount++;
 
       // If this message is actively streaming, keep it and everything after it dynamic
       if (msg.metadata?.isStreaming === true) {
@@ -146,8 +149,8 @@ const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey,
         break;
       }
 
-      // Stop checking once we've gone past the minimum dynamic count
-      if (msgs.length - i > DYNAMIC_COUNT) {
+      // Stop checking once we've scanned enough non-transient messages
+      if (checkedNonTransientCount > DYNAMIC_COUNT && DYNAMIC_COUNT > 0) {
         break;
       }
     }

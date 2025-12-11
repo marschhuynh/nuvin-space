@@ -159,11 +159,13 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
             parts.push(`${subAgentMetrics.llmCallCount} calls`);
             parts.push(`${formatTokens(subAgentMetrics.totalTokens)} tokens`);
             if (subAgentMetrics.totalCost > 0) parts.push(`$${formatCost(subAgentMetrics.totalCost)}`);
-            if (toolResult.metadata.executionTimeMs) parts.push(`${toolResult.metadata.executionTimeMs}ms`);
+            if (toolResult.metadata.executionTimeMs)
+              parts.push(`${formatDuration(toolResult.metadata.executionTimeMs)}`);
           } else {
             if (toolResult.metadata.toolCallsExecuted) parts.push(`${toolResult.metadata.toolCallsExecuted} tools`);
             if (toolResult.metadata.tokensUsed) parts.push(`${formatTokens(toolResult.metadata.tokensUsed)} tokens`);
-            if (toolResult.metadata.executionTimeMs) parts.push(`${toolResult.metadata.executionTimeMs}ms`);
+            if (toolResult.metadata.executionTimeMs)
+              parts.push(`${formatDuration(toolResult.metadata.executionTimeMs)}`);
           }
           return {
             text: parts.join(' • '),
@@ -366,7 +368,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       {showDone && (
         <Box flexDirection="row">
           {durationText && (toolResult.durationMs ?? 0) > 1000 ? (
-            <Text dimColor color={color}>{`└─ Done in ${durationText}`}</Text>
+            <Text dimColor color={color}>{`└─ Done in ${formatDuration(Number(durationText))}`}</Text>
           ) : (
             <Text dimColor color={color}>{`└─ Done`}</Text>
           )}

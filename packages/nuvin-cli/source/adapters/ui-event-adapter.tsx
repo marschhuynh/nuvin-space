@@ -36,6 +36,7 @@ export type LineMetadata = {
   toolCall?: ToolCall;
   toolResultsByCallId?: Map<string, MessageLine>;
   isStreaming?: boolean;
+  isTransient?: boolean;
   subAgentState?: SubAgentState;
 } & Partial<Record<`subAgentState_${string}`, SubAgentState>>;
 

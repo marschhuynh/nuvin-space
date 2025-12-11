@@ -176,7 +176,6 @@ export type SendMessageOptions = {
   conversationId?: string;
   stream?: boolean;
   signal?: AbortSignal;
-  retry?: boolean;
 };
 
 export type UserAttachment = ImageContentPart & {

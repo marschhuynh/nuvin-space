@@ -5,11 +5,14 @@ import {
   supportsGetModels,
   getAvailableProviders,
   type LLMPort,
+  type RetryConfig,
 } from '@nuvin/nuvin-core';
+import * as crypto from 'node:crypto';
 import type { ConfigManager } from '@/config/manager.js';
 import type { ProviderKey } from './OrchestratorManager.js';
 import type { AuthMethod, ProviderConfig } from '@/config/types.js';
 import { getVersion } from '@/utils/version.js';
+import { eventBus } from './EventBus.js';
 
 // Local type definitions since they are not exported from nuvin-core
 type ModelConfig = false | true | string | string[] | Array<{ id: string; name?: string; [key: string]: unknown }>;
@@ -37,6 +40,36 @@ export type LLMConfig = {
 
 export type LLMOptions = {
   httpLogFile?: string;
+  retry?: Partial<RetryConfig>;
+};
+
+const DEFAULT_RETRY_CONFIG: Partial<RetryConfig> = {
+  maxRetries: 10,
+  baseDelayMs: 1000,
+  maxDelayMs: 60000,
+  backoffMultiplier: 2,
+  jitterFactor: 0.2,
+  onRetry: (attempt, error, delayMs) => {
+    eventBus.emit('ui:line', {
+      id: crypto.randomUUID(),
+      type: 'system',
+      content: `Request failed (attempt ${attempt}). Retrying in ${Math.ceil(delayMs / 1000)}s... Error: ${error.message}`,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        isTransient: true, // Mark as transient so it doesn't affect static/dynamic calculation
+      },
+      color: 'yellow',
+    });
+  },
+  onExhausted: (error, attempts) => {
+    eventBus.emit('ui:line', {
+      id: crypto.randomUUID(),
+      type: 'system',
+      content: `Request failed after ${attempts} attempts: ${error.message}`,
+      metadata: { timestamp: new Date().toISOString() },
+      color: 'red',
+    });
+  },
 };
 
 export interface LLMFactoryInterface {
@@ -115,6 +148,7 @@ export class LLMFactory implements LLMFactoryInterface {
   createLLM(provider: ProviderKey, options: LLMOptions = {}): LLMPort {
     const config = this.getProviderConfig(provider);
     const customProviders = this.getCustomProviders();
+    const retryConfig = { ...DEFAULT_RETRY_CONFIG, ...options.retry };
 
     switch (provider) {
       case 'openrouter':
@@ -127,6 +161,7 @@ export class LLMFactory implements LLMFactoryInterface {
             apiKey: config.apiKey,
             httpLogFile: options.httpLogFile,
             version: getVersion(),
+            retry: retryConfig,
           },
           customProviders,
         );
@@ -135,6 +170,7 @@ export class LLMFactory implements LLMFactoryInterface {
         return new GithubLLM({
           accessToken: config.apiKey,
           httpLogFile: options.httpLogFile,
+          retry: retryConfig,
         });
 
       case 'anthropic':
@@ -183,6 +219,7 @@ export class LLMFactory implements LLMFactoryInterface {
             apiKey: config.apiKey,
             httpLogFile: options.httpLogFile,
             version: getVersion(),
+            retry: retryConfig,
           },
           customProviders,
         );

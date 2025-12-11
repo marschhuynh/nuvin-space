@@ -1,6 +1,11 @@
 import type { CompletionParams, CompletionResult, LLMPort, UsageData, ToolCall } from '../ports.js';
-import type { HttpTransport } from '../transports/index.js';
+import type { HttpTransport, RetryConfig } from '../transports/index.js';
 import { mergeChoices } from './llm-utils.js';
+
+export interface BaseLLMOptions {
+  enablePromptCaching?: boolean;
+  retry?: Partial<RetryConfig>;
+}
 
 export class LLMError extends Error {
   constructor(
@@ -114,10 +119,12 @@ export abstract class BaseLLM implements LLMPort {
   protected transport: HttpTransport | null = null;
   protected apiUrl: string;
   protected enablePromptCaching: boolean = false;
+  protected retryConfig?: Partial<RetryConfig>;
 
-  constructor(apiUrl: string, options?: { enablePromptCaching?: boolean }) {
+  constructor(apiUrl: string, options?: BaseLLMOptions) {
     this.apiUrl = apiUrl;
     this.enablePromptCaching = options?.enablePromptCaching ?? false;
+    this.retryConfig = options?.retry;
   }
 
   // Implemented by provider to inject auth, headers, refresh, etc.

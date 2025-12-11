@@ -72,7 +72,7 @@ export class AgentManager {
     }
 
     // Emit SubAgentStarted event
-    this.eventCallback?.({
+    await this.eventCallback?.({
       type: AgentEventTypes.SubAgentStarted,
       conversationId: config.conversationId ?? 'default',
       messageId: config.messageId ?? '',
@@ -100,7 +100,7 @@ export class AgentManager {
         // Forward specific events to the callback
         if (event.type === AgentEventTypes.ToolCalls) {
           for (const toolCall of event.toolCalls) {
-            this.eventCallback?.({
+            await this.eventCallback?.({
               type: AgentEventTypes.SubAgentToolCall,
               conversationId: config.conversationId ?? 'default',
               messageId: config.messageId ?? '',
@@ -111,7 +111,7 @@ export class AgentManager {
             });
           }
         } else if (event.type === AgentEventTypes.ToolResult) {
-          this.eventCallback?.({
+          await this.eventCallback?.({
             type: AgentEventTypes.SubAgentToolResult,
             conversationId: config.conversationId ?? 'default',
             messageId: config.messageId ?? '',
@@ -196,7 +196,7 @@ export class AgentManager {
       const snapshot = metricsPort.getSnapshot();
 
       // Emit SubAgentCompleted event
-      this.eventCallback?.({
+      await this.eventCallback?.({
         type: AgentEventTypes.SubAgentCompleted,
         conversationId: config.conversationId ?? 'default',
         messageId: config.messageId ?? '',
@@ -229,7 +229,7 @@ export class AgentManager {
       const status = isTimeout ? 'timeout' : isAborted ? 'error' : 'error';
 
       // Emit SubAgentCompleted event
-      this.eventCallback?.({
+      await this.eventCallback?.({
         type: AgentEventTypes.SubAgentCompleted,
         conversationId: config.conversationId ?? 'default',
         messageId: config.messageId ?? '',

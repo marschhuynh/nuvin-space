@@ -226,10 +226,7 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
                 const relevantValue = extractRelevantParameter(toolCall.name, args);
 
                 if (relevantValue) {
-                  const maxLen = Math.max(50, cols - 30);
-                  const truncated =
-                    relevantValue.length > maxLen ? `${relevantValue.slice(0, maxLen)}...` : relevantValue;
-                  argsDisplay = ` ${truncated}`;
+                  argsDisplay = ` ${relevantValue}`;
                 }
               } catch {
                 // Ignore parse errors
@@ -249,13 +246,19 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
 
             return (
               <Box key={toolCall.id} flexDirection="column">
-                <Box flexDirection="row">
+                <Box flexDirection="row" height={1}>
                   {statusIcon ? <Text color={statusIconColor}>{statusIcon}</Text> : null}
-                  <Text dimColor>
-                    {toolCall.name}
-                    {argsDisplay}
-                    {toolCall.durationMs !== undefined && explainMode ? ` (${formatDuration(toolCall.durationMs)})` : ''}
-                  </Text>
+                  <Box flexWrap="nowrap">
+                    <Text dimColor>{toolCall.name}</Text>
+                    <Text dimColor wrap="truncate-end">
+                      {argsDisplay}
+                    </Text>
+                    <Box flexShrink={0}>
+                      {toolCall.durationMs !== undefined && explainMode && (
+                        <Text dimColor>{` (${formatDuration(toolCall.durationMs)})`}</Text>
+                      )}
+                    </Box>
+                  </Box>
                 </Box>
                 {detailsDisplay && explainMode && (
                   <Box marginLeft={3}>

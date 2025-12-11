@@ -1,6 +1,6 @@
 import type { LLMPort } from '../ports.js';
 import { BaseLLM } from './base-llm.js';
-import { FetchTransport, createTransport } from '../transports/index.js';
+import { FetchTransport, createTransport, RetryTransport, type RetryConfig } from '../transports/index.js';
 import providerConfig from './llm-provider-config.json';
 import { normalizeModelInfo, type ModelInfo } from './model-limits.js';
 
@@ -28,6 +28,7 @@ export interface LLMOptions {
   includeUsage?: boolean;
   version?: string;
   providerName?: string;
+  retry?: Partial<RetryConfig>;
 }
 
 const providers = providerConfig.providers as ProviderConfig[];
@@ -54,8 +55,8 @@ export class GenericLLM extends BaseLLM implements LLMPort {
     opts: LLMOptions = {},
     customHeaders?: Record<string, string>,
   ) {
-    const { enablePromptCaching = false, includeUsage = false, providerName = 'unknown', ...restOpts } = opts;
-    super(opts.apiUrl || baseUrl, { enablePromptCaching });
+    const { enablePromptCaching = false, includeUsage = false, providerName = 'unknown', retry, ...restOpts } = opts;
+    super(opts.apiUrl || baseUrl, { enablePromptCaching, retry });
     this.includeUsage = includeUsage;
     this.modelConfig = modelConfig;
     this.providerName = providerName;
@@ -71,7 +72,7 @@ export class GenericLLM extends BaseLLM implements LLMPort {
       maxFileSize: 5 * 1024 * 1024,
       captureResponseBody: true,
     });
-    return createTransport(
+    const authTransport = createTransport(
       base,
       this.apiUrl,
       this.opts.apiKey,
@@ -79,6 +80,11 @@ export class GenericLLM extends BaseLLM implements LLMPort {
       this.opts.version,
       this.customHeaders,
     );
+
+    if (this.retryConfig) {
+      return new RetryTransport(authTransport, this.retryConfig);
+    }
+    return authTransport;
   }
 
   async getModels(signal?: AbortSignal): Promise<ModelInfo[]> {
