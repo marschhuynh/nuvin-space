@@ -14,6 +14,7 @@ import { ToolResultView } from './ToolResultView.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import { ToolTimer } from '../ToolTimer.js';
 import { GradientRunText } from '../Gradient.js';
+import { formatCost, formatDuration, formatTokens } from '@/utils/formatters.js';
 
 type SubAgentActivityProps = {
   toolCall: ToolCall;
@@ -253,7 +254,7 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
                   <Text dimColor>
                     {toolCall.name}
                     {argsDisplay}
-                    {toolCall.durationMs !== undefined && explainMode ? ` (${toolCall.durationMs}ms)` : ''}
+                    {toolCall.durationMs !== undefined && explainMode ? ` (${formatDuration(toolCall.durationMs)})` : ''}
                   </Text>
                 </Box>
                 {detailsDisplay && explainMode && (
@@ -283,8 +284,8 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
           {subAgentState.metrics && (
             <Box marginLeft={1}>
               <Text dimColor>
-                • {subAgentState.metrics.llmCallCount} calls • {subAgentState.metrics.totalTokens} tokens
-                {subAgentState.metrics.totalCost > 0 && ` • $${subAgentState.metrics.totalCost.toFixed(4)}`}
+                • {subAgentState.metrics.llmCallCount} calls • {formatTokens(subAgentState.metrics.totalTokens)} tokens
+                {subAgentState.metrics.totalCost > 0 && ` • $${formatCost(subAgentState.metrics.totalCost)}`}
               </Text>
             </Box>
           )}

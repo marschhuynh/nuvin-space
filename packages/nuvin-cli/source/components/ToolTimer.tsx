@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Text } from 'ink';
+import { formatTimeFromSeconds } from '@/utils/formatters.js';
 
 /**
  * Timer component that counts elapsed time from creation until a result is available
@@ -22,10 +23,10 @@ export const ToolTimer: React.FC<{ hasResult: boolean; finalDuration?: number }>
   }, [hasResult]);
 
   const displayTime = hasResult && finalDuration !== undefined ? finalDuration : elapsed;
-  const seconds = (displayTime / 1000).toFixed(0);
+  const seconds = Math.floor(displayTime / 1000);
 
   if (elapsed > 0) {
-    return <Text dimColor>{seconds}s</Text>;
+    return <Text dimColor>{formatTimeFromSeconds(seconds)}</Text>;
   }
   return null;
 };

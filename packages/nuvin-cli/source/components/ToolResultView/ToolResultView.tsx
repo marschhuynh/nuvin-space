@@ -24,6 +24,7 @@ import { FileReadRenderer } from './renderers/FileReadRenderer.js';
 import { FileNewRenderer } from './renderers/FileNewRenderer.js';
 import { BashToolRenderer } from './renderers/BashToolRenderer.js';
 import { DefaultRenderer } from './renderers/DefaultRenderer.js';
+import { formatDuration, formatTokens, formatCost } from '@/utils/formatters.js';
 
 type ToolResultViewProps = {
   toolResult: ToolExecutionResult;
@@ -47,10 +48,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
   const { theme } = useTheme();
   const [cols] = useStdoutDimensions();
   const statusColor = toolResult.status === 'success' ? theme.status.success : theme.status.error;
-  const durationText =
-    typeof toolResult.durationMs === 'number' && Number.isFinite(toolResult.durationMs)
-      ? `${toolResult.durationMs}ms`
-      : null;
+  const durationText = formatDuration(toolResult.durationMs);
 
   const getKeyParam = (): string | null => {
     if (!toolCall) return null;
@@ -159,12 +157,12 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
           const parts: string[] = ['Done'];
           if (subAgentMetrics) {
             parts.push(`${subAgentMetrics.llmCallCount} calls`);
-            parts.push(`${subAgentMetrics.totalTokens} tokens`);
-            if (subAgentMetrics.totalCost > 0) parts.push(`$${subAgentMetrics.totalCost.toFixed(4)}`);
+            parts.push(`${formatTokens(subAgentMetrics.totalTokens)} tokens`);
+            if (subAgentMetrics.totalCost > 0) parts.push(`$${formatCost(subAgentMetrics.totalCost)}`);
             if (toolResult.metadata.executionTimeMs) parts.push(`${toolResult.metadata.executionTimeMs}ms`);
           } else {
             if (toolResult.metadata.toolCallsExecuted) parts.push(`${toolResult.metadata.toolCallsExecuted} tools`);
-            if (toolResult.metadata.tokensUsed) parts.push(`${toolResult.metadata.tokensUsed} tokens`);
+            if (toolResult.metadata.tokensUsed) parts.push(`${formatTokens(toolResult.metadata.tokensUsed)} tokens`);
             if (toolResult.metadata.executionTimeMs) parts.push(`${toolResult.metadata.executionTimeMs}ms`);
           }
           return {

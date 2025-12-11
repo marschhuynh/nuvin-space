@@ -1,7 +1,5 @@
 import React from 'react';
 import { Box, Text } from 'ink';
-import * as os from 'node:os';
-import { execSync } from 'node:child_process';
 import type { MetricsSnapshot } from '@/services/SessionMetricsService.js';
 import type { ProviderKey } from '@/const.js';
 import { useNotification } from '@/hooks/useNotification.js';
@@ -10,6 +8,7 @@ import { THINKING_LEVELS } from '@/config/types.js';
 import { useToolApproval } from '@/contexts/ToolApprovalContext.js';
 import { useConfig } from '@/contexts/ConfigContext.js';
 import { useExplainMode } from '@/contexts/ExplainModeContext.js';
+import { formatTokens, formatCost, formatDirectory, getUsageColor, getGitBranch } from '@/utils/formatters.js';
 
 type FooterProps = {
   status: string;
@@ -152,40 +151,6 @@ const FooterComponent: React.FC<FooterProps> = ({
   );
 };
 
-const formatTokens = (tokens: number | null | undefined): string => {
-  if (tokens == null) return '-';
-  if (tokens >= 1000) return `${(tokens / 1000).toFixed(1)}k`;
-  return tokens.toString();
-};
 
-const formatCost = (cost: number): string => {
-  if (cost === 0) return '0.00';
-  if (cost < 0.01) return cost.toFixed(4);
-  if (cost < 1) return cost.toFixed(3);
-  return cost.toFixed(2);
-};
-
-const getUsageColor = (usage: number, theme: ReturnType<typeof useTheme>['theme']): string => {
-  if (usage >= 0.95) return theme.tokens.red;
-  if (usage >= 0.85) return theme.tokens.yellow;
-  return theme.footer.model;
-};
-
-const formatDirectory = (dir: string): string => {
-  const home = os.homedir();
-  return dir.replace(home, '~');
-};
-
-const getGitBranch = (dir: string): string | null => {
-  try {
-    return execSync('git rev-parse --abbrev-ref HEAD', {
-      cwd: dir,
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'ignore'],
-    }).trim();
-  } catch {
-    return null;
-  }
-};
 
 export const Footer = React.memo(FooterComponent);
