@@ -1,5 +1,17 @@
 # @nuvin/nuvin-cli
 
+## 1.13.1
+
+### Patch Changes
+
+- [`b360cc3`](https://github.com/marschhuynh/nuvin-space/commit/b360cc3fef464d8330115d8db1c4e8caab143438) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Refactor: extract formatting utilities into centralized formatters module
+
+  - Add new `formatters.ts` utility module with reusable formatting functions
+  - Extract `formatTokens`, `formatDuration`, `formatRelativeTime`, `formatTimeFromSeconds`, `getUsageColor`, and `getMessageCountBadge` from components
+  - Improve token formatting to support millions (M) and billions (B) suffixes
+  - Add human-readable duration formatting (ms, seconds, minutes)
+  - Update Footer, RecentSessions, SubAgentActivity, ToolResultView, and ToolTimer to use centralized formatters
+
 ## 1.13.0
 
 ### Minor Changes
