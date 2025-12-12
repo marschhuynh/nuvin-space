@@ -1,5 +1,17 @@
 # @nuvin/nuvin-core
 
+## 1.6.2
+
+### Patch Changes
+
+- [`2642fde`](https://github.com/marschhuynh/nuvin-space/commit/2642fdeb239dfec1dc005d5e8b4e9834091be582) Thanks [@marschhuynh](https://github.com/marschhuynh)! - refactor(transports): extract AnthropicAuthTransport from LLM class
+
+  - Move OAuth token refresh logic to dedicated `AnthropicAuthTransport` class
+  - Add `createFetchFunction()` for AI SDK integration
+  - Add `createRetryTransport()` factory method
+  - Export from transports index
+  - Simplify `AnthropicAISDKLLM` to use the new transport
+
 ## 1.6.1
 
 ### Patch Changes
