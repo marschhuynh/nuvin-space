@@ -230,19 +230,22 @@ describe('AnthropicAISDKLLM - getModels', () => {
   it('should handle API errors', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
-      status: 500,
-      text: async () => 'Internal Server Error',
+      status: 400,
+      text: async () => 'Bad Request',
     });
 
     const llm = new AnthropicAISDKLLM({ apiKey: 'test-key' });
 
-    await expect(llm.getModels()).rejects.toThrow('Internal Server Error');
+    await expect(llm.getModels()).rejects.toThrow('Bad Request');
   });
 
   it('should handle network errors', async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
-    const llm = new AnthropicAISDKLLM({ apiKey: 'test-key' });
+    const llm = new AnthropicAISDKLLM({
+      apiKey: 'test-key',
+      retry: { maxRetries: 0 },
+    });
 
     await expect(llm.getModels()).rejects.toThrow('Network error');
   });

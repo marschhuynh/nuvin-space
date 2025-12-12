@@ -49,14 +49,19 @@ function mergeToolCallsWithResults(messages: MessageLineType[]): MessageLineType
       }
 
       // Add the tool call message with enhanced metadata including results
-      // Always create new object to ensure metadata updates (like sub-agent state) propagate
-      result.push({
-        ...msg,
-        metadata: {
-          ...msg.metadata,
-          toolResultsByCallId: resultsByCallId.size > 0 ? resultsByCallId : msg.metadata?.toolResultsByCallId,
-        },
-      });
+      // Only create new object if resultsByCallId actually has entries
+      if (resultsByCallId.size > 0) {
+        result.push({
+          ...msg,
+          metadata: {
+            ...msg.metadata,
+            toolResultsByCallId: resultsByCallId,
+          },
+        });
+      } else {
+        // No results yet, push original message
+        result.push(msg);
+      }
 
       // Add all merged results immediately after
       result.push(...mergedResults);

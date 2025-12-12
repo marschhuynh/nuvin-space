@@ -595,6 +595,9 @@ export class AgentOrchestrator {
           timestamp: this.clock.iso(),
           tool_call_id: tr.id,
           name: tr.name,
+          status: tr.status,
+          durationMs: tr.durationMs,
+          metadata: tr.metadata,
         });
 
         this.metrics?.recordToolCall?.();

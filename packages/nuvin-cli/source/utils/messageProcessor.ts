@@ -226,6 +226,10 @@ export function processMessageToUILines(msg: {
     // Extract tool name from message (messages have a 'name' field)
     const toolName = msg.name || msg.tool_call_id || 'unknown';
 
+    // Read status and durationMs from message if available (saved in history)
+    const msgStatus = (msg as { status?: 'success' | 'error' }).status;
+    const msgDurationMs = (msg as { durationMs?: number }).durationMs;
+
     const toolResult: {
       id: string;
       name: string;
@@ -236,14 +240,14 @@ export function processMessageToUILines(msg: {
     } = {
       id: msg.tool_call_id || 'unknown',
       name: toolName,
-      status: 'success', // Default to success when loading from messages
+      status: msgStatus || 'success',
       type: 'text',
       result: textContent || '',
-      durationMs: undefined, // Duration not available in message format
+      durationMs: msgDurationMs,
     };
 
-    // Check if content looks like an error (common error patterns)
-    if (textContent) {
+    // Fallback: Check if content looks like an error (for old history without status)
+    if (!msgStatus && textContent) {
       const lowerContent = textContent.toLowerCase();
       if (
         lowerContent.includes('error:') ||

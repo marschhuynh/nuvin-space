@@ -13,8 +13,7 @@ import {
 } from 'ai';
 import { LLMError } from './base-llm.js';
 import { normalizeModelInfo, type ModelInfo } from './model-limits.js';
-
-const CLIENT_ID = '9d1c250a-e61b-44d9-88ed-5944d1962f5e';
+import { FetchTransport, AnthropicAuthTransport, type HttpTransport, type RetryConfig } from '../transports/index.js';
 
 type AnthropicAISDKOptions = {
   apiKey?: string;
@@ -27,156 +26,86 @@ type AnthropicAISDKOptions = {
   apiUrl?: string;
   baseURL?: string;
   httpLogFile?: string;
+  retry?: Partial<RetryConfig>;
   onTokenUpdate?: (newCredentials: { access: string; refresh: string; expires: number }) => void;
 };
-
-interface TokenRefreshResult {
-  type: 'success' | 'failed';
-  access?: string;
-  refresh?: string;
-  expires?: number;
-}
 
 export class AnthropicAISDKLLM {
   private readonly opts: AnthropicAISDKOptions;
   private provider?: ReturnType<typeof createAnthropic>;
-  private refreshPromise: Promise<TokenRefreshResult> | null = null;
+  private transport?: HttpTransport;
+  private authTransport?: AnthropicAuthTransport;
 
   constructor(opts: AnthropicAISDKOptions = {}) {
     this.opts = opts;
   }
 
-  private async refreshAccessToken(): Promise<TokenRefreshResult> {
-    if (!this.opts.oauth) {
-      return { type: 'failed' };
-    }
-
-    try {
-      const response = await fetch('https://console.anthropic.com/v1/oauth/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          grant_type: 'refresh_token',
-          refresh_token: this.opts.oauth.refresh,
-          client_id: CLIENT_ID,
-        }),
+  private getAuthTransport(): AnthropicAuthTransport {
+    if (!this.authTransport) {
+      const base = new FetchTransport({
+        persistFile: this.opts.httpLogFile,
+        logLevel: 'INFO',
+        enableConsoleLog: false,
+        maxFileSize: 5 * 1024 * 1024,
+        captureResponseBody: true,
       });
 
-      if (!response.ok) {
-        return { type: 'failed' };
-      }
-
-      const json = await response.json();
-      return {
-        type: 'success',
-        access: json.access_token,
-        refresh: json.refresh_token,
-        expires: Date.now() + json.expires_in * 1000,
-      };
-    } catch (_error) {
-      return { type: 'failed' };
-    }
-  }
-
-  private updateCredentials(result: TokenRefreshResult): void {
-    if (result.type === 'success' && result.access && result.refresh && result.expires) {
-      if (this.opts.oauth) {
-        this.opts.oauth.access = result.access;
-        this.opts.oauth.refresh = result.refresh;
-        this.opts.oauth.expires = result.expires;
-      }
-
-      this.opts.onTokenUpdate?.({
-        access: result.access,
-        refresh: result.refresh,
-        expires: result.expires,
+      this.authTransport = new AnthropicAuthTransport(base, {
+        apiKey: this.opts.apiKey,
+        oauth: this.opts.oauth
+          ? {
+              access: this.opts.oauth.access,
+              refresh: this.opts.oauth.refresh,
+              expires: this.opts.oauth.expires,
+            }
+          : undefined,
+        baseUrl: this.opts.baseURL || this.opts.apiUrl,
+        retry: this.opts.retry,
+        onTokenUpdate: this.opts.onTokenUpdate,
       });
     }
+
+    // return new RetryTransport(authTransport, this.retryConfig);
+    return this.authTransport;
   }
 
-  private async ensureValidToken(): Promise<void> {
-    if (!this.opts.oauth) return;
-
-    if (this.refreshPromise) {
-      const result = await this.refreshPromise;
-      if (result.type === 'failed') {
-        throw new Error('Token refresh failed');
-      }
-      return;
+  private getTransport(): HttpTransport {
+    if (!this.transport) {
+      this.transport = this.getAuthTransport().createRetryTransport();
     }
-
-    this.refreshPromise = this.refreshAccessToken();
-    try {
-      const result = await this.refreshPromise;
-      if (result.type === 'success') {
-        this.updateCredentials(result);
-        this.provider = undefined;
-      } else {
-        throw new Error('Token refresh failed');
-      }
-    } finally {
-      this.refreshPromise = null;
-    }
+    return this.transport;
   }
 
-  private createFetchWithRetry(): typeof fetch {
-    return async (url: string | URL | Request, init?: RequestInit) => {
-      if (init?.headers && this.opts.oauth) {
-        const headers = new Headers(init.headers);
-        headers.delete('x-api-key');
-        headers.set('authorization', `Bearer ${this.opts.oauth.access}`);
-        headers.set('user-agent', 'ai-sdk/anthropic/2.0.30 ai-sdk/provider-utils/3.0.12');
-        init = { ...init, headers };
-      }
-
-      const response = await fetch(url, init);
-
-      if ((response.status === 401 || response.status === 403) && this.opts.oauth) {
-        await this.ensureValidToken();
-
-        if (init?.headers) {
-          const headers = new Headers(init.headers);
-          headers.set('authorization', `Bearer ${this.opts.oauth.access}`);
-          init = { ...init, headers };
-        }
-
-        return fetch(url, init);
-      }
-
-      return response;
-    };
-  }
-
-  private async getProvider(): Promise<ReturnType<typeof createAnthropic>> {
+  private getProvider(): ReturnType<typeof createAnthropic> {
     if (this.provider) {
       return this.provider;
     }
 
+    const authTransport = this.getAuthTransport();
+
     if (this.opts.oauth) {
       this.provider = createAnthropic({
         apiKey: 'sk-ant-oauth-placeholder',
-        baseURL: this.opts.baseURL || this.opts.apiUrl,
+        baseURL: authTransport.getBaseUrl(),
         headers: {
           authorization: `Bearer ${this.opts.oauth.access}`,
           'anthropic-beta':
             'oauth-2025-04-20,claude-code-20250219,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14',
         },
-        fetch: this.createFetchWithRetry(),
+        fetch: authTransport.createFetchFunction(),
       });
     } else {
       this.provider = createAnthropic({
         apiKey: this.opts.apiKey,
-        baseURL: this.opts.baseURL || this.opts.apiUrl,
+        baseURL: authTransport.getBaseUrl(),
       });
     }
 
     return this.provider;
   }
 
-  private async getModel(modelName: string) {
-    const provider = await this.getProvider();
+  private getModel(modelName: string) {
+    const provider = this.getProvider();
     return provider(modelName);
   }
 
@@ -470,7 +399,7 @@ export class AnthropicAISDKLLM {
 
   async generateCompletion(params: CompletionParams, signal?: AbortSignal): Promise<CompletionResult> {
     try {
-      const model = await this.getModel(params.model);
+      const model = this.getModel(params.model);
       const messages = this.transformMessages(params.messages);
       const tools = this.transformTools(params.tools);
       const toolChoice = tools ? this.transformToolChoice(params.tool_choice) : undefined;
@@ -524,7 +453,7 @@ export class AnthropicAISDKLLM {
   ): Promise<CompletionResult> {
     let streamError: unknown = null;
 
-    const model = await this.getModel(params.model);
+    const model = this.getModel(params.model);
     const messages = this.transformMessages(params.messages);
     const tools = this.transformTools(params.tools);
     const toolChoice = tools ? this.transformToolChoice(params.tool_choice) : undefined;
@@ -590,55 +519,22 @@ export class AnthropicAISDKLLM {
   }
 
   async getModels(signal?: AbortSignal): Promise<ModelInfo[]> {
-    const baseURL = this.opts.baseURL || this.opts.apiUrl || 'https://api.anthropic.com/v1';
-    const url = `${baseURL}/models`;
+    const authTransport = this.getAuthTransport();
 
-    const headers: Record<string, string> = {
-      'anthropic-version': '2023-06-01',
-      'anthropic-beta': ' oauth-2025-04-20,fine-grained-tool-streaming-2025-05-14',
-    };
-
-    if (this.opts.oauth) {
-      headers.authorization = `Bearer ${this.opts.oauth.access}`;
-    } else if (this.opts.apiKey) {
-      headers['x-api-key'] = this.opts.apiKey;
-    } else {
+    if (!authTransport.getApiKey() && !authTransport.getOAuth()) {
       throw new LLMError('No API key or OAuth credentials provided', 401, false);
     }
 
     try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers,
-        signal,
-      });
+      const res = await this.getTransport().get('/models', undefined, signal);
 
-      if (!response.ok) {
-        if ((response.status === 401 || response.status === 403) && this.opts.oauth) {
-          await this.ensureValidToken();
-          headers.authorization = `Bearer ${this.opts.oauth.access}`;
-
-          const retryResponse = await fetch(url, {
-            method: 'GET',
-            headers,
-            signal,
-          });
-
-          if (!retryResponse.ok) {
-            const text = await retryResponse.text();
-            throw new LLMError(text || `Failed to fetch models: ${retryResponse.status}`, retryResponse.status);
-          }
-
-          const data = await retryResponse.json();
-          return data.data.map((model: Record<string, unknown>) => normalizeModelInfo('anthropic', model));
-        }
-
-        const text = await response.text();
-        throw new LLMError(text || `Failed to fetch models: ${response.status}`, response.status);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new LLMError(text || `Failed to fetch models: ${res.status}`, res.status);
       }
 
-      const data = await response.json();
-      return data.data.map((model: Record<string, unknown>) => normalizeModelInfo('anthropic', model));
+      const data = (await res.json()) as { data: Record<string, unknown>[] };
+      return data.data.map((model) => normalizeModelInfo('anthropic', model));
     } catch (error) {
       if (error instanceof LLMError) {
         throw error;
