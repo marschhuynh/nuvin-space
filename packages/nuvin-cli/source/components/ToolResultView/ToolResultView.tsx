@@ -368,7 +368,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       {showDone && (
         <Box flexDirection="row">
           {durationText && (toolResult.durationMs ?? 0) > 1000 ? (
-            <Text dimColor color={color}>{`└─ Done in ${formatDuration(Number(durationText))}`}</Text>
+            <Text dimColor color={color}>{`└─ Done in ${durationText}`}</Text>
           ) : (
             <Text dimColor color={color}>{`└─ Done`}</Text>
           )}
