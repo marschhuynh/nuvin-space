@@ -51,6 +51,7 @@ export type MessageLine = {
 export class UIEventAdapter extends PersistingConsoleEventPort {
   private state: EventProcessorState = resetEventProcessorState();
   private streamingEnabled: boolean;
+  private readonly callbacks: EventProcessorCallbacks;
 
   constructor(
     private appendLine: (line: MessageLine) => void,
@@ -60,12 +61,7 @@ export class UIEventAdapter extends PersistingConsoleEventPort {
   ) {
     super(opts?.filename ? { filename: opts.filename } : { memory: new InMemoryMemory<AgentEvent>() });
     this.streamingEnabled = opts?.streamingEnabled ?? false;
-  }
-
-  async emit(event: AgentEvent): Promise<void> {
-    super.emit(event);
-
-    const callbacks: EventProcessorCallbacks = {
+    this.callbacks = {
       appendLine: this.appendLine,
       updateLine: this.updateLine,
       updateLineMetadata: this.updateLineMetadata,
@@ -74,13 +70,22 @@ export class UIEventAdapter extends PersistingConsoleEventPort {
         eventBus.emit('ui:toolApprovalRequired', event);
       },
     };
+  }
 
-    const result = processAgentEvent(event, this.state, callbacks);
-    if (result instanceof Promise) {
-      this.state = await result;
-    } else {
-      this.state = result;
+  async emit(event: AgentEvent): Promise<void> {
+    try {
+      await super.emit(event);
+      this.state = await this.processEventSafely(event);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      eventBus.emit('ui:error', `[EventAdapter] Failed to process ${event.type}: ${errorMsg}`);
     }
+  }
+
+  private async processEventSafely(event: AgentEvent): Promise<EventProcessorState> {
+    this.callbacks.streamingEnabled = this.streamingEnabled;
+    const result = processAgentEvent(event, this.state, this.callbacks);
+    return result instanceof Promise ? await result : result;
   }
 
   setStreamingEnabled(enabled: boolean) {

@@ -15,79 +15,90 @@ type ChatDisplayProps = {
   sessions?: SessionInfo[] | null;
 };
 
-/**
- * Merges tool calls with their corresponding tool results for display purposes only.
- * Does NOT modify the original messages array in memory.
- */
-function mergeToolCallsWithResults(messages: MessageLineType[]): MessageLineType[] {
+type MergeCacheEntry = {
+  inputRef: MessageLineType;
+  resultIds: string[];
+  output: MessageLineType;
+};
+
+type MergeCache = Map<string, MergeCacheEntry>;
+
+function arraysEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+function mergeToolCallsWithResultsCached(messages: MessageLineType[], cache: MergeCache): MessageLineType[] {
   const result: MessageLineType[] = [];
   const toolResultsById = new Map<string, MessageLineType>();
 
-  // First pass: collect all tool results by their tool call ID
   for (const msg of messages) {
     if (msg.type === 'tool_result' && msg.metadata?.toolResult?.id) {
       toolResultsById.set(msg.metadata.toolResult.id, msg);
     }
   }
 
-  // Second pass: merge tool calls with their results
-  for (let i = 0; i < messages.length; i++) {
-    const msg = messages[i];
+  const seenIds = new Set<string>();
+
+  for (const msg of messages) {
+    seenIds.add(msg.id);
 
     if (msg.type === 'tool') {
-      // This is a tool call message - check if we have results for any of the calls
       const toolCalls = msg.metadata?.toolCalls || [];
-      const mergedResults: MessageLineType[] = [];
-
-      // Build a map of tool results by call ID for quick lookup
       const resultsByCallId = new Map<string, MessageLineType>();
+      const resultIds: string[] = [];
+
       for (const toolCall of toolCalls) {
         const toolResult = toolResultsById.get(toolCall.id);
         if (toolResult) {
-          mergedResults.push(toolResult);
           resultsByCallId.set(toolCall.id, toolResult);
+          resultIds.push(toolCall.id);
         }
       }
 
-      // Add the tool call message with enhanced metadata including results
-      // Only create new object if resultsByCallId actually has entries
       if (resultsByCallId.size > 0) {
-        result.push({
-          ...msg,
-          metadata: {
-            ...msg.metadata,
-            toolResultsByCallId: resultsByCallId,
-          },
-        });
+        const cached = cache.get(msg.id);
+
+        if (cached && cached.inputRef === msg && arraysEqual(cached.resultIds, resultIds)) {
+          result.push(cached.output);
+        } else {
+          const output: MessageLineType = {
+            ...msg,
+            metadata: { ...msg.metadata, toolResultsByCallId: resultsByCallId },
+          };
+          cache.set(msg.id, { inputRef: msg, resultIds, output });
+          result.push(output);
+        }
+
+        for (const [, toolResult] of resultsByCallId) {
+          result.push(toolResult);
+        }
       } else {
-        // No results yet, push original message
         result.push(msg);
       }
-
-      // Add all merged results immediately after
-      result.push(...mergedResults);
     } else if (msg.type === 'tool_result') {
-      // Skip standalone tool_result messages - they're already merged with their tool calls
-      // Only add them if they don't have a matching tool call (orphaned results)
       const toolResultId = msg.metadata?.toolResult?.id;
       if (!toolResultId) {
-        // No ID, add it as-is
         result.push(msg);
       } else {
-        // Check if there's a matching tool call in our messages
         const hasMatchingToolCall = messages.some(
           (m) => m.type === 'tool' && m.metadata?.toolCalls?.some((tc) => tc.id === toolResultId),
         );
-
         if (!hasMatchingToolCall) {
-          // Orphaned result, add it
           result.push(msg);
         }
-        // Otherwise skip - it's already been merged
       }
     } else {
-      // Not a tool call or result, pass through
       result.push(msg);
+    }
+  }
+
+  for (const key of cache.keys()) {
+    if (!seenIds.has(key)) {
+      cache.delete(key);
     }
   }
 
@@ -97,7 +108,8 @@ function mergeToolCallsWithResults(messages: MessageLineType[]): MessageLineType
 const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey, sessions: sessionsProp }) => {
   const sessions = sessionsProp ?? null;
 
-  const mergedMessages = useMemo(() => mergeToolCallsWithResults(messages), [messages]);
+  const mergeCacheRef = useRef<MergeCache>(new Map());
+  const mergedMessages = useMemo(() => mergeToolCallsWithResultsCached(messages, mergeCacheRef.current), [messages]);
 
   const staticCount = useMemo(() => calculateStaticCount(mergedMessages), [mergedMessages]);
 
@@ -186,7 +198,7 @@ const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey,
       )}
 
       {visible.map((line) => (
-        <MessageLine key={line.id} message={line} />
+        <MessageLine key={line.id} message={line} liveMessage />
       ))}
     </Box>
   );

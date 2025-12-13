@@ -16,9 +16,10 @@ type MessageLineProps = {
   isExpanded?: boolean;
   onToggleExpansion?: (id: string) => void;
   backgroundColor?: string;
+  liveMessage?: boolean;
 };
 
-const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundColor }) => {
+const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundColor, liveMessage = false }) => {
   const [cols] = useStdoutDimensions();
   const { theme } = useTheme();
   const isStreaming = message.metadata?.isStreaming === true;
@@ -114,7 +115,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
 
       case 'error':
         return (
-          <Box flexDirection="row">
+          <Box flexDirection="row" marginY={1}>
             <Box flexShrink={0} marginRight={1}>
               <Text color={theme.messageTypes.error} bold>
                 ●
@@ -126,7 +127,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
 
       case 'warning':
         return (
-          <Box flexDirection="row">
+          <Box flexDirection="row" marginY={1}>
             <Box flexShrink={0} marginRight={1}>
               <Text color={theme.messageTypes.warning} bold>
                 ●
@@ -138,7 +139,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
 
       case 'info':
         return (
-          <Box flexDirection="row">
+          <Box flexDirection="row" marginY={1}>
             <Box flexShrink={0} marginRight={1}>
               <Text color={message.color || theme.messageTypes.info} bold>
                 ●
@@ -150,7 +151,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
 
       case 'system':
         return (
-          <Box flexDirection="row">
+          <Box flexDirection="row" marginY={1}>
             <Box flexShrink={0} marginRight={1}>
               <Text color={theme.messageTypes.system} bold>
                 ●
@@ -162,7 +163,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
 
       case 'thinking':
         return (
-          <Box flexDirection="row">
+          <Box flexDirection="row" marginY={1}>
             <Box flexShrink={0} marginRight={1}>
               <Text color={theme.messageTypes.thinking} bold>
                 ●
@@ -180,7 +181,19 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
   };
 
   return (
-    <Box width={cols} backgroundColor={backgroundColor}>
+    <Box
+      width={cols}
+      backgroundColor={backgroundColor}
+      {...(liveMessage
+        ? {
+            borderStyle: 'single',
+            borderColor: theme.colors.accent,
+            borderBottom: false,
+            borderTop: false,
+            borderLeft: false,
+          }
+        : {})}
+    >
       {renderMessage()}
     </Box>
   );

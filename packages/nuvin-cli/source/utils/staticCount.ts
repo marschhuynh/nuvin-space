@@ -18,16 +18,17 @@ function hasAnyPendingToolCalls(msg: MessageLine): boolean {
   return false;
 }
 
-function isLastNonTransientMessage(msgs: MessageLine[], index: number): boolean {
-  for (let i = index + 1; i < msgs.length; i++) {
+function findLastNonTransientIndex(msgs: MessageLine[]): number {
+  for (let i = msgs.length - 1; i >= 0; i--) {
     if (msgs[i].metadata?.isTransient !== true) {
-      return false;
+      return i;
     }
   }
-  return true;
+  return -1;
 }
 
 export function calculateStaticCount(msgs: MessageLine[]): number {
+  const lastNonTransientIndex = findLastNonTransientIndex(msgs);
   let dynamicCount = 0;
 
   for (let i = msgs.length - 1; i >= 0; i--) {
@@ -37,7 +38,8 @@ export function calculateStaticCount(msgs: MessageLine[]): number {
       continue;
     }
 
-    if (msg.metadata?.isStreaming === true && isLastNonTransientMessage(msgs, i)) {
+    const isLast = i === lastNonTransientIndex;
+    if (msg.metadata?.isStreaming === true && isLast) {
       dynamicCount = msgs.length - i;
       break;
     }

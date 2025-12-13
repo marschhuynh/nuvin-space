@@ -115,17 +115,29 @@ export const getUsageColor = (usage: number, theme: Theme): string => {
   return theme.footer.model;
 };
 
+const gitBranchCache = new Map<string, { value: string | null; timestamp: number }>();
+const GIT_BRANCH_CACHE_TTL = 5000;
+
 /**
  * Get git branch for a directory (moved from Footer.tsx)
+ * Results are cached for 5 seconds to avoid repeated execSync calls
  */
 export const getGitBranch = (dir: string): string | null => {
+  const cached = gitBranchCache.get(dir);
+  if (cached && Date.now() - cached.timestamp < GIT_BRANCH_CACHE_TTL) {
+    return cached.value;
+  }
+
   try {
-    return execSync('git rev-parse --abbrev-ref HEAD', {
+    const result = execSync('git rev-parse --abbrev-ref HEAD', {
       cwd: dir,
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'ignore'],
     }).trim();
+    gitBranchCache.set(dir, { value: result, timestamp: Date.now() });
+    return result;
   } catch {
+    gitBranchCache.set(dir, { value: null, timestamp: Date.now() });
     return null;
   }
 };
