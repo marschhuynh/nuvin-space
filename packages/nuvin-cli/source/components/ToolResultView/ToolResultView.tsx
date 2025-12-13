@@ -10,8 +10,10 @@ import { FileReadRenderer } from './renderers/FileReadRenderer.js';
 import { FileNewRenderer } from './renderers/FileNewRenderer.js';
 import { BashToolRenderer } from './renderers/BashToolRenderer.js';
 import { DefaultRenderer } from './renderers/DefaultRenderer.js';
+import { LAYOUT } from './renderers/constants.js';
 import { formatDuration } from '@/utils/formatters.js';
 import { getStatusMessage } from './statusStrategies/index.js';
+import { isCollapsedTool } from '@/components/toolRegistry.js';
 
 type ToolResultViewProps = {
   toolResult: ToolExecutionResult;
@@ -42,11 +44,11 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       case 'assign_task': {
         if (isAssignSuccess(toolResult)) {
           const resultStr = (toolResult.result as string).replace(/\\n/g, '\n');
-          return <Markdown maxWidth={cols - 12}>{resultStr}</Markdown>;
+          return <Markdown maxWidth={cols - LAYOUT.MARKDOWN_MARGIN}>{resultStr}</Markdown>;
         }
         const errorStr =
           toolResult.type === 'text' ? (toolResult.result as string) : JSON.stringify(toolResult.result, null, 2);
-        return <Markdown maxWidth={cols - 12}>{errorStr}</Markdown>;
+        return <Markdown maxWidth={cols - LAYOUT.MARKDOWN_MARGIN}>{errorStr}</Markdown>;
       }
       case 'todo_write':
         return <TodoWriteRenderer toolResult={toolResult} messageId={messageId} fullMode={fullMode} />;
@@ -62,6 +64,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
             messageContent={messageContent}
             messageColor={messageColor}
             fullMode={fullMode}
+            cols={cols}
           />
         );
       case 'file_new':
@@ -73,6 +76,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
             messageContent={messageContent}
             messageColor={messageColor}
             fullMode={fullMode}
+            cols={cols}
           />
         );
       case 'bash_tool':
@@ -83,6 +87,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
             messageContent={messageContent}
             messageColor={messageColor}
             fullMode={fullMode}
+            cols={cols}
           />
         );
       default:
@@ -93,6 +98,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
             messageContent={messageContent}
             messageColor={messageColor}
             fullMode={fullMode}
+            cols={cols}
           />
         );
     }
@@ -100,14 +106,13 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
 
   const content = renderContent();
 
-  const COLLAPSED_TOOLS = ['file_read', 'file_new', 'assign_task'] as const;
-  const isCollapsedTool = COLLAPSED_TOOLS.includes(toolResult.name as (typeof COLLAPSED_TOOLS)[number]);
+  const collapsed = isCollapsedTool(toolResult.name);
   const hasResult = toolResult.result != null && toolResult.result !== '';
   const isTodoWrite = toolResult.name === 'todo_write';
 
   const shouldShowStatus = hasResult || isTodoWrite;
-  const shouldShowContent = (hasResult || isTodoWrite) && (!isCollapsedTool || fullMode);
-  const shouldShowDone = !isCollapsedTool || fullMode;
+  const shouldShowContent = (hasResult || isTodoWrite) && (!collapsed || fullMode);
+  const shouldShowDone = !collapsed || fullMode;
 
   const showStatusTop = shouldShowStatus && statusPosition === 'top';
   const showStatusBottom = shouldShowStatus && statusPosition === 'bottom';

@@ -93,6 +93,7 @@ export const theme = {
   // Status mappings for tool results and execution states
   status: {
     success: COLOR_TOKENS.green,
+    warning: COLOR_TOKENS.yellow,
     error: COLOR_TOKENS.red,
     pending: COLOR_TOKENS.yellow,
     running: COLOR_TOKENS.cyan,

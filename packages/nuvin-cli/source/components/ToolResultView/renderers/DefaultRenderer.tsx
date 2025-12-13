@@ -1,9 +1,7 @@
 import type React from 'react';
-import { Box, Text } from 'ink';
 import type { ToolExecutionResult } from '@nuvin/nuvin-core';
-import { useTheme } from '@/contexts/ThemeContext.js';
-import { parseDetailLines } from '@/components/ToolResultView/utils.js';
-import { useStdoutDimensions } from '@/hooks/index.js';
+import { BaseRenderer } from './BaseRenderer.js';
+import { TRUNCATION } from './constants.js';
 
 type DefaultRendererProps = {
   toolResult: ToolExecutionResult;
@@ -11,48 +9,14 @@ type DefaultRendererProps = {
   messageContent?: string;
   messageColor?: string;
   fullMode?: boolean;
+  cols: number;
 };
 
-export const DefaultRenderer: React.FC<DefaultRendererProps> = ({
-  toolResult,
-  messageId,
-  messageContent,
-  messageColor,
-  fullMode = false,
-}) => {
-  const { theme } = useTheme();
-  const [cols] = useStdoutDimensions();
-
-  const statusColor = toolResult.status === 'success' ? theme.tokens.gray : theme.tokens.red;
-  const detailColor = messageColor ?? statusColor;
-  const linesToRender = parseDetailLines({ status: toolResult.status, messageContent, toolResult });
-  const maxLines = fullMode ? Number.POSITIVE_INFINITY : 5;
-  const maxLineLength = fullMode ? Number.POSITIVE_INFINITY : 150;
-
-  if (linesToRender.length === 0) return null;
-
-  const truncateLine = (line: string): string => {
-    if (fullMode || line.length <= maxLineLength) return line;
-    return `${line.slice(0, maxLineLength)}... (${line.length - maxLineLength} more chars)`;
-  };
-
-  return (
-    <Box flexDirection="column" width={cols - 10}>
-      {linesToRender.slice(0, maxLines).map((line, idx) => (
-        <Text
-          // biome-ignore lint/suspicious/noArrayIndexKey: <have to use index as key>
-          key={`${messageId}-tool-result-${line}-${idx}`}
-          dimColor
-          color={detailColor}
-        >
-          {truncateLine(line)}
-        </Text>
-      ))}
-      {!fullMode && linesToRender.length > maxLines && (
-        <Text dimColor color={theme.colors.muted}>
-          ... ({linesToRender.length - maxLines} more lines)
-        </Text>
-      )}
-    </Box>
-  );
-};
+export const DefaultRenderer: React.FC<DefaultRendererProps> = (props) => (
+  <BaseRenderer
+    {...props}
+    maxLines={TRUNCATION.DEFAULT_MAX_LINES}
+    maxLineLength={TRUNCATION.DEFAULT_MAX_LINE_LENGTH}
+    truncationMode="head"
+  />
+);

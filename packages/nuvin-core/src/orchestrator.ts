@@ -28,6 +28,7 @@ import {
   type UsageData,
   AgentEventTypes,
   MessageRoles,
+  ErrorReason,
 } from './ports.js';
 import { NoopMetricsPort } from './metrics.js';
 import { SystemClock } from './clock.js';
@@ -300,6 +301,21 @@ export class AgentOrchestrator {
       };
       turnHistory.push(toolMsg);
       toolResultMsgs.push(toolMsg);
+
+      await this.events?.emit({
+        type: AgentEventTypes.ToolResult,
+        conversationId,
+        messageId,
+        result: {
+          id: toolCall.id,
+          name: toolCall.function.name,
+          status: 'error',
+          type: 'text',
+          result: toolDenialResult,
+          durationMs: 0,
+          metadata: { errorReason: ErrorReason.Denied },
+        },
+      });
     }
 
     await this.memory.append(conversationId, [assistantMsg, ...toolResultMsgs]);

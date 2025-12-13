@@ -2,7 +2,7 @@ import type React from 'react';
 import { Box, Text } from 'ink';
 import { type ToolExecutionResult, isFileReadSuccess } from '@nuvin/nuvin-core';
 import { useTheme } from '@/contexts/ThemeContext.js';
-import { useStdoutDimensions } from '@/hooks/index.js';
+import { LAYOUT } from './constants.js';
 
 type FileReadRendererProps = {
   toolResult: ToolExecutionResult;
@@ -10,6 +10,7 @@ type FileReadRendererProps = {
   messageContent?: string;
   messageColor?: string;
   fullMode?: boolean;
+  cols: number;
 };
 
 export const FileReadRenderer: React.FC<FileReadRendererProps> = ({
@@ -17,9 +18,9 @@ export const FileReadRenderer: React.FC<FileReadRendererProps> = ({
   messageId,
   messageColor,
   fullMode = false,
+  cols,
 }) => {
   const { theme } = useTheme();
-  const [cols] = useStdoutDimensions();
 
   const statusColor = toolResult.status === 'success' ? theme.tokens.gray : theme.tokens.red;
   const detailColor = messageColor ?? statusColor;
@@ -31,9 +32,9 @@ export const FileReadRenderer: React.FC<FileReadRendererProps> = ({
 
     const linesToRender = toolResult.result.split(/\r?\n/);
     return (
-      <Box flexDirection="column" width={cols - 10}>
-        {linesToRender.map((line) => (
-          <Text key={`${messageId}-${line.substring(0, 50)}`} dimColor color={detailColor}>
+      <Box flexDirection="column" width={cols - LAYOUT.CONTENT_MARGIN}>
+        {linesToRender.map((line, idx) => (
+          <Text key={`${messageId}-${idx}`} dimColor color={detailColor}>
             {line}
           </Text>
         ))}

@@ -85,6 +85,7 @@ export class DefaultSpecialistAgentFactory implements SpecialistAgentFactory {
       topP: template.topP,
       timeoutMs: template.timeoutMs,
       shareContext: template.shareContext ?? false,
+      stream: template.stream ?? true,
       delegatingMemory: undefined, // TODO: provide delegating memory when available
       delegationDepth: input.currentDepth + 1,
       conversationId: context?.conversationId,

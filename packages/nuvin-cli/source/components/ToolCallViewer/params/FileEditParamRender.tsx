@@ -1,44 +1,26 @@
 import type React from 'react';
-import { Box, Text } from 'ink';
-import { useStdoutDimensions } from '@/hooks/index.js';
+import { Text } from 'ink';
 import type { ToolParamRendererProps } from './types.js';
+import { ParamLayout } from './ParamLayout.js';
 
-/**
- * FileEditParamRender - Parameter renderer for file_edit tool calls
- *
- * Filters out old_text and new_text parameters to avoid showing verbose content differences.
- * Only shows relevant parameters like file_path.
- */
+const EXCLUDED_KEYS = ['old_text', 'new_text', 'description'];
+
 export const FileEditParamRender: React.FC<ToolParamRendererProps> = ({
   args,
   statusColor,
   formatValue,
 }: ToolParamRendererProps) => {
-  const [cols] = useStdoutDimensions();
-  const filteredArgs = Object.fromEntries(
-    Object.entries(args).filter(([key]) => key !== 'old_text' && key !== 'new_text' && key !== 'description'),
-  );
+  const entries = Object.entries(args).filter(([key]) => !EXCLUDED_KEYS.includes(key));
 
-  if (Object.keys(filteredArgs).length === 0) {
+  if (entries.length === 0) {
     return null;
   }
 
   return (
-    <Box
-      flexWrap="wrap"
-      marginLeft={2}
-      borderStyle="single"
-      borderDimColor
-      borderColor={statusColor}
-      borderBottom={false}
-      borderRight={false}
-      borderTop={false}
-      paddingLeft={2}
-      width={cols - 6}
-    >
-      {Object.entries(filteredArgs).map(([key, value]) => (
+    <ParamLayout statusColor={statusColor}>
+      {entries.map(([key, value]) => (
         <Text key={key} dimColor>{`${key}: ${formatValue(value)}`}</Text>
       ))}
-    </Box>
+    </ParamLayout>
   );
 };

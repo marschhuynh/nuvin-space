@@ -176,7 +176,7 @@ export class AgentManager {
     try {
       // Execute the task with timeout
       const timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-      const response = await this.executeWithTimeout(specialistOrchestrator, config.taskDescription, timeoutMs, signal);
+      const response = await this.executeWithTimeout(specialistOrchestrator, config.taskDescription, timeoutMs, signal, config.stream);
 
       const executionTimeMs = Date.now() - startTime;
       const conversationHistory = await memory.get('default');
@@ -279,6 +279,7 @@ export class AgentManager {
     taskDescription: string,
     timeoutMs: number,
     signal?: AbortSignal,
+    stream?: boolean,
   ): Promise<MessageResponse> {
     const timeoutController = new AbortController();
     const combinedSignal = signal ? AbortSignal.any([signal, timeoutController.signal]) : timeoutController.signal;
@@ -290,6 +291,7 @@ export class AgentManager {
         orchestrator.send(taskDescription, {
           conversationId: 'default',
           signal: combinedSignal,
+          stream,
         }),
         new Promise<never>((_, reject) => {
           if (signal?.aborted) {

@@ -115,7 +115,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
 
       case 'error':
         return (
-          <Box flexDirection="row" marginY={1}>
+          <Box flexDirection="row" marginTop={1}>
             <Box flexShrink={0} marginRight={1}>
               <Text color={theme.messageTypes.error} bold>
                 ●
@@ -127,7 +127,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
 
       case 'warning':
         return (
-          <Box flexDirection="row" marginY={1}>
+          <Box flexDirection="row" marginTop={1}>
             <Box flexShrink={0} marginRight={1}>
               <Text color={theme.messageTypes.warning} bold>
                 ●
@@ -139,7 +139,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
 
       case 'info':
         return (
-          <Box flexDirection="row" marginY={1}>
+          <Box flexDirection="row" marginTop={1}>
             <Box flexShrink={0} marginRight={1}>
               <Text color={message.color || theme.messageTypes.info} bold>
                 ●
@@ -151,7 +151,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
 
       case 'system':
         return (
-          <Box flexDirection="row" marginY={1}>
+          <Box flexDirection="row" marginTop={1}>
             <Box flexShrink={0} marginRight={1}>
               <Text color={theme.messageTypes.system} bold>
                 ●
@@ -163,7 +163,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
 
       case 'thinking':
         return (
-          <Box flexDirection="row" marginY={1}>
+          <Box flexDirection="row" marginTop={1}>
             <Box flexShrink={0} marginRight={1}>
               <Text color={theme.messageTypes.thinking} bold>
                 ●

@@ -19,10 +19,11 @@ export type AgentTemplate = {
 
   // Sampling parameters (optional - inherits if not specified)
   temperature?: number; // Default temperature (defaults to 0.7)
-  maxTokens?: number; // Default token limit (defaults to 4000)
+  maxTokens?: number; // Token limit (optional - omitted from request if not provided)
   topP?: number;
   timeoutMs?: number;
   shareContext?: boolean;
+  stream?: boolean; // Enable streaming for sub-agent responses
   metadata?: Record<string, unknown>;
 };
 
@@ -55,7 +56,8 @@ export type SpecialistAgentConfig = {
   timeoutMs?: number; // From template or default
 
   // Runtime context
-  shareContext?: boolean; // From template or default (false)
+  shareContext?: boolean;
+  stream?: boolean; // Enable streaming for sub-agent responses
   delegatingMemory?: Message[]; // If shareContext is true
   delegationDepth: number; // Current delegation level (tracked internally)
   conversationId?: string; // For event tracking

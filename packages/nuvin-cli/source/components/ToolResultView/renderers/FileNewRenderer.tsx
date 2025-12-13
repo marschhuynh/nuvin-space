@@ -1,7 +1,7 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
 import type { ToolExecutionResult, ToolCall } from '@nuvin/nuvin-core';
-import { useStdoutDimensions } from '@/hooks/index.js';
+import { LAYOUT } from './constants.js';
 
 type FileNewRendererProps = {
   toolResult: ToolExecutionResult;
@@ -10,6 +10,7 @@ type FileNewRendererProps = {
   messageContent?: string;
   messageColor?: string;
   fullMode?: boolean;
+  cols: number;
 };
 
 function addLineNumbers(content: string): Array<{ lineNumber: string; content: string }> {
@@ -28,9 +29,7 @@ function addLineNumbers(content: string): Array<{ lineNumber: string; content: s
   });
 }
 
-export const FileNewRenderer: React.FC<FileNewRendererProps> = ({ toolResult, toolCall, fullMode = false }) => {
-  const [cols] = useStdoutDimensions();
-
+export const FileNewRenderer: React.FC<FileNewRendererProps> = ({ toolResult, toolCall, fullMode = false, cols }) => {
   if (!fullMode || toolResult.status !== 'success') {
     return null;
   }
@@ -54,9 +53,9 @@ export const FileNewRenderer: React.FC<FileNewRendererProps> = ({ toolResult, to
   const linesWithNumbers = addLineNumbers(fileContent);
 
   return (
-    <Box flexDirection="column" width={cols - 10}>
-      {linesWithNumbers.map((line) => (
-        <Box key={`${line.lineNumber}-${line.content.slice(0, 20)}`}>
+    <Box flexDirection="column" width={cols - LAYOUT.CONTENT_MARGIN}>
+      {linesWithNumbers.map((line, idx) => (
+        <Box key={`${idx}-${line.content.slice(0, 20)}`}>
           <Text dimColor>{line.lineNumber}</Text>
           <Text>{line.content}</Text>
         </Box>
