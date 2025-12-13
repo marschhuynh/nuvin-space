@@ -17,6 +17,7 @@ export type FileNewSuccessResult = {
   metadata: {
     file_path: string;
     bytes: number;
+    lines: number;
     created: string;
     overwritten?: boolean;
   };
@@ -63,11 +64,13 @@ export class FileNewTool implements FunctionTool<FileNewParams, ToolExecutionCon
       await fs.mkdir(path.dirname(abs), { recursive: true });
 
       const bytes = Buffer.from(p.content, 'utf8');
+      const lines = p.content.split(/\r?\n/).length;
       await this.writeAtomic(abs, bytes);
 
       return okText(`File written at ${p.file_path}.`, { 
         file_path: p.file_path, 
         bytes: bytes.length,
+        lines,
         created: new Date().toISOString(),
         overwritten: existsBefore,
       });

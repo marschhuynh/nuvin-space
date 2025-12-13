@@ -198,8 +198,19 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       }
       case 'file_new': {
         if (isFileNewSuccess(toolResult)) {
+          const lines = get(toolResult, 'metadata.lines') as number | undefined;
           const bytes = get(toolResult, 'metadata.bytes') as number | undefined;
-          const text = bytes !== undefined ? `Created (${bytes} bytes)` : 'Created';
+          let text = 'Created';
+          if (lines !== undefined) {
+            text += ` (${lines} lines`;
+            if (bytes !== undefined) {
+              text += `, ${bytes} bytes)`;
+            } else {
+              text += ')';
+            }
+          } else if (bytes !== undefined) {
+            text += ` (${bytes} bytes)`;
+          }
           return { text, color: statusColor, paramText };
         }
         return { text: 'Creation failed', color: statusColor, paramText };
