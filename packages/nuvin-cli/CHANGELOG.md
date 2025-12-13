@@ -1,5 +1,15 @@
 # @nuvin/nuvin-cli
 
+## 1.13.3
+
+### Patch Changes
+
+- [`f31947d`](https://github.com/marschhuynh/nuvin-space/commit/f31947db768da35888f1a7fb1c8e912ca150e164) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix crash when loading old history files with missing metadata
+
+  - Add `get()` utility for safe nested property access
+  - Update ToolResultView to handle missing `metadata.stats` and other optional fields
+  - Gracefully degrade display when metadata is incomplete
+
 ## 1.13.2
 
 ### Patch Changes
