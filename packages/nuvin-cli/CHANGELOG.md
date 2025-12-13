@@ -1,5 +1,15 @@
 # @nuvin/nuvin-cli
 
+## 1.13.4
+
+### Patch Changes
+
+- [`14c1a75`](https://github.com/marschhuynh/nuvin-space/commit/14c1a7504e798685d49c461a58115a70ef3186e9) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix stale isStreaming flag causing messages to stay dynamic after errors
+
+  - Clear isStreaming flag when error occurs during streaming
+  - Add fallback: ignore isStreaming=true if message is not the last non-transient
+  - Extract calculateStaticCount to utils/staticCount.ts with tests
+
 ## 1.13.3
 
 ### Patch Changes
