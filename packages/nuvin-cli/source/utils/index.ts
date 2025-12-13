@@ -9,3 +9,4 @@ export const getRandomColor = () => {
 
 // Export all formatting utilities
 export * from './formatters.js';
+export { get } from './get.js';

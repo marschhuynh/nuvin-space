@@ -25,6 +25,7 @@ import { FileNewRenderer } from './renderers/FileNewRenderer.js';
 import { BashToolRenderer } from './renderers/BashToolRenderer.js';
 import { DefaultRenderer } from './renderers/DefaultRenderer.js';
 import { formatDuration, formatTokens, formatCost } from '@/utils/formatters.js';
+import { get } from '@/utils/get.js';
 
 type ToolResultViewProps = {
   toolResult: ToolExecutionResult;
@@ -155,17 +156,18 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       case 'assign_task': {
         if (isAssignSuccess(toolResult)) {
           const parts: string[] = ['Done'];
+          const executionTimeMs = get(toolResult, 'metadata.executionTimeMs') as number | undefined;
+          const toolCallsExecuted = get(toolResult, 'metadata.toolCallsExecuted') as number | undefined;
+          const tokensUsed = get(toolResult, 'metadata.tokensUsed') as number | undefined;
           if (subAgentMetrics) {
             parts.push(`${subAgentMetrics.llmCallCount} calls`);
             parts.push(`${formatTokens(subAgentMetrics.totalTokens)} tokens`);
             if (subAgentMetrics.totalCost > 0) parts.push(`$${formatCost(subAgentMetrics.totalCost)}`);
-            if (toolResult.metadata.executionTimeMs)
-              parts.push(`${formatDuration(toolResult.metadata.executionTimeMs)}`);
+            if (executionTimeMs) parts.push(`${formatDuration(executionTimeMs)}`);
           } else {
-            if (toolResult.metadata.toolCallsExecuted) parts.push(`${toolResult.metadata.toolCallsExecuted} tools`);
-            if (toolResult.metadata.tokensUsed) parts.push(`${formatTokens(toolResult.metadata.tokensUsed)} tokens`);
-            if (toolResult.metadata.executionTimeMs)
-              parts.push(`${formatDuration(toolResult.metadata.executionTimeMs)}`);
+            if (toolCallsExecuted) parts.push(`${toolCallsExecuted} tools`);
+            if (tokensUsed) parts.push(`${formatTokens(tokensUsed)} tokens`);
+            if (executionTimeMs) parts.push(`${formatDuration(executionTimeMs)}`);
           }
           return {
             text: parts.join(' • '),
@@ -181,7 +183,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       }
       case 'file_edit': {
         if (isFileEditSuccess(toolResult)) {
-          const bytesWritten = toolResult.metadata?.bytesWritten;
+          const bytesWritten = get(toolResult, 'metadata.bytesWritten') as number | undefined;
           const text = bytesWritten ? `Edited (${bytesWritten} bytes)` : 'Edited';
           return { text, color: statusColor, paramText };
         }
@@ -196,15 +198,15 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       }
       case 'file_new': {
         if (isFileNewSuccess(toolResult)) {
-          const bytes = toolResult.metadata.bytes;
-          const text = `Created (${bytes} bytes)`;
+          const bytes = get(toolResult, 'metadata.bytes') as number | undefined;
+          const text = bytes !== undefined ? `Created (${bytes} bytes)` : 'Created';
           return { text, color: statusColor, paramText };
         }
         return { text: 'Creation failed', color: statusColor, paramText };
       }
       case 'bash_tool': {
         if (isBashSuccess(toolResult)) {
-          const code = toolResult.metadata?.code;
+          const code = get(toolResult, 'metadata.code') as number | undefined;
           const text = code !== undefined ? `Executed (exit ${code})` : 'Executed';
           return { text, color: statusColor, paramText };
         }
@@ -212,27 +214,27 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       }
       case 'web_fetch': {
         if (isWebFetchSuccess(toolResult)) {
-          const size = toolResult.metadata.size;
-          const statusCode = toolResult.metadata.statusCode;
-          const text = `Fetched (${statusCode}, ${size} bytes)`;
+          const size = get(toolResult, 'metadata.size') as number | undefined;
+          const statusCode = get(toolResult, 'metadata.statusCode') as number | undefined;
+          const text =
+            size !== undefined && statusCode !== undefined ? `Fetched (${statusCode}, ${size} bytes)` : 'Fetched';
           return { text, color: statusColor, paramText };
         }
         return { text: 'Fetch failed', color: statusColor, paramText };
       }
       case 'web_search': {
         if (isWebSearchSuccess(toolResult)) {
-          const resultObj = toolResult.result as { count: number };
-          const count = resultObj.count;
-          const text = `Searched (${count} results)`;
+          const count = get(toolResult, 'result.count') as number | undefined;
+          const text = count !== undefined ? `Searched (${count} results)` : 'Searched';
           return { text, color: statusColor, paramText };
         }
         return { text: 'Search failed', color: statusColor, paramText };
       }
       case 'todo_write': {
         if (isTodoWriteSuccess(toolResult)) {
-          const stats = toolResult.metadata.stats;
-          const progress = toolResult.metadata.progress;
-          const text = `Updated (${stats.completed}/${stats.total} - ${progress})`;
+          const stats = get(toolResult, 'metadata.stats') as { completed: number; total: number } | undefined;
+          const progress = get(toolResult, 'metadata.progress') as string | undefined;
+          const text = stats ? `Updated (${stats.completed}/${stats.total} - ${progress})` : 'Updated';
           return {
             text,
             color: statusColor,
