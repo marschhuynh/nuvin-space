@@ -1,9 +1,10 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Box, Static } from 'ink';
 import { MessageLine } from './MessageLine.js';
 import type { MessageLine as MessageLineType } from '@/adapters/index.js';
 import { WelcomeLogo } from './RecentSessions.js';
 import type { SessionInfo } from '@/types.js';
+import { calculateStaticCount } from '@/utils/staticCount.js';
 
 type ChatDisplayProps = {
   key: string;
@@ -93,77 +94,12 @@ function mergeToolCallsWithResults(messages: MessageLineType[]): MessageLineType
   return result;
 }
 
-/**
- * Check if a tool call message has any pending (incomplete) tool calls
- */
-function hasAnyPendingToolCalls(msg: MessageLineType): boolean {
-  if (msg.type !== 'tool') return false;
-
-  const toolCalls = msg.metadata?.toolCalls || [];
-  const toolResultsByCallId = msg.metadata?.toolResultsByCallId as Map<string, MessageLineType> | undefined;
-
-  // If there are no tool calls, it's not pending
-  if (toolCalls.length === 0) return false;
-
-  // Check if any tool call doesn't have a result yet
-  for (const toolCall of toolCalls) {
-    const hasResult = toolResultsByCallId?.has(toolCall.id);
-    if (!hasResult) {
-      return true; // At least one tool call is pending
-    }
-  }
-
-  return false; // All tool calls have results
-}
-
 const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey, sessions: sessionsProp }) => {
-  const DYNAMIC_COUNT = 0;
-  // Use sessions from props instead of loading internally
   const sessions = sessionsProp ?? null;
 
-  // Merge tool calls with results for display only
   const mergedMessages = useMemo(() => mergeToolCallsWithResults(messages), [messages]);
 
-  // Calculate static count, excluding pending tool calls and streaming messages
-  const calculateStaticCount = useCallback((msgs: MessageLineType[]) => {
-    // Start from the end and work backwards
-    // Keep at least DYNAMIC_COUNT messages dynamic
-    let dynamicCount = DYNAMIC_COUNT;
-    let checkedNonTransientCount = 0;
-
-    // Check messages from the end, looking for pending tool calls or streaming messages
-    for (let i = msgs.length - 1; i >= 0; i--) {
-      const msg = msgs[i];
-
-      // Skip transient messages (like retry notifications) - they don't count towards the scan limit
-      if (msg.metadata?.isTransient === true) {
-        continue;
-      }
-
-      checkedNonTransientCount++;
-
-      // If this message is actively streaming, keep it and everything after it dynamic
-      if (msg.metadata?.isStreaming === true) {
-        dynamicCount = msgs.length - i;
-        break;
-      }
-
-      // If this message is a pending tool call, keep it and everything after it dynamic
-      if (hasAnyPendingToolCalls(msg)) {
-        dynamicCount = msgs.length - i;
-        break;
-      }
-
-      // Stop checking once we've scanned enough non-transient messages
-      if (checkedNonTransientCount > DYNAMIC_COUNT && DYNAMIC_COUNT > 0) {
-        break;
-      }
-    }
-
-    return Math.max(0, msgs.length - dynamicCount);
-  }, []);
-
-  const staticCount = useMemo(() => calculateStaticCount(mergedMessages), [mergedMessages, calculateStaticCount]);
+  const staticCount = useMemo(() => calculateStaticCount(mergedMessages), [mergedMessages]);
 
   // Use a ref to maintain the stable list of static items to avoid re-rendering Static
   // when the prefix hasn't changed.

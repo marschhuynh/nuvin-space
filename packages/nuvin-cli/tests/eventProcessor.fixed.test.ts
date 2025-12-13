@@ -462,4 +462,56 @@ The codebase is well-structured, actively maintained, and follows modern TypeScr
       );
     });
   });
+
+  describe('Error handling during streaming', () => {
+    it('should clear isStreaming flag when error occurs during streaming', () => {
+      state = processAgentEvent(
+        { type: AgentEventTypes.MessageStarted, conversationId: 'cli', messageId: 'msg-err' },
+        state,
+        callbacks,
+      );
+
+      state = processAgentEvent(
+        { type: AgentEventTypes.AssistantChunk, conversationId: 'cli', messageId: 'msg-err', delta: 'Starting...' },
+        state,
+        callbacks,
+      );
+
+      const streamingMsgId = state.streamingMessageId;
+      expect(streamingMsgId).toBeTruthy();
+
+      vi.clearAllMocks();
+
+      state = processAgentEvent(
+        { type: AgentEventTypes.Error, conversationId: 'cli', messageId: 'msg-err', error: new Error('terminated') },
+        state,
+        callbacks,
+      );
+
+      expect(callbacks.updateLineMetadata).toHaveBeenCalledWith(streamingMsgId, { isStreaming: false });
+      expect(callbacks.appendLine).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          content: expect.stringContaining('terminated'),
+        }),
+      );
+      expect(state.streamingMessageId).toBe(null);
+    });
+
+    it('should handle error when no streaming message exists', () => {
+      state = processAgentEvent(
+        { type: AgentEventTypes.Error, conversationId: 'cli', messageId: 'msg-err', error: new Error('connection failed') },
+        state,
+        callbacks,
+      );
+
+      expect(callbacks.updateLineMetadata).not.toHaveBeenCalled();
+      expect(callbacks.appendLine).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          content: expect.stringContaining('connection failed'),
+        }),
+      );
+    });
+  });
 });

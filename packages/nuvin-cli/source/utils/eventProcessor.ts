@@ -233,6 +233,9 @@ export function processAgentEvent(
     }
 
     case AgentEventTypes.Error: {
+      if (state.streamingMessageId) {
+        callbacks.updateLineMetadata?.(state.streamingMessageId, { isStreaming: false });
+      }
       callbacks.appendLine({
         id: crypto.randomUUID(),
         type: 'error',
@@ -240,7 +243,10 @@ export function processAgentEvent(
         metadata: { timestamp: now() },
         color: 'red',
       });
-      return state;
+      return {
+        ...state,
+        streamingMessageId: null,
+      };
     }
 
     case AgentEventTypes.ToolApprovalRequired: {
