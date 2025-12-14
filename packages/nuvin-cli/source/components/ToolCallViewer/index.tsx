@@ -1,14 +1,16 @@
 import type React from 'react';
-import { Box, Text } from 'ink';
+import { Box, Text, useStdout } from 'ink';
 import { type ToolCall, type ToolExecutionResult, ErrorReason } from '@nuvin/nuvin-core';
 import type { MessageLine as MessageLineType } from '@/adapters/index.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import { useExplainMode } from '@/contexts/ExplainModeContext.js';
 import { useToolApproval } from '@/contexts/ToolApprovalContext.js';
 import { ToolResultView } from '@/components/ToolResultView/index.js';
+import { BashStreamingView } from '@/components/ToolResultView/renderers/BashStreamingView.js';
 import { FileEditParamRender, FileNewParamRender, DefaultParamRender, AssignTaskParamRender } from './params/index.js';
 import { ToolTimer } from '@/components/ToolTimer.js';
 import { getToolDisplayName } from '@/components/toolRegistry.js';
+import type { BashStreamingState } from '@/utils/eventProcessor.js';
 
 type ToolCallProps = {
   toolCall: ToolCall;
@@ -20,6 +22,8 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
   const { theme } = useTheme();
   const { explainMode } = useExplainMode();
   const { pendingApproval } = useToolApproval();
+  const { stdout } = useStdout();
+  const cols = stdout?.columns || 80;
 
   const isAwaitingApproval = pendingApproval?.toolCalls.some((tc) => tc.id === toolCall.id) ?? false;
 
@@ -53,6 +57,11 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
     args.description && typeof args.description === 'string' && args.description.trim()
       ? args.description
       : getToolDisplayName(toolName);
+
+  const bashStreamingState = toolResult?.metadata?.[`bashStreaming_${toolCall.id}`] as BashStreamingState | undefined;
+  const isBashTool = toolName === 'bash_tool';
+  const isStreaming = isBashTool && !hasResult && bashStreamingState && !bashStreamingState.completedAt &&
+    (bashStreamingState.stdout || bashStreamingState.stderr);
 
   const getParameterRenderer = () => {
     switch (toolName) {
@@ -94,7 +103,7 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
         <ParamRenderer toolCall={toolCall} args={args} statusColor={statusColor} formatValue={formatValue} />
       )}
 
-      {!hasResult && !isDenied && (
+      {!hasResult && !isDenied && !isStreaming && (
         <Box flexDirection="row" marginLeft={2}>
           <Text dimColor color={statusColor}>
             └─{' '}
@@ -105,6 +114,16 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
               <ToolTimer hasResult={hasResult} finalDuration={finalDuration} />
             </Box>
           )}
+        </Box>
+      )}
+
+      {isStreaming && bashStreamingState && (
+        <Box marginLeft={2} marginTop={1}>
+          <BashStreamingView
+            streamingState={bashStreamingState}
+            toolCallId={toolCall.id}
+            cols={cols}
+          />
         </Box>
       )}
 

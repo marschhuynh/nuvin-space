@@ -489,6 +489,7 @@ export const AgentEventTypes = {
   SubAgentToolResult: 'sub_agent_tool_result',
   SubAgentCompleted: 'sub_agent_completed',
   SubAgentMetrics: 'sub_agent_metrics',
+  BashOutputChunk: 'bash_output_chunk',
 } as const;
 
 export type ToolApprovalDecision = 'approve' | 'deny' | 'approve_all';
@@ -616,6 +617,16 @@ export type AgentEvent =
       agentId: string;
       toolCallId: string;
       metrics: MetricsSnapshot;
+    }
+  | {
+      type: typeof AgentEventTypes.BashOutputChunk;
+      conversationId: string;
+      messageId: string;
+      toolCallId: string;
+      stream: 'stdout' | 'stderr';
+      chunk: string;
+      timestamp: string;
+      isFinal?: boolean;
     };
 
 export interface EventPort {

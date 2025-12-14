@@ -22,15 +22,23 @@ export interface EventProcessorCallbacks {
 
 export type { SubAgentState };
 
+export type BashStreamingState = {
+  stdout: string;
+  stderr: string;
+  startedAt: string;
+  completedAt?: string;
+};
+
 export type EventProcessorState = {
   toolCallCount: number;
   recentToolCalls: Map<string, ToolCall>;
   streamingMessageId: string | null;
   streamingContent: string;
   subAgents: Map<string, SubAgentState>;
-  lastToolCallMessageId: string | null; // Track most recent tool call message
-  agentToMessageMap: Map<string, string>; // Map agent ID to tool call message ID
-  toolCallToMessageMap: Map<string, string>; // Map tool call ID to message ID
+  lastToolCallMessageId: string | null;
+  agentToMessageMap: Map<string, string>;
+  toolCallToMessageMap: Map<string, string>;
+  bashStreamingStates: Map<string, BashStreamingState>;
 };
 
 export const initialEventProcessorState: EventProcessorState = {
@@ -42,6 +50,7 @@ export const initialEventProcessorState: EventProcessorState = {
   lastToolCallMessageId: null,
   agentToMessageMap: new Map(),
   toolCallToMessageMap: new Map(),
+  bashStreamingStates: new Map(),
 };
 
 export const resetEventProcessorState = (): EventProcessorState => ({
@@ -51,6 +60,7 @@ export const resetEventProcessorState = (): EventProcessorState => ({
   lastToolCallMessageId: null,
   agentToMessageMap: new Map(),
   toolCallToMessageMap: new Map(),
+  bashStreamingStates: new Map(),
 });
 
 export function processAgentEvent(
@@ -78,6 +88,7 @@ export function processAgentEvent(
         lastToolCallMessageId: state.lastToolCallMessageId,
         agentToMessageMap: state.agentToMessageMap,
         toolCallToMessageMap: state.toolCallToMessageMap,
+        bashStreamingStates: state.bashStreamingStates,
       };
     }
 
@@ -375,6 +386,42 @@ export function processAgentEvent(
       }
 
       return state;
+    }
+
+    case AgentEventTypes.BashOutputChunk: {
+      const { toolCallId, stream, chunk, isFinal } = event;
+
+      const toolCallMessageId = state.toolCallToMessageMap.get(toolCallId);
+      if (!toolCallMessageId) {
+        return state;
+      }
+
+      const bashStreamingStates = new Map(state.bashStreamingStates);
+      const currentState = bashStreamingStates.get(toolCallId) || {
+        stdout: '',
+        stderr: '',
+        startedAt: event.timestamp,
+      };
+
+      if (!isFinal && chunk) {
+        if (stream === 'stdout') {
+          currentState.stdout += chunk;
+        } else {
+          currentState.stderr += chunk;
+        }
+      }
+
+      if (isFinal) {
+        currentState.completedAt = event.timestamp;
+      }
+
+      bashStreamingStates.set(toolCallId, currentState);
+
+      callbacks.updateLineMetadata?.(toolCallMessageId, {
+        [`bashStreaming_${toolCallId}`]: currentState,
+      });
+
+      return { ...state, bashStreamingStates };
     }
 
     default:

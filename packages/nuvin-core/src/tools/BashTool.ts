@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import * as os from 'node:os';
 import * as fs from 'node:fs';
 import type { ToolDefinition } from '../ports.js';
-import { ErrorReason } from '../ports.js';
+import { ErrorReason, AgentEventTypes } from '../ports.js';
 import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
 import { okText, err } from './result-helpers.js';
 import { stripAnsiAndControls } from '../string-utils.js';
@@ -35,6 +35,7 @@ export type BashResult = BashSuccessResult | BashErrorResult;
 
 const DEFAULTS = {
   maxOutputBytes: 1 * 1024 * 1024,
+  maxStreamingBytes: 100 * 1024,
   timeoutMs: 30_000,
   stripAnsi: true,
 };
@@ -84,7 +85,7 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
    */
   async execute(p: BashParams, ctx?: ToolExecutionContext): Promise<BashResult> {
     try {
-      return await this.execOnce(p, ctx?.signal);
+      return await this.execOnce(p, ctx);
     } catch (e: unknown) {
       if (e instanceof Error && e.name === 'AbortError') {
         return err('Command execution aborted by user', undefined, ErrorReason.Aborted);
@@ -94,14 +95,70 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
     }
   }
 
-  private async execOnce(p: BashParams, signal?: AbortSignal): Promise<BashResult> {
+  private async execOnce(p: BashParams, ctx?: ToolExecutionContext): Promise<BashResult> {
+    const signal = ctx?.signal;
+    const eventPort = ctx?.eventPort;
+    const conversationId = ctx?.conversationId as string | undefined;
+    const messageId = ctx?.messageId as string | undefined;
+    const toolCallId = ctx?.toolCallId as string | undefined;
+
     if (signal?.aborted) {
       return err('Command execution aborted by user', undefined, ErrorReason.Aborted);
     }
     const { cmd, cwd = process.cwd(), timeoutMs = DEFAULTS.timeoutMs } = p;
 
     const maxOutputBytes = DEFAULTS.maxOutputBytes;
+    const maxStreamingBytes = DEFAULTS.maxStreamingBytes;
     const stripAnsi = DEFAULTS.stripAnsi;
+
+    const canStream = !!(eventPort && conversationId && messageId && toolCallId);
+    let totalStreamedBytes = 0;
+    let streamingTruncated = false;
+
+    const emitChunk = (stream: 'stdout' | 'stderr', data: string, isFinal = false) => {
+      if (!canStream) return;
+      if (streamingTruncated && !isFinal) return;
+
+      const chunkBytes = Buffer.byteLength(data, 'utf8');
+      totalStreamedBytes += chunkBytes;
+
+      if (totalStreamedBytes > maxStreamingBytes && !isFinal) {
+        streamingTruncated = true;
+        eventPort.emit({
+          type: AgentEventTypes.BashOutputChunk,
+          conversationId,
+          messageId,
+          toolCallId,
+          stream: 'stderr',
+          chunk: `\n[Streaming truncated at ${maxStreamingBytes} bytes]`,
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      eventPort.emit({
+        type: AgentEventTypes.BashOutputChunk,
+        conversationId,
+        messageId,
+        toolCallId,
+        stream,
+        chunk: data,
+        timestamp: new Date().toISOString(),
+        isFinal,
+      });
+    };
+
+    let stdoutBuffer = '';
+    let stderrBuffer = '';
+
+    const flushLineBuffer = (buffer: string, stream: 'stdout' | 'stderr'): string => {
+      const lastNewline = buffer.lastIndexOf('\n');
+      if (lastNewline === -1) return buffer;
+
+      const completeLines = buffer.substring(0, lastNewline + 1);
+      emitChunk(stream, completeLines);
+      return buffer.substring(lastNewline + 1);
+    };
 
     const executable = this.defaultShell();
     const execArgs = this.shellArgs(cmd, executable);
@@ -133,6 +190,9 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
     const deadline = new Promise<never>((_, rej) => {
       timer = setTimeout(() => {
         timedOut = true;
+        if (stdoutBuffer) emitChunk('stdout', stdoutBuffer);
+        if (stderrBuffer) emitChunk('stderr', stderrBuffer);
+        emitChunk('stderr', `\n[TIMEOUT after ${timeoutMs}ms]`, true);
         try {
           child.kill('SIGKILL');
         } catch {}
@@ -144,6 +204,9 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
       if (signal) {
         const abortHandler = () => {
           if (timer) clearTimeout(timer);
+          if (stdoutBuffer) emitChunk('stdout', stdoutBuffer);
+          if (stderrBuffer) emitChunk('stderr', stderrBuffer);
+          emitChunk('stdout', '\n[ABORTED]', true);
           try {
             child.kill('SIGTERM');
             setTimeout(() => {
@@ -178,10 +241,20 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
     };
 
     if (child.stdout) {
-      child.stdout.on('data', (d: Buffer) => capPush(stdout, d));
+      child.stdout.on('data', (d: Buffer) => {
+        capPush(stdout, d);
+        const text = d.toString('utf8');
+        stdoutBuffer += text;
+        stdoutBuffer = flushLineBuffer(stdoutBuffer, 'stdout');
+      });
     }
     if (child.stderr) {
-      child.stderr.on('data', (d: Buffer) => capPush(stderr, d));
+      child.stderr.on('data', (d: Buffer) => {
+        capPush(stderr, d);
+        const text = d.toString('utf8');
+        stderrBuffer += text;
+        stderrBuffer = flushLineBuffer(stderrBuffer, 'stderr');
+      });
     }
 
     const exit = new Promise<{ code: number | null; signal: string | null }>((res) => {
@@ -191,6 +264,10 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
     try {
       const { code, signal: exitSignal } = await Promise.race([exit, deadline, abort]);
       if (timer) clearTimeout(timer);
+
+      if (stdoutBuffer) emitChunk('stdout', stdoutBuffer);
+      if (stderrBuffer) emitChunk('stderr', stderrBuffer);
+      emitChunk('stdout', '', true);
 
       const outText = Buffer.concat(stdout).toString('utf8');
       const errText = Buffer.concat(stderr).toString('utf8');
@@ -203,7 +280,6 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
 
       if (code !== 0) {
         const metadata: Record<string, unknown> = { code, signal: exitSignal, cwd };
-        // Detect common error patterns
         if (output.toLowerCase().includes('permission denied')) {
           return err(output, { ...metadata, errorReason: ErrorReason.PermissionDenied });
         }

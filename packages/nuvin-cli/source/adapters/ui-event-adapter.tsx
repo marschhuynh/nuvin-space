@@ -38,7 +38,8 @@ export type LineMetadata = {
   isStreaming?: boolean;
   isTransient?: boolean;
   subAgentState?: SubAgentState;
-} & Partial<Record<`subAgentState_${string}`, SubAgentState>>;
+  [key: string]: unknown;
+};
 
 export type MessageLine = {
   id: string;
