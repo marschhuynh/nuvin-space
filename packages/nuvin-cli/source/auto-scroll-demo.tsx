@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, type ReactNode } from 'react';
-import { Box, render, Text, type BoxRef, useInput, type Props as BoxProps } from 'ink';
+import { Box, render, Text, type BoxRef, useInput, type BoxProps } from 'ink';
 
 type AutoScrollBoxProps = {
   maxHeight: number;
