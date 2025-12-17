@@ -158,4 +158,57 @@ describe('GithubLLM', () => {
       "The model 'gpt-5.1-codex' is not supported for chat completions",
     );
   });
+
+  it('should deduplicate models with the same ID', async () => {
+    const responseWithDuplicates = {
+      data: [
+        {
+          id: 'gpt-4',
+          name: 'GPT 4',
+          capabilities: {
+            family: 'gpt-4',
+            type: 'chat',
+            limits: {
+              max_context_window_tokens: 128000,
+            },
+          },
+        },
+        {
+          id: 'claude-sonnet-4.5',
+          name: 'Claude Sonnet 4.5',
+          capabilities: { family: 'claude-sonnet-4.5', type: 'chat' },
+        },
+        {
+          id: 'gpt-4',
+          name: 'GPT 4 Duplicate',
+          capabilities: {
+            family: 'gpt-4',
+            type: 'chat',
+            limits: {
+              max_context_window_tokens: 64000,
+            },
+          },
+        },
+      ],
+      object: 'list',
+    };
+
+    vi.mocked(llm.mockTransport.get).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve(responseWithDuplicates),
+      text: () => Promise.resolve(JSON.stringify(responseWithDuplicates)),
+    } as any);
+
+    const models = await llm.getModels();
+
+    expect(models).toHaveLength(2);
+    const modelIds = models.map((m) => m.id);
+    expect(modelIds).toEqual(['gpt-4', 'claude-sonnet-4.5']);
+    expect(new Set(modelIds).size).toBe(2);
+    
+    const gpt4Model = models.find((m) => m.id === 'gpt-4');
+    expect(gpt4Model?.name).toBe('GPT 4');
+    expect(gpt4Model?.limits?.contextWindow).toBe(128000);
+  });
 });

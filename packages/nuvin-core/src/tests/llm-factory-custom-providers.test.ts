@@ -161,5 +161,31 @@ describe('LLM Factory - Custom Providers', () => {
       const llm = createLLM('custom-no-models', { apiKey: 'test-key' }, customProviders);
       await expect(llm.getModels()).rejects.toThrow('Provider does not support getModels');
     });
+
+    it('should deduplicate models with the same ID in custom array', async () => {
+      const providersWithDuplicates: Record<string, CustomProviderDefinition> = {
+        'custom-with-dupes': {
+          type: 'openai-compat',
+          baseUrl: 'https://dupes.ai/v1',
+          models: [
+            { id: 'model-a', name: 'Model A', context_length: 128000 },
+            { id: 'model-b', name: 'Model B', context_length: 200000 },
+            { id: 'model-a', name: 'Model A Duplicate', context_length: 64000 },
+          ],
+        },
+      };
+
+      const llm = createLLM('custom-with-dupes', { apiKey: 'test-key' }, providersWithDuplicates);
+      const models = await llm.getModels();
+
+      expect(models).toHaveLength(2);
+      const modelIds = models.map((m) => m.id);
+      expect(modelIds).toEqual(['model-a', 'model-b']);
+      expect(new Set(modelIds).size).toBe(2);
+
+      const modelA = models.find((m) => m.id === 'model-a');
+      expect(modelA?.name).toBe('Model A');
+      expect(modelA?.limits?.contextWindow).toBe(128000);
+    });
   });
 });

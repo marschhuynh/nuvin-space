@@ -11,6 +11,7 @@ export {
 export {
   normalizeModelLimits,
   normalizeModelInfo,
+  deduplicateModels,
   getFallbackLimits,
   type ModelLimits,
   type ModelInfo,

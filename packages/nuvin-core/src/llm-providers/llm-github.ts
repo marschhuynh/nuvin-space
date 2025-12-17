@@ -1,7 +1,7 @@
 import type { LLMPort, UsageData } from '../ports.js';
 import { BaseLLM, LLMError } from './base-llm.js';
 import { FetchTransport, GithubAuthTransport, RetryTransport, type RetryConfig } from '../transports/index.js';
-import { normalizeModelInfo, type ModelInfo } from './model-limits.js';
+import { normalizeModelInfo, deduplicateModels, type ModelInfo } from './model-limits.js';
 
 type GithubOptions = {
   apiKey?: string;
@@ -12,6 +12,7 @@ type GithubOptions = {
 };
 
 type GithubModel = {
+  version: string;
   id: string;
   name: string;
   capable_endpoints?: string[];
@@ -92,7 +93,8 @@ export class GithubLLM extends BaseLLM implements LLMPort {
     }
 
     const body = (await res.json()) as GithubModelsResponse;
-    return body.data.map((m) => normalizeModelInfo('github', m as unknown as Record<string, unknown>));
+    const models = body.data.map((m) => normalizeModelInfo('github', m as unknown as Record<string, unknown>));
+    return deduplicateModels(models);
   }
 
   private handleError(error: unknown, model: string): never {
@@ -105,13 +107,13 @@ export class GithubLLM extends BaseLLM implements LLMPort {
           throw new LLMError(
             `The model '${model}' is not supported for chat completions. Please select a different model using '/model'.`,
             error.statusCode,
-            false // Not retryable
+            false, // Not retryable
           );
         }
       } catch (e) {
         // If parsing fails or checks fail, just rethrow original
         if (e instanceof LLMError && e.message.includes('not supported')) {
-           throw e;
+          throw e;
         }
       }
     }

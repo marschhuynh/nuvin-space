@@ -249,4 +249,48 @@ describe('AnthropicAISDKLLM - getModels', () => {
 
     await expect(llm.getModels()).rejects.toThrow('Network error');
   });
+
+  it('should deduplicate models with the same ID', async () => {
+    const mockResponse = {
+      data: [
+        {
+          type: 'model',
+          id: 'claude-opus-4-5-20251101',
+          display_name: 'Claude Opus 4.5',
+          created_at: '2025-11-24T00:00:00Z',
+        },
+        {
+          type: 'model',
+          id: 'claude-haiku-4-5-20251001',
+          display_name: 'Claude Haiku 4.5',
+          created_at: '2025-10-15T00:00:00Z',
+        },
+        {
+          type: 'model',
+          id: 'claude-opus-4-5-20251101',
+          display_name: 'Claude Opus 4.5 Duplicate',
+          created_at: '2025-11-24T00:00:00Z',
+        },
+      ],
+      has_more: false,
+      first_id: 'claude-opus-4-5-20251101',
+      last_id: 'claude-opus-4-5-20251101',
+    };
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    const llm = new AnthropicAISDKLLM({ apiKey: 'test-key' });
+    const models = await llm.getModels();
+
+    expect(models).toHaveLength(2);
+    const modelIds = models.map((m) => m.id);
+    expect(modelIds).toEqual(['claude-opus-4-5-20251101', 'claude-haiku-4-5-20251001']);
+    expect(new Set(modelIds).size).toBe(2);
+
+    const opusModel = models.find((m) => m.id === 'claude-opus-4-5-20251101');
+    expect(opusModel?.name).toBe('Claude Opus 4.5');
+  });
 });

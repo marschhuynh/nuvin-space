@@ -2,7 +2,7 @@ import type { LLMPort } from '../ports.js';
 import { BaseLLM } from './base-llm.js';
 import { FetchTransport, createTransport, RetryTransport, type RetryConfig } from '../transports/index.js';
 import providerConfig from './llm-provider-config.json';
-import { normalizeModelInfo, type ModelInfo } from './model-limits.js';
+import { normalizeModelInfo, deduplicateModels, type ModelInfo } from './model-limits.js';
 
 type ModelConfig = false | true | string | string[] | Array<{ id: string; name?: string; [key: string]: unknown }>;
 
@@ -93,10 +93,11 @@ export class GenericLLM extends BaseLLM implements LLMPort {
     }
 
     if (Array.isArray(this.modelConfig)) {
-      return this.modelConfig.map((m) => {
+      const models = this.modelConfig.map((m) => {
         const raw = typeof m === 'string' ? { id: m } : m;
         return normalizeModelInfo(this.providerName, raw);
       });
+      return deduplicateModels(models);
     }
 
     if (typeof this.modelConfig === 'string') {
@@ -109,7 +110,8 @@ export class GenericLLM extends BaseLLM implements LLMPort {
       }
 
       const data: ModelsListResponse = await res.json();
-      return data.data.map((m) => normalizeModelInfo(this.providerName, m));
+      const models = data.data.map((m) => normalizeModelInfo(this.providerName, m));
+      return deduplicateModels(models);
     }
 
     const transport = this.createTransport();
@@ -121,7 +123,8 @@ export class GenericLLM extends BaseLLM implements LLMPort {
     }
 
     const data: ModelsListResponse = await res.json();
-    return data.data.map((m) => normalizeModelInfo(this.providerName, m));
+    const models = data.data.map((m) => normalizeModelInfo(this.providerName, m));
+    return deduplicateModels(models);
   }
 
   async generateCompletion(

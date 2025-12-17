@@ -12,7 +12,7 @@ import {
   type FilePart,
 } from 'ai';
 import { LLMError } from './base-llm.js';
-import { normalizeModelInfo, type ModelInfo } from './model-limits.js';
+import { normalizeModelInfo, deduplicateModels, type ModelInfo } from './model-limits.js';
 import { FetchTransport, AnthropicAuthTransport, type HttpTransport, type RetryConfig } from '../transports/index.js';
 
 type AnthropicAISDKOptions = {
@@ -534,7 +534,8 @@ export class AnthropicAISDKLLM {
       }
 
       const data = (await res.json()) as { data: Record<string, unknown>[] };
-      return data.data.map((model) => normalizeModelInfo('anthropic', model));
+      const models = data.data.map((model) => normalizeModelInfo('anthropic', model));
+      return deduplicateModels(models);
     } catch (error) {
       if (error instanceof LLMError) {
         throw error;

@@ -7,10 +7,12 @@ export type ModelInfo = {
   id: string;
   name?: string;
   limits?: ModelLimits;
-  [key: string]: unknown;
+  [key: string]: string | number | ModelLimits | undefined | unknown;
 };
 
-type RawModelResponse = Record<string, unknown>;
+type RawModelResponse = {
+  [key: string]: string | number | undefined | unknown;
+};
 
 export function normalizeModelLimits(provider: string, model: RawModelResponse): ModelLimits | null {
   switch (provider.toLowerCase()) {
@@ -117,11 +119,11 @@ export function getFallbackLimits(provider: string, model: string): ModelLimits 
 export function normalizeModelInfo(provider: string, model: RawModelResponse): ModelInfo {
   const id = model.id as string;
   let name = (model.name as string | undefined) ?? id;
-  
+
   if (provider.toLowerCase() === 'anthropic' && model.display_name) {
     name = model.display_name as string;
   }
-  
+
   const limits = normalizeModelLimits(provider, model);
 
   return {
@@ -129,4 +131,14 @@ export function normalizeModelInfo(provider: string, model: RawModelResponse): M
     name,
     ...(limits ? { limits } : {}),
   };
+}
+
+export function deduplicateModels(models: ModelInfo[]): ModelInfo[] {
+  const uniqueModels = new Map<string, ModelInfo>();
+  for (const model of models) {
+    if (!uniqueModels.has(model.id)) {
+      uniqueModels.set(model.id, model);
+    }
+  }
+  return Array.from(uniqueModels.values());
 }
