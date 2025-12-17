@@ -58,12 +58,10 @@ export function ConfigProvider({ children, initialConfig = {} }: ConfigProviderP
   ) as <T>(key: string, scope?: ConfigScope) => T | undefined;
 
   const set = useCallback(
-    async (key: string, value: unknown, scope: ConfigScope = 'global'): Promise<void> => {
+    async (key: string, value: unknown, scope?: ConfigScope): Promise<void> => {
       try {
-        // Update ConfigManager and persist to file
         await configManager.set(key, value, scope);
 
-        // Update local state to trigger re-renders
         const updatedConfig = configManager.getConfig();
         setConfig(updatedConfig);
       } catch (error) {

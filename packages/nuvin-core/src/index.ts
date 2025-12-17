@@ -206,7 +206,8 @@ export { isRetryableError, isRetryableStatusCode } from './transports/index.js';
 
 // MCP
 export { MCPToolPort, CoreMCPClient } from './mcp/index.js';
-export { loadMCPConfig } from './config.js';
+// Note: MCPConfig types kept for backward compatibility, but config loading
+// is now handled by nuvin-cli ConfigManager under mcp.servers
 export type { MCPConfig, MCPServerConfig } from './config.js';
 
 // Events

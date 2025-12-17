@@ -1,13 +1,8 @@
-import { MCPToolPort, CoreMCPClient, loadMCPConfig } from '@nuvin/nuvin-core';
-import type { MCPConfig, MCPServerConfig } from '@nuvin/nuvin-core';
+import { MCPToolPort, CoreMCPClient } from '@nuvin/nuvin-core';
 import * as crypto from 'node:crypto';
-import * as path from 'node:path';
-import * as os from 'node:os';
 import type { MessageLine } from '@/adapters/index.js';
 import { theme, type ColorToken } from '@/theme.js';
-
-// Default MCP config path
-const DEFAULT_MCP_CONFIG_PATH = path.join(os.homedir(), '.nuvin-cli', '.nuvin_mcp.json');
+import type { MCPServerConfig, MCPSettings } from '@/config/types.js';
 
 export interface MCPServerInfo {
   id: string;
@@ -18,11 +13,11 @@ export interface MCPServerInfo {
   prefix: string;
   status: 'connected' | 'failed' | 'pending';
   error?: string;
+  disabled?: boolean;
 }
 
 export interface MCPServerManagerOptions {
-  configPath?: string;
-  config?: MCPConfig | null;
+  getConfig: () => MCPSettings | undefined;
   appendLine: (line: MessageLine) => void;
   handleError: (message: string) => void;
   silentInit?: boolean;
@@ -38,6 +33,10 @@ export class MCPServerManager {
     this.options = options;
   }
 
+  private get config(): MCPSettings | undefined {
+    return this.options.getConfig();
+  }
+
   async initializeServers(): Promise<{
     mcpPorts: MCPToolPort[];
     mcpClients: CoreMCPClient[];
@@ -47,57 +46,69 @@ export class MCPServerManager {
     const mcpClients: CoreMCPClient[] = [];
     const enabledTools: string[] = [];
 
-    const inlineConfig = this.options.config ?? null;
-    const shouldUseInline = Boolean(inlineConfig?.mcpServers && Object.keys(inlineConfig.mcpServers).length > 0);
-    const configPath = this.options.configPath || DEFAULT_MCP_CONFIG_PATH;
-    let cfg: MCPConfig | null = null;
+    const servers = this.config?.servers;
+    if (!servers || Object.keys(servers).length === 0) {
+      return { mcpPorts, mcpClients, enabledTools };
+    }
 
-    try {
-      cfg = shouldUseInline ? inlineConfig : await loadMCPConfig(configPath);
-      if (!cfg?.mcpServers) {
-        return { mcpPorts, mcpClients, enabledTools };
+    if (this.config?.allowedTools) {
+      this.allowedToolsConfig = this.config.allowedTools;
+    }
+
+    const serverEntries = Object.entries(servers).filter(
+      ([, cfg]) => cfg.enabled !== false
+    );
+
+    const initPromises = serverEntries.map(async ([serverId, serverCfg]) => {
+      try {
+        const serverInfo = await this.initializeServer(serverId, serverCfg);
+        return { serverId, serverCfg, serverInfo, error: null };
+      } catch (err) {
+        return { serverId, serverCfg, serverInfo: null, error: err };
+      }
+    });
+
+    const results = await Promise.allSettled(initPromises);
+
+    for (const result of results) {
+      if (result.status === 'rejected') continue;
+
+      const { serverId, serverCfg, serverInfo, error } = result.value;
+
+      if (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const prefix = serverCfg.prefix || `mcp_${serverId}_`;
+        this.failedServers.set(serverId, {
+          id: serverId,
+          client: null,
+          port: null,
+          exposedTools: [],
+          allowedTools: [],
+          prefix,
+          status: 'failed',
+          error: errorMessage,
+        });
+
+        if (!this.options.silentInit) {
+          this.handleServerError(serverId, error, 'initialize');
+        }
+        continue;
       }
 
-      for (const [serverId, serverCfg] of Object.entries(cfg.mcpServers)) {
-        try {
-          const serverInfo = await this.initializeServer(serverId, serverCfg);
-          if (serverInfo) {
-            if (serverInfo.status === 'connected') {
-              this.servers.set(serverId, serverInfo);
-              if (serverInfo.port !== null) {
-                mcpPorts.push(serverInfo.port);
-              }
-              if (serverInfo.client !== null) {
-                mcpClients.push(serverInfo.client);
-              }
-              enabledTools.push(...serverInfo.allowedTools);
-            } else {
-              // Store failed servers to show in UI
-              this.failedServers.set(serverId, serverInfo);
-            }
+      if (serverInfo) {
+        if (serverInfo.status === 'connected') {
+          this.servers.set(serverId, serverInfo);
+          if (serverInfo.port !== null) {
+            mcpPorts.push(serverInfo.port);
           }
-        } catch (err: unknown) {
-          // Create failed server entry
-          const errorMessage = err instanceof Error ? err.message : String(err);
-          const prefix = (serverCfg.prefix as string) || `mcp_${serverId}_`;
-          this.failedServers.set(serverId, {
-            id: serverId,
-            client: null,
-            port: null,
-            exposedTools: [],
-            allowedTools: [],
-            prefix,
-            status: 'failed',
-            error: errorMessage,
-          });
-
-          if (!this.options.silentInit) {
-            this.handleServerError(serverId, err, 'initialize');
+          if (serverInfo.client !== null) {
+            mcpClients.push(serverInfo.client);
           }
+          enabledTools.push(...serverInfo.allowedTools);
+        } else {
+          this.failedServers.set(serverId, serverInfo);
         }
       }
-    } catch (err: unknown) {
-      this.handleConfigError(shouldUseInline ? 'inline-config' : configPath, err);
     }
 
     return { mcpPorts, mcpClients, enabledTools };
@@ -105,7 +116,7 @@ export class MCPServerManager {
 
   private async initializeServer(serverId: string, serverCfg: MCPServerConfig): Promise<MCPServerInfo | null> {
     let client: CoreMCPClient | null = null;
-    const timeoutMs = serverCfg.timeoutMs || 120_000;
+    const timeoutMs = serverCfg.timeoutMs || this.config?.defaultTimeoutMs || 120_000;
 
     if (serverCfg.transport === 'http' && serverCfg.url) {
       client = new CoreMCPClient(
@@ -130,12 +141,11 @@ export class MCPServerManager {
     }
 
     if (!client) {
-      const errorMsg = `Missing or invalid transport configuration`;
+      const errorMsg = 'Missing or invalid transport configuration';
       if (!this.options.silentInit) {
         this.logInfo(`MCP server '${serverId}' missing transport info; skipping`, 'yellow');
       }
-      // Return failed server info instead of null
-      const prefix = (serverCfg.prefix as string) || `mcp_${serverId}_`;
+      const prefix = serverCfg.prefix || `mcp_${serverId}_`;
       return {
         id: serverId,
         client: null,
@@ -148,19 +158,17 @@ export class MCPServerManager {
       };
     }
 
-    const prefix: string = serverCfg.prefix || `mcp_${serverId}_`;
+    const prefix = serverCfg.prefix || `mcp_${serverId}_`;
     const port = new MCPToolPort(client, { prefix });
     await port.init();
     const allTools = port.getExposedToolNames();
-    let allowedTools = [...allTools]; // Start with all tools
+    let allowedTools = [...allTools];
 
-    // Filter tools based on allowed config if provided
     if (this.allowedToolsConfig?.[serverId]) {
       const serverAllowedConfig = this.allowedToolsConfig[serverId];
       const originalCount = allowedTools.length;
 
       allowedTools = allowedTools.filter((toolName) => {
-        // Default to true if not explicitly forbidden
         return serverAllowedConfig[toolName] !== false;
       });
 
@@ -172,8 +180,6 @@ export class MCPServerManager {
       }
     }
 
-    // Always return server info even if no allowed tools
-    // The modal needs to see all servers to configure them
     if (!this.options.silentInit) {
       this.logInfo(
         `MCP server '${serverId}' loaded with ${allTools.length} tools (${allowedTools.length} allowed, prefix='${prefix}', timeout=${timeoutMs}ms).`,
@@ -226,6 +232,69 @@ export class MCPServerManager {
     }
   }
 
+  async reconnectServer(serverId: string): Promise<MCPServerInfo | null> {
+    const serverCfg = this.config?.servers?.[serverId];
+    if (!serverCfg) {
+      this.logError(`MCP server '${serverId}' not found in config`);
+      return null;
+    }
+
+    if (serverCfg.enabled === false) {
+      this.logInfo(`MCP server '${serverId}' is disabled`, 'yellow');
+      return null;
+    }
+
+    const existingServer = this.servers.get(serverId);
+    if (existingServer?.client) {
+      try {
+        await existingServer.client.disconnect();
+      } catch {}
+    }
+
+    const failedServer = this.failedServers.get(serverId);
+    if (failedServer?.client) {
+      try {
+        await failedServer.client.disconnect();
+      } catch {}
+    }
+
+    this.servers.delete(serverId);
+    this.failedServers.delete(serverId);
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    try {
+      const serverInfo = await this.initializeServer(serverId, serverCfg);
+      if (serverInfo) {
+        if (serverInfo.status === 'connected') {
+          this.servers.set(serverId, serverInfo);
+          this.logInfo(`MCP server '${serverId}' reconnected successfully`, 'green');
+        } else {
+          this.failedServers.set(serverId, serverInfo);
+        }
+        return serverInfo;
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      const prefix = serverCfg.prefix || `mcp_${serverId}_`;
+      const failedInfo: MCPServerInfo = {
+        id: serverId,
+        client: null,
+        port: null,
+        exposedTools: [],
+        allowedTools: [],
+        prefix,
+        status: 'failed',
+        error: errorMessage,
+      };
+      this.failedServers.set(serverId, failedInfo);
+      this.handleServerError(serverId, err, 'reconnect');
+      return failedInfo;
+    }
+
+    return null;
+  }
+
   getServerInfo(serverId: string): MCPServerInfo | undefined {
     return this.servers.get(serverId);
   }
@@ -274,11 +343,6 @@ export class MCPServerManager {
   private handleServerError(serverId: string, err: unknown, operation: string): void {
     const message = this.extractErrorMessage(err);
     this.options.handleError(`Failed to ${operation} MCP server '${serverId}': ${message}`);
-  }
-
-  private handleConfigError(configPath: string, err: unknown): void {
-    const message = this.extractErrorMessage(err);
-    this.options.handleError(`Failed to load MCP config from ${configPath}: ${message}`);
   }
 
   private extractErrorMessage(err: unknown): string {

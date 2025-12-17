@@ -39,7 +39,7 @@ import {
 import { UIEventAdapter, type MessageLine, type LineMetadata } from '@/adapters/index.js';
 import { prompt } from '@/prompt.js';
 import type { ProviderKey } from '@/config/providers.js';
-import { MCPServerManager } from './MCPServerManager.js';
+import { MCPServerManager, type MCPServerInfo } from './MCPServerManager.js';
 import { eventBus } from './EventBus.js';
 import { ConfigManager } from '@/config/manager.js';
 import { getProviderAuth } from '@/config/utils.js';
@@ -105,7 +105,6 @@ class SessionBoundMetricsPort implements MetricsPort {
 
 export type OrchestratorConfig = {
   memPersist?: boolean;
-  mcpConfigPath?: string;
   sessionId?: string;
   sessionDir?: string;
   streamingChunks?: boolean;
@@ -318,25 +317,12 @@ export class OrchestratorManager {
         },
       };
 
-      // Determine MCP config path with profile awareness
-      const profileManager = this.configManager.getProfileManager();
-      const currentProfile = this.configManager.getCurrentProfile();
-
-      const profileMcpConfigPath = profileManager?.getProfileMcpConfigPath(currentProfile);
-      const configPath = options.mcpConfigPath || profileMcpConfigPath;
-
       const mcpManager = new MCPServerManager({
-        configPath,
-        config: currentConfig.config.mcp?.servers ? { mcpServers: currentConfig.config.mcp.servers } : null,
+        getConfig: () => this.configManager.getConfig().mcp,
         appendLine: handlers.appendLine,
         handleError: handlers.handleError,
         silentInit: true,
       });
-
-      // Load allowed MCP tools from config if available
-      if (currentConfig.mcpAllowedTools) {
-        mcpManager.setAllowedToolsConfig(currentConfig.mcpAllowedTools);
-      }
 
       new RuntimeEnv({ appName: 'nuvin-agent' }).init(sessionId);
 
@@ -485,6 +471,54 @@ export class OrchestratorManager {
         enabledTools: updatedEnabledTools,
       });
     }
+  }
+
+  async reconnectMCPServer(serverId: string): Promise<MCPServerInfo | null> {
+    if (!this.mcpManager) return null;
+
+    const serverInfo = await this.mcpManager.reconnectServer(serverId);
+
+    if (serverInfo && serverInfo.status === 'connected' && this.orchestrator) {
+      const allServers = this.mcpManager.getConnectedServers();
+      const mcpEnabledTools: string[] = [];
+
+      for (const server of allServers) {
+        mcpEnabledTools.push(...server.allowedTools);
+      }
+
+      const nonMcpTools = enabledTools;
+      const updatedEnabledTools = [...nonMcpTools, ...mcpEnabledTools];
+
+      this.orchestrator.updateConfig({
+        enabledTools: updatedEnabledTools,
+      });
+    }
+
+    return serverInfo;
+  }
+
+  async disconnectMCPServer(serverId: string): Promise<boolean> {
+    if (!this.mcpManager) return false;
+
+    const success = await this.mcpManager.disconnectServer(serverId);
+
+    if (success && this.orchestrator) {
+      const allServers = this.mcpManager.getConnectedServers();
+      const mcpEnabledTools: string[] = [];
+
+      for (const server of allServers) {
+        mcpEnabledTools.push(...server.allowedTools);
+      }
+
+      const nonMcpTools = enabledTools;
+      const updatedEnabledTools = [...nonMcpTools, ...mcpEnabledTools];
+
+      this.orchestrator.updateConfig({
+        enabledTools: updatedEnabledTools,
+      });
+    }
+
+    return success;
   }
 
   getSession() {

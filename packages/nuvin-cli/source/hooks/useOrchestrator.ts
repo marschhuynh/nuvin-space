@@ -10,7 +10,6 @@ import type { LineMetadata } from '@/adapters';
 
 type UseOrchestratorProps = {
   memPersist?: boolean;
-  mcpConfigPath?: string;
   appendLine: (line: MessageLine) => void;
   updateLine: (id: string, content: string) => void;
   updateLineMetadata: (id: string, metadata: Partial<LineMetadata>) => void;
@@ -19,7 +18,6 @@ type UseOrchestratorProps = {
 
 export const useOrchestrator = ({
   memPersist = false,
-  mcpConfigPath,
   appendLine,
   updateLine,
   updateLineMetadata,
@@ -44,7 +42,6 @@ export const useOrchestrator = ({
 
     const config: OrchestratorConfig = {
       memPersist,
-      mcpConfigPath,
       streamingChunks: true,
       ...(overrides ?? {}),
     };

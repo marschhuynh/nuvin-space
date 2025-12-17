@@ -1,4 +1,3 @@
-import type { MCPConfig } from '@nuvin/nuvin-core';
 import type { ProviderKey } from './const';
 
 export const THINKING_LEVELS = {
@@ -54,10 +53,27 @@ export interface ProviderConfig {
   [key: string]: unknown;
 }
 
+export interface MCPServerConfig {
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  transport?: 'stdio' | 'http';
+  url?: string;
+  headers?: Record<string, string>;
+  prefix?: string;
+  timeoutMs?: number;
+  enabled?: boolean;
+}
+
+export interface MCPSettings {
+  servers?: Record<string, MCPServerConfig>;
+  allowedTools?: Record<string, Record<string, boolean>>;
+  defaultTimeoutMs?: number;
+}
+
 export interface CLIConfig {
   /** Currently active provider */
   activeProvider?: ProviderKey;
-
   /** Explicit model override */
   model?: string;
   /** Provider-specific configuration */
@@ -66,11 +82,8 @@ export interface CLIConfig {
   tokens?: Record<string, string>;
   /** General API key fallback */
   apiKey?: string;
-  /** MCP configuration (embedded definition or path) */
-  mcp?: {
-    configPath?: string;
-    servers?: MCPConfig['mcpServers'];
-  };
+  /** MCP configuration */
+  mcp?: MCPSettings;
   /** Session persistence options */
   session?: {
     memPersist?: boolean;
@@ -83,10 +96,6 @@ export interface CLIConfig {
   thinking?: ThinkingLevel;
   /** Enable streaming chunks display (show response as it arrives) */
   streamingChunks?: boolean;
-  /** MCP server tool allowlist (serverId -> toolName -> allowed) */
-  mcpAllowedTools?: Record<string, Record<string, boolean>>;
-  /** Path to MCP config file (legacy/deprecated - use mcp.configPath) */
-  mcpConfigPath?: string;
   /** Enabled specialist agents (agentId -> enabled) */
   agentsEnabled?: Record<string, boolean>;
   /** Allow additional custom keys */

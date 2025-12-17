@@ -35,7 +35,6 @@ type Props = {
   model?: string;
   apiKey?: string;
   memPersist?: boolean;
-  mcpConfigPath?: string;
   thinking?: string;
   historyPath?: string;
   initialSessions?: SessionInfo[] | null;
@@ -44,7 +43,6 @@ type Props = {
 export default function App({
   apiKey: _apiKey,
   memPersist = false,
-  mcpConfigPath: _mcpConfigPath,
   historyPath,
   initialSessions,
 }: Props) {

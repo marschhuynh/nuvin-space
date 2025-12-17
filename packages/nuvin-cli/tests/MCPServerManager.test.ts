@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MCPServerManager } from '../source/services/MCPServerManager.js';
-import type { MCPConfig } from '@nuvin/nuvin-core';
 import type { MessageLine } from '../source/adapters/index.js';
+import type { MCPSettings } from '../source/config/types.js';
 
 vi.mock('@nuvin/nuvin-core', async () => {
   const actual = await vi.importActual('@nuvin/nuvin-core');
@@ -19,12 +19,12 @@ vi.mock('@nuvin/nuvin-core', async () => {
   };
 });
 
-const createMockOptions = (config?: MCPConfig | null) => {
+const createMockOptions = (config?: MCPSettings | null) => {
   const messages: MessageLine[] = [];
   const errors: string[] = [];
 
   return {
-    config,
+    getConfig: () => config ?? undefined,
     appendLine: (line: MessageLine) => messages.push(line),
     handleError: (message: string) => errors.push(message),
     silentInit: true,
@@ -52,8 +52,8 @@ describe('MCPServerManager', () => {
     expect(manager.getAllServers().length).toBe(0);
   });
 
-  it('initializeServers handles config with no mcpServers', async () => {
-    const mockOptions = createMockOptions({ mcpServers: {} });
+  it('initializeServers handles config with no servers', async () => {
+    const mockOptions = createMockOptions({ servers: {} });
     const manager = new MCPServerManager(mockOptions);
 
     const result = await manager.initializeServers();
@@ -63,8 +63,8 @@ describe('MCPServerManager', () => {
   });
 
   it('initializeServer creates failed server with missing transport config', async () => {
-    const config: MCPConfig = {
-      mcpServers: {
+    const config: MCPSettings = {
+      servers: {
         'test-server': {
           prefix: 'test_',
         },
@@ -88,8 +88,8 @@ describe('MCPServerManager', () => {
   });
 
   it('getAllServers returns both connected and failed servers', async () => {
-    const config: MCPConfig = {
-      mcpServers: {
+    const config: MCPSettings = {
+      servers: {
         'failed-server': {
           prefix: 'failed_',
         },

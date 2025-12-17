@@ -11,7 +11,7 @@ export class ProfileCliHandler {
 
   async handleProfileCommand(args: string[]): Promise<void> {
     await this.profileManager.initialize();
-    
+
     const [command, ...rest] = args;
 
     switch (command) {
@@ -53,10 +53,10 @@ export class ProfileCliHandler {
     try {
       const profiles = await this.profileManager.list();
       const activeProfile = await this.profileManager.getActive();
-      
+
       console.log('\nAvailable Profiles:');
       console.log('===================');
-      
+
       profiles.sort((a, b) => {
         if (a.name === DEFAULT_PROFILE) return -1;
         if (b.name === DEFAULT_PROFILE) return 1;
@@ -66,21 +66,21 @@ export class ProfileCliHandler {
       for (const profile of profiles) {
         const isActive = profile.name === activeProfile;
         const status = isActive ? ' [ACTIVE]' : '';
-        
+
         console.log(`\n${profile.name}${status}`);
         if (profile.description) {
           console.log(`  Description: ${profile.description}`);
         }
         console.log(`  Created: ${new Date(profile.created).toLocaleString()}`);
         console.log(`  Last used: ${new Date(profile.lastUsed).toLocaleString()}`);
-        
+
         if (this.profileManager.isDefault(profile.name)) {
           console.log(`  Path: ${this.profileManager.getProfileDir(profile.name)}`);
         } else {
           console.log(`  Path: ${this.profileManager.getProfileDir(profile.name)}`);
         }
       }
-      
+
       console.log();
     } catch (error) {
       console.error('Failed to list profiles:', error instanceof Error ? error.message : String(error));
@@ -97,14 +97,14 @@ export class ProfileCliHandler {
 
     try {
       const createOptions: CreateProfileOptions = {};
-      
+
       // Parse options
       for (let i = 0; i < options.length; i += 2) {
         const flag = options[i];
         const value = options[i + 1];
-        
+
         if (!value) continue;
-        
+
         switch (flag) {
           case '--description':
           case '-d':
@@ -119,11 +119,11 @@ export class ProfileCliHandler {
 
       await this.profileManager.create(name, createOptions);
       console.log(`✅ Profile '${name}' created successfully`);
-      
+
       if (createOptions.cloneFrom) {
         console.log(`   (cloned from '${createOptions.cloneFrom}')`);
       }
-      
+
       console.log(`   Path: ${this.profileManager.getProfileDir(name)}`);
     } catch (error) {
       console.error('Failed to create profile:', error instanceof Error ? error.message : String(error));
@@ -173,13 +173,14 @@ export class ProfileCliHandler {
   private async showProfile(): Promise<void> {
     try {
       const activeProfile = await this.profileManager.getActive();
-      const profileMetadata = await this.profileManager.list()
-        .then(profiles => profiles.find(p => p.name === activeProfile));
-      
+      const profileMetadata = await this.profileManager
+        .list()
+        .then((profiles) => profiles.find((p) => p.name === activeProfile));
+
       console.log('\nCurrent Profile:');
       console.log('================');
       console.log(`Name: ${activeProfile}`);
-      
+
       if (profileMetadata) {
         if (profileMetadata.description) {
           console.log(`Description: ${profileMetadata.description}`);
@@ -187,10 +188,9 @@ export class ProfileCliHandler {
         console.log(`Created: ${new Date(profileMetadata.created).toLocaleString()}`);
         console.log(`Last used: ${new Date(profileMetadata.lastUsed).toLocaleString()}`);
       }
-      
+
       console.log(`Path: ${this.profileManager.getProfileDir(activeProfile)}`);
       console.log(`Config: ${this.profileManager.getProfileConfigPath(activeProfile)}`);
-      console.log(`MCP Config: ${this.profileManager.getProfileMcpConfigPath(activeProfile)}`);
       console.log(`Agents: ${this.profileManager.getProfileAgentsDir(activeProfile)}`);
       console.log(`Sessions: ${this.profileManager.getProfileSessionsDir(activeProfile)}`);
       console.log();

@@ -1,19 +1,61 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Text, useInput } from 'ink';
-import { homedir } from 'node:os';
-import { join } from 'node:path';
-import { readFileSync, existsSync } from 'node:fs';
 import { AppModal } from '@/components/AppModal.js';
 import MCPModal from '@/components/MCPModal.js';
 import type { CommandRegistry, CommandComponentProps } from '@/modules/commands/types.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import type { MCPServerInfo } from '@/services/MCPServerManager.js';
+import type { MCPServerConfig } from '@/config/types.js';
 
 const MCPCommandComponent = ({ context, deactivate }: CommandComponentProps) => {
   const { theme } = useTheme();
   const [servers, setServers] = useState<MCPServerInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reconnecting, setReconnecting] = useState<string | null>(null);
+
+  const loadMCPServers = useCallback(() => {
+    try {
+      const mcpServers = context.orchestratorManager?.getMCPServers() || [];
+      const mcpConfig = context.config.get('mcp.servers') as Record<string, MCPServerConfig> | undefined;
+
+      const combinedServers: MCPServerInfo[] = [];
+      const seenIds = new Set<string>();
+
+      for (const server of mcpServers) {
+        const serverConfig = mcpConfig?.[server.id];
+        combinedServers.push({
+          ...server,
+          disabled: serverConfig?.enabled === false,
+        });
+        seenIds.add(server.id);
+      }
+
+      if (mcpConfig) {
+        for (const [serverId, serverConfig] of Object.entries(mcpConfig)) {
+          if (!seenIds.has(serverId)) {
+            combinedServers.push({
+              id: serverId,
+              client: null,
+              port: null,
+              exposedTools: [],
+              allowedTools: [],
+              prefix: serverConfig.prefix || `mcp_${serverId}_`,
+              status: 'pending' as const,
+              disabled: serverConfig.enabled === false,
+            });
+          }
+        }
+      }
+
+      setServers(combinedServers);
+      setLoading(false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(`Failed to load MCP servers: ${message}`);
+      setLoading(false);
+    }
+  }, [context.orchestratorManager, context.config]);
 
   useInput(
     (_input, key) => {
@@ -24,11 +66,51 @@ const MCPCommandComponent = ({ context, deactivate }: CommandComponentProps) => 
     { isActive: true },
   );
 
+  const handleServerToggle = useCallback(
+    async (serverId: string, enabled: boolean) => {
+      const mcpConfig = context.config.get('mcp.servers') as Record<string, MCPServerConfig> | undefined;
+      if (!mcpConfig || !mcpConfig[serverId]) return;
+
+      await context.config.set(`mcp.servers.${serverId}.enabled`, enabled);
+
+      if (!enabled) {
+        await context.orchestratorManager?.disconnectMCPServer(serverId);
+      }
+
+      setServers((prev) =>
+        prev.map((s) =>
+          s.id === serverId ? { ...s, disabled: !enabled, status: !enabled ? 'pending' : s.status } : s,
+        ),
+      );
+    },
+    [context.config, context.orchestratorManager],
+  );
+
+  const handleServerReconnect = useCallback(
+    async (serverId: string) => {
+      if (reconnecting) return;
+
+      setReconnecting(serverId);
+      try {
+        const result = await context.orchestratorManager?.reconnectMCPServer(serverId);
+        if (result) {
+          loadMCPServers();
+        }
+      } catch (err) {
+        console.error('Failed to reconnect MCP server:', err);
+      } finally {
+        setReconnecting(null);
+      }
+    },
+    [context.orchestratorManager, loadMCPServers, reconnecting],
+  );
+
   useEffect(() => {
     const handleToolPermissionChanged = async (data: { serverId: string; toolName: string; allowed: boolean }) => {
-      // Save to config
       try {
-        const currentConfig: Record<string, Record<string, boolean>> = context.config.get('mcpAllowedTools') || {};
+        const currentConfig: Record<string, Record<string, boolean>> = (context.config.get(
+          'mcp.allowedTools',
+        ) as Record<string, Record<string, boolean>>) || {};
         const serverKey = data.serverId;
 
         if (!currentConfig[serverKey]) {
@@ -37,12 +119,11 @@ const MCPCommandComponent = ({ context, deactivate }: CommandComponentProps) => 
 
         currentConfig[serverKey][data.toolName] = data.allowed;
 
-        context.config.set('mcpAllowedTools', currentConfig, 'global');
+        await context.config.set('mcp.allowedTools', currentConfig);
 
-        // Update the MCP manager with the new config
         await context.orchestratorManager?.updateMCPAllowedTools(currentConfig);
-      } catch (error) {
-        console.error('Failed to save MCP tool permission:', error);
+      } catch (err) {
+        console.error('Failed to save MCP tool permission:', err);
       }
     };
 
@@ -50,85 +131,28 @@ const MCPCommandComponent = ({ context, deactivate }: CommandComponentProps) => 
       serverId: string;
       config: Record<string, Record<string, boolean>>;
     }) => {
-      // Save batch config update
       try {
-        context.config.set('mcpAllowedTools', data.config, 'global');
+        await context.config.set('mcp.allowedTools', data.config);
 
-        // Update the MCP manager with the new config
         await context.orchestratorManager?.updateMCPAllowedTools?.(data.config);
-      } catch (error) {
-        console.error('Failed to save MCP batch tool permissions:', error);
+      } catch (err) {
+        console.error('Failed to save MCP batch tool permissions:', err);
       }
     };
 
     context.eventBus.on('ui:mcp:toolPermissionChanged', handleToolPermissionChanged);
     context.eventBus.on('ui:mcp:batchToolPermissionChanged', handleBatchToolPermissionChanged);
 
-    // Load MCP servers
-    const loadMCPServers = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Try to get MCP servers from the orchestrator first
-        const mcpServers = context.orchestratorManager?.getMCPServers() || [];
-
-        if (mcpServers.length === 0) {
-          // If no servers are loaded yet (background init still in progress),
-          // try to load from config directly to show placeholder info
-          const mcpConfigPath =
-            (context.config.get('mcpConfigPath') as string | undefined) ||
-            join(homedir(), '.nuvin-cli', '.nuvin_mcp.json');
-
-          try {
-            if (existsSync(mcpConfigPath)) {
-              const configContent = readFileSync(mcpConfigPath, 'utf8');
-              const config = JSON.parse(configContent);
-              if (config.mcpServers) {
-                const placeholderServers: MCPServerInfo[] = Object.entries(config.mcpServers).map(
-                  ([serverId, serverConfig]) => {
-                    const cfg = serverConfig as { prefix?: string } | undefined;
-                    return {
-                      id: serverId,
-                      client: null,
-                      port: null,
-                      exposedTools: [],
-                      allowedTools: [],
-                      prefix: cfg?.prefix || `mcp_${serverId}_`,
-                      status: 'pending' as const,
-                    };
-                  },
-                );
-                setServers(placeholderServers);
-                return;
-              }
-            }
-          } catch (_configErr) {
-            // Ignore config loading errors, show empty server list
-          }
-        }
-
-        setServers(mcpServers);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        setError(`Failed to load MCP servers: ${message}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadMCPServers();
+
+    const interval = setInterval(loadMCPServers, 2000);
 
     return () => {
       context.eventBus.off('ui:mcp:toolPermissionChanged', handleToolPermissionChanged);
       context.eventBus.off('ui:mcp:batchToolPermissionChanged', handleBatchToolPermissionChanged);
+      clearInterval(interval);
     };
-  }, [
-    context.eventBus,
-    context.config,
-    context.orchestratorManager?.getMCPServers,
-    context.orchestratorManager?.updateMCPAllowedTools,
-  ]);
+  }, [context.eventBus, context.config, context.orchestratorManager?.updateMCPAllowedTools, loadMCPServers]);
 
   if (loading) {
     return (
@@ -164,9 +188,12 @@ const MCPCommandComponent = ({ context, deactivate }: CommandComponentProps) => 
       visible={true}
       servers={servers}
       allowedToolsConfig={
-        (context.config.get('mcpAllowedTools') as Record<string, Record<string, boolean>> | undefined) || {}
+        (context.config.get('mcp.allowedTools') as Record<string, Record<string, boolean>> | undefined) || {}
       }
       onClose={deactivate}
+      onServerToggle={handleServerToggle}
+      onServerReconnect={handleServerReconnect}
+      reconnectingServerId={reconnecting}
     />
   );
 };

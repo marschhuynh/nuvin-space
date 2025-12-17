@@ -17,6 +17,18 @@ vi.mock('node:fs', () => {
       }
       return mockFs[filePath];
     }),
+    rename: vi.fn(async (oldPath: string, newPath: string) => {
+      if (!(oldPath in mockFs)) {
+        const error = new Error(`ENOENT: no such file or directory, rename '${oldPath}'`) as NodeJS.ErrnoException;
+        error.code = 'ENOENT';
+        throw error;
+      }
+      mockFs[newPath] = mockFs[oldPath]!;
+      delete mockFs[oldPath];
+    }),
+    unlink: vi.fn(async (filePath: string) => {
+      delete mockFs[filePath];
+    }),
   };
 
   return {

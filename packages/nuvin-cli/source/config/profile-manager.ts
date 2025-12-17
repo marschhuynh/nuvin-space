@@ -21,7 +21,7 @@ export class ProfileManager {
   async initialize(): Promise<void> {
     // Ensure base directory exists
     await fs.promises.mkdir(this.baseDir, { recursive: true });
-    
+
     // Ensure profiles directory exists
     await fs.promises.mkdir(this.profilesDir, { recursive: true });
 
@@ -32,7 +32,7 @@ export class ProfileManager {
   // Core operations
   async list(): Promise<ProfileMetadata[]> {
     const profiles: ProfileMetadata[] = [];
-    
+
     // Always include default profile (implicit)
     profiles.push({
       name: DEFAULT_PROFILE,
@@ -124,7 +124,7 @@ export class ProfileManager {
     }
 
     this.registry.active = name;
-    
+
     // Update last used time
     if (name !== DEFAULT_PROFILE && this.registry.profiles[name]) {
       this.registry.profiles[name].lastUsed = new Date().toISOString();
@@ -157,10 +157,6 @@ export class ProfileManager {
     return path.join(this.getProfileDir(name), 'config.yaml');
   }
 
-  getProfileMcpConfigPath(name: string): string {
-    return path.join(this.getProfileDir(name), '.nuvin_mcp.json');
-  }
-
   getProfileAgentsDir(name: string): string {
     return path.join(this.getProfileDir(name), 'agents');
   }
@@ -182,13 +178,13 @@ export class ProfileManager {
     try {
       const content = await fs.promises.readFile(this.registryPath, 'utf-8');
       const parsed = parseYaml(content);
-      
+
       if (!parsed || typeof parsed !== 'object') {
         return { active: DEFAULT_PROFILE, profiles: {} };
       }
 
       const registry = parsed as ProfileRegistry;
-      
+
       // Validate structure
       if (!registry.profiles || typeof registry.profiles !== 'object') {
         registry.profiles = {};
@@ -226,13 +222,6 @@ export class ProfileManager {
       await fs.promises.copyFile(sourceConfig, targetConfig);
     }
 
-    // Copy MCP config if exists
-    const sourceMcp = path.join(sourceDir, '.nuvin_mcp.json');
-    const targetMcp = path.join(targetDir, '.nuvin_mcp.json');
-    if (fs.existsSync(sourceMcp)) {
-      await fs.promises.copyFile(sourceMcp, targetMcp);
-    }
-
     // Copy agents directory if exists
     const sourceAgents = path.join(sourceDir, 'agents');
     const targetAgents = path.join(targetDir, 'agents');
@@ -245,9 +234,9 @@ export class ProfileManager {
 
   private async copyDirectory(source: string, target: string): Promise<void> {
     await fs.promises.mkdir(target, { recursive: true });
-    
+
     const entries = await fs.promises.readdir(source, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       const sourcePath = path.join(source, entry.name);
       const targetPath = path.join(target, entry.name);

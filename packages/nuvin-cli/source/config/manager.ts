@@ -8,6 +8,31 @@ import { CONFIG_FILE_CANDIDATES } from './const';
 import { ProfileManager } from './profile-manager';
 import { DEFAULT_PROFILE } from './profile-types';
 
+class AsyncMutex {
+  private queue: Array<() => void> = [];
+  private locked = false;
+
+  async acquire(): Promise<() => void> {
+    return new Promise((resolve) => {
+      const tryAcquire = () => {
+        if (!this.locked) {
+          this.locked = true;
+          resolve(() => this.release());
+        } else {
+          this.queue.push(tryAcquire);
+        }
+      };
+      tryAcquire();
+    });
+  }
+
+  private release(): void {
+    this.locked = false;
+    const next = this.queue.shift();
+    if (next) next();
+  }
+}
+
 export class ConfigManager {
   private static instance: ConfigManager | null = null;
   globalDir = path.join(os.homedir(), '.nuvin-cli');
@@ -16,6 +41,7 @@ export class ConfigManager {
   public combined: CLIConfig = {};
   private profileManager?: ProfileManager;
   private currentProfile = DEFAULT_PROFILE;
+  private writeMutex = new AsyncMutex();
 
   private constructor(readonly _logger: (message: string) => void = () => {}) {}
 
@@ -123,6 +149,7 @@ export class ConfigManager {
    * Update the configuration for a given scope (global/local/explicit) and persist it to disk.
    * If no file exists for the scope yet, a new YAML config will be created automatically.
    * Note: Cannot update 'env' or 'direct' scope as they are runtime-only.
+   * Uses mutex to prevent race conditions during concurrent updates.
    */
   async update(scope: ConfigScope, patch: Partial<CLIConfig>): Promise<void> {
     if (scope === 'direct' || scope === 'env') {
@@ -133,18 +160,22 @@ export class ConfigManager {
       throw new Error('Cannot update explicit config because no --config file was loaded.');
     }
 
-    const source = this.scopeData[scope] ?? (await this.createEmptyScope(scope));
-    if (!source) {
-      throw new Error(`Unable to resolve config scope '${scope}'.`);
+    const release = await this.writeMutex.acquire();
+    try {
+      const source = this.scopeData[scope] ?? (await this.createEmptyScope(scope));
+      if (!source) {
+        throw new Error(`Unable to resolve config scope '${scope}'.`);
+      }
+
+      const merged = mergeConfigs([source.data, patch]);
+      await this.writeConfigFile(source.path, source.format, merged);
+      source.data = merged;
+      this.scopeData[scope] = source;
+
+      this.recombine();
+    } finally {
+      release();
     }
-
-    const merged = mergeConfigs([source.data, patch]);
-    await this.writeConfigFile(source.path, source.format, merged);
-    source.data = merged;
-    this.scopeData[scope] = source;
-
-    // Recombine all scopes
-    this.recombine();
   }
 
   /**
@@ -158,30 +189,75 @@ export class ConfigManager {
   }
 
   /**
+   * Find the scope that defined the exact key, or closest parent path.
+   * Priority: exact match first, then parent paths.
+   * For each path level, searches scopes from highest to lowest: direct > env > explicit > local > global
+   */
+  findKeyScope(key: string): ConfigScope | null {
+    const orderedScopes: ConfigScope[] = ['direct', 'env', 'explicit', 'local', 'global'];
+    
+    for (const scope of orderedScopes) {
+      const source = this.scopeData[scope];
+      if (source?.data && this.getNestedValue(source.data, key) !== undefined) {
+        return scope;
+      }
+    }
+
+    const parts = key.split('.');
+    for (let i = parts.length - 1; i > 0; i--) {
+      const parentKey = parts.slice(0, i).join('.');
+      for (const scope of orderedScopes) {
+        const source = this.scopeData[scope];
+        const parentValue = this.getNestedValue(source?.data ?? {}, parentKey);
+        if (parentValue !== undefined && typeof parentValue === 'object' && parentValue !== null) {
+          return scope;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Set a configuration value using dot notation and persist it to the specified scope.
+   * By default (scope='auto'), it will find the scope that originally defined the key and update that.
+   * If the key doesn't exist in any scope, it defaults to 'global'.
    * Note: Setting to 'env' or 'direct' scope will not persist to disk (runtime-only).
    */
-  async set(key: string, value: unknown, scope: ConfigScope = 'global'): Promise<void> {
-    if (scope === 'direct' || scope === 'env') {
-      // For runtime scopes, just update in memory without persisting
+  async set(key: string, value: unknown, scope: ConfigScope | 'auto' = 'auto'): Promise<void> {
+    let targetScope: ConfigScope;
+
+    if (scope === 'auto') {
+      const foundScope = this.findKeyScope(key);
+      if (foundScope && foundScope !== 'direct' && foundScope !== 'env') {
+        targetScope = foundScope;
+      } else {
+        targetScope = 'global';
+      }
+    } else {
+      targetScope = scope;
+    }
+
+    if (targetScope === 'direct' || targetScope === 'env') {
       const patch = this.createNestedObject(key, value) as Partial<CLIConfig>;
-      const currentScope = this.scopeData[scope]?.data ?? {};
+      const currentScope = this.scopeData[targetScope]?.data ?? {};
       const merged = mergeConfigs([currentScope, patch]);
-      this.loadConfig(merged, scope);
+      this.loadConfig(merged, targetScope);
       return;
     }
 
-    if (scope === 'explicit' && !this.scopeData.explicit) {
+    if (targetScope === 'explicit' && !this.scopeData.explicit) {
       throw new Error('Cannot set to explicit config because no --config file was loaded.');
     }
 
     const patch = this.createNestedObject(key, value) as Partial<CLIConfig>;
-    await this.update(scope, patch);
+    await this.update(targetScope, patch);
   }
 
   /**
    * Delete a configuration key and persist the change.
    * For nested keys, use dot notation (e.g., "agentsEnabled.my-agent")
+   * Uses mutex to prevent race conditions during concurrent updates.
    */
   async delete(key: string, scope: ConfigScope = 'global'): Promise<void> {
     if (scope === 'direct' || scope === 'env') {
@@ -192,35 +268,37 @@ export class ConfigManager {
       throw new Error('Cannot delete from explicit config because no --config file was loaded.');
     }
 
-    const source = this.scopeData[scope];
-    if (!source) {
-      return; // Nothing to delete if scope doesn't exist
-    }
-
-    const keys = key.split('.');
-    const data = structuredCloneConfig(source.data);
-
-    // Navigate to parent object
-    let current: Record<string, unknown> = data;
-    for (let i = 0; i < keys.length - 1; i++) {
-      const key = keys[i];
-      if (!key || !current[key] || typeof current[key] !== 'object') {
-        return; // Path doesn't exist
+    const release = await this.writeMutex.acquire();
+    try {
+      const source = this.scopeData[scope];
+      if (!source) {
+        return;
       }
-      current = current[key] as Record<string, unknown>;
-    }
 
-    // Delete the key
-    const lastKey = keys[keys.length - 1];
-    if (lastKey) {
-      delete current[lastKey];
-    }
+      const keys = key.split('.');
+      const data = structuredCloneConfig(source.data);
 
-    // Write and update
-    await this.writeConfigFile(source.path, source.format, data);
-    source.data = data;
-    this.scopeData[scope] = source;
-    this.recombine();
+      let current: Record<string, unknown> = data;
+      for (let i = 0; i < keys.length - 1; i++) {
+        const k = keys[i];
+        if (!k || !current[k] || typeof current[k] !== 'object') {
+          return;
+        }
+        current = current[k] as Record<string, unknown>;
+      }
+
+      const lastKey = keys[keys.length - 1];
+      if (lastKey) {
+        delete current[lastKey];
+      }
+
+      await this.writeConfigFile(source.path, source.format, data);
+      source.data = data;
+      this.scopeData[scope] = source;
+      this.recombine();
+    } finally {
+      release();
+    }
   }
 
   private getNestedValue(obj: Record<string, unknown>, path: string): unknown {
@@ -404,7 +482,17 @@ export class ConfigManager {
     const dir = path.dirname(filePath);
     await fs.promises.mkdir(dir, { recursive: true });
     const payload = format === 'yaml' ? stringifyYaml(data) : `${JSON.stringify(data, null, 2)}\n`;
-    await fs.promises.writeFile(filePath, payload, 'utf-8');
+
+    const tempFile = `${filePath}.${process.pid}.tmp`;
+    try {
+      await fs.promises.writeFile(tempFile, payload, 'utf-8');
+      await fs.promises.rename(tempFile, filePath);
+    } catch (err) {
+      try {
+        await fs.promises.unlink(tempFile);
+      } catch {}
+      throw err;
+    }
   }
 }
 

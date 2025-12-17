@@ -15,20 +15,38 @@ interface MCPModalProps {
   servers: MCPServerInfo[];
   allowedToolsConfig?: Record<string, Record<string, boolean>>;
   onClose: () => void;
+  onServerToggle?: (serverId: string, enabled: boolean) => void;
+  onServerReconnect?: (serverId: string) => void;
+  reconnectingServerId?: string | null;
 }
 
-export const MCPModal: React.FC<MCPModalProps> = ({ visible, servers, allowedToolsConfig = {}, onClose }) => {
+export const MCPModal: React.FC<MCPModalProps> = ({
+  visible,
+  servers,
+  allowedToolsConfig = {},
+  onClose,
+  onServerToggle,
+  onServerReconnect,
+  reconnectingServerId,
+}) => {
   const { theme } = useTheme();
   const [selectedServer, setSelectedServer] = useState<MCPServerInfo | null>(null);
   const [focusPanel, setFocusPanel] = useState<'servers' | 'tools'>('servers');
   const [localAllowedTools, setLocalAllowedTools] =
     useState<Record<string, Record<string, boolean>>>(allowedToolsConfig);
+  const [localDisabledServers, setLocalDisabledServers] = useState<Set<string>>(
+    new Set(servers.filter((s) => s.disabled).map((s) => s.id)),
+  );
   const inputActiveRef = useRef(false);
 
   // Sync local state with prop changes
   useEffect(() => {
     setLocalAllowedTools(allowedToolsConfig);
   }, [allowedToolsConfig]);
+
+  useEffect(() => {
+    setLocalDisabledServers(new Set(servers.filter((s) => s.disabled).map((s) => s.id)));
+  }, [servers]);
 
   // Initialize selected server
   useEffect(() => {
@@ -92,9 +110,28 @@ export const MCPModal: React.FC<MCPModalProps> = ({ visible, servers, allowedToo
 
       // Tab - Switch panels
       if (key.tab) {
-        if (servers.length > 0 && !selectedServer?.error) {
+        if (
+          servers.length > 0 &&
+          selectedServer &&
+          selectedServer.status === 'connected' &&
+          !localDisabledServers.has(selectedServer.id)
+        ) {
           setFocusPanel((prev) => (prev === 'servers' ? 'tools' : 'servers'));
         }
+        return;
+      }
+
+      // Space - Toggle server enabled/disabled in servers panel
+      if (input === ' ' && focusPanel === 'servers' && selectedServer) {
+        const isCurrentlyDisabled = localDisabledServers.has(selectedServer.id);
+        const newDisabledServers = new Set(localDisabledServers);
+        if (isCurrentlyDisabled) {
+          newDisabledServers.delete(selectedServer.id);
+        } else {
+          newDisabledServers.add(selectedServer.id);
+        }
+        setLocalDisabledServers(newDisabledServers);
+        onServerToggle?.(selectedServer.id, isCurrentlyDisabled);
         return;
       }
 
@@ -107,7 +144,13 @@ export const MCPModal: React.FC<MCPModalProps> = ({ visible, servers, allowedToo
       }
 
       if (key.rightArrow) {
-        if (focusPanel === 'servers' && servers.length > 0 && selectedServer) {
+        if (
+          focusPanel === 'servers' &&
+          servers.length > 0 &&
+          selectedServer &&
+          selectedServer.status === 'connected' &&
+          !localDisabledServers.has(selectedServer.id)
+        ) {
           setFocusPanel('tools');
         }
         return;
@@ -156,6 +199,14 @@ export const MCPModal: React.FC<MCPModalProps> = ({ visible, servers, allowedToo
         }
         return;
       }
+
+      // R - Reconnect selected server
+      if (input === 'r' || input === 'R') {
+        if (selectedServer && focusPanel === 'servers' && !reconnectingServerId) {
+          onServerReconnect?.(selectedServer.id);
+        }
+        return;
+      }
     },
     { isActive: visible },
   );
@@ -180,7 +231,7 @@ export const MCPModal: React.FC<MCPModalProps> = ({ visible, servers, allowedToo
 
   const handleServerSelect = (item: { value: MCPServerInfo }) => {
     inputActiveRef.current = true;
-    if (item.value.status === 'connected') {
+    if (item.value.status === 'connected' && !localDisabledServers.has(item.value.id)) {
       setFocusPanel('tools');
     }
   };
@@ -219,12 +270,14 @@ export const MCPModal: React.FC<MCPModalProps> = ({ visible, servers, allowedToo
     >
       <Box marginBottom={1} flexDirection="column">
         <Text color={theme.history.help} dimColor>
-          ↑↓ navigate • ←→/Tab switch panel • Space toggle • Enter select • ESC{' '}
+          ↑↓ navigate • Tab switch panel • Space toggle server • Enter select • ESC{' '}
           {focusPanel === 'tools' ? 'back' : 'exit'}
         </Text>
         <Box>
           <HelpText
             segments={[
+              { text: 'R', highlight: true },
+              { text: ' reconnect • ' },
               { text: 'A', highlight: true },
               { text: ' enable all • ' },
               { text: 'D', highlight: true },
@@ -247,7 +300,7 @@ export const MCPModal: React.FC<MCPModalProps> = ({ visible, servers, allowedToo
                 color={focusPanel === 'servers' ? theme.colors.accent : theme.history.unselected}
                 bold={focusPanel === 'servers'}
               >
-                Servers ({servers.length})
+                {focusPanel === 'servers' ? '▶ ' : '  '}Servers ({servers.length})
               </Text>
             </Box>
 
@@ -259,12 +312,16 @@ export const MCPModal: React.FC<MCPModalProps> = ({ visible, servers, allowedToo
               }))}
               itemComponent={(props: { isSelected?: boolean; label: string; value: MCPServerInfo }) => {
                 const server = props.value;
+                const isDisabled = localDisabledServers.has(server.id);
+                const isReconnecting = reconnectingServerId === server.id;
                 return (
                   <MCPServerItem
                     item={server}
                     isSelected={!!props.isSelected}
                     allowedCount={getServerAllowedCount(server)}
                     totalCount={server.exposedTools.length}
+                    disabled={isDisabled}
+                    reconnecting={isReconnecting}
                   />
                 );
               }}
@@ -281,7 +338,7 @@ export const MCPModal: React.FC<MCPModalProps> = ({ visible, servers, allowedToo
                 color={focusPanel === 'tools' ? theme.colors.accent : theme.history.unselected}
                 bold={focusPanel === 'tools'}
               >
-                Tools{' '}
+                {focusPanel === 'tools' ? '▶ ' : '  '}Tools{' '}
                 {selectedServer
                   ? `(${getServerAllowedCount(selectedServer)}/${selectedServer.exposedTools.length})`
                   : ''}
@@ -290,11 +347,27 @@ export const MCPModal: React.FC<MCPModalProps> = ({ visible, servers, allowedToo
 
             {!selectedServer ? (
               <Text color={theme.history.help}>Select a server to view tools</Text>
+            ) : localDisabledServers.has(selectedServer.id) ? (
+              <Box flexDirection="column">
+                <Text color={theme.history.help} dimColor>
+                  Server is disabled
+                </Text>
+                <Text color={theme.history.help} dimColor>
+                  Press Space to enable
+                </Text>
+              </Box>
             ) : selectedServer.status === 'failed' ? (
               <Box flexDirection="column">
                 <Text color="red">Server failed to initialize</Text>
                 <Text color={theme.history.help} dimColor>
                   Error: {selectedServer.error || 'Unknown error'}
+                </Text>
+              </Box>
+            ) : selectedServer.status === 'pending' ? (
+              <Box flexDirection="column">
+                <Text color="yellow">Server not initialized</Text>
+                <Text color={theme.history.help} dimColor>
+                  Server will connect on next session start
                 </Text>
               </Box>
             ) : currentTools.length === 0 ? (
@@ -332,8 +405,8 @@ export const MCPModal: React.FC<MCPModalProps> = ({ visible, servers, allowedToo
 
       <Box marginTop={1}>
         <Text color={theme.history.help} dimColor>
-          Current: {focusPanel === 'servers' ? 'Servers panel' : 'Tools panel'}
-          {selectedServer && ` | Server: ${selectedServer.id} | Prefix: ${selectedServer.prefix}`}
+          {selectedServer && `Server: ${selectedServer.id} | Prefix: ${selectedServer.prefix}`}
+          {selectedServer && localDisabledServers.has(selectedServer.id) && ' | Status: Disabled'}
         </Text>
       </Box>
     </AppModal>

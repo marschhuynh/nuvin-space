@@ -4,7 +4,6 @@ import meow from 'meow';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import type { MCPConfig } from '@nuvin/nuvin-core';
 import type { AuthMethod } from '@/config/types.js';
 import App from '@/app.js';
 import { NotificationProvider } from '@/contexts/NotificationContext.js';
@@ -18,13 +17,7 @@ import { StdoutDimensionsProvider } from '@/contexts/StdoutDimensionsContext.js'
 import { ExplainModeProvider } from '@/contexts/ExplainModeContext.js';
 
 import { getVersionInfo } from '@/utils/version.js';
-import {
-  ConfigManager,
-  resolveMCPDefinition,
-  type CLIConfig,
-  type ConfigSource,
-  type ProviderKey,
-} from '@/config/index.js';
+import { ConfigManager, type CLIConfig, type ProviderKey } from '@/config/index.js';
 import { ConfigCliHandler } from '@/config/cli-handler.js';
 import { orchestratorManager } from './services/OrchestratorManager.js';
 import ansiEscapes from 'ansi-escapes';
@@ -64,6 +57,7 @@ const cli = meow(
     $ nuvin [options]
     $ nuvin config <command> [options]
     $ nuvin profile <command> [options]
+    $ nuvin mcp <command> [options]
     $ nuvin --demo <path/to/history.json>
 
   Configuration Commands
@@ -79,14 +73,23 @@ const cli = meow(
     profile switch <name>       Switch active profile
     profile show                Show current profile info
     profile clone <src> <dst>   Clone an existing profile
-    profile help                 Show profile command help
+    profile help                Show profile command help
+
+  MCP Commands
+    mcp list                    List configured MCP servers
+    mcp add <name> [options]    Add a new MCP server
+    mcp remove <name>           Remove an MCP server
+    mcp show <name>             Show server details
+    mcp enable <name>           Enable a server
+    mcp disable <name>          Disable a server
+    mcp test <name>             Test server connection
+    mcp help                    Show MCP command help
 
   Configuration Options
     --provider NAME     Choose AI provider: openrouter | deepinfra | github | zai | anthropic | echo
     --config PATH       Merge configuration from file (JSON or YAML)
     --model NAME        Specify model (e.g., gpt-4o, claude-sonnet-4-5)
     --api-key KEY       Your API key for authentication (OpenRouter, Zai)
-    --mcp-config PATH   MCP servers configuration file (default: .nuvin_mcp.json)
     --reasoning-effort  Set reasoning effort for o1 models: low | medium | high (default: medium)
     --history PATH      Load conversation history from file on startup
     --profile NAME      Use specific profile (overrides active profile)
@@ -125,7 +128,6 @@ const cli = meow(
       provider: { type: 'string' },
       config: { type: 'string' },
       model: { type: 'string' },
-      mcpConfig: { type: 'string' },
       apiKey: { type: 'string' },
       reasoningEffort: { type: 'string' },
       version: { type: 'boolean', alias: 'v' },
@@ -233,9 +235,17 @@ const cli = meow(
   if (cli.input.length > 0 && cli.input[0] === 'profile') {
     const { ProfileCliHandler } = await import('./config/profile-handler.js');
     const profileHandler = new ProfileCliHandler();
-    // Pass the original process.argv instead of processed cli.input to preserve flags
-    const profileArgs = process.argv.slice(3); // Skip 'node', 'cli.js', 'profile'
+    const profileArgs = process.argv.slice(3);
     await profileHandler.handleProfileCommand(profileArgs);
+    process.exit(0);
+  }
+
+  // Handle mcp subcommand
+  if (cli.input.length > 0 && cli.input[0] === 'mcp') {
+    const { MCPCliHandler } = await import('./config/mcp-handler.js');
+    const mcpHandler = new MCPCliHandler();
+    const mcpArgs = process.argv.slice(3);
+    await mcpHandler.handleMCPCommand(mcpArgs);
     process.exit(0);
   }
 
@@ -245,14 +255,12 @@ const cli = meow(
   const normalizedProfile = ensureString(cli.flags.profile as string | undefined);
 
   let fileConfig: CLIConfig = {};
-  let configSources: ConfigSource[] = [];
   try {
-    const { config: loadedConfig, sources } = await configManager.load({
+    const { config: loadedConfig } = await configManager.load({
       explicitPath: normalizedExplicitConfig,
       profile: normalizedProfile,
     });
     fileConfig = loadedConfig;
-    configSources = sources;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Failed to load configuration: ${message}`);
@@ -349,13 +357,6 @@ const cli = meow(
   const finalMemPersist = mergedConfig.session?.memPersist ?? true;
   const finalRequireToolApproval = mergedConfig.requireToolApproval ?? true;
 
-  const { configPath: configPathFromFile, servers: inlineServers } = resolveMCPDefinition(fileConfig, configSources);
-  const explicitConfigPath = ensureString(cli.flags.mcpConfig);
-  const defaultMcpConfigPath = path.join(nuvinCliDir, '.nuvin_mcp.json');
-  const inlineMcpConfig: MCPConfig | undefined = inlineServers ? { mcpServers: inlineServers } : undefined;
-  const resolvedMcpConfigPath = explicitConfigPath ?? configPathFromFile ?? defaultMcpConfigPath;
-  const displayMcpConfigPath = inlineMcpConfig ? (explicitConfigPath ?? configPathFromFile) : resolvedMcpConfigPath;
-
   // Pre-load sessions before rendering to avoid re-renders
   const { scanAvailableSessions, getSessionDir } = await import('./hooks/useSessionManagement.js');
   let initialSessions: Awaited<ReturnType<typeof scanAvailableSessions>> | null = null;
@@ -398,7 +399,6 @@ const cli = meow(
                   <ConfigBridge>
                     <App
                       memPersist={finalMemPersist}
-                      mcpConfigPath={displayMcpConfigPath}
                       thinking={thinkingSetting}
                       historyPath={historyPath}
                       initialSessions={initialSessions}

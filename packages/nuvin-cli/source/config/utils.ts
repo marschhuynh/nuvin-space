@@ -1,6 +1,4 @@
-import path from 'node:path';
-import type { MCPConfig } from '@nuvin/nuvin-core';
-import type { CLIConfig, ProviderConfig, ConfigSource } from './types';
+import type { CLIConfig, ProviderConfig } from './types';
 
 export function mergeConfigs(configs: Array<Partial<CLIConfig>>): CLIConfig {
   return configs.reduce<CLIConfig>((acc, cfg) => deepMerge(acc, cfg), {} as CLIConfig);
@@ -144,40 +142,4 @@ function findProviderConfig(providers: CLIConfig['providers'] | undefined, key: 
     }
   }
   return undefined;
-}
-
-export function resolveMCPDefinition(
-  config: CLIConfig,
-  sources: ConfigSource[] = [],
-): { configPath?: string; servers?: MCPConfig['mcpServers'] } {
-  const rawConfigPath = typeof config.mcp?.configPath === 'string' ? config.mcp.configPath.trim() : undefined;
-  const servers = config.mcp?.servers;
-  const hasServers = servers && typeof servers === 'object' && Object.keys(servers).length > 0;
-
-  let resolvedPath = rawConfigPath && rawConfigPath.length > 0 ? rawConfigPath : undefined;
-
-  if (resolvedPath && !path.isAbsolute(resolvedPath)) {
-    const contributingSource = findLastSourceWithConfigPath(sources);
-    if (contributingSource) {
-      resolvedPath = path.resolve(path.dirname(contributingSource.path), resolvedPath);
-    } else {
-      resolvedPath = path.resolve(resolvedPath);
-    }
-  }
-
-  return {
-    configPath: resolvedPath,
-    servers: hasServers ? (servers as MCPConfig['mcpServers']) : undefined,
-  };
-}
-
-export function findLastSourceWithConfigPath(sources: ConfigSource[]): ConfigSource | null {
-  let candidate: ConfigSource | null = null;
-  for (const source of sources) {
-    const value = source.data?.mcp?.configPath;
-    if (typeof value === 'string' && value.trim().length > 0) {
-      candidate = source;
-    }
-  }
-  return candidate;
 }
