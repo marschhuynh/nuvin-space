@@ -150,7 +150,6 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
           </Text>
         </Box>
       )}
-      ╰
       {showStatusBottom && (
         <Box flexDirection="row">
           <Text dimColor color={color}>{`╰─ ${text}`}</Text>
