@@ -16,6 +16,8 @@ export type ComboBoxProps = {
   placeholder?: string;
   maxDisplayItems?: number;
   enableRotation?: boolean;
+  showSearchInput?: boolean;
+  showItemCount?: boolean;
   onSelect: (item: ComboBoxItem) => void;
   onCancel?: () => void;
 };
@@ -25,6 +27,8 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
   maxDisplayItems = 10,
   placeholder = 'Type to search...',
   enableRotation = false,
+  showSearchInput = true,
+  showItemCount = true,
   onSelect,
   onCancel,
 }) => {
@@ -49,44 +53,47 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
     }
   }, [input]);
 
-  useInput((inputChar, key) => {
-    const pasteResult = processPasteChunk(inputChar, pasteStateRef.current);
-    pasteStateRef.current = pasteResult.newState;
+  useInput(
+    (inputChar, key) => {
+      const pasteResult = processPasteChunk(inputChar, pasteStateRef.current);
+      pasteStateRef.current = pasteResult.newState;
 
-    if (pasteResult.shouldWaitForMore) {
-      return;
-    }
-
-    if (pasteResult.processedInput !== null) {
-      inputChar = pasteResult.processedInput;
-    }
-
-    if (key.return) {
-      if (filteredItems.length > 0 && selectInputRef.current) {
-        const selectedIndex = selectInputRef.current.getSelectedIndex();
-        onSelect(filteredItems[selectedIndex]);
+      if (pasteResult.shouldWaitForMore) {
+        return;
       }
-      return;
-    }
 
-    if (key.escape) {
-      onCancel?.();
-      return;
-    }
+      if (pasteResult.processedInput !== null) {
+        inputChar = pasteResult.processedInput;
+      }
 
-    if (key.upArrow || key.downArrow) {
-      return;
-    }
+      if (key.return) {
+        if (filteredItems.length > 0 && selectInputRef.current) {
+          const selectedIndex = selectInputRef.current.getSelectedIndex();
+          onSelect(filteredItems[selectedIndex]);
+        }
+        return;
+      }
 
-    if (key.backspace || key.delete) {
-      setInput((prev) => prev.slice(0, -1));
-      return;
-    }
+      if (key.escape) {
+        onCancel?.();
+        return;
+      }
 
-    if (inputChar && !key.ctrl && !key.meta) {
-      setInput((prev) => prev + inputChar);
-    }
-  });
+      if (key.upArrow || key.downArrow) {
+        return;
+      }
+
+      if (key.backspace || key.delete) {
+        setInput((prev) => prev.slice(0, -1));
+        return;
+      }
+
+      if (inputChar && !key.ctrl && !key.meta) {
+        setInput((prev) => prev + inputChar);
+      }
+    },
+    { isActive: showSearchInput },
+  );
 
   const selectInputItems: SelectInputItem<ComboBoxItem>[] = filteredItems.map((item) => ({
     key: item.value,
@@ -107,10 +114,12 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
 
   return (
     <Box flexDirection="column">
-      <Box marginBottom={1}>
-        <Text color={theme.model?.label || 'cyan'}>Search: </Text>
-        {renderedInput}
-      </Box>
+      {showSearchInput && (
+        <Box marginBottom={1}>
+          <Text color={theme.model?.label || 'cyan'}>Search: </Text>
+          {renderedInput}
+        </Box>
+      )}
 
       {filteredItems.length === 0 ? (
         <Box>
@@ -118,9 +127,11 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
         </Box>
       ) : (
         <Box flexDirection="column">
-          <Box marginBottom={1}>
-            <Text dimColor>Showing {filteredItems.length} matches (↑↓ to navigate, Enter to select)</Text>
-          </Box>
+          {showItemCount && (
+            <Box marginBottom={1}>
+              <Text dimColor>Showing {filteredItems.length} matches (↑↓ to navigate, Enter to select)</Text>
+            </Box>
+          )}
 
           <SelectInput
             ref={selectInputRef}

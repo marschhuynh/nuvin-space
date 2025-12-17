@@ -5,8 +5,8 @@ import Spinner from 'ink-spinner';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import { useInputHistory } from '@/hooks/useInputHistory.js';
-import SelectInput from './SelectInput/index.js';
 import TextInput from './TextInput/index.js';
+import { ComboBox } from './ComboBox/index.js';
 
 type VimMode = 'insert' | 'normal';
 
@@ -284,8 +284,8 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
               focus={!showToolApproval && !menuHasFocus}
               vimModeEnabled={vimModeEnabled}
               onVimModeChange={handleVimModeChange}
-              onUpArrow={handleUpArrow}
-              onDownArrow={handleDownArrow}
+              onUpArrow={showCommandMenu ? undefined : handleUpArrow}
+              onDownArrow={showCommandMenu ? undefined : handleDownArrow}
             />
           </Box>
         </Box>
@@ -294,7 +294,12 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
             <Text color={theme.input.placeholder}>
               Commands ({filteredCommandItems.length}) - Use ↑↓ to navigate, Enter to select, keep typing to filter
             </Text>
-            <SelectInput items={filteredCommandItems} onSelect={(item) => handleSubmit(item.value, true)} />
+            <ComboBox
+              items={filteredCommandItems}
+              onSelect={(item) => handleSubmit(item.value, true)}
+              showSearchInput={false}
+              showItemCount={false}
+            />
           </Box>
         )}
       </Box>

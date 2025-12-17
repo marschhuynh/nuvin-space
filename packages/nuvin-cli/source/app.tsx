@@ -287,7 +287,7 @@ export default function App({
 
     const onCustomCommandExecute = (payload: { commandId: string; renderedPrompt: string; userInput: string }) => {
       if (payload.renderedPrompt) {
-        void handleSubmit(payload.renderedPrompt);
+        void processMessage(payload.renderedPrompt);
       }
     };
 
@@ -302,7 +302,7 @@ export default function App({
       eventBus.off('ui:input:toggleVimMode', onVimModeToggle);
       eventBus.off('custom-command:execute', onCustomCommandExecute);
     };
-  }, [onViewRefresh, setToolApprovalMode, handleSubmit]);
+  }, [onViewRefresh, setToolApprovalMode, processMessage]);
 
   useEffect(() => {
     if (previousVimModeRef.current === null) {

@@ -27,8 +27,9 @@ export function useHandleSubmit(deps: {
         const commandId = trimmed.split(' ')[0];
         const def = commandRegistry.get(commandId);
         const isModalCommand = !!def && def.type === 'component';
+        const isCustomCommand = !!(def as { isCustomCommand?: boolean } | undefined)?.isCustomCommand;
 
-        if (!isModalCommand) {
+        if (!isModalCommand && !isCustomCommand) {
           appendLine({
             id: crypto.randomUUID(),
             type: 'user',
