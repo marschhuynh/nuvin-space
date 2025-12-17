@@ -166,6 +166,16 @@ export type {
   AssignParams,
 } from './agent-types.js';
 
+// Custom commands
+export { CommandFilePersistence } from './command-file-persistence.js';
+export type {
+  CommandSource,
+  CustomCommandTemplate,
+  CompleteCustomCommand,
+  CustomCommandFrontmatter,
+} from './command-types.js';
+export { isValidCommandId, sanitizeCommandId } from './command-types.js';
+
 // Sub-agent types
 export type { SubAgentState, SubAgentToolCall } from './sub-agent-types.js';
 export { parseSubAgentToolCallArguments } from './sub-agent-types.js';

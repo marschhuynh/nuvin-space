@@ -165,6 +165,10 @@ export class ProfileManager {
     return path.join(this.getProfileDir(name), 'sessions');
   }
 
+  getProfileCommandsDir(name: string): string {
+    return path.join(this.getProfileDir(name), 'commands');
+  }
+
   // Check if profile is the default
   isDefault(name: string): boolean {
     return name === DEFAULT_PROFILE;

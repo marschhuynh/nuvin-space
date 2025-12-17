@@ -285,16 +285,24 @@ export default function App({
       setVimModeEnabled((prev) => !prev);
     };
 
+    const onCustomCommandExecute = (payload: { commandId: string; renderedPrompt: string; userInput: string }) => {
+      if (payload.renderedPrompt) {
+        void handleSubmit(payload.renderedPrompt);
+      }
+    };
+
     eventBus.on('command:sudo:toggle', onSudoToggle);
     eventBus.on('ui:header:refresh', onViewRefresh);
     eventBus.on('ui:input:toggleVimMode', onVimModeToggle);
+    eventBus.on('custom-command:execute', onCustomCommandExecute);
 
     return () => {
       eventBus.off('command:sudo:toggle', onSudoToggle);
       eventBus.off('ui:header:refresh', onViewRefresh);
       eventBus.off('ui:input:toggleVimMode', onVimModeToggle);
+      eventBus.off('custom-command:execute', onCustomCommandExecute);
     };
-  }, [onViewRefresh, setToolApprovalMode]);
+  }, [onViewRefresh, setToolApprovalMode, handleSubmit]);
 
   useEffect(() => {
     if (previousVimModeRef.current === null) {

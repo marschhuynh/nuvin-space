@@ -31,6 +31,8 @@ type EventMap = {
   'command:sudo:toggle': string;
   'ui:command:activated': string;
   'ui:command:deactivated': string;
+  'ui:commands:refresh': undefined;
+  'custom-command:execute': { commandId: string; renderedPrompt: string; userInput: string };
 };
 
 export class TypedEventBus {

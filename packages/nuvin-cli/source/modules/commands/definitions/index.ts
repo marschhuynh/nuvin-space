@@ -1,5 +1,6 @@
 import { commandRegistry } from '@/modules/commands/registry.js';
 import type { OrchestratorManager } from '@/services/OrchestratorManager.js';
+import { loadAndRegisterCustomCommands } from '@/services/CustomCommandLoader.js';
 
 import { registerExitCommand } from './exit.js';
 import { registerHelpCommand } from './help.js';
@@ -11,12 +12,13 @@ import { registerModelsCommand } from './models/models.js';
 import { registerExportCommand } from './export.js';
 import { registerMCPCommand } from './mcp.js';
 import { registerAgentCommand } from './agent.js';
+import { registerCommandCommand } from './command.js';
 import { registerClearCommand } from './clear.js';
 import { registerNewCommand } from './new.js';
 import { registerVimCommand } from './vim.js';
 import { registerSummaryCommand } from './summary/index.js';
 
-export function registerCommands(orchestratorManager: OrchestratorManager) {
+export async function registerCommands(orchestratorManager: OrchestratorManager) {
   commandRegistry.setOrchestrator(orchestratorManager);
   registerExitCommand(commandRegistry);
   registerHelpCommand(commandRegistry);
@@ -28,8 +30,11 @@ export function registerCommands(orchestratorManager: OrchestratorManager) {
   registerExportCommand(commandRegistry);
   registerMCPCommand(commandRegistry);
   registerAgentCommand(commandRegistry);
+  registerCommandCommand(commandRegistry);
   registerClearCommand(commandRegistry);
   registerNewCommand(commandRegistry);
   registerVimCommand(commandRegistry);
   registerSummaryCommand(commandRegistry);
+
+  await loadAndRegisterCustomCommands(commandRegistry);
 }

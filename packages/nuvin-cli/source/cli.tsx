@@ -379,8 +379,8 @@ const cli = meow(
     }
   }
 
-  // Register commands
-  registerCommands(orchestratorManager);
+  // Register commands (including custom commands)
+  await registerCommands(orchestratorManager);
 
   console.log(ansiEscapes.clearTerminal);
 
