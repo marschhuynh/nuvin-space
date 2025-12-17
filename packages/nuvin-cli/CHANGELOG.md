@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.15.2
+
+### Patch Changes
+
+- [`736df32`](https://github.com/marschhuynh/nuvin-space/commit/736df32e6694e2f6c6d337718e5285f8eee67060) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Upgrade nuvin-core
+
 ## 1.15.1
 
 ### Patch Changes
