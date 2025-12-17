@@ -1,5 +1,11 @@
 # @nuvin/nuvin-core
 
+## 1.7.1
+
+### Patch Changes
+
+- [`a679a4b`](https://github.com/marschhuynh/nuvin-space/commit/a679a4b3d2e89508532d548022a38ebd6e98e048) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Deduplicate models by ID in getModels for all LLM providers (GitHub, Anthropic, and custom providers)
+
 ## 1.7.0
 
 ### Minor Changes
