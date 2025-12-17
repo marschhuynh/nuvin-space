@@ -8,6 +8,7 @@ import type { SubAgentState } from '@/utils/eventProcessor.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions';
 import { ToolCallViewer } from './ToolCallViewer';
 import { SubAgentActivity } from './ToolResultView/SubAgentActivity.js';
+import { AutoScrollBox } from './AutoScrollBox';
 
 type MessageLineProps = {
   key: string;
@@ -20,7 +21,7 @@ type MessageLineProps = {
 };
 
 const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundColor, liveMessage = false }) => {
-  const [cols] = useStdoutDimensions();
+  const [cols, rows] = useStdoutDimensions();
   const { theme } = useTheme();
   const isStreaming = message.metadata?.isStreaming === true;
   const streamingContent = message.content;
@@ -41,7 +42,9 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
           </Box>
         );
 
-      case 'assistant':
+      case 'assistant': {
+        const maxHeight = Math.max(10, rows - 12);
+
         return (
           <Box flexDirection="column" marginY={1}>
             <Box flexShrink={0} marginRight={1}>
@@ -49,11 +52,14 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
                 ● [assistant]
               </Text>
             </Box>
-            <Box marginX={2}>
-              <Markdown enableCache={!isStreaming}>{streamingContent}</Markdown>
-            </Box>
+            {
+              <AutoScrollBox maxHeight={isStreaming ? maxHeight : undefined} marginX={2}>
+                <Markdown enableCache>{streamingContent}</Markdown>
+              </AutoScrollBox>
+            }
           </Box>
         );
+      }
 
       case 'tool': {
         const toolCalls = (message.metadata?.toolCalls ?? []) as ToolCall[];

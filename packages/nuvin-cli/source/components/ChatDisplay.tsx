@@ -1,10 +1,12 @@
-import React, { useMemo, useRef } from 'react';
-import { Box, Static } from 'ink';
+import React, { useMemo, useRef, useEffect } from 'react';
+import { Box, Static, type BoxRef } from 'ink';
 import { MessageLine } from './MessageLine.js';
 import type { MessageLine as MessageLineType } from '@/adapters/index.js';
 import { WelcomeLogo } from './RecentSessions.js';
 import type { SessionInfo } from '@/types.js';
 import { calculateStaticCount } from '@/utils/staticCount.js';
+import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
+import { useNotification } from '@/hooks/useNotification.js';
 
 type ChatDisplayProps = {
   key: string;
@@ -107,6 +109,9 @@ function mergeToolCallsWithResultsCached(messages: MessageLineType[], cache: Mer
 
 const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey, sessions: sessionsProp }) => {
   const sessions = sessionsProp ?? null;
+  const [, rows] = useStdoutDimensions();
+  const scrollContainerRef = useRef<BoxRef>(null);
+  const notification = useNotification();
 
   const mergeCacheRef = useRef<MergeCache>(new Map());
   const mergedMessages = useMemo(() => mergeToolCallsWithResultsCached(messages, mergeCacheRef.current), [messages]);
@@ -183,7 +188,8 @@ const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey,
     return mergedMessages.slice(staticItems.length);
   }, [mergedMessages, staticItems]);
 
-  /* Render static items using Ink's Static so they don't update after being printed */
+  const maxLiveHeight = Math.max(5, rows - 8);
+
   return (
     <Box flexDirection="column" flexShrink={1} flexGrow={1} overflow="hidden">
       {staticItemsWithHeader.length > 0 && (
@@ -197,8 +203,16 @@ const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey,
         </Static>
       )}
 
+      {/* {visible.length > 0 && (
+        <Box flexDirection="column" flexShrink={0} height={maxLiveHeight} overflow="scroll">
+          {visible.map((line) => (
+            <MessageLine key={line.id} message={line} />
+          ))}
+        </Box>
+      )} */}
+
       {visible.map((line) => (
-        <MessageLine key={line.id} message={line} liveMessage />
+        <MessageLine key={line.id} message={line} />
       ))}
     </Box>
   );
