@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.15.1
+
+### Patch Changes
+
+- [`c558055`](https://github.com/marschhuynh/nuvin-space/commit/c5580551a5aa820a7572341723e83b2217964abb) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix render of user message
+
 ## 1.15.0
 
 ### Minor Changes
