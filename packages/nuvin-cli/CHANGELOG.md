@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.17.0
+
+### Minor Changes
+
+- [`bd0bf61`](https://github.com/marschhuynh/nuvin-space/commit/bd0bf61b22a08b4f70c2a07288abf7bdbe97e5de) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add custom command support with `/command` modal for creating reusable prompt templates
+
 ## 1.16.0
 
 ### Minor Changes
