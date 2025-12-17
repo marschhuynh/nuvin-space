@@ -276,7 +276,7 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
       {!isCompleted && (
         <Box flexDirection="row" marginLeft={2}>
           <Text dimColor color={statusColor}>
-            └─{' '}
+            ╰─{' '}
           </Text>
           <GradientRunText text="Working ..." />
           {!explainMode && (

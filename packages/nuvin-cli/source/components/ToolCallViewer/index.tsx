@@ -97,7 +97,7 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
       {!hasResult && !isDenied && (
         <Box flexDirection="row" marginLeft={2}>
           <Text dimColor color={statusColor}>
-            └─{' '}
+            ╰─{' '}
           </Text>
           <Text>{isAwaitingApproval ? 'Awaiting approval ...' : 'Running ...'}</Text>
           {!isAwaitingApproval && (
@@ -111,7 +111,7 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
       {isDenied && (
         <Box flexDirection="row" marginLeft={2}>
           <Text dimColor color={theme.colors.warning}>
-            └─ Denied
+            ╰─ Denied
           </Text>
         </Box>
       )}
