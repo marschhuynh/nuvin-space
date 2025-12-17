@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.15.0
+
+### Minor Changes
+
+- [`f7750f0`](https://github.com/marschhuynh/nuvin-space/commit/f7750f0ccaac9601719b9e7488de945e305f77c1) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add scroll and auto-scroll UI components, truncateLines utility, demos and tests to improve chat display scrolling behavior.
+
 ## 1.14.0
 
 ### Minor Changes
