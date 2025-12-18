@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.18.1
+
+### Patch Changes
+
+- [`8478d04`](https://github.com/marschhuynh/nuvin-space/commit/8478d04bbd71d3e3cd1cd82124097a6d8a0825a6) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix --profile flag not respecting profile session directory for --history and --resume
+
 ## 1.18.0
 
 ### Minor Changes
