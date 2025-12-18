@@ -29,6 +29,7 @@ import { useExplainMode } from '@/contexts/ExplainModeContext.js';
 import { orchestratorManager } from '@/services/OrchestratorManager.js';
 import type { SessionInfo } from '@/types.js';
 import { createEmptySnapshot } from '@nuvin/nuvin-core';
+import { OrchestratorStatus } from '@/types/orchestrator.js';
 
 type Props = {
   provider?: ProviderKey;
@@ -147,9 +148,10 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
     };
   }, [appendLine, handleError, clearMessages, setLines]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: We only want to load once at startup
+  // biome-ignore lint/correctness/useExhaustiveDependencies: We only want to load once at startup when orchestrator is ready
   useEffect(() => {
     if (!historyPath || historyLoadedRef.current) return;
+    if (status !== OrchestratorStatus.READY) return;
 
     const loadHistory = async () => {
       try {
@@ -158,7 +160,10 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
 
         if (result.kind === 'messages') {
           if (result.cliMessages && result.cliMessages.length > 0) {
-            await orchestratorManager.getMemory()?.set('cli', result.cliMessages);
+            const memory = orchestratorManager.getMemory();
+            if (memory) {
+              await memory.set('cli', result.cliMessages);
+            }
           }
 
           setLines(result.lines);
@@ -198,7 +203,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
     };
 
     loadHistory();
-  }, [historyPath]);
+  }, [historyPath, status]);
 
   const processMessage = useCallback(
     async (submission: UserMessagePayload) => {
@@ -225,9 +230,10 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
           signal: controller.signal,
         });
 
-        if (orchestratorManager && displayContent) {
-          orchestratorManager.analyzeAndUpdateTopic(displayContent, 'cli');
-        }
+        // TODO: This feature is currently disabled
+        // if (orchestratorManager && displayContent) {
+        //   orchestratorManager.analyzeAndUpdateTopic(displayContent, 'cli');
+        // }
       } catch (err: unknown) {
         const e = err as Error & { name?: string; message?: unknown };
         const msgText: string = typeof e?.message === 'string' ? e.message : String(e);
