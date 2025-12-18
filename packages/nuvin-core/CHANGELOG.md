@@ -1,5 +1,11 @@
 # @nuvin/nuvin-core
 
+## 1.8.0
+
+### Minor Changes
+
+- [`7a47468`](https://github.com/marschhuynh/nuvin-space/commit/7a4746890f2630232a9ae1b595f2b87804394e00) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Upgrade nuvin core to support custom command
+
 ## 1.7.2
 
 ### Patch Changes
