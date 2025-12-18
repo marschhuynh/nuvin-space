@@ -1,5 +1,14 @@
 # @nuvin/nuvin-cli
 
+## 1.17.1
+
+### Patch Changes
+
+- [`7a47468`](https://github.com/marschhuynh/nuvin-space/commit/7a4746890f2630232a9ae1b595f2b87804394e00) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Upgrade nuvin core to support custom command
+
+- Updated dependencies [[`7a47468`](https://github.com/marschhuynh/nuvin-space/commit/7a4746890f2630232a9ae1b595f2b87804394e00)]:
+  - @nuvin/nuvin-core@1.8.0
+
 ## 1.17.0
 
 ### Minor Changes
