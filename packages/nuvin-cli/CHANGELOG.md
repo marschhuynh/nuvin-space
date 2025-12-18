@@ -1,5 +1,16 @@
 # @nuvin/nuvin-cli
 
+## 1.18.0
+
+### Minor Changes
+
+- [`dd9a07b`](https://github.com/marschhuynh/nuvin-space/commit/dd9a07b6f1071cfc439817b71678226fa0ad729b) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add tool approval edit instruction feature - allows users to provide feedback instead of approving/denying tool calls
+
+### Patch Changes
+
+- Updated dependencies [[`dd9a07b`](https://github.com/marschhuynh/nuvin-space/commit/dd9a07b6f1071cfc439817b71678226fa0ad729b)]:
+  - @nuvin/nuvin-core@1.9.0
+
 ## 1.17.1
 
 ### Patch Changes
