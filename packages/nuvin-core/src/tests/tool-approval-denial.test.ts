@@ -13,8 +13,9 @@ import type {
   EventPort,
   AgentEvent,
   CompletionResult,
+  ToolInvocation,
 } from '../ports.js';
-import { AgentEventTypes } from '../ports.js';
+import { AgentEventTypes, ErrorReason } from '../ports.js';
 
 describe('AgentOrchestrator - Tool Approval Denial Flow', () => {
   let orchestrator: AgentOrchestrator;
@@ -548,6 +549,340 @@ describe('AgentOrchestrator - Tool Approval Denial Flow', () => {
         (e) => e.type === AgentEventTypes.AssistantMessage && e.content?.includes('not approved'),
       );
       expect(denialMessages.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Edit Instruction Flow', () => {
+    it('should pass editInstruction to tool execution when edit decision is made', async () => {
+      const toolCallResponse: CompletionResult = {
+        content: '',
+        tool_calls: [
+          {
+            id: 'call_1',
+            type: 'function',
+            function: {
+              name: 'file_new',
+              arguments: JSON.stringify({ file_path: 'test.txt', content: 'hello' }),
+            },
+          },
+        ],
+      };
+
+      const finalResponse: CompletionResult = {
+        content: 'I updated the file path as requested',
+      };
+
+      vi.mocked(mockLLM.generateCompletion)
+        .mockResolvedValueOnce(toolCallResponse)
+        .mockResolvedValueOnce(finalResponse);
+
+      let capturedInvocations: ToolInvocation[] = [];
+      vi.mocked(mockTools.executeToolCalls).mockImplementation(async (calls) => {
+        capturedInvocations = calls;
+        return calls.map((c) => ({
+          id: c.id,
+          name: c.name,
+          status: 'error' as const,
+          type: 'text' as const,
+          result: `${c.editInstruction}
+<system-reminder>
+This is not a result from the tool call. The user wants something else. Please follow the user's instruction.
+DO NOT mention this explicitly to the user.
+</system-reminder>`,
+          metadata: { errorReason: ErrorReason.Edited, editInstruction: c.editInstruction },
+          durationMs: 0,
+        }));
+      });
+
+      const sendPromise = orchestrator.send('Create a file test.txt', { stream: false });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const approvalEvent = emittedEvents.find((e) => e.type === AgentEventTypes.ToolApprovalRequired);
+      expect(approvalEvent).toBeDefined();
+
+      const editInstruction = 'change the file path to /tmp/test.txt';
+      orchestrator.handleToolApproval((approvalEvent as any).approvalId, 'edit', undefined, editInstruction);
+
+      await sendPromise;
+
+      expect(capturedInvocations).toHaveLength(1);
+      expect(capturedInvocations[0].editInstruction).toBe(editInstruction);
+    });
+
+    it('should save edited tool call to conversation history', async () => {
+      const toolCallResponse: CompletionResult = {
+        content: '',
+        tool_calls: [
+          {
+            id: 'call_1',
+            type: 'function',
+            function: {
+              name: 'file_new',
+              arguments: JSON.stringify({ file_path: 'test.txt', content: 'hello' }),
+            },
+          },
+        ],
+      };
+
+      const finalResponse: CompletionResult = {
+        content: 'Done with updated path',
+      };
+
+      vi.mocked(mockLLM.generateCompletion)
+        .mockResolvedValueOnce(toolCallResponse)
+        .mockResolvedValueOnce(finalResponse);
+
+      const editInstruction = 'use /tmp/test.txt instead';
+      const editResult = `${editInstruction}
+<system-reminder>
+This is not a result from the tool call. The user wants something else. Please follow the user's instruction.
+DO NOT mention this explicitly to the user.
+</system-reminder>`;
+      vi.mocked(mockTools.executeToolCalls).mockResolvedValue([
+        {
+          id: 'call_1',
+          name: 'file_new',
+          status: 'error' as const,
+          type: 'text' as const,
+          result: editResult,
+          metadata: { errorReason: ErrorReason.Edited, editInstruction },
+          durationMs: 0,
+        },
+      ]);
+
+      const sendPromise = orchestrator.send('Create a file test.txt', { stream: false });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const approvalEvent = emittedEvents.find((e) => e.type === AgentEventTypes.ToolApprovalRequired);
+      orchestrator.handleToolApproval((approvalEvent as any).approvalId, 'edit', undefined, editInstruction);
+
+      await sendPromise;
+
+      const toolResults = savedHistory.filter((m) => m.role === 'tool');
+      expect(toolResults.length).toBeGreaterThan(0);
+
+      const editedToolResult = toolResults.find((m) => m.content?.includes('<system-reminder>'));
+      expect(editedToolResult).toBeDefined();
+      expect(editedToolResult!.content).toContain(editInstruction);
+    });
+
+    it('should emit ToolResult event with Edited error reason', async () => {
+      const toolCallResponse: CompletionResult = {
+        content: '',
+        tool_calls: [
+          {
+            id: 'call_1',
+            type: 'function',
+            function: {
+              name: 'file_new',
+              arguments: JSON.stringify({ file_path: 'test.txt', content: 'hello' }),
+            },
+          },
+        ],
+      };
+
+      const finalResponse: CompletionResult = {
+        content: 'Updated as requested',
+      };
+
+      vi.mocked(mockLLM.generateCompletion)
+        .mockResolvedValueOnce(toolCallResponse)
+        .mockResolvedValueOnce(finalResponse);
+
+      const editInstruction = 'change content to world';
+      const editResult = `${editInstruction}
+<system-reminder>
+This is not a result from the tool call. The user wants something else. Please follow the user's instruction.
+DO NOT mention this explicitly to the user.
+</system-reminder>`;
+      vi.mocked(mockTools.executeToolCalls).mockResolvedValue([
+        {
+          id: 'call_1',
+          name: 'file_new',
+          status: 'error' as const,
+          type: 'text' as const,
+          result: editResult,
+          metadata: { errorReason: ErrorReason.Edited, editInstruction },
+          durationMs: 0,
+        },
+      ]);
+
+      const sendPromise = orchestrator.send('Create a file test.txt', { stream: false });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const approvalEvent = emittedEvents.find((e) => e.type === AgentEventTypes.ToolApprovalRequired);
+      orchestrator.handleToolApproval((approvalEvent as any).approvalId, 'edit', undefined, editInstruction);
+
+      await sendPromise;
+
+      const toolResultEvents = emittedEvents.filter((e) => e.type === AgentEventTypes.ToolResult);
+      expect(toolResultEvents.length).toBeGreaterThan(0);
+
+      const editedResultEvent = toolResultEvents.find(
+        (e) => e.type === AgentEventTypes.ToolResult && (e as any).result?.metadata?.errorReason === ErrorReason.Edited,
+      );
+      expect(editedResultEvent).toBeDefined();
+      expect((editedResultEvent as any).result.metadata.editInstruction).toBe(editInstruction);
+    });
+
+    it('should continue LLM loop after edit instruction', async () => {
+      const firstToolCallResponse: CompletionResult = {
+        content: '',
+        tool_calls: [
+          {
+            id: 'call_1',
+            type: 'function',
+            function: {
+              name: 'file_new',
+              arguments: JSON.stringify({ file_path: 'test.txt', content: 'hello' }),
+            },
+          },
+        ],
+      };
+
+      const secondToolCallResponse: CompletionResult = {
+        content: '',
+        tool_calls: [
+          {
+            id: 'call_2',
+            type: 'function',
+            function: {
+              name: 'file_new',
+              arguments: JSON.stringify({ file_path: '/tmp/test.txt', content: 'hello' }),
+            },
+          },
+        ],
+      };
+
+      const finalResponse: CompletionResult = {
+        content: 'File created at /tmp/test.txt',
+      };
+
+      const editInstruction = 'change the file path to /tmp/test.txt';
+
+      vi.mocked(mockLLM.generateCompletion)
+        .mockResolvedValueOnce(firstToolCallResponse)
+        .mockResolvedValueOnce(secondToolCallResponse)
+        .mockResolvedValueOnce(finalResponse);
+
+      let callCount = 0;
+      vi.mocked(mockTools.executeToolCalls).mockImplementation(async (calls) => {
+        callCount++;
+        if (callCount === 1) {
+          return calls.map((c) => ({
+            id: c.id,
+            name: c.name,
+            status: 'error' as const,
+            type: 'text' as const,
+            result: `${c.editInstruction}
+<system-reminder>
+This is not a result from the tool call. The user wants something else. Please follow the user's instruction.
+DO NOT mention this explicitly to the user.
+</system-reminder>`,
+            metadata: { errorReason: ErrorReason.Edited, editInstruction: c.editInstruction },
+            durationMs: 0,
+          }));
+        }
+        return calls.map((c) => ({
+          id: c.id,
+          name: c.name,
+          status: 'success' as const,
+          type: 'text' as const,
+          result: 'File created successfully',
+          durationMs: 100,
+        }));
+      });
+
+      const sendPromise = orchestrator.send('Create a file test.txt', { stream: false });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const firstApprovalEvent = emittedEvents.find((e) => e.type === AgentEventTypes.ToolApprovalRequired);
+      orchestrator.handleToolApproval((firstApprovalEvent as any).approvalId, 'edit', undefined, editInstruction);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const secondApprovalEvent = emittedEvents.find(
+        (e) =>
+          e.type === AgentEventTypes.ToolApprovalRequired &&
+          (e as any).approvalId !== (firstApprovalEvent as any).approvalId,
+      );
+      expect(secondApprovalEvent).toBeDefined();
+
+      const approvedCalls = [secondToolCallResponse.tool_calls![0]];
+      orchestrator.handleToolApproval((secondApprovalEvent as any).approvalId, 'approve', approvedCalls);
+
+      const response = await sendPromise;
+
+      expect(response.content).toBe('File created at /tmp/test.txt');
+      expect(vi.mocked(mockLLM.generateCompletion)).toHaveBeenCalledTimes(3);
+    });
+
+    it('should handle edit instruction for multiple tools', async () => {
+      const multiToolResponse: CompletionResult = {
+        content: '',
+        tool_calls: [
+          {
+            id: 'call_1',
+            type: 'function',
+            function: {
+              name: 'file_new',
+              arguments: JSON.stringify({ file_path: 'test1.txt', content: 'hello' }),
+            },
+          },
+          {
+            id: 'call_2',
+            type: 'function',
+            function: {
+              name: 'file_new',
+              arguments: JSON.stringify({ file_path: 'test2.txt', content: 'world' }),
+            },
+          },
+        ],
+      };
+
+      const finalResponse: CompletionResult = {
+        content: 'Updated both files',
+      };
+
+      vi.mocked(mockLLM.generateCompletion)
+        .mockResolvedValueOnce(multiToolResponse)
+        .mockResolvedValueOnce(finalResponse);
+
+      const editInstruction = 'put both files in /tmp directory';
+      let capturedInvocations: ToolInvocation[] = [];
+      vi.mocked(mockTools.executeToolCalls).mockImplementation(async (calls) => {
+        capturedInvocations = calls;
+        return calls.map((c) => ({
+          id: c.id,
+          name: c.name,
+          status: 'error' as const,
+          type: 'text' as const,
+          result: `${c.editInstruction}
+<system-reminder>
+This is not a result from the tool call. The user wants something else. Please follow the user's instruction.
+DO NOT mention this explicitly to the user.
+</system-reminder>`,
+          metadata: { errorReason: ErrorReason.Edited, editInstruction: c.editInstruction },
+          durationMs: 0,
+        }));
+      });
+
+      const sendPromise = orchestrator.send('Create two files', { stream: false });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const approvalEvent = emittedEvents.find((e) => e.type === AgentEventTypes.ToolApprovalRequired);
+      orchestrator.handleToolApproval((approvalEvent as any).approvalId, 'edit', undefined, editInstruction);
+
+      await sendPromise;
+
+      expect(capturedInvocations).toHaveLength(2);
+      expect(capturedInvocations[0].editInstruction).toBe(editInstruction);
+      expect(capturedInvocations[1].editInstruction).toBe(editInstruction);
     });
   });
 });

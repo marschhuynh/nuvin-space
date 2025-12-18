@@ -67,6 +67,7 @@ export type AssignTaskMetadata = DelegationMetadata;
 
 export type ToolErrorMetadata = {
   errorReason?: ErrorReason;
+  editInstruction?: string;
   path?: string;
   agentId?: string;
   code?: string | number;

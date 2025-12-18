@@ -32,6 +32,7 @@ export type ToolCall = {
     name: string;
     arguments: string; // JSON string per OpenAI-style schema
   };
+  editInstruction?: string;
 };
 
 export type TextContentPart = {
@@ -222,20 +223,21 @@ export type ToolDefinition = {
 };
 
 export type ToolInvocation =
-  | { id: string; name: 'bash_tool'; parameters: BashToolArgs }
-  | { id: string; name: 'file_read'; parameters: FileReadArgs }
-  | { id: string; name: 'file_edit'; parameters: FileEditArgs }
-  | { id: string; name: 'file_new'; parameters: FileNewArgs }
-  | { id: string; name: 'dir_ls'; parameters: DirLsArgs }
-  | { id: string; name: 'web_search'; parameters: WebSearchArgs }
-  | { id: string; name: 'web_fetch'; parameters: WebFetchArgs }
-  | { id: string; name: 'todo_write'; parameters: TodoWriteArgs }
-  | { id: string; name: 'assign_task'; parameters: AssignTaskArgs }
-  | { id: string; name: string; parameters: Record<string, unknown> };
+  | { id: string; name: 'bash_tool'; parameters: BashToolArgs; editInstruction?: string }
+  | { id: string; name: 'file_read'; parameters: FileReadArgs; editInstruction?: string }
+  | { id: string; name: 'file_edit'; parameters: FileEditArgs; editInstruction?: string }
+  | { id: string; name: 'file_new'; parameters: FileNewArgs; editInstruction?: string }
+  | { id: string; name: 'dir_ls'; parameters: DirLsArgs; editInstruction?: string }
+  | { id: string; name: 'web_search'; parameters: WebSearchArgs; editInstruction?: string }
+  | { id: string; name: 'web_fetch'; parameters: WebFetchArgs; editInstruction?: string }
+  | { id: string; name: 'todo_write'; parameters: TodoWriteArgs; editInstruction?: string }
+  | { id: string; name: 'assign_task'; parameters: AssignTaskArgs; editInstruction?: string }
+  | { id: string; name: string; parameters: Record<string, unknown>; editInstruction?: string };
 
 export enum ErrorReason {
   Aborted = 'aborted',
   Denied = 'denied',
+  Edited = 'edited',
   Timeout = 'timeout',
   NotFound = 'not_found',
   PermissionDenied = 'permission_denied',
@@ -491,7 +493,7 @@ export const AgentEventTypes = {
   SubAgentMetrics: 'sub_agent_metrics',
 } as const;
 
-export type ToolApprovalDecision = 'approve' | 'deny' | 'approve_all';
+export type ToolApprovalDecision = 'approve' | 'deny' | 'approve_all' | 'edit';
 
 export type AgentEvent =
   | {
@@ -523,6 +525,7 @@ export type AgentEvent =
       approvalId: string;
       decision: ToolApprovalDecision;
       approvedCalls?: ToolCall[];
+      editInstruction?: string;
     }
   | {
       type: typeof AgentEventTypes.ToolResult;

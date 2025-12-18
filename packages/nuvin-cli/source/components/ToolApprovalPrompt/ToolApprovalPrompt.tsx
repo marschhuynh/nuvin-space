@@ -4,13 +4,14 @@ import type { ToolCall, ToolApprovalDecision } from '@nuvin/nuvin-core';
 import { ToolParameters } from './ToolParameters.js';
 import { ToolProgressInfo } from './ToolProgressInfo.js';
 import { ToolActions } from './ToolActions.js';
+import { ToolEditInput } from './ToolEditInput.js';
 import { AppModal } from '@/components/AppModal.js';
 import { useToolApproval } from '@/contexts/ToolApprovalContext.js';
 import { theme } from '@/theme.js';
 
 type Props = {
   toolCalls: ToolCall[];
-  onApproval: (decision: ToolApprovalDecision, approvedCalls?: ToolCall[]) => void;
+  onApproval: (decision: ToolApprovalDecision, approvedCalls?: ToolCall[], editInstruction?: string) => void;
   onCancel?: () => void;
 };
 
@@ -20,20 +21,42 @@ export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
   const [approvedCalls, setApprovedCalls] = useState<ToolCall[]>([]);
   const [_deniedCalls, setDeniedCalls] = useState<ToolCall[]>([]);
   const [selectedAction, setSelectedAction] = useState(0); // 0=Yes, 1=No, 2=Yes for session
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editValue, setEditValue] = useState('');
 
   const currentTool = toolCalls[currentToolIndex];
   const isLastTool = currentToolIndex === toolCalls.length - 1;
 
+  const handleEditSubmit = () => {
+    if (editValue.trim().length === 0) return;
+    onApproval('edit', undefined, editValue.trim());
+  };
+
+  const handleEditCancel = () => {
+    setIsEditMode(false);
+    setEditValue('');
+    setSelectedAction(0);
+  };
+
   // Handle keyboard navigation
+  // selectedAction: 0=Yes, 1=No, 2=Yes for session, 3=Edit (isEditMode)
   useInput((input, key) => {
+    if (isEditMode) return;
+
     if (key.tab) {
-      setSelectedAction((prev) => {
-        if (key.shift) {
-          return prev === 0 ? 2 : prev - 1;
+      if (key.shift) {
+        if (selectedAction === 0) {
+          setIsEditMode(true);
         } else {
-          return prev === 2 ? 0 : prev + 1;
+          setSelectedAction((prev) => prev - 1);
         }
-      });
+      } else {
+        if (selectedAction === 2) {
+          setIsEditMode(true);
+        } else {
+          setSelectedAction((prev) => prev + 1);
+        }
+      }
       return;
     }
 
@@ -64,6 +87,10 @@ export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
     }
     if (input === '3') {
       handleToolDecision('approve_session');
+      return;
+    }
+    if (input === '4') {
+      setIsEditMode(true);
       return;
     }
   });
@@ -118,6 +145,8 @@ export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
     }
   };
 
+  const footerText = isEditMode ? 'Enter Submit • Esc Cancel' : '1/2/3 Quick Select • 4 Edit • Tab/←→ Navigate';
+
   return (
     <AppModal
       visible
@@ -125,7 +154,7 @@ export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
       footer={
         <Box marginLeft={1}>
           <Text color={theme.toolApproval.description} dimColor>
-            1/2/3 Quick Select • Tab/←→ Navigate • Enter Select
+            {footerText}
           </Text>
         </Box>
       }
@@ -135,9 +164,20 @@ export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
         {/* Parameters / Specialized Content */}
         <ToolParameters toolCall={currentTool} />
 
-        {/* Action Buttons at Bottom */}
+        {/* Action Buttons */}
         <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginTop={1}>
-          <ToolActions selectedAction={selectedAction} />
+          <ToolActions selectedAction={isEditMode ? -1 : selectedAction} />
+        </Box>
+
+        {/* Edit Input */}
+        <Box marginY={1}>
+          <ToolEditInput
+            isFocused={isEditMode}
+            value={editValue}
+            onChange={setEditValue}
+            onSubmit={handleEditSubmit}
+            onCancel={handleEditCancel}
+          />
         </Box>
       </Box>
     </AppModal>

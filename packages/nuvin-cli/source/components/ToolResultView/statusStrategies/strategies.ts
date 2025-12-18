@@ -9,11 +9,22 @@ import {
   isWebFetchSuccess,
   isWebSearchSuccess,
   type ToolExecutionResult,
+  ErrorReason,
 } from '@nuvin/nuvin-core';
 import { formatDuration, formatTokens, formatCost } from '@/utils/formatters.js';
 import { get } from '@/utils/get.js';
 import type { StatusStrategy, StatusParams, StatusMessage } from './types.js';
 import { createStatusMessage } from './types.js';
+
+const isEditedResult = (result: ToolExecutionResult): boolean => {
+  if (result.status === 'error' && result.metadata?.errorReason === ErrorReason.Edited) {
+    return true;
+  }
+  if (result.type === 'text' && typeof result.result === 'string') {
+    return result.result.includes('<system-reminder>');
+  }
+  return false;
+};
 
 export const assignTaskStrategy: StatusStrategy = {
   getStatus(result: ToolExecutionResult, params: StatusParams): StatusMessage {
@@ -53,6 +64,10 @@ export const fileEditStrategy: StatusStrategy = {
       return createStatusMessage(text, statusColor, '');
     }
 
+    if (isEditedResult(result)) {
+      return createStatusMessage('Edited', statusColor, '');
+    }
+
     return createStatusMessage('Edit failed', statusColor, '');
   },
 };
@@ -64,6 +79,10 @@ export const fileReadStrategy: StatusStrategy = {
     if (isFileReadSuccess(result)) {
       const lineCount = result.result.split(/\r?\n/).length;
       return createStatusMessage(`Read ${lineCount} lines`, statusColor, '');
+    }
+
+    if (isEditedResult(result)) {
+      return createStatusMessage('Edited', statusColor, '');
     }
 
     return createStatusMessage('Read failed', statusColor, '');
@@ -89,6 +108,10 @@ export const fileNewStrategy: StatusStrategy = {
       return createStatusMessage(text, statusColor, '');
     }
 
+    if (isEditedResult(result)) {
+      return createStatusMessage('Edited', statusColor, '');
+    }
+
     return createStatusMessage('Creation failed', statusColor, '');
   },
 };
@@ -101,6 +124,10 @@ export const bashToolStrategy: StatusStrategy = {
       const code = get(result, 'metadata.code') as number | undefined;
       const text = code !== undefined ? `Executed (exit ${code})` : 'Executed';
       return createStatusMessage(text, statusColor, '');
+    }
+
+    if (isEditedResult(result)) {
+      return createStatusMessage('Edited', statusColor, '');
     }
 
     return createStatusMessage('Execution failed', statusColor, '');
@@ -119,6 +146,10 @@ export const webFetchStrategy: StatusStrategy = {
       return createStatusMessage(text, statusColor, '');
     }
 
+    if (isEditedResult(result)) {
+      return createStatusMessage('Edited', statusColor, '');
+    }
+
     return createStatusMessage('Fetch failed', statusColor, '');
   },
 };
@@ -131,6 +162,10 @@ export const webSearchStrategy: StatusStrategy = {
       const count = get(result, 'result.count') as number | undefined;
       const text = count !== undefined ? `Searched (${count} results)` : 'Searched';
       return createStatusMessage(text, statusColor, '');
+    }
+
+    if (isEditedResult(result)) {
+      return createStatusMessage('Edited', statusColor, '');
     }
 
     return createStatusMessage('Search failed', statusColor, '');
@@ -163,6 +198,10 @@ export const dirLsStrategy: StatusStrategy = {
       return createStatusMessage(`Listed ${entryCount} entries${truncated}`, statusColor, '');
     }
 
+    if (isEditedResult(result)) {
+      return createStatusMessage('Edited', statusColor, '');
+    }
+
     return createStatusMessage('Listing failed', statusColor, '');
   },
 };
@@ -171,6 +210,11 @@ export const defaultStrategy: StatusStrategy = {
   getStatus(result: ToolExecutionResult, params: StatusParams): StatusMessage {
     const { statusColor } = params;
     const isSuccess = result.status === 'success';
+
+    if (!isSuccess && isEditedResult(result)) {
+      return createStatusMessage('Edited', statusColor, '');
+    }
+
     return createStatusMessage(isSuccess ? 'Completed' : 'Failed', statusColor, '');
   },
 };

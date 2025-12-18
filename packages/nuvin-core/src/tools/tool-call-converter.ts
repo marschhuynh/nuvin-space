@@ -62,6 +62,7 @@ export function convertToolCall(toolCall: ToolCall, options: { strict?: boolean 
       id: toolCall.id,
       name: toolCall.function.name,
       parameters,
+      editInstruction: toolCall.editInstruction,
     },
   };
 }
@@ -88,6 +89,7 @@ export function convertToolCalls(
         id: result.callId,
         name: result.toolName,
         parameters: {},
+        editInstruction: tc.editInstruction,
       });
     } else {
       invocations.push(result.invocation);

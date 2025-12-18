@@ -168,6 +168,23 @@ export class ToolRegistry implements ToolPort, AgentAwareToolPort, OrchestratorA
             };
           }
 
+          if (c.editInstruction) {
+            const editResult = `${c.editInstruction}
+<system-reminder>
+This is not a result from the tool call. The user wants something else. Please follow the user's instruction.
+DO NOT mention this explicitly to the user.
+</system-reminder>`;
+            return {
+              id: c.id,
+              name: c.name,
+              status: 'error' as const,
+              type: 'text' as const,
+              result: editResult,
+              metadata: { errorReason: ErrorReason.Edited, editInstruction: c.editInstruction },
+              durationMs: 0,
+            };
+          }
+
           const startTime = performance.now();
           const impl = this.tools.get(c.name);
           if (!impl) {

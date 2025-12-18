@@ -44,9 +44,16 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
   const args = parseArguments(toolCall);
   const finalDuration = toolResult?.metadata?.duration;
   const toolExecutionResult = toolResult?.metadata?.toolResult as ToolExecutionResult | undefined;
+  const resultContent = typeof toolExecutionResult?.result === 'string' ? toolExecutionResult.result : '';
+  const hasSystemReminder = resultContent.includes('<system-reminder>');
   const isDenied =
-    toolExecutionResult?.status === 'error' && toolExecutionResult.metadata?.errorReason === ErrorReason.Denied;
-  const hasResult = !!toolExecutionResult && !isDenied;
+    toolExecutionResult?.status === 'error' &&
+    toolExecutionResult.metadata?.errorReason === ErrorReason.Denied &&
+    !hasSystemReminder;
+  const isEdited =
+    (toolExecutionResult?.status === 'error' && toolExecutionResult.metadata?.errorReason === ErrorReason.Edited) ||
+    hasSystemReminder;
+  const hasResult = !!toolExecutionResult && !isDenied && !isEdited;
 
   const toolName = toolCall.function.name;
   const displayName =
@@ -69,7 +76,7 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
     }
   };
 
-  const statusColor = isDenied
+  const statusColor = isDenied || isEdited
     ? theme.status.warning
     : toolExecutionResult?.status === 'success'
       ? theme.status.success
@@ -94,7 +101,7 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
         <ParamRenderer toolCall={toolCall} args={args} statusColor={statusColor} formatValue={formatValue} />
       )}
 
-      {!hasResult && !isDenied && (
+      {!hasResult && !isDenied && !isEdited && (
         <Box flexDirection="row" marginLeft={2}>
           <Text dimColor color={statusColor}>
             ╰─{' '}
@@ -112,6 +119,14 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
         <Box flexDirection="row" marginLeft={2}>
           <Text dimColor color={theme.colors.warning}>
             ╰─ Denied
+          </Text>
+        </Box>
+      )}
+
+      {isEdited && (
+        <Box flexDirection="row" marginLeft={2}>
+          <Text dimColor color={theme.colors.warning}>
+            ╰─ Edited
           </Text>
         </Box>
       )}

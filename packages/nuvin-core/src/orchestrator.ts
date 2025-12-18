@@ -123,10 +123,12 @@ const resolveDisplayText = (text: string, attachments: UserAttachment[], provide
   return result;
 };
 
+type ToolApprovalResult = ToolCall[] | { editInstruction: string };
+
 export class AgentOrchestrator {
   private pendingApprovals = new Map<
     string,
-    { resolve: (calls: ToolCall[]) => void; reject: (error: Error) => void }
+    { resolve: (result: ToolApprovalResult) => void; reject: (error: Error) => void }
   >();
 
   private context: ContextBuilder = new SimpleContextBuilder();
@@ -350,8 +352,18 @@ export class AgentOrchestrator {
     }
 
     try {
-      const manuallyApproved = await this.waitForToolApproval(callsNeedingApproval, conversationId, messageId);
-      return { approvedCalls: [...manuallyApproved, ...callsToAutoApprove], wasDenied: false };
+      const result = await this.waitForToolApproval(callsNeedingApproval, conversationId, messageId);
+
+      if ('editInstruction' in result) {
+        const editInstruction = result.editInstruction;
+        const editedCalls = toolCalls.map((call) => ({
+          ...call,
+          editInstruction,
+        }));
+        return { approvedCalls: editedCalls, wasDenied: false };
+      }
+
+      return { approvedCalls: [...result, ...callsToAutoApprove], wasDenied: false };
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Tool approval failed';
       const denialMessage = `Tool execution was not approved: ${errorMsg}`;
@@ -775,7 +787,7 @@ export class AgentOrchestrator {
     toolCalls: ToolCall[],
     conversationId: string,
     messageId: string,
-  ): Promise<ToolCall[]> {
+  ): Promise<ToolApprovalResult> {
     const approvalId = this.ids.uuid();
 
     return new Promise((resolve, reject) => {
@@ -791,7 +803,12 @@ export class AgentOrchestrator {
     });
   }
 
-  public handleToolApproval(approvalId: string, decision: ToolApprovalDecision, approvedCalls?: ToolCall[]): void {
+  public handleToolApproval(
+    approvalId: string,
+    decision: ToolApprovalDecision,
+    approvedCalls?: ToolCall[],
+    editInstruction?: string,
+  ): void {
     const approval = this.pendingApprovals.get(approvalId);
     if (!approval) {
       console.warn(`[Orchestrator] Received approval for unknown or already processed ID: ${approvalId}`);
@@ -802,6 +819,8 @@ export class AgentOrchestrator {
 
     if (decision === 'deny') {
       approval.reject(new Error('Tool execution denied by user'));
+    } else if (decision === 'edit' && editInstruction) {
+      approval.resolve({ editInstruction });
     } else if (decision === 'approve_all' || decision === 'approve') {
       approval.resolve(approvedCalls || []);
     } else {

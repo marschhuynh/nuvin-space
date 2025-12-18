@@ -10,6 +10,7 @@ type ErrorConfig = {
 const errorStatusMap: Record<ErrorReason, ErrorConfig> = {
   [ErrorReason.Aborted]: { text: 'Aborted', colorKey: 'warning' },
   [ErrorReason.Denied]: { text: 'Denied', colorKey: 'warning' },
+  [ErrorReason.Edited]: { text: 'Edited', colorKey: 'warning' },
   [ErrorReason.Timeout]: { text: 'Timeout', colorKey: 'warning' },
   [ErrorReason.PermissionDenied]: { text: 'Permission denied', colorKey: 'error' },
   [ErrorReason.NotFound]: { text: 'Not found', colorKey: 'error' },

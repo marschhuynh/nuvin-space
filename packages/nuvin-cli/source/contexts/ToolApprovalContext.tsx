@@ -17,7 +17,7 @@ interface ToolApprovalState {
   sessionApprovedTools: Set<string>;
   addSessionApprovedTool: (toolName: string) => void;
   clearSessionApprovedTools: () => void;
-  handleApprovalResponse: (decision: ToolApprovalDecision, approvedCalls?: ToolCall[]) => void;
+  handleApprovalResponse: (decision: ToolApprovalDecision, approvedCalls?: ToolCall[], editInstruction?: string) => void;
 }
 
 const ToolApprovalContext = createContext<ToolApprovalState | undefined>(undefined);
@@ -56,13 +56,18 @@ export function ToolApprovalProvider({
   }, []);
 
   const handleApprovalResponse = useCallback(
-    (decision: ToolApprovalDecision, approvedCalls?: ToolCall[]) => {
+    (decision: ToolApprovalDecision, approvedCalls?: ToolCall[], editInstruction?: string) => {
       if (!pendingApproval || !orchestratorManager?.getOrchestrator()) {
         return;
       }
 
       try {
-        orchestratorManager?.getOrchestrator()?.handleToolApproval(pendingApproval.approvalId, decision, approvedCalls);
+        orchestratorManager?.getOrchestrator()?.handleToolApproval(
+          pendingApproval.approvalId,
+          decision,
+          approvedCalls,
+          editInstruction,
+        );
         setPendingApproval(null);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);

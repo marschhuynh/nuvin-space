@@ -1,4 +1,5 @@
 import type { ToolDefinition, ToolExecutionResult, ToolInvocation, ToolPort } from '../ports.js';
+import { ErrorReason } from '../ports.js';
 import type { CoreMCPClient, MCPToolSchema } from './mcp-client.js';
 
 type NameMap = Map<string, string>; // exposedName -> originalName
@@ -113,6 +114,23 @@ export class MCPToolPort implements ToolPort {
               status: 'error',
               type: 'text',
               result: 'Tool execution aborted by user',
+            };
+          }
+
+          if (c.editInstruction) {
+            const editResult = `${c.editInstruction}
+<system-reminder>
+This is not a result from the tool call. The user wants something else. Please follow the user's instruction.
+DO NOT mention this explicitly to the user.
+</system-reminder>`;
+            return {
+              id: c.id,
+              name: c.name,
+              status: 'error',
+              type: 'text',
+              result: editResult,
+              metadata: { errorReason: ErrorReason.Edited, editInstruction: c.editInstruction },
+              durationMs: 0,
             };
           }
 
