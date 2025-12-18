@@ -3,6 +3,7 @@ import type { MemoryPort, Message } from '@nuvin/nuvin-core';
 import { logger } from '@/utils/file-logger.js';
 import { useNotification } from '@/hooks/useNotification.js';
 import { scanAvailableSessions } from '@/hooks/useSessionManagement.js';
+import { ConfigManager } from '@/config/manager.js';
 
 type LineInfo = {
   lineIndex: number;
@@ -25,9 +26,12 @@ export const useInputHistory = ({ memory, currentInput, onRecall }: UseInputHist
 
   useEffect(() => {
     const loadHistory = async () => {
+      const configManager = ConfigManager.getInstance();
+      const currentProfile = configManager.getCurrentProfile();
+      
       let lastSessionMessage: string | null = null;
       try {
-        const sessions = await scanAvailableSessions(1);
+        const sessions = await scanAvailableSessions(1, currentProfile);
         lastSessionMessage = sessions?.[0]?.lastMessage ?? null;
       } catch {
         lastSessionMessage = null;

@@ -7,9 +7,19 @@ import type { Message } from '@nuvin/nuvin-core';
 import type { MessageLine, MessageMetadata } from '@/adapters/index.js';
 import { getDefaultLogger } from '@/utils/file-logger.js';
 import type { SessionInfo } from '@/types.js';
+import { ConfigManager } from '@/config/manager.js';
+import { DEFAULT_PROFILE } from '@/config/profile-types.js';
 
-function sessionsDir() {
-  return path.join(os.homedir(), '.nuvin-cli', 'sessions');
+function sessionsDir(profile?: string): string {
+  const configManager = ConfigManager.getInstance();
+  const profileManager = configManager.getProfileManager();
+  
+  if (!profileManager) {
+    return path.join(os.homedir(), '.nuvin-cli', 'sessions');
+  }
+  
+  const activeProfile = profile ?? configManager.getCurrentProfile();
+  return profileManager.getProfileSessionsDir(activeProfile);
 }
 
 async function readJson<T>(file: string): Promise<T | null> {
@@ -32,9 +42,10 @@ async function readJson<T>(file: string): Promise<T | null> {
 
 // Cache for scanAvailableSessions
 type SessionData = SessionInfo[];
+type CacheKey = string;
 
 const sessionCache = new Map<
-  number | undefined,
+  CacheKey,
   {
     timestamp: number;
     data: SessionData;
@@ -44,29 +55,34 @@ const sessionCache = new Map<
 const CACHE_TTL = 10000; // 10 seconds
 
 // Promise for deduplication
-const scanPromises = new Map<number | undefined, Promise<SessionData>>();
+const scanPromises = new Map<CacheKey, Promise<SessionData>>();
 
 const logger = getDefaultLogger();
 
-// Export standalone functions for use in commands
-export const scanAvailableSessions = async (limit?: number): Promise<SessionInfo[]> => {
-  // Check cache
+function getCacheKey(limit?: number, profile?: string): CacheKey {
+  return `${profile ?? DEFAULT_PROFILE}_${limit ?? 'all'}`;
+}
 
-  const cached = sessionCache.get(limit);
+// Export standalone functions for use in commands
+export const scanAvailableSessions = async (limit?: number, profile?: string): Promise<SessionInfo[]> => {
+  const cacheKey = getCacheKey(limit, profile);
+
+  // Check cache
+  const cached = sessionCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    logger.info('Cache hit:', limit);
+    logger.info('Cache hit:', cacheKey);
     return cached.data;
   }
 
   // Check active promise
-  const existingPromise = scanPromises.get(limit);
+  const existingPromise = scanPromises.get(cacheKey);
   if (existingPromise) {
     return existingPromise;
   }
 
   const promise = (async () => {
     try {
-      const dir = sessionsDir();
+      const dir = sessionsDir(profile);
       if (!fs.existsSync(dir)) return [];
 
       const entries = await fsp.readdir(dir, { withFileTypes: true });
@@ -128,18 +144,18 @@ export const scanAvailableSessions = async (limit?: number): Promise<SessionInfo
       }
 
       // Update cache
-      sessionCache.set(limit, {
+      sessionCache.set(cacheKey, {
         timestamp: Date.now(),
         data: sessions,
       });
 
       return sessions;
     } finally {
-      scanPromises.delete(limit);
+      scanPromises.delete(cacheKey);
     }
   })();
 
-  scanPromises.set(limit, promise);
+  scanPromises.set(cacheKey, promise);
   return promise;
 };
 
@@ -147,9 +163,9 @@ export type LoadResult =
   | { kind: 'messages'; lines: MessageLine[]; metadata: MessageMetadata | null; cliMessages: Message[]; count: number }
   | { kind: 'empty'; reason: 'no_messages' | 'not_found' };
 
-export const createNewSession = async (customId?: string): Promise<{ sessionId: string; sessionDir: string }> => {
+export const createNewSession = async (customId?: string, profile?: string): Promise<{ sessionId: string; sessionDir: string }> => {
   const id = customId ?? String(Date.now());
-  const dir = sessionsDir();
+  const dir = sessionsDir(profile);
   const sessionDir = path.join(dir, id);
   try {
     await fsp.mkdir(sessionDir, { recursive: true });
@@ -193,14 +209,14 @@ export const loadHistoryFromFile = async (historyFile: string): Promise<LoadResu
   }
 };
 
-export const loadSessionHistory = async (selectedSessionId: string): Promise<LoadResult> => {
-  const dir = sessionsDir();
+export const loadSessionHistory = async (selectedSessionId: string, profile?: string): Promise<LoadResult> => {
+  const dir = sessionsDir(profile);
   const historyFile = path.join(dir, selectedSessionId, 'history.json');
   return loadHistoryFromFile(historyFile);
 };
 
-export const getSessionDir = (sessionId: string): string => {
-  return path.join(sessionsDir(), sessionId);
+export const getSessionDir = (sessionId: string, profile?: string): string => {
+  return path.join(sessionsDir(profile), sessionId);
 };
 
 export const useSessionManagement = () => {

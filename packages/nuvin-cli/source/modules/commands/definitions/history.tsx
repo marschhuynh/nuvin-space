@@ -5,12 +5,16 @@ import ansiEscapes from 'ansi-escapes';
 import type { CommandRegistry, CommandComponentProps } from '@/modules/commands/types.js';
 import { HistorySelection } from '@/components/HistorySelection.js';
 import { scanAvailableSessions, loadSessionHistory, getSessionDir } from '@/hooks/useSessionManagement.js';
+import { ConfigManager } from '@/config/manager.js';
 
 import type { SessionInfo } from '@/types.js';
 
 const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps) => {
   const [availableSessions, setAvailableSessions] = useState<SessionInfo[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const configManager = ConfigManager.getInstance();
+  const currentProfile = configManager.getCurrentProfile();
 
   useInput(
     (_input, key) => {
@@ -24,7 +28,7 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
   useEffect(() => {
     const loadSessions = async () => {
       try {
-        const sessions = await scanAvailableSessions();
+        const sessions = await scanAvailableSessions(undefined, currentProfile);
 
         if (sessions.length === 0) {
           // No sessions found - emit info message and close
@@ -56,16 +60,16 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
     };
 
     loadSessions();
-  }, [context.eventBus, deactivate]);
+  }, [context.eventBus, deactivate, currentProfile]);
 
   useEffect(() => {
     const handleHistorySelected = async (session: SessionInfo) => {
       try {
         deactivate();
-        const result = await loadSessionHistory(session.sessionId);
+        const result = await loadSessionHistory(session.sessionId, currentProfile);
 
         if (result.kind === 'messages') {
-          const sessionDir = getSessionDir(session.sessionId);
+          const sessionDir = getSessionDir(session.sessionId, currentProfile);
 
           if (!context.orchestratorManager?.getOrchestrator()) {
             throw new Error('Orchestrator not initialized, wait a moment');
@@ -125,6 +129,7 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
   }, [
     context.eventBus,
     deactivate,
+    currentProfile,
     context.orchestratorManager?.switchToSession,
     context.orchestratorManager?.getOrchestrator,
   ]);

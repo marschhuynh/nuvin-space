@@ -361,7 +361,7 @@ const cli = meow(
   const { scanAvailableSessions, getSessionDir } = await import('./hooks/useSessionManagement.js');
   let initialSessions: Awaited<ReturnType<typeof scanAvailableSessions>> | null = null;
   try {
-    initialSessions = await scanAvailableSessions(5);
+    initialSessions = await scanAvailableSessions(5, normalizedProfile);
   } catch (_error) {
     initialSessions = [];
   }
@@ -373,7 +373,7 @@ const cli = meow(
   if (resumeFlag && !historyPath) {
     if (initialSessions && initialSessions.length > 0) {
       const latestSession = initialSessions[0];
-      historyPath = path.join(getSessionDir(latestSession.sessionId), 'history.json');
+      historyPath = path.join(getSessionDir(latestSession.sessionId, normalizedProfile), 'history.json');
     } else {
       console.warn('No previous sessions found to resume.');
     }
