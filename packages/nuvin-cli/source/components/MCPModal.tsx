@@ -92,7 +92,21 @@ export const MCPModal: React.FC<MCPModalProps> = ({
     (input, key) => {
       if (!visible) return;
 
-      // Prevent input handling when SelectInput is active
+      // Process Enter for server toggle BEFORE checking inputActiveRef
+      if ((key.return || input === ' ') && focusPanel === 'servers' && selectedServer) {
+        const isCurrentlyDisabled = localDisabledServers.has(selectedServer.id);
+        const newDisabledServers = new Set(localDisabledServers);
+        if (isCurrentlyDisabled) {
+          newDisabledServers.delete(selectedServer.id);
+        } else {
+          newDisabledServers.add(selectedServer.id);
+        }
+        setLocalDisabledServers(newDisabledServers);
+        onServerToggle?.(selectedServer.id, isCurrentlyDisabled);
+        return;
+      }
+
+      // Prevent input handling when SelectInput is active (but Enter is handled above)
       if (inputActiveRef.current) {
         inputActiveRef.current = false;
         return;
@@ -121,8 +135,8 @@ export const MCPModal: React.FC<MCPModalProps> = ({
         return;
       }
 
-      // Space - Toggle server enabled/disabled in servers panel
-      if (input === ' ' && focusPanel === 'servers' && selectedServer) {
+      // Enter - Toggle server enable/disable in servers panel (redundant but safe)
+      if ((key.return || input === ' ') && focusPanel === 'servers' && selectedServer) {
         const isCurrentlyDisabled = localDisabledServers.has(selectedServer.id);
         const newDisabledServers = new Set(localDisabledServers);
         if (isCurrentlyDisabled) {
@@ -270,8 +284,7 @@ export const MCPModal: React.FC<MCPModalProps> = ({
     >
       <Box marginBottom={1} flexDirection="column">
         <Text color={theme.history.help} dimColor>
-          ↑↓ navigate • Tab switch panel • Space toggle server • Enter select • ESC{' '}
-          {focusPanel === 'tools' ? 'back' : 'exit'}
+          ↑↓ navigate • Tab switch panel • Enter to toggle • ESC {focusPanel === 'tools' ? 'back' : 'exit'}
         </Text>
         <Box>
           <HelpText
@@ -353,7 +366,7 @@ export const MCPModal: React.FC<MCPModalProps> = ({
                   Server is disabled
                 </Text>
                 <Text color={theme.history.help} dimColor>
-                  Press Space to enable
+                  Press Enter to enable
                 </Text>
               </Box>
             ) : selectedServer.status === 'failed' ? (

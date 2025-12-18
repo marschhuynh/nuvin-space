@@ -40,12 +40,7 @@ type Props = {
   initialSessions?: SessionInfo[] | null;
 };
 
-export default function App({
-  apiKey: _apiKey,
-  memPersist = false,
-  historyPath,
-  initialSessions,
-}: Props) {
+export default function App({ apiKey: _apiKey, memPersist = false, historyPath, initialSessions }: Props) {
   const { explainMode } = useExplainMode();
   const [cols, _rows] = useStdoutDimensions();
   const { messages, clearMessages, setLines, appendLine, updateLine, updateLineMetadata, handleError } = useMessages();
@@ -287,7 +282,7 @@ export default function App({
 
     const onCustomCommandExecute = (payload: { commandId: string; renderedPrompt: string; userInput: string }) => {
       if (payload.renderedPrompt) {
-        void processMessage(payload.renderedPrompt);
+        void handleSubmit(payload.renderedPrompt);
       }
     };
 
@@ -302,7 +297,7 @@ export default function App({
       eventBus.off('ui:input:toggleVimMode', onVimModeToggle);
       eventBus.off('custom-command:execute', onCustomCommandExecute);
     };
-  }, [onViewRefresh, setToolApprovalMode, processMessage]);
+  }, [onViewRefresh, setToolApprovalMode, handleSubmit]);
 
   useEffect(() => {
     if (previousVimModeRef.current === null) {
