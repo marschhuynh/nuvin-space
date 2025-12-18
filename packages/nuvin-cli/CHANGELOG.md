@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.18.2
+
+### Patch Changes
+
+- [`e6891b7`](https://github.com/marschhuynh/nuvin-space/commit/e6891b78c540377d39bcbb966ab271c87ba81676) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Lazy session directory creation - directories are now only created when data is actually written (history, events, or HTTP logs), preventing empty session directories from accumulating
+
 ## 1.18.1
 
 ### Patch Changes
