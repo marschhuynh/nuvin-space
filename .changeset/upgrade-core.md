@@ -1,0 +1,6 @@
+---
+"@nuvin/nuvin-cli": minor
+"@nuvin/nuvin-core": minor
+---
+
+Upgrade nuvin core to support custom command
