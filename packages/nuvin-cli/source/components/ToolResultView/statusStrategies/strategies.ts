@@ -17,13 +17,7 @@ import type { StatusStrategy, StatusParams, StatusMessage } from './types.js';
 import { createStatusMessage } from './types.js';
 
 const isEditedResult = (result: ToolExecutionResult): boolean => {
-  if (result.status === 'error' && result.metadata?.errorReason === ErrorReason.Edited) {
-    return true;
-  }
-  if (result.type === 'text' && typeof result.result === 'string') {
-    return result.result.includes('<system-reminder>');
-  }
-  return false;
+  return result.status === 'error' && result.metadata?.errorReason === ErrorReason.Edited;
 };
 
 export const assignTaskStrategy: StatusStrategy = {
@@ -181,6 +175,10 @@ export const todoWriteStrategy: StatusStrategy = {
       const progress = get(result, 'metadata.progress') as string | undefined;
       const text = stats ? `Updated (${stats.completed}/${stats.total} - ${progress})` : 'Updated';
       return createStatusMessage(text, statusColor, '', 'bottom');
+    }
+
+    if (isEditedResult(result)) {
+      return createStatusMessage('Edited', statusColor, '', 'bottom');
     }
 
     return createStatusMessage('Update failed', statusColor, '', 'bottom');

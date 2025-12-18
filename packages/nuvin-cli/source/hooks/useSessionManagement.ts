@@ -167,9 +167,6 @@ export const createNewSession = async (customId?: string, profile?: string): Pro
   const id = customId ?? String(Date.now());
   const dir = sessionsDir(profile);
   const sessionDir = path.join(dir, id);
-  try {
-    await fsp.mkdir(sessionDir, { recursive: true });
-  } catch {}
   return { sessionId: id, sessionDir };
 };
 

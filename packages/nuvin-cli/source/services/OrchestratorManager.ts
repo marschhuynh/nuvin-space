@@ -192,19 +192,6 @@ export class OrchestratorManager {
   }
 
   /**
-   * Create session directories for persisted memory.
-   */
-  private createSessionDirectories(sessionDir: string): void {
-    try {
-      const { sessionsDir } = this.getProfilePaths();
-      fs.mkdirSync(sessionsDir, { recursive: true });
-      fs.mkdirSync(sessionDir, { recursive: true });
-    } catch {
-      // Ignore errors - directories might already exist
-    }
-  }
-
-  /**
    * Create a memory instance (persisted or in-memory) based on configuration.
    */
   private createMemory(sessionDir: string, memPersist: boolean): MemoryPort<Message> {
@@ -261,11 +248,6 @@ export class OrchestratorManager {
     // this.streamingChunks = options.streamingChunks ?? this.getCurrentConfig().streamingChunks;
 
     try {
-      // Only create session directories if memPersist is enabled
-      if (this.memPersist) {
-        this.createSessionDirectories(sessionDir);
-      }
-
       // Read config from ConfigManager
       const currentConfig = this.getCurrentConfig();
       const sessionConfig = currentConfig.config.session;
@@ -912,10 +894,6 @@ export class OrchestratorManager {
     const memPersist = config.memPersist ?? this.memPersist;
 
     const { sessionId, sessionDir } = this.resolveSession({});
-
-    if (memPersist) {
-      this.createSessionDirectories(sessionDir);
-    }
 
     const currentConfig = this.getCurrentConfig();
     const persistEventLog = currentConfig.config.session?.persistEventLog ?? false;
