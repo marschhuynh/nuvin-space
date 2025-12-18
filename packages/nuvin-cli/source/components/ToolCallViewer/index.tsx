@@ -44,15 +44,10 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
   const args = parseArguments(toolCall);
   const finalDuration = toolResult?.metadata?.duration;
   const toolExecutionResult = toolResult?.metadata?.toolResult as ToolExecutionResult | undefined;
-  const resultContent = typeof toolExecutionResult?.result === 'string' ? toolExecutionResult.result : '';
-  const hasSystemReminder = resultContent.includes('<system-reminder>');
   const isDenied =
-    toolExecutionResult?.status === 'error' &&
-    toolExecutionResult.metadata?.errorReason === ErrorReason.Denied &&
-    !hasSystemReminder;
+    toolExecutionResult?.status === 'error' && toolExecutionResult.metadata?.errorReason === ErrorReason.Denied;
   const isEdited =
-    (toolExecutionResult?.status === 'error' && toolExecutionResult.metadata?.errorReason === ErrorReason.Edited) ||
-    hasSystemReminder;
+    toolExecutionResult?.status === 'error' && toolExecutionResult.metadata?.errorReason === ErrorReason.Edited;
   const hasResult = !!toolExecutionResult && !isDenied && !isEdited;
 
   const toolName = toolCall.function.name;
@@ -76,13 +71,14 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
     }
   };
 
-  const statusColor = isDenied || isEdited
-    ? theme.status.warning
-    : toolExecutionResult?.status === 'success'
-      ? theme.status.success
-      : toolExecutionResult?.status === 'error'
-        ? theme.status.error
-        : theme.status.idle;
+  const statusColor =
+    isDenied || isEdited
+      ? theme.status.warning
+      : toolExecutionResult?.status === 'success'
+        ? theme.status.success
+        : toolExecutionResult?.status === 'error'
+          ? theme.status.error
+          : theme.status.idle;
 
   const ParamRenderer = getParameterRenderer();
 
