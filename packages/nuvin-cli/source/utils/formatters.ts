@@ -4,7 +4,10 @@
  */
 
 import os from 'node:os';
-import { execSync } from 'node:child_process';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execAsync = promisify(exec);
 import type { Theme } from '@/theme.js';
 
 /**
@@ -119,27 +122,40 @@ const gitBranchCache = new Map<string, { value: string | null; timestamp: number
 const GIT_BRANCH_CACHE_TTL = 5000;
 
 /**
- * Get git branch for a directory (moved from Footer.tsx)
- * Results are cached for 5 seconds to avoid repeated execSync calls
+ * Get git branch for a directory (async version)
+ * Results are cached for 5 seconds to avoid repeated exec calls
  */
-export const getGitBranch = (dir: string): string | null => {
+export const getGitBranchAsync = async (dir: string): Promise<string | null> => {
   const cached = gitBranchCache.get(dir);
   if (cached && Date.now() - cached.timestamp < GIT_BRANCH_CACHE_TTL) {
     return cached.value;
   }
 
   try {
-    const result = execSync('git rev-parse --abbrev-ref HEAD', {
+    const { stdout } = await execAsync('git rev-parse --abbrev-ref HEAD', {
       cwd: dir,
       encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'ignore'],
-    }).trim();
+      timeout: 3000,
+    });
+    const result = stdout.trim();
     gitBranchCache.set(dir, { value: result, timestamp: Date.now() });
     return result;
   } catch {
     gitBranchCache.set(dir, { value: null, timestamp: Date.now() });
     return null;
   }
+};
+
+/**
+ * Sync version for backward compatibility - returns cached value or null
+ */
+export const getGitBranch = (dir: string): string | null => {
+  const cached = gitBranchCache.get(dir);
+  if (cached && Date.now() - cached.timestamp < GIT_BRANCH_CACHE_TTL) {
+    return cached.value;
+  }
+  getGitBranchAsync(dir);
+  return cached?.value ?? null;
 };
 
 /**

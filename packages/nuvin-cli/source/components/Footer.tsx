@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Text } from 'ink';
 import type { MetricsSnapshot } from '@/services/SessionMetricsService.js';
 import type { ProviderKey } from '@/const.js';
@@ -8,7 +8,7 @@ import { THINKING_LEVELS } from '@/config/types.js';
 import { useToolApproval } from '@/contexts/ToolApprovalContext.js';
 import { useConfig } from '@/contexts/ConfigContext.js';
 import { useExplainMode } from '@/contexts/ExplainModeContext.js';
-import { formatTokens, formatCost, formatDirectory, getUsageColor, getGitBranch } from '@/utils/formatters.js';
+import { formatTokens, formatCost, formatDirectory, getUsageColor, getGitBranchAsync } from '@/utils/formatters.js';
 
 type FooterProps = {
   status: string;
@@ -33,6 +33,18 @@ const FooterComponent: React.FC<FooterProps> = ({
   const { toolApprovalMode } = useToolApproval();
   const { explainMode } = useExplainMode();
   const { get, getCurrentProfile } = useConfig();
+  const [gitBranch, setGitBranch] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!workingDirectory) return;
+    let cancelled = false;
+    getGitBranchAsync(workingDirectory).then((branch) => {
+      if (!cancelled) setGitBranch(branch);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [workingDirectory]);
 
   const thinking = get<string>('thinking');
   const provider = get<ProviderKey>('activeProvider');
@@ -135,7 +147,7 @@ const FooterComponent: React.FC<FooterProps> = ({
           <Box>
             <Text color={theme.footer.currentDir}>{formatDirectory(workingDirectory)}</Text>
             <Text dimColor color={theme.footer.gitBranch}>
-              {getGitBranch(workingDirectory) && `:${getGitBranch(workingDirectory)}`}
+              {gitBranch && `:${gitBranch}`}
             </Text>
           </Box>
           <Box alignSelf="flex-end" flexGrow={1} justifyContent="flex-end">
@@ -150,7 +162,5 @@ const FooterComponent: React.FC<FooterProps> = ({
     </Box>
   );
 };
-
-
 
 export const Footer = React.memo(FooterComponent);
