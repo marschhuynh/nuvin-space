@@ -56,6 +56,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
 
   const [vimModeEnabled, setVimModeEnabled] = useState(false);
   const [vimMode, setVimMode] = useState<'insert' | 'normal'>('insert');
+  const [isExiting, setIsExiting] = useState(false);
 
   const { toolApprovalMode, setToolApprovalMode, pendingApproval } = useToolApproval();
   const { activeCommand, execute: executeCommand } = useCommand();
@@ -292,16 +293,22 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
       }
     };
 
+    const onExitStart = () => {
+      setIsExiting(true);
+    };
+
     eventBus.on('command:sudo:toggle', onSudoToggle);
     eventBus.on('ui:header:refresh', onViewRefresh);
     eventBus.on('ui:input:toggleVimMode', onVimModeToggle);
     eventBus.on('custom-command:execute', onCustomCommandExecute);
+    eventBus.on('ui:exit:start', onExitStart);
 
     return () => {
       eventBus.off('command:sudo:toggle', onSudoToggle);
       eventBus.off('ui:header:refresh', onViewRefresh);
       eventBus.off('ui:input:toggleVimMode', onVimModeToggle);
       eventBus.off('custom-command:execute', onCustomCommandExecute);
+      eventBus.off('ui:exit:start', onExitStart);
     };
   }, [onViewRefresh, setToolApprovalMode, handleSubmit]);
 
@@ -408,7 +415,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
         />
         <Spacer />
 
-        {!explainMode && (
+        {!explainMode && !isExiting && (
           <InteractionArea
             ref={inputAreaRef}
             busy={busy}

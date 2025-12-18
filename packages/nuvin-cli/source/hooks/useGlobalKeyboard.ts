@@ -37,6 +37,8 @@ export const useGlobalKeyboard = ({
 
       const crypto = await import('node:crypto');
 
+      eventBus.emit('ui:exit:start');
+
       eventBus.emit('ui:line', {
         id: crypto.randomUUID(),
         type: 'info',
