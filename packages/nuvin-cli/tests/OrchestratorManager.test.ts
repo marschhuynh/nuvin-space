@@ -87,8 +87,9 @@ describe('OrchestratorManager', () => {
     expect(manager.getOrchestrator()).toBeTruthy();
     expect(manager.getMemory()).toBeTruthy();
     expect(result.model).toBe('openai/gpt-4');
-    expect(result.sessionId).toBeTruthy(); // sessionId is generated
-    expect(result.sessionDir).toBeTruthy(); // sessionDir is set
+    // Session is created lazily on first message, so null on init
+    expect(result.sessionId).toBeNull();
+    expect(result.sessionDir).toBeNull();
     expect(manager.getStatus()).toBe('Ready');
 
     await manager.cleanup();

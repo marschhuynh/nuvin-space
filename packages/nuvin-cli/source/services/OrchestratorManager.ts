@@ -132,6 +132,7 @@ export class OrchestratorManager {
   private streamingChunks: boolean = true;
   private configManager: ConfigManager;
   private llmFactory: LLMFactory;
+  private sessionInitialized: boolean = false;
 
   private static readonly WARNING_THRESHOLD = 0.85;
   private static readonly AUTO_SUMMARY_THRESHOLD = 0.95;
@@ -240,12 +241,17 @@ export class OrchestratorManager {
   async init(options: OrchestratorConfig, handlers: UIHandlers) {
     this.status = OrchestratorStatus.INITIALIZING;
 
-    const { sessionId, sessionDir } = this.resolveSession(options);
-
     // Store handlers and options for later use
     this.handlers = handlers;
     this.memPersist = options.memPersist ?? true;
     // this.streamingChunks = options.streamingChunks ?? this.getCurrentConfig().streamingChunks;
+
+    // If sessionId is explicitly provided, use it (e.g., resuming existing session)
+    // Otherwise, start with in-memory and create session lazily on first message
+    const hasExplicitSession = !!(options.sessionId || options.sessionDir);
+    const { sessionId, sessionDir } = hasExplicitSession
+      ? this.resolveSession(options)
+      : { sessionId: 'temp', sessionDir: '' };
 
     try {
       // Read config from ConfigManager
@@ -258,7 +264,10 @@ export class OrchestratorManager {
 
       // const llm = this.createLLM(httpLogFile);
 
-      const memory = this.createMemory(sessionDir, this.memPersist);
+      // Start with in-memory unless explicit session provided
+      const memory = hasExplicitSession
+        ? this.createMemory(sessionDir, this.memPersist)
+        : new InMemoryMemory<Message>();
 
       // Initialize agent persistence and registry
       const { agentsDir } = this.getProfilePaths();
@@ -357,7 +366,9 @@ export class OrchestratorManager {
       const agentDeps = {
         memory,
         tools: agentTools,
-        events: this.createEventAdapter(sessionDir, handlers, persistEventLog, this.streamingChunks),
+        events: hasExplicitSession
+          ? this.createEventAdapter(sessionDir, handlers, persistEventLog, this.streamingChunks)
+          : this.createEventAdapter('', handlers, false, this.streamingChunks),
         metrics: new SessionBoundMetricsPort(sessionId, sessionMetricsService),
       };
       const orchestrator = new AgentOrchestrator(agentConfig, agentDeps);
@@ -381,12 +392,16 @@ export class OrchestratorManager {
       this.memory = memory;
       this.conversationStore = new ConversationStore(memory);
       this.model = currentConfig.model;
-      this.sessionId = this.memPersist ? sessionId : null;
-      this.sessionDir = this.memPersist ? sessionDir : null;
+      this.sessionId = hasExplicitSession && this.memPersist ? sessionId : null;
+      this.sessionDir = hasExplicitSession && this.memPersist ? sessionDir : null;
+      this.sessionInitialized = hasExplicitSession;
       this.mcpManager = mcpManager;
       this.status = OrchestratorStatus.READY;
 
-      await this.initializeDefaultConversation();
+      // Only initialize default conversation if we have an explicit session
+      if (hasExplicitSession) {
+        await this.initializeDefaultConversation();
+      }
 
       // Initialize MCP servers in background without blocking
       this.initializeMCPServersInBackground(mcpManager, handlers);
@@ -558,6 +573,37 @@ export class OrchestratorManager {
     if (agentConfigUpdates.model) {
       this.model = agentConfigUpdates.model;
     }
+  }
+
+  /**
+   * Initialize a persisted session lazily (on first message).
+   * Migrates from in-memory to persisted storage.
+   */
+  private async initializePersistedSession(): Promise<void> {
+    if (!this.orchestrator || !this.handlers) {
+      throw new Error('Orchestrator or handlers not initialized');
+    }
+
+    const { sessionId, sessionDir } = this.resolveSession({});
+    const currentConfig = this.getCurrentConfig();
+    const persistEventLog = currentConfig.config.session?.persistEventLog ?? false;
+
+    const newMemory = this.createMemory(sessionDir, true);
+    const newEventAdapter = this.createEventAdapter(sessionDir, this.handlers, persistEventLog, this.streamingChunks);
+
+    this.orchestrator.setMemory(newMemory);
+    this.orchestrator.setEvents(newEventAdapter);
+    this.orchestrator.setMetrics(new SessionBoundMetricsPort(sessionId, sessionMetricsService));
+
+    this.memory = newMemory;
+    this.conversationStore = new ConversationStore(newMemory);
+    this.sessionId = sessionId;
+    this.sessionDir = sessionDir;
+    this.sessionInitialized = true;
+
+    await this.initializeDefaultConversation();
+
+    // eventBus.emit('ui:header:refresh');
   }
 
   private async initializeDefaultConversation(): Promise<void> {
@@ -819,6 +865,11 @@ export class OrchestratorManager {
       throw new Error('Orchestrator not initialized, wait a moment');
     }
 
+    // Lazy session creation: create persisted session on first message
+    if (this.memPersist && !this.sessionInitialized) {
+      await this.initializePersistedSession();
+    }
+
     const currentConfig = this.getCurrentConfig();
     const persistHttpLog = currentConfig.config.session?.persistHttpLog ?? false;
     const httpLogFile = persistHttpLog && this.sessionDir ? path.join(this.sessionDir, 'http-log.json') : undefined;
@@ -869,6 +920,7 @@ export class OrchestratorManager {
     this.status = OrchestratorStatus.INITIALIZING;
     this.sessionId = null;
     this.sessionDir = null;
+    this.sessionInitialized = false;
   }
 
   /**
@@ -911,6 +963,7 @@ export class OrchestratorManager {
     this.memPersist = memPersist;
     this.sessionId = memPersist ? sessionId : null;
     this.sessionDir = memPersist ? sessionDir : null;
+    this.sessionInitialized = memPersist;
 
     return {
       sessionId: this.sessionId,
@@ -950,6 +1003,7 @@ export class OrchestratorManager {
     this.memPersist = true;
     this.sessionId = sessionId;
     this.sessionDir = sessionDir;
+    this.sessionInitialized = true;
 
     return {
       sessionId: this.sessionId,
