@@ -1,5 +1,5 @@
 ---
-"@nuvin/nuvin-cli": minor
+"@nuvin/nuvin-cli": patch
 "@nuvin/nuvin-core": minor
 ---
 
