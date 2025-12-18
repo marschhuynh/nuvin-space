@@ -3,6 +3,7 @@ import * as crypto from 'node:crypto';
 import type { MessageLine } from '@/adapters/index.js';
 import { theme, type ColorToken } from '@/theme.js';
 import type { MCPServerConfig, MCPSettings } from '@/config/types.js';
+import type { TypedEventBus } from './EventBus.js';
 
 export interface MCPServerInfo {
   id: string;
@@ -21,6 +22,7 @@ export interface MCPServerManagerOptions {
   appendLine: (line: MessageLine) => void;
   handleError: (message: string) => void;
   silentInit?: boolean;
+  eventBus?: TypedEventBus;
 }
 
 export class MCPServerManager {
@@ -31,6 +33,10 @@ export class MCPServerManager {
 
   constructor(options: MCPServerManagerOptions) {
     this.options = options;
+  }
+
+  private emitServersChanged(): void {
+    this.options.eventBus?.emit('mcp:serversChanged');
   }
 
   private get config(): MCPSettings | undefined {
@@ -105,8 +111,10 @@ export class MCPServerManager {
             mcpClients.push(serverInfo.client);
           }
           enabledTools.push(...serverInfo.allowedTools);
+          this.emitServersChanged();
         } else {
           this.failedServers.set(serverId, serverInfo);
+          this.emitServersChanged();
         }
       }
     }
@@ -224,6 +232,7 @@ export class MCPServerManager {
     try {
       await serverInfo.client.disconnect();
       this.servers.delete(serverId);
+      this.emitServersChanged();
       return true;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -272,6 +281,7 @@ export class MCPServerManager {
         } else {
           this.failedServers.set(serverId, serverInfo);
         }
+        this.emitServersChanged();
         return serverInfo;
       }
     } catch (err: unknown) {
@@ -288,6 +298,7 @@ export class MCPServerManager {
         error: errorMessage,
       };
       this.failedServers.set(serverId, failedInfo);
+      this.emitServersChanged();
       this.handleServerError(serverId, err, 'reconnect');
       return failedInfo;
     }

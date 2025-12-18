@@ -140,19 +140,43 @@ const MCPCommandComponent = ({ context, deactivate }: CommandComponentProps) => 
       }
     };
 
+    const handleServersChanged = () => {
+      loadMCPServers();
+    };
+
     context.eventBus.on('ui:mcp:toolPermissionChanged', handleToolPermissionChanged);
     context.eventBus.on('ui:mcp:batchToolPermissionChanged', handleBatchToolPermissionChanged);
+    context.eventBus.on('mcp:serversChanged', handleServersChanged);
 
     loadMCPServers();
 
-    const interval = setInterval(loadMCPServers, 2000);
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    const checkAndPoll = () => {
+      const mcpServers = context.orchestratorManager?.getMCPServers() || [];
+      const hasPending = mcpServers.some((s) => s.status === 'pending');
+      if (hasPending && !intervalId) {
+        intervalId = setInterval(() => {
+          loadMCPServers();
+          const currentServers = context.orchestratorManager?.getMCPServers() || [];
+          const stillPending = currentServers.some((s) => s.status === 'pending');
+          if (!stillPending && intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+          }
+        }, 2000);
+      }
+    };
+    checkAndPoll();
 
     return () => {
       context.eventBus.off('ui:mcp:toolPermissionChanged', handleToolPermissionChanged);
       context.eventBus.off('ui:mcp:batchToolPermissionChanged', handleBatchToolPermissionChanged);
-      clearInterval(interval);
+      context.eventBus.off('mcp:serversChanged', handleServersChanged);
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     };
-  }, [context.eventBus, context.config, context.orchestratorManager?.updateMCPAllowedTools, loadMCPServers]);
+  }, [context.eventBus, context.config, context.orchestratorManager, loadMCPServers]);
 
   if (loading) {
     return (

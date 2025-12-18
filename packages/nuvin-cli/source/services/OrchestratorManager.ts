@@ -322,6 +322,7 @@ export class OrchestratorManager {
         appendLine: handlers.appendLine,
         handleError: handlers.handleError,
         silentInit: true,
+        eventBus,
       });
 
       new RuntimeEnv({ appName: 'nuvin-agent' }).init(sessionId);

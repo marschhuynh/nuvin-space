@@ -27,6 +27,7 @@ type EventMap = {
   'conversation:created': { memPersist: boolean };
   'ui:mcp:toolPermissionChanged': { serverId: string; toolName: string; allowed: boolean };
   'ui:mcp:batchToolPermissionChanged': { serverId: string; config: Record<string, Record<string, boolean>> };
+  'mcp:serversChanged': undefined;
   'ui:header:refresh': undefined;
   'command:sudo:toggle': string;
   'ui:command:activated': string;
