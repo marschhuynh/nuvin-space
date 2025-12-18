@@ -3,6 +3,7 @@ import type { ToolDefinition } from '../ports.js';
 import { ErrorReason } from '../ports.js';
 import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
 import { okText, err } from './result-helpers.js';
+import type { WebFetchMetadata } from './tool-result-metadata.js';
 
 export type WebFetchParams = {
   url: string;
@@ -12,14 +13,7 @@ export type WebFetchSuccessResult = {
   status: 'success';
   type: 'text';
   result: string;
-  metadata: {
-    url: string;
-    contentType: string;
-    statusCode: number;
-    format: 'markdown' | 'json' | 'text';
-    size: number;
-    fetchedAt: string;
-  };
+  metadata: WebFetchMetadata;
 };
 
 export type WebFetchResult = WebFetchSuccessResult | ExecResultError;

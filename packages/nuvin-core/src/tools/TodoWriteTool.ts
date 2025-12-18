@@ -1,8 +1,9 @@
 import type { ToolDefinition } from '../ports.js';
 import { ErrorReason } from '../ports.js';
+import type { TodoStore, TodoItem as StoreTodo } from '../todo-store.js';
 import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
 import { okText, err } from './result-helpers.js';
-import type { TodoStore, TodoItem as StoreTodo } from '../todo-store.js';
+import type { TodoWriteMetadata } from './tool-result-metadata.js';
 
 type TodoWriteParams = {
   todos: Array<{
@@ -18,18 +19,7 @@ export type TodoWriteSuccessResult = {
   status: 'success';
   type: 'text';
   result: string;
-  metadata: {
-    recentChanges: boolean;
-    stats: {
-      total: number;
-      pending: number;
-      inProgress: number;
-      completed: number;
-    };
-    progress: string;
-    allCompleted: boolean;
-    conversationId: string;
-  };
+  metadata: TodoWriteMetadata;
 };
 
 export type TodoWriteResult = TodoWriteSuccessResult | ExecResultError;
@@ -199,6 +189,14 @@ When in doubt, use this tool. Being proactive with task management demonstrates 
       progress: `${progress}%`,
       allCompleted,
       conversationId,
+      items: items.map((item) => ({
+        id: item.id,
+        content: item.content,
+        status: item.status,
+        priority: item.priority,
+        createdAt: item.createdAt || nowIso,
+      })),
+      todosWritten: items.length,
     });
   }
 }

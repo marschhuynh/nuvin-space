@@ -4,6 +4,7 @@ import type { ToolDefinition } from '../ports.js';
 import { ErrorReason } from '../ports.js';
 import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
 import { okText, err } from './result-helpers.js';
+import type { FileNewMetadata } from './tool-result-metadata.js';
 
 export type FileNewParams = {
   file_path: string;
@@ -14,13 +15,7 @@ export type FileNewSuccessResult = {
   status: 'success';
   type: 'text';
   result: string;
-  metadata: {
-    file_path: string;
-    bytes: number;
-    lines: number;
-    created: string;
-    overwritten?: boolean;
-  };
+  metadata: FileNewMetadata;
 };
 
 export type FileNewResult = FileNewSuccessResult | ExecResultError;

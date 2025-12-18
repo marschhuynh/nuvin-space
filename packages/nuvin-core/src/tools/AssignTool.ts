@@ -4,13 +4,14 @@ import type { FunctionTool, ToolExecutionContext, ExecResultError } from './type
 import { okText, err } from './result-helpers.js';
 import type { AssignParams } from '../agent-types.js';
 import type { DelegationService } from '../delegation/types.js';
+import type { AssignTaskMetadata } from './tool-result-metadata.js';
 import type { DelegationMetadata } from './metadata-types.js';
 
 export type AssignSuccessResult = {
   status: 'success';
   type: 'text';
   result: string;
-  metadata: DelegationMetadata;
+  metadata: AssignTaskMetadata;
 };
 
 export type AssignErrorResult = ExecResultError & {

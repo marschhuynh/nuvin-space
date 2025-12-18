@@ -82,6 +82,8 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
 
   const ParamRenderer = getParameterRenderer();
 
+  const displayParameters = !isAwaitingApproval || toolName === 'file_new' || toolName === 'file_edit';
+
   return (
     <Box flexDirection="column">
       <Box flexDirection="row">
@@ -93,7 +95,7 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
         <Text bold>{displayName}</Text>
       </Box>
 
-      {!isAwaitingApproval && (
+      {displayParameters && (
         <ParamRenderer toolCall={toolCall} args={args} statusColor={statusColor} formatValue={formatValue} />
       )}
 

@@ -19,48 +19,71 @@ export type FileReadMetadata = FileMetadata & {
 };
 
 export type FileEditMetadata = FileMetadata & {
-  changesMade?: {
-    linesAdded: number;
-    linesRemoved: number;
-    bytesChanged: number;
+  eol: 'lf' | 'crlf';
+  oldTextLength: number;
+  newTextLength: number;
+  bytesWritten: number;
+  beforeSha: string;
+  afterSha: string;
+  dryRun: boolean;
+  lineNumbers: {
+    oldStartLine: number;
+    oldEndLine: number;
+    newStartLine: number;
+    newEndLine: number;
+    oldLineCount: number;
+    newLineCount: number;
   };
-  backup?: {
-    path: string;
-    created: string;
-  };
+  noChange?: boolean;
 };
 
-export type FileNewMetadata = FileMetadata & {
+export type FileNewMetadata = {
+  file_path: string;
+  bytes: number;
+  lines: number;
+  created: string;
   overwritten?: boolean;
 };
 
 export type DirLsMetadata = {
-  path: string;
-  totalEntries?: number;
-  entriesReturned?: number;
-  truncated?: boolean;
+  limit: number;
+  includeHidden: boolean;
 };
 
 export type WebSearchMetadata = {
-  query: string;
-  totalResults?: number;
-  resultsReturned: number;
-  searchTime?: number;
-  provider?: string;
+  offset: number;
+  totalRequested: number;
+  hydrated: boolean;
 };
 
 export type WebFetchMetadata = {
   url: string;
-  statusCode?: number;
-  contentType?: string;
-  contentLength?: number;
-  fetchTime?: number;
-  markdown?: boolean;
+  contentType: string;
+  statusCode: number;
+  format: 'markdown' | 'json' | 'text';
+  size: number;
+  fetchedAt: string;
 };
 
 export type TodoWriteMetadata = {
   todosWritten: number;
-  conversationId?: string;
+  conversationId: string;
+  recentChanges: boolean;
+  progress: string;
+  allCompleted: boolean;
+  items: Array<{
+    id: string;
+    content: string;
+    status: 'pending' | 'in_progress' | 'completed';
+    priority: 'high' | 'medium' | 'low';
+    createdAt: string;
+  }>;
+  stats: {
+    total: number;
+    pending: number;
+    inProgress: number;
+    completed: number;
+  };
 };
 
 export type AssignTaskMetadata = DelegationMetadata;

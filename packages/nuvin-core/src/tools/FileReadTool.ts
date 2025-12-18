@@ -4,6 +4,7 @@ import type { ToolDefinition } from '../ports.js';
 import { ErrorReason } from '../ports.js';
 import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
 import { okText, err } from './result-helpers.js';
+import type { FileReadMetadata } from './tool-result-metadata.js';
 import type { FileMetadata, LineRangeMetadata } from './metadata-types.js';
 
 export type FileReadParams = {
@@ -16,11 +17,7 @@ export type FileReadSuccessResult = {
   status: 'success';
   type: 'text';
   result: string;
-  metadata?: FileMetadata & {
-    lineRange?: LineRangeMetadata;
-    encoding?: string;
-    bomStripped?: boolean;
-  };
+  metadata?: FileReadMetadata;
 };
 
 export type FileReadErrorResult = ExecResultError & {

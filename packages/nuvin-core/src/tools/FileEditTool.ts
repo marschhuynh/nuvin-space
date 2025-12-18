@@ -6,30 +6,13 @@ import type { ToolDefinition } from '../ports.js';
 import { ErrorReason } from '../ports.js';
 import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
 import { okText, err } from './result-helpers.js';
-import type { FileMetadata } from './metadata-types.js';
+import type { FileEditMetadata } from './tool-result-metadata.js';
 
 export type FileEditSuccessResult = {
   status: 'success';
   type: 'text';
   result: string;
-  metadata: FileMetadata & {
-    eol: 'lf' | 'crlf';
-    oldTextLength: number;
-    newTextLength: number;
-    bytesWritten: number;
-    beforeSha: string;
-    afterSha: string;
-    dryRun: boolean;
-    lineNumbers: {
-      oldStartLine: number;
-      oldEndLine: number;
-      newStartLine: number;
-      newEndLine: number;
-      oldLineCount: number;
-      newLineCount: number;
-    };
-    noChange?: boolean;
-  };
+  metadata: FileEditMetadata;
 };
 
 export type FileEditResult = FileEditSuccessResult | ExecResultError;

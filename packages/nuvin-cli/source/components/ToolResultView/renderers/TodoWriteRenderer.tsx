@@ -4,8 +4,11 @@ import type { ToolExecutionResult } from '@nuvin/nuvin-core';
 import { useTheme } from '@/contexts/ThemeContext.js';
 
 type TodoItem = {
-  content?: string;
-  status?: string;
+  id: string;
+  content: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  priority: 'high' | 'medium' | 'low';
+  createdAt: string;
 };
 
 type TodoWriteRendererProps = {
@@ -17,48 +20,17 @@ type TodoWriteRendererProps = {
 export const TodoWriteRenderer: React.FC<TodoWriteRendererProps> = ({ toolResult, messageId }) => {
   const { theme } = useTheme();
 
-  if (toolResult.status !== 'success') return null;
+  if (toolResult.status !== 'success' || !toolResult.metadata) return null;
 
-  const items: TodoItem[] = [];
-  const pushFromArray = (value: unknown) => {
-    if (Array.isArray(value)) {
-      for (const entry of value) {
-        if (entry && typeof entry === 'object') {
-          items.push(entry as TodoItem);
-        }
-      }
-    }
-  };
+  const metadata = toolResult.metadata as { items?: TodoItem[] };
+  const items = metadata.items;
 
-  const payload = toolResult.result;
-
-  if (Array.isArray(payload)) {
-    pushFromArray(payload);
-  } else if (payload && typeof payload === 'object') {
-    if (Array.isArray((payload as { todos?: unknown[] }).todos)) {
-      pushFromArray((payload as { todos?: unknown[] }).todos);
-    }
-  } else if (typeof payload === 'string') {
-    try {
-      const parsed = JSON.parse(payload);
-      pushFromArray(parsed);
-    } catch {
-      const match = payload.match(/\[([\s\S]*?)\]/);
-      if (match) {
-        try {
-          const parsed = JSON.parse(`[${match[1]}]`);
-          pushFromArray(parsed);
-        } catch {}
-      }
-    }
-  }
-
-  if (items.length === 0) return null;
+  if (!items || items.length === 0) return null;
 
   return (
     <Box flexDirection="column">
       {items.map((item) => {
-        const status = String(item.status ?? 'pending');
+        const status = item.status;
         const icon = status === 'completed' ? '[✔]' : status === 'in_progress' ? '[~]' : '[ ]';
         const color =
           status === 'completed'
@@ -67,8 +39,8 @@ export const TodoWriteRenderer: React.FC<TodoWriteRendererProps> = ({ toolResult
               ? theme.status.pending
               : theme.colors.muted;
         return (
-          <Text key={`${messageId}-todo-${item.content}`} dimColor color={color}>
-            {`${icon} ${item.content ?? ''}`}
+          <Text key={`${messageId}-todo-${item.id}`} dimColor color={color}>
+            {`${icon} ${item.content}`}
           </Text>
         );
       })}

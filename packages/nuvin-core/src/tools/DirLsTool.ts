@@ -4,6 +4,7 @@ import type { ToolDefinition } from '../ports.js';
 import { ErrorReason } from '../ports.js';
 import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
 import { okJson, err } from './result-helpers.js';
+import type { DirLsMetadata } from './tool-result-metadata.js';
 
 export type DirLsParams = {
   path?: string;
@@ -36,10 +37,7 @@ export type DirLsSuccessResult = {
     truncated: boolean;
     total: number;
   };
-  metadata?: {
-    limit: number;
-    includeHidden: boolean;
-  };
+  metadata?: DirLsMetadata;
 };
 
 export type DirLsResult = DirLsSuccessResult | ExecResultError;

@@ -2,6 +2,7 @@ import type { ToolDefinition } from '../ports.js';
 import { ErrorReason } from '../ports.js';
 import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
 import { okJson, err } from './result-helpers.js';
+import type { WebSearchMetadata } from './tool-result-metadata.js';
 
 /**
  * WebSearchTool — Google Programmable Search Engine (CSE) ONLY
@@ -53,11 +54,7 @@ export type WebSearchSuccessResult = {
       region?: string;
     };
   };
-  metadata?: {
-    offset: number;
-    totalRequested: number;
-    hydrated: boolean;
-  };
+  metadata?: WebSearchMetadata;
 };
 
 export type WebSearchToolResult = WebSearchSuccessResult | ExecResultError;

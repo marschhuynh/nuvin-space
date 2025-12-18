@@ -6,7 +6,7 @@ import { ErrorReason } from '../ports.js';
 import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
 import { okText, err } from './result-helpers.js';
 import { stripAnsiAndControls } from '../string-utils.js';
-import type { CommandMetadata } from './metadata-types.js';
+import type { BashToolMetadata } from './tool-result-metadata.js';
 
 export type BashParams = {
   cmd: string;
@@ -18,15 +18,11 @@ export type BashSuccessResult = {
   status: 'success';
   type: 'text';
   result: string;
-  metadata?: CommandMetadata & {
-    stdout?: string;
-    stderr?: string;
-    stripped?: boolean;
-  };
+  metadata?: BashToolMetadata;
 };
 
 export type BashErrorResult = ExecResultError & {
-  metadata?: CommandMetadata & {
+  metadata?: BashToolMetadata & {
     errorReason?: ErrorReason;
   };
 };
