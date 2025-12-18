@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
 import chalk from 'chalk';
 
 export type CursorRenderResult = {
@@ -6,13 +7,37 @@ export type CursorRenderResult = {
 };
 
 export function useCursorRenderer() {
-  const renderWithCursor = (
+  const [cursorVisible, setCursorVisible] = useState(true);
+  const lastActivityRef = useRef<number>(Date.now());
+  const lastValueRef = useRef<string>('');
+  const lastOffsetRef = useRef<number>(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const timeSinceActivity = Date.now() - lastActivityRef.current;
+      if (timeSinceActivity > 300) {
+        setCursorVisible((prev) => !prev);
+      }
+    }, 530);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const renderWithCursor = useCallback((
     value: string,
     cursorOffset: number,
     placeholder: string,
     showCursor: boolean,
     focus: boolean,
   ): CursorRenderResult => {
+    if (value !== lastValueRef.current || cursorOffset !== lastOffsetRef.current) {
+      lastActivityRef.current = Date.now();
+      lastValueRef.current = value;
+      lastOffsetRef.current = cursorOffset;
+      if (!cursorVisible) {
+        setCursorVisible(true);
+      }
+    }
     let renderedValue = value;
     let renderedPlaceholder = placeholder ? chalk.grey(placeholder) : undefined;
 
@@ -20,11 +45,17 @@ export function useCursorRenderer() {
       return { renderedValue, renderedPlaceholder };
     }
 
+    const shouldShowCursor = cursorVisible;
+
     renderedPlaceholder =
-      placeholder.length > 0 ? chalk.inverse(placeholder[0]) + chalk.grey(placeholder.slice(1)) : chalk.inverse(' ');
+      placeholder.length > 0
+        ? (shouldShowCursor ? chalk.inverse(placeholder[0]) : chalk.grey(placeholder[0])) + chalk.grey(placeholder.slice(1))
+        : shouldShowCursor
+          ? chalk.inverse(' ')
+          : ' ';
 
     if (value.length === 0) {
-      renderedValue = chalk.inverse(' ');
+      renderedValue = shouldShowCursor ? chalk.inverse(' ') : ' ';
       return { renderedValue, renderedPlaceholder };
     }
 
@@ -47,9 +78,10 @@ export function useCursorRenderer() {
       .map((line, idx) => {
         if (idx === currentLine) {
           if (columnInLine >= 0 && columnInLine < line.length) {
-            return line.slice(0, columnInLine) + chalk.inverse(line[columnInLine]) + line.slice(columnInLine + 1);
+            const cursorChar = shouldShowCursor ? chalk.inverse(line[columnInLine]) : line[columnInLine];
+            return line.slice(0, columnInLine) + cursorChar + line.slice(columnInLine + 1);
           } else {
-            return line + chalk.inverse(' ');
+            return line + (shouldShowCursor ? chalk.inverse(' ') : '');
           }
         }
         return line;
@@ -57,7 +89,7 @@ export function useCursorRenderer() {
       .join('\n');
 
     return { renderedValue, renderedPlaceholder };
-  };
+  }, [cursorVisible]);
 
   return { renderWithCursor };
 }
