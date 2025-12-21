@@ -45,6 +45,21 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
       case 'assistant': {
         const maxHeight = Math.max(10, rows - 12);
 
+        if (isStreaming) {
+          return (
+            <Box flexDirection="column" marginY={1}>
+              <Box flexShrink={0} marginRight={1}>
+                <Text color={theme.messageTypes.assistant} bold>
+                  ● [assistant]
+                </Text>
+              </Box>
+              <AutoScrollBox maxHeight={maxHeight} marginX={2}>
+                <Markdown enableCache>{streamingContent}</Markdown>
+              </AutoScrollBox>
+            </Box>
+          );
+        }
+
         return (
           <Box flexDirection="column" marginY={1}>
             <Box flexShrink={0} marginRight={1}>
@@ -52,11 +67,9 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
                 ● [assistant]
               </Text>
             </Box>
-            {
-              <AutoScrollBox maxHeight={isStreaming ? maxHeight : undefined} marginX={2}>
-                <Markdown enableCache>{streamingContent}</Markdown>
-              </AutoScrollBox>
-            }
+            <Box marginX={2}>
+              <Markdown enableCache>{streamingContent}</Markdown>
+            </Box>
           </Box>
         );
       }
@@ -205,4 +218,12 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
   );
 };
 
-export const MessageLine = React.memo(MessageLineComponent);
+export const MessageLine = React.memo(MessageLineComponent, (prevProps, nextProps) => {
+  if (prevProps.message.id !== nextProps.message.id) return false;
+  if (prevProps.message.content !== nextProps.message.content) return false;
+  if (prevProps.message.metadata?.isStreaming !== nextProps.message.metadata?.isStreaming) return false;
+  if (prevProps.backgroundColor !== nextProps.backgroundColor) return false;
+  if (prevProps.liveMessage !== nextProps.liveMessage) return false;
+  if (prevProps.message.metadata !== nextProps.message.metadata) return false;
+  return true;
+});

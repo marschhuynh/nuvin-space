@@ -1,6 +1,8 @@
 import type { ReactNode, FC } from 'react';
 import { Box, Text, useInput } from 'ink';
 import { theme as globalTheme } from '@/theme';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useStdoutDimensions } from '@/hooks';
 
 export type AppModalType = 'info' | 'error' | 'warning' | 'success' | 'default';
 
@@ -48,6 +50,7 @@ export interface AppModalProps {
   paddingY?: number;
   marginX?: number;
   marginY?: number;
+  height?: number;
 }
 
 export const AppModal: FC<AppModalProps> = ({
@@ -65,8 +68,11 @@ export const AppModal: FC<AppModalProps> = ({
   paddingY = 0,
   marginX = 1,
   marginY = 0,
+  height,
   footer,
 }) => {
+  const [cols] = useStdoutDimensions();
+  const { theme: globalTheme } = useTheme();
   const theme = MODAL_THEMES[type];
   const finalBorderColor = borderColor || theme.borderColor;
   const finalTitleColor = titleColor || theme.titleColor;
@@ -88,7 +94,7 @@ export const AppModal: FC<AppModalProps> = ({
   if (!visible) return null;
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor={finalBorderColor} width={'100%'}>
+    <Box height={height} flexDirection="column" borderStyle="round" borderColor={finalBorderColor} width={cols}>
       <Box
         flexWrap="wrap"
         borderStyle="single"

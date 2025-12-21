@@ -15,13 +15,13 @@ type ChatDisplayProps = {
   sessions?: SessionInfo[] | null;
 };
 
-type MergeCacheEntry = {
+export type MergeCacheEntry = {
   inputRef: MessageLineType;
   resultIds: string[];
   output: MessageLineType;
 };
 
-type MergeCache = Map<string, MergeCacheEntry>;
+export type MergeCache = Map<string, MergeCacheEntry>;
 
 function arraysEqual(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
@@ -31,7 +31,7 @@ function arraysEqual(a: string[], b: string[]): boolean {
   return true;
 }
 
-function mergeToolCallsWithResultsCached(messages: MessageLineType[], cache: MergeCache): MessageLineType[] {
+export function mergeToolCallsWithResultsCached(messages: MessageLineType[], cache: MergeCache): MessageLineType[] {
   const result: MessageLineType[] = [];
   const toolResultsById = new Map<string, MessageLineType>();
 
