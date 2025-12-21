@@ -4,7 +4,6 @@ import { Box, measureElement, type BoxRef } from 'ink';
 import { VirtualizedChat, type VirtualizedChatRef } from '../VirtualizedChat/index.js';
 import type { MessageLine } from '../../adapters/index.js';
 import type { SessionInfo } from '../../types.js';
-import { COLOR_TOKENS } from '@/theme.js';
 
 export type FixedLayoutProps = {
   width: number;
