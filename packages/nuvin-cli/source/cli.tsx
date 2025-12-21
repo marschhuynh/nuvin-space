@@ -4,21 +4,22 @@ import meow from 'meow';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import type { AuthMethod } from '@/config/types.js';
-import App from '@/app.js';
-import { NotificationProvider } from '@/contexts/NotificationContext.js';
-import { ToolApprovalProvider } from '@/contexts/ToolApprovalContext.js';
-import { CommandProvider } from '@/modules/commands/provider.js';
-import { registerCommands } from '@/modules/commands/definitions/index.js';
-import { ConfigProvider } from '@/contexts/ConfigContext.js';
-import { ConfigBridge } from '@/components/ConfigBridge.js';
-import { ThemeProvider } from '@/contexts/ThemeContext.js';
-import { StdoutDimensionsProvider } from '@/contexts/StdoutDimensionsContext.js';
-import { ExplainModeProvider } from '@/contexts/ExplainModeContext.js';
+import type { AuthMethod } from './config/types.js';
+import AppVirtualized from './app-virtualized.js';
+import AppLegacy from './app.js';
+import { NotificationProvider } from './contexts/NotificationContext.js';
+import { ToolApprovalProvider } from './contexts/ToolApprovalContext.js';
+import { CommandProvider } from './modules/commands/provider.js';
+import { registerCommands } from './modules/commands/definitions/index.js';
+import { ConfigProvider } from './contexts/ConfigContext.js';
+import { ConfigBridge } from './components/ConfigBridge.js';
+import { ThemeProvider } from './contexts/ThemeContext.js';
+import { StdoutDimensionsProvider } from './contexts/StdoutDimensionsContext.js';
+import { ExplainModeProvider } from './contexts/ExplainModeContext.js';
 
-import { getVersionInfo } from '@/utils/version.js';
-import { ConfigManager, type CLIConfig, type ProviderKey } from '@/config/index.js';
-import { ConfigCliHandler } from '@/config/cli-handler.js';
+import { getVersionInfo } from './utils/version.js';
+import { ConfigManager, type CLIConfig, type ProviderKey } from './config/index.js';
+import { ConfigCliHandler } from './config/cli-handler.js';
 import { orchestratorManager } from './services/OrchestratorManager.js';
 import ansiEscapes from 'ansi-escapes';
 
@@ -94,6 +95,7 @@ const cli = meow(
     --history PATH      Load conversation history from file on startup
     --profile NAME      Use specific profile (overrides active profile)
     --resume, -r        Resume the most recent session
+    --alt               Use virtualized rendering (experimental)
 
   Authentication Setup
     Environment variables are automatically detected and loaded at startup:
@@ -135,6 +137,7 @@ const cli = meow(
       history: { type: 'string' },
       profile: { type: 'string' },
       resume: { type: 'boolean', alias: 'r' },
+      alt: { type: 'boolean' },
     },
   },
 );
@@ -384,6 +387,8 @@ const cli = meow(
 
   console.log(ansiEscapes.clearTerminal);
 
+  const App = cli.flags.alt ? AppVirtualized : AppLegacy;
+
   const { waitUntilExit } = render(
     <ThemeProvider>
       <StdoutDimensionsProvider>
@@ -414,7 +419,7 @@ const cli = meow(
     {
       exitOnCtrlC: false,
       patchConsole: true,
-      incrementalRendering: false,
+      incrementalRendering: true,
       maxFps: 60,
     },
   );
