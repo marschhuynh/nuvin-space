@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.18.4
+
+### Patch Changes
+
+- [`ad22d25`](https://github.com/marschhuynh/nuvin-space/commit/ad22d2569e4950e755e83434a5b3fb757983415c) Thanks [@marschhuynh](https://github.com/marschhuynh)! - fix(cli): disable incremental rendering for improved performance
+
 ## 1.18.3
 
 ### Patch Changes
