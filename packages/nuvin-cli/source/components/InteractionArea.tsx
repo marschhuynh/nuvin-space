@@ -15,6 +15,8 @@ type InteractionAreaProps = {
   vimModeEnabled?: boolean;
   hasActiveCommand?: boolean;
   memory?: MemoryPort<Message> | null;
+  focus?: boolean;
+  useAbsoluteMenu?: boolean;
 
   abortRef?: React.MutableRefObject<AbortController | null>;
   onNotification?: (message: string | null, duration?: number) => void;
@@ -33,6 +35,8 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
     vimModeEnabled = false,
     hasActiveCommand = false,
     memory,
+    focus = true,
+    useAbsoluteMenu = false,
 
     abortRef,
     onNotification,
@@ -201,6 +205,8 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
             commandItems={commandItems}
             vimModeEnabled={vimModeEnabled}
             memory={memory}
+            focus={focus}
+            useAbsoluteMenu={useAbsoluteMenu}
             onInputChanged={onInputChanged}
             onInputSubmit={handleInputSubmit}
             onVimModeToggle={onVimModeToggle}

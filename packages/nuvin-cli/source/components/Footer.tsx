@@ -18,6 +18,7 @@ type FooterProps = {
   vimMode?: 'insert' | 'normal';
   workingDirectory?: string;
   sessionId?: string;
+  focusArea?: 'input' | 'chat';
 };
 
 const FooterComponent: React.FC<FooterProps> = ({
@@ -27,6 +28,7 @@ const FooterComponent: React.FC<FooterProps> = ({
   vimMode = 'insert',
   workingDirectory,
   sessionId,
+  focusArea = 'input',
 }) => {
   const { notification } = useNotification();
   const { theme } = useTheme();
@@ -52,16 +54,7 @@ const FooterComponent: React.FC<FooterProps> = ({
   const currentProfile = getCurrentProfile?.();
 
   return (
-    <Box
-      justifyContent="space-between"
-      flexDirection="column"
-      borderStyle="round"
-      borderTopDimColor
-      borderTop
-      borderBottom={false}
-      borderLeft={false}
-      borderRight={false}
-    >
+    <Box justifyContent="space-between" flexDirection="column">
       <Box justifyContent="space-between" flexWrap="wrap">
         {explainMode ? (
           <Text color={theme.tokens.yellow} bold>
@@ -143,7 +136,13 @@ const FooterComponent: React.FC<FooterProps> = ({
         ) : null}
       </Box>
       {workingDirectory && (
-        <Box paddingTop={0} backgroundColor={theme.footer.infoBg} justifyContent="space-between" flexWrap="wrap">
+        <Box
+          paddingTop={0}
+          backgroundColor={theme.footer.infoBg}
+          justifyContent="space-between"
+          flexWrap="wrap"
+          overflow="hidden"
+        >
           <Box>
             <Text color={theme.footer.currentDir}>{formatDirectory(workingDirectory)}</Text>
             <Text dimColor color={theme.footer.gitBranch}>
@@ -152,6 +151,12 @@ const FooterComponent: React.FC<FooterProps> = ({
           </Box>
           <Box alignSelf="flex-end" flexGrow={1} justifyContent="flex-end">
             <Text dimColor>
+              <Text color={focusArea === 'chat' ? theme.colors.accent : undefined}>
+                {focusArea === 'chat' ? '[SCROLL]' : ''}
+              </Text>
+              {focusArea === 'chat' && ' · '}
+              <Text color={theme.colors.accent}>Tab</Text> {focusArea === 'input' ? 'scroll' : 'input'}
+              {' · '}
               <Text color={theme.colors.accent}>/</Text> command{' · '}
               <Text color={theme.colors.accent}>ESC×2</Text> stop{' · '}
               <Text color={theme.colors.accent}>Ctrl+E</Text> show detail

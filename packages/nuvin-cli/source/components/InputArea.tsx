@@ -23,6 +23,8 @@ type InputAreaProps = {
   busy: boolean;
   messageQueueLength: number;
   showToolApproval?: boolean;
+  focus?: boolean;
+  useAbsoluteMenu?: boolean;
 
   commandItems: Array<{ label: string; value: string }>;
   vimModeEnabled?: boolean;
@@ -39,6 +41,8 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
     {
       busy,
       showToolApproval = false,
+      focus = true,
+      useAbsoluteMenu: _useAbsoluteMenu = false,
 
       commandItems,
       vimModeEnabled = false,
@@ -263,8 +267,34 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
       await onInputSubmit?.(value);
     };
 
-    return (
+    const commandMenu = showCommandMenu && filteredCommandItems.length > 0 && (
       <Box flexDirection="column">
+        <Box backgroundColor={theme.colors.accent}>
+          <Text color={theme.colors.accent} bold>
+            {' '}
+            Commands ({filteredCommandItems.length}) - Use ↑↓ to navigate, Enter to select
+          </Text>
+        </Box>
+        <ComboBox
+          items={filteredCommandItems}
+          onSelect={(item) => handleSubmit(item.value, true)}
+          showSearchInput={false}
+          showItemCount={false}
+        />
+      </Box>
+    );
+
+    return (
+      <Box
+        flexDirection="column"
+        borderStyle="round"
+        borderBottomDimColor
+        borderTop={false}
+        borderBottom
+        borderLeft={false}
+        borderRight={false}
+      >
+        {commandMenu}
         <Box flexShrink={0} minWidth={1}>
           {!busy ? (
             <Text color={theme.input.prompt} bold>
@@ -281,7 +311,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
               onChange={handleChange}
               onSubmit={handleSubmit}
               placeholder="Type your message..."
-              focus={!showToolApproval && !menuHasFocus}
+              focus={focus && !showToolApproval && !menuHasFocus}
               vimModeEnabled={vimModeEnabled}
               onVimModeChange={handleVimModeChange}
               onUpArrow={showCommandMenu ? undefined : handleUpArrow}
@@ -289,19 +319,6 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
             />
           </Box>
         </Box>
-        {showCommandMenu && filteredCommandItems.length > 0 && (
-          <Box marginLeft={0} marginTop={0} flexDirection="column">
-            <Text color={theme.input.placeholder}>
-              Commands ({filteredCommandItems.length}) - Use ↑↓ to navigate, Enter to select, keep typing to filter
-            </Text>
-            <ComboBox
-              items={filteredCommandItems}
-              onSelect={(item) => handleSubmit(item.value, true)}
-              showSearchInput={false}
-              showItemCount={false}
-            />
-          </Box>
-        )}
       </Box>
     );
   },
