@@ -251,7 +251,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
     switch (stage) {
       case 'provider':
         return (
-          <Box marginTop={1} flexDirection="column">
+          <Box flexDirection="column">
             <Text>Select provider:</Text>
             <Box marginTop={1}>
               <SelectInput<ProviderKey> items={buildProviderOptions()} onSelect={handleProviderSelect} />
@@ -260,7 +260,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
         );
       case 'method':
         return (
-          <Box marginTop={1} flexDirection="column">
+          <Box flexDirection="column">
             {provider ? (
               <Text>
                 Provider: <Text color={theme.auth.provider}>{getProviderLabel(provider)}</Text>
@@ -275,7 +275,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
       case 'tokenEntry':
         if (!provider) return null;
         return (
-          <Box marginTop={1} flexDirection="column">
+          <Box flexDirection="column">
             <Text>
               Provider: <Text color={theme.auth.provider}>{getProviderLabel(provider)}</Text>
             </Text>
@@ -292,7 +292,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
         );
       case 'deviceFlow':
         return (
-          <Box marginTop={1} flexDirection="column">
+          <Box flexDirection="column">
             <Text>
               Provider: <Text color={theme.auth.provider}>GitHub (Copilot)</Text>
             </Text>
@@ -348,6 +348,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
       onClose={stage === 'provider' ? deactivate : () => resetToProviderStage()}
       closeOnEscape={true}
       closeOnEnter={false}
+      height={15}
     >
       {renderStage()}
 

@@ -92,6 +92,21 @@ const AuthNavigationPrompt = ({ onNavigate, onCancel }: AuthNavigationPromptProp
   );
 };
 
+const getModalTitle = (stage: string, selectedProvider: ProviderKey | null): string => {
+  switch (stage) {
+    case 'provider':
+      return 'Select AI Provider';
+    case 'loading':
+      return 'Loading Models...';
+    case 'model':
+      return `Select Model for ${selectedProvider ? getProviderLabel(selectedProvider) : 'Unknown Provider'}`;
+    case 'custom':
+      return 'Enter Custom Model Name';
+    default:
+      return 'Model Configuration';
+  }
+};
+
 const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandComponentProps) => {
   const { theme } = useTheme();
 
@@ -135,134 +150,123 @@ const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandCompon
     await submitCustomModel(value);
   };
 
-  if (state.stage === 'provider') {
-    return (
-      <AppModal
-        visible={true}
-        title="Select AI Provider"
-        titleColor={theme.model.title}
-        onClose={deactivate}
-        closeOnEscape={false}
-        closeOnEnter={false}
-      >
-        <Text color={theme.model.subtitle} dimColor>
-          Choose the AI provider for your models
-        </Text>
-        <Box marginTop={1}>
-          <SelectInput items={providerOptions} onSelect={handleProviderSelect} />
-        </Box>
-      </AppModal>
-    );
-  }
-
-  if (state.stage === 'loading') {
-    return (
-      <AppModal
-        visible={true}
-        title="Loading Models..."
-        titleColor={theme.model.title}
-        onClose={deactivate}
-        closeOnEscape={false}
-        closeOnEnter={false}
-      >
-        <Text color={theme.model.subtitle} dimColor>
-          Fetching available models from{' '}
-          {state.selectedProvider ? getProviderLabel(state.selectedProvider) : 'selected provider'}...
-        </Text>
-      </AppModal>
-    );
-  }
-
-  if (state.stage === 'model' && state.selectedProvider) {
-    const fallbackModels = PROVIDER_MODELS[state.selectedProvider] || [];
-    const models = state.availableModels.length > 0 ? state.availableModels : fallbackModels;
-    const modelOptions = models.map((model) => ({ label: model, value: model }));
-
-    const shouldUseAutocomplete = state.availableModels.length > 10;
-    const hasAuthError = state.showAuthPrompt;
-
-    return (
-      <AppModal
-        visible={true}
-        title={`Select Model for ${state.selectedProvider ? getProviderLabel(state.selectedProvider) : 'Unknown Provider'}`}
-        titleColor={theme.model.title}
-        onClose={deactivate}
-        closeOnEscape={false}
-        closeOnEnter={false}
-      >
-        {state.error && (
-          <Box marginBottom={1} flexDirection="column">
-            <Text color="red">{state.error}</Text>
-          </Box>
-        )}
-
-        {!hasAuthError && (
+  const renderContent = () => {
+    if (state.stage === 'provider') {
+      return (
+        <>
           <Text color={theme.model.subtitle} dimColor>
-            {state.availableModels.length > 0
-              ? `${models.length} models available`
-              : 'Choose a model or enter a custom model name'}
+            Choose the AI provider for your models
           </Text>
-        )}
+          <Box marginTop={1}>
+            <SelectInput items={providerOptions} onSelect={handleProviderSelect} />
+          </Box>
+        </>
+      );
+    }
 
-        <Box marginTop={1}>
-          {hasAuthError ? (
-            <AuthNavigationPrompt onNavigate={navigateToAuth} onCancel={clearError} />
-          ) : shouldUseAutocomplete ? (
-            <ComboBox
-              items={modelOptions}
-              placeholder="Type to search models..."
-              maxDisplayItems={10}
-              enableRotation={true}
-              onSelect={(item) => handleModelSelect({ label: item.label, value: item.value })}
-              onCancel={goBack}
-            />
-          ) : (
-            <SelectInput
-              items={[
-                ...modelOptions.map((m) => ({ label: m.label, value: m.value })),
-                { label: '🎯 Enter custom model name...', value: 'custom' },
-              ]}
-              onSelect={(item) => handleModelSelect({ label: item.label, value: item.value })}
-            />
+    if (state.stage === 'loading') {
+      return (
+        <Box marginBottom={1}>
+          <Text color={theme.model.subtitle} dimColor>
+            Fetching available models from{' '}
+            {state.selectedProvider ? getProviderLabel(state.selectedProvider) : 'selected provider'}...
+          </Text>
+        </Box>
+      );
+    }
+
+    if (state.stage === 'model' && state.selectedProvider) {
+      const fallbackModels = PROVIDER_MODELS[state.selectedProvider] || [];
+      const models = state.availableModels.length > 0 ? state.availableModels : fallbackModels;
+      const modelOptions = models.map((model) => ({ label: model, value: model }));
+      const shouldUseAutocomplete = state.availableModels.length > 10;
+      const hasAuthError = state.showAuthPrompt;
+
+      return (
+        <>
+          {state.error && (
+            <Box marginBottom={1} flexDirection="column">
+              <Text color="red">{state.error}</Text>
+            </Box>
           )}
-        </Box>
-      </AppModal>
-    );
-  }
 
-  if (state.stage === 'custom') {
-    return (
-      <AppModal
-        visible={true}
-        title="Enter Custom Model Name"
-        titleColor={theme.model.title}
-        onClose={deactivate}
-        closeOnEscape={false}
-        closeOnEnter={false}
-      >
-        <Text color={theme.model.subtitle} dimColor>
-          Type the exact model name for{' '}
-          {state.selectedProvider ? getProviderLabel(state.selectedProvider) : 'selected provider'}
-        </Text>
-        <Box marginTop={1}>
-          <Text color={theme.model.label}>Model: </Text>
-          <TextInput
-            value={state.customModel}
-            onChange={setCustomModelInput}
-            onSubmit={handleCustomModelSubmit}
-            placeholder="e.g., anthropic/claude-3-opus-20240229"
-          />
-        </Box>
-        <Box marginTop={1}>
-          <Text color={theme.model.help} dimColor>
-            Press Enter to save, Esc to cancel
+          {!hasAuthError && (
+            <Text color={theme.model.subtitle} dimColor>
+              {state.availableModels.length === 0 && 'Choose a model or enter a custom model name'}
+            </Text>
+          )}
+
+          <Box>
+            {hasAuthError ? (
+              <AuthNavigationPrompt onNavigate={navigateToAuth} onCancel={clearError} />
+            ) : shouldUseAutocomplete ? (
+              <ComboBox
+                showItemCount={false}
+                items={modelOptions}
+                placeholder="Type to search models..."
+                maxDisplayItems={10}
+                enableRotation={true}
+                onSelect={(item) => handleModelSelect({ label: item.label, value: item.value })}
+                onCancel={goBack}
+              />
+            ) : (
+              <SelectInput
+                items={[
+                  ...modelOptions.map((m) => ({ label: m.label, value: m.value })),
+                  { label: '🎯 Enter custom model name...', value: 'custom' },
+                ]}
+                onSelect={(item) => handleModelSelect({ label: item.label, value: item.value })}
+              />
+            )}
+          </Box>
+        </>
+      );
+    }
+
+    if (state.stage === 'custom') {
+      return (
+        <>
+          <Text color={theme.model.subtitle} dimColor>
+            Type the exact model name for{' '}
+            {state.selectedProvider ? getProviderLabel(state.selectedProvider) : 'selected provider'}
           </Text>
-        </Box>
-      </AppModal>
-    );
-  }
+          <Box marginTop={1}>
+            <Text color={theme.model.label}>Model: </Text>
+            <TextInput
+              value={state.customModel}
+              onChange={setCustomModelInput}
+              onSubmit={handleCustomModelSubmit}
+              placeholder="e.g., anthropic/claude-3-opus-20240229"
+            />
+          </Box>
+          <Box marginTop={1}>
+            <Text color={theme.model.help} dimColor>
+              Press Enter to save, Esc to cancel
+            </Text>
+          </Box>
+        </>
+      );
+    }
 
-  return null;
+    return null;
+  };
+
+  const content = renderContent();
+  if (!content) return null;
+
+  return (
+    <AppModal
+      visible={true}
+      title={getModalTitle(state.stage, state.selectedProvider)}
+      titleColor={theme.model.title}
+      onClose={deactivate}
+      closeOnEscape={false}
+      closeOnEnter={false}
+      height={17}
+    >
+      {content}
+    </AppModal>
+  );
 };
 
 export function registerModelsCommand(registry: CommandRegistry) {
