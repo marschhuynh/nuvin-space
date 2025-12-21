@@ -24,6 +24,7 @@ type EventMap = {
   'ui:lines:clear': undefined;
   'ui:lines:set': MessageLine[];
   'ui:clear:complete': undefined;
+  'ui:exit:start': undefined;
   'conversation:created': { memPersist: boolean };
   'ui:mcp:toolPermissionChanged': { serverId: string; toolName: string; allowed: boolean };
   'ui:mcp:batchToolPermissionChanged': { serverId: string; config: Record<string, Record<string, boolean>> };

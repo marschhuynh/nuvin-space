@@ -32,7 +32,7 @@ export const COLOR_TOKENS = {
   magenta: '#ff79c6',
   white: '#ffffff',
   gray: '#9b9b9b',
-  black: '#282a36',
+  black: '#111111',
   dim: '#303030',
   transparent: 'transparent',
 };
@@ -121,6 +121,7 @@ export const theme = {
     keyBinding: COLOR_TOKENS.green,
     description: COLOR_TOKENS.gray,
     help: COLOR_TOKENS.gray,
+    background: COLOR_TOKENS.black,
   },
 
   // Command and help colors
