@@ -1,5 +1,16 @@
 # @nuvin/nuvin-cli
 
+## 1.18.3
+
+### Patch Changes
+
+- [`6cf8ad9`](https://github.com/marschhuynh/nuvin-space/commit/6cf8ad92d5bf286f4a29c4856a086d2c5610e106) Thanks [@marschhuynh](https://github.com/marschhuynh)! - refactor: consolidate tool metadata types to eliminate duplication
+
+- [`d53a0c9`](https://github.com/marschhuynh/nuvin-space/commit/d53a0c90f2a83e9e23164debcb3041a2d044120b) Thanks [@marschhuynh](https://github.com/marschhuynh)! - feat: implement lazy session creation - session directory and history.json are now created on first message instead of at startup
+
+- Updated dependencies [[`6cf8ad9`](https://github.com/marschhuynh/nuvin-space/commit/6cf8ad92d5bf286f4a29c4856a086d2c5610e106)]:
+  - @nuvin/nuvin-core@1.9.1
+
 ## 1.18.2
 
 ### Patch Changes
