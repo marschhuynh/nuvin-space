@@ -61,7 +61,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
     const [focusKey, setFocusKey] = useState(0);
     const [menuHasFocus, setMenuHasFocus] = useState(false);
     const [_vimMode, setVimMode] = useState<VimMode>('insert');
-    const [cols, rows] = useStdoutDimensions();
+    const [cols] = useStdoutDimensions();
 
     const onRecall = useCallback(
       (message: string) => {
