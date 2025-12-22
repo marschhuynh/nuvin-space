@@ -1,5 +1,47 @@
 # @nuvin/nuvin-cli
 
+## 1.20.1
+
+### Patch Changes
+
+- [`1b268c6`](https://github.com/marschhuynh/nuvin-space/commit/1b268c60c6ffbe7d59a6d9468be04521f8f53838) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Enhance AutoScrollBox with improved flexibility and overflow handling
+
+  - Allow `maxHeight` prop to accept both `number` and `string` types for better layout integration
+  - Add `mousePriority` prop to control mouse event priority in complex layouts
+  - Fix overflow handling by adding `overflow="hidden"` to container for better scroll behavior
+  - Improve integration with flexible layout systems
+
+- [`1b268c6`](https://github.com/marschhuynh/nuvin-space/commit/1b268c60c6ffbe7d59a6d9468be04521f8f53838) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Refactor FlexLayout to use AutoScrollBox with percentage-based sizing
+
+  - Replace fixed height calculation with percentage-based `maxHeight="100%"`
+  - Remove manual content height calculations for simpler layout logic
+  - Simplify component structure by removing redundant Box containers
+  - Improve scrolling behavior in virtualized message lists
+
+- [`1b268c6`](https://github.com/marschhuynh/nuvin-space/commit/1b268c60c6ffbe7d59a6d9468be04521f8f53838) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Update Ink package version to 6.5.7
+
+  - Upgrade from 6.5.6 to 6.5.7 for latest bug fixes and improvements
+  - Update all package manager overrides (pnpm, npm, yarn) to ensure consistent version
+
+- [`1b268c6`](https://github.com/marschhuynh/nuvin-space/commit/1b268c60c6ffbe7d59a6d9468be04521f8f53838) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix InputArea command menu positioning and layout
+
+  - Remove absolute positioning from command menu to improve layout flow
+  - Use available terminal rows for better space utilization
+  - Simplify menu rendering by removing redundant props and positioning logic
+
+- [`1b268c6`](https://github.com/marschhuynh/nuvin-space/commit/1b268c60c6ffbe7d59a6d9468be04521f8f53838) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix InputProvider mouse priority handling for better event management
+
+  - Set default mouse priority to subscriber ID instead of fixed 0 for proper event ordering
+  - Add dependency array fixes to prevent unnecessary re-renders
+  - Improve mouse subscription logic to handle priority conflicts better
+
+- [`1b268c6`](https://github.com/marschhuynh/nuvin-space/commit/1b268c60c6ffbe7d59a6d9468be04521f8f53838) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Improve ToolParameters with AutoScrollBox for better content handling
+
+  - Wrap ToolParameters in AutoScrollBox to handle large parameter sets
+  - Calculate dynamic maxHeight based on terminal dimensions for optimal space usage
+  - Enable smooth scrolling with scrollStep configuration
+  - Improve parameter display layout and structure
+
 ## 1.20.0
 
 ### Minor Changes
