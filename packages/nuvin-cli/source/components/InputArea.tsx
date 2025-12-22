@@ -269,7 +269,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
     };
 
     const commandMenu = showCommandMenu && filteredCommandItems.length > 0 && (
-      <Box flexDirection="column">
+      <Box flexDirection="column" position="absolute" bottom={0} width={cols} zIndex={1}>
         <Box backgroundColor={theme.colors.accent}>
           <Text color={theme.tokens.black} bold>
             {' '}
@@ -294,6 +294,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
         borderBottom
         borderLeft={false}
         borderRight={false}
+        position="relative"
       >
         {commandMenu}
         <Box flexShrink={0} minWidth={1}>
