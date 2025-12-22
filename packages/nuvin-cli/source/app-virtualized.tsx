@@ -10,7 +10,6 @@ import { Footer, type InputAreaHandle } from './components/index.js';
 import { InteractionArea } from './components/InteractionArea.js';
 import { ErrorBoundary } from './components/ErrorBoundary.js';
 import { InitialConfigSetup } from './components/InitialConfigSetup.js';
-import type { VirtualizedChatRef } from './components/VirtualizedChat/index.js';
 import { FlexLayout } from './components/VirtualizedList/index.js';
 import {
   useOrchestrator,
@@ -75,7 +74,6 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
   const abortRef = useRef<AbortController | null>(null);
   const previousVimModeRef = useRef<boolean | null>(null);
   const inputAreaRef = useRef<InputAreaHandle>(null);
-  const chatRef = useRef<VirtualizedChatRef>(null);
 
   const historyLoadedRef = useRef(false);
 
@@ -455,7 +453,6 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
         width={cols}
         height={rows}
         bottom={bottomSection}
-        chatRef={chatRef}
         messages={messages}
         sessions={initialSessions}
         headerKey={headerKey}
