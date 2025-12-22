@@ -1,5 +1,31 @@
 # @nuvin/nuvin-cli
 
+## 1.19.0
+
+### Minor Changes
+
+- [`93cbecd`](https://github.com/marschhuynh/nuvin-space/commit/93cbecdc38021f18d3ed58a5dca8e8c62fc5db2c) Thanks [@marschhuynh](https://github.com/marschhuynh)! - feat(input): add centralized InputContext system with priority-based input handling
+
+  - Add InputProvider with middleware chain for global input handlers (Ctrl+C, paste detection, explain mode toggle)
+  - Add useInput hook with priority-based subscription system for focus management
+  - Add parseKeypress utility supporting both legacy terminals and Kitty keyboard protocol
+  - Migrate all components from ink's useInput to custom InputContext
+
+### Patch Changes
+
+- [`93cbecd`](https://github.com/marschhuynh/nuvin-space/commit/93cbecdc38021f18d3ed58a5dca8e8c62fc5db2c) Thanks [@marschhuynh](https://github.com/marschhuynh)! - feat(input): add Kitty terminal keyboard protocol support
+
+  - Detect Kitty terminal via TERM, TERM*PROGRAM, and KITTY*\* env vars
+  - Enable Kitty keyboard protocol (CSI u encoding) for better modifier key detection
+  - Handle Shift+Enter as newline insertion at parser level
+  - Support Ctrl+V paste detection for image clipboard in Kitty
+
+- [`93cbecd`](https://github.com/marschhuynh/nuvin-space/commit/93cbecdc38021f18d3ed58a5dca8e8c62fc5db2c) Thanks [@marschhuynh](https://github.com/marschhuynh)! - fix(paste): improve paste detection for text and image clipboard
+
+  - Add bracketed paste sequence detection in middleware
+  - Add Ctrl+V keystroke detection for Kitty terminals with image-only clipboard
+  - Fix parseKeypress to pass through bracketed paste sequences as raw input
+
 ## 1.18.4
 
 ### Patch Changes
