@@ -70,6 +70,21 @@ export const InputProvider: React.FC<Props> = ({
     middlewareRef.current = initialMiddleware;
   }, [initialMiddleware]);
 
+  // Enable raw mode on mount to ensure middleware can always process input
+  useEffect(() => {
+    if (isRawModeSupported && !rawModeEnabledRef.current) {
+      setRawMode(true);
+      rawModeEnabledRef.current = true;
+    }
+
+    return () => {
+      if (rawModeEnabledRef.current) {
+        setRawMode(false);
+        rawModeEnabledRef.current = false;
+      }
+    };
+  }, [isRawModeSupported, setRawMode]);
+
   // Enable Kitty keyboard protocol on mount
   useEffect(() => {
     const shouldEnable = enableKittyProtocol === true || (enableKittyProtocol === 'auto' && supportsKittyProtocol());
@@ -101,18 +116,8 @@ export const InputProvider: React.FC<Props> = ({
 
       subscribersRef.current.set(id, subscriber);
 
-      if (isRawModeSupported && !rawModeEnabledRef.current) {
-        setRawMode(true);
-        rawModeEnabledRef.current = true;
-      }
-
       return () => {
         subscribersRef.current.delete(id);
-
-        if (subscribersRef.current.size === 0 && rawModeEnabledRef.current) {
-          setRawMode(false);
-          rawModeEnabledRef.current = false;
-        }
       };
     },
     [isRawModeSupported, setRawMode],

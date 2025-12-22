@@ -200,11 +200,11 @@ export const parseKeypress = (data: string): ParseResult => {
     return { input: s, key };
   } else if (s.length === 1 && s >= 'A' && s <= 'Z') {
     key.shift = true;
-    return { input: s.toLowerCase(), key };
+    return { input: s, key };
   } else if ((parts = metaKeyCodeRe.exec(s))) {
     key.meta = true;
     key.shift = /^[A-Z]$/.test(parts[1]);
-    return { input: parts[1]!.toLowerCase(), key };
+    return { input: parts[1]!, key };
   } else if (s.startsWith('\x1b[200~') || s.startsWith('[200~')) {
     return { input: data, key };
   } else if ((parts = fnKeyRe.exec(s))) {

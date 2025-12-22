@@ -26,4 +26,8 @@ export const explainToggleMiddleware: InputMiddleware = (input, key, next) => {
   next();
 };
 
-export const defaultMiddleware: InputMiddleware[] = [ctrlCMiddleware, pasteDetectionMiddleware, explainToggleMiddleware];
+export const defaultMiddleware: InputMiddleware[] = [
+  ctrlCMiddleware,
+  pasteDetectionMiddleware,
+  explainToggleMiddleware,
+];
