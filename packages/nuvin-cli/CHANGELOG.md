@@ -1,5 +1,37 @@
 # @nuvin/nuvin-cli
 
+## 1.20.0
+
+### Minor Changes
+
+- [`d643194`](https://github.com/marschhuynh/nuvin-space/commit/d643194d58f0d090af11c167228d82af4ea93f76) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Enhance AutoScrollBox with mouse wheel scrolling and scrollbar
+
+  - Add mouse wheel scroll support via useMouse hook
+  - Add visual scrollbar that shows scroll position and content ratio
+  - New props: scrollStep, enableMouseScroll, showScrollbar, scrollbarColor, scrollbarTrackColor
+  - Preserve user scroll position when new content is added
+
+- [`d643194`](https://github.com/marschhuynh/nuvin-space/commit/d643194d58f0d090af11c167228d82af4ea93f76) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add mouse scroll support to InputContext with new useMouse hook
+
+  - Add MouseEvent type and MouseHandler for mouse event handling
+  - Add parseMouseEvent() to detect SGR and X10 mouse protocol sequences
+  - Add subscribeMouse(), enableMouseMode(), disableMouseMode() to InputProvider
+  - Create useMouse hook that auto-enables mouse mode and subscribes to mouse events
+  - Mouse and keyboard events are handled separately to avoid interference
+
+### Patch Changes
+
+- [`f704d9d`](https://github.com/marschhuynh/nuvin-space/commit/f704d9d98c92364d2dc34c370e0696c69d29776d) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Refactor FlexLayout to use AutoScrollBox for chat content
+
+  - Simplify FlexLayout by removing VirtualizedChat dependency
+  - Use AutoScrollBox for scrollable chat content with mouse wheel support
+  - Remove unused FixedLayout and VirtualizedList components
+
+- [`9edd9ea`](https://github.com/marschhuynh/nuvin-space/commit/9edd9ea1d8dbab02fe52003099b8183a2576e88b) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix command menu positioning in InputArea
+
+  - Add absolute positioning to command menu overlay
+  - Set proper zIndex for menu to appear above other content
+
 ## 1.19.1
 
 ### Patch Changes
