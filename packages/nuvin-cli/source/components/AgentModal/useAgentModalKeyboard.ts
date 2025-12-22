@@ -1,4 +1,4 @@
-import { useInput } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import type { AgentInfo } from './AgentModal.js';
 import type { AgentModalState, AgentModalActions } from './useAgentModalState.js';
 

@@ -1,4 +1,4 @@
-import { useInput } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import type { CompleteCustomCommand } from '@nuvin/nuvin-core';
 import type { CommandModalState } from './useCommandModalState.js';
 

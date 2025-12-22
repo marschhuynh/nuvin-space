@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
-import { useInput } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import type { MessageLine as MessageLineType } from '../../adapters/index.js';
 import { MessageLine } from '../MessageLine.js';
 import { WelcomeLogo } from '../RecentSessions.js';

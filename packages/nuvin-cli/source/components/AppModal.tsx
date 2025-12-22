@@ -1,5 +1,6 @@
 import type { ReactNode, FC } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import { theme as globalTheme } from '@/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useStdoutDimensions } from '@/hooks';

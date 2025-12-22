@@ -1,4 +1,5 @@
-import { Box, Text, useInput } from 'ink';
+import { Box, Text } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import TextInput from '@/components/TextInput/index.js';
 import type { OAuthState } from '@/hooks/useOAuth.js';
 

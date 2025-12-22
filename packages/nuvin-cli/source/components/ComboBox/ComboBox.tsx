@@ -1,6 +1,7 @@
 import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import chalk from 'chalk';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import { processPasteChunk, createPasteState, type PasteState } from '@/utils/pasteHandler.js';
@@ -143,7 +144,7 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
             onSelect={(item) => onSelect(item.value)}
             itemComponent={({ isSelected, label }) => (
               <Text
-                color={isSelected ? theme.model?.selectedItem || 'green' : theme.model?.item || 'white'}
+                color={isSelected ? theme.model?.selectedItem || theme.colors.accent : theme.model?.item || 'white'}
                 bold={isSelected}
               >
                 {label}

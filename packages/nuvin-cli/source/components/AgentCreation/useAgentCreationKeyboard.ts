@@ -1,4 +1,4 @@
-import { useInput } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import type { AgentCreationState, AgentCreationActions } from './useAgentCreationState.js';
 import type { AgentTemplate } from '@nuvin/nuvin-core';
 

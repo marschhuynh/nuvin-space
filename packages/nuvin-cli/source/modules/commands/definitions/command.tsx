@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { Text, useInput } from 'ink';
+import { Text } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import type { CompleteCustomCommand, CustomCommandTemplate, CommandSource } from '@nuvin/nuvin-core';
 import { AppModal } from '@/components/AppModal.js';
 import CommandModal from '@/components/CommandModal/CommandModal.js';

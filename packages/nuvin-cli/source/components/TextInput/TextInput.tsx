@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { Text, useInput } from 'ink';
+import { Text } from 'ink';
 import type { Except } from 'type-fest';
-import { eventBus } from '@/services/EventBus.js';
+import { useInput } from '@/contexts/InputContext/index.js';
 import { moveCursorVertically, getLineInfo } from '@/utils/textNavigation.js';
 import type { LineInfo } from '@/utils/textNavigation.js';
 
@@ -72,10 +72,6 @@ function TextInput({
 
       if (pasteResult.shouldWaitForMore) {
         return;
-      }
-
-      if (pasteResult.isPasteStart) {
-        eventBus.emit('ui:keyboard:paste', undefined);
       }
 
       if (pasteResult.processedInput !== null) {

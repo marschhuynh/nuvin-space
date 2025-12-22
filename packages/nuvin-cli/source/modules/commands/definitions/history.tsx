@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import * as crypto from 'node:crypto';
-import { useInput } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import ansiEscapes from 'ansi-escapes';
 import type { CommandRegistry, CommandComponentProps } from '@/modules/commands/types.js';
 import { HistorySelection } from '@/components/HistorySelection.js';

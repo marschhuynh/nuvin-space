@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Text, useInput } from 'ink';
+import { Text } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import { AppModal } from '@/components/AppModal.js';
 import MCPModal from '@/components/MCPModal.js';
 import type { CommandRegistry, CommandComponentProps } from '@/modules/commands/types.js';

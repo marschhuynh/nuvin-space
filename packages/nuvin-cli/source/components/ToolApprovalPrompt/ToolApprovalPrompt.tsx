@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Box, useInput, Text } from 'ink';
+import { Box, Text } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import type { ToolCall, ToolApprovalDecision } from '@nuvin/nuvin-core';
 import { ToolParameters } from './ToolParameters.js';
 import { ToolProgressInfo } from './ToolProgressInfo.js';

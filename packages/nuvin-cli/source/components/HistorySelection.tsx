@@ -1,6 +1,7 @@
 import type React from 'react';
 import { useState, useRef } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import { eventBus } from '@/services/EventBus.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import { useTheme } from '@/contexts/ThemeContext.js';

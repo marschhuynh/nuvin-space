@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import SelectInput from '@/components/SelectInput/index.js';
 import { AppModal } from '@/components/AppModal.js';
 import TextInput from '@/components/TextInput/index.js';

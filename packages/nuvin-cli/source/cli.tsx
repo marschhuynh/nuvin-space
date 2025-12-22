@@ -16,6 +16,7 @@ import { ConfigBridge } from './components/ConfigBridge.js';
 import { ThemeProvider } from './contexts/ThemeContext.js';
 import { StdoutDimensionsProvider } from './contexts/StdoutDimensionsContext.js';
 import { ExplainModeProvider } from './contexts/ExplainModeContext.js';
+import { InputProvider, defaultMiddleware } from './contexts/InputContext/index.js';
 
 import { getVersionInfo } from './utils/version.js';
 import { ConfigManager, type CLIConfig, type ProviderKey } from './config/index.js';
@@ -392,28 +393,30 @@ const cli = meow(
   const { waitUntilExit } = render(
     <ThemeProvider>
       <StdoutDimensionsProvider>
-        <ConfigProvider initialConfig={mergedConfig}>
-          <NotificationProvider>
-            <ToolApprovalProvider
-              orchestratorManager={orchestratorManager}
-              requireToolApproval={finalRequireToolApproval}
-              onError={(msg) => console.error(msg)}
-            >
-              <CommandProvider>
-                <ExplainModeProvider>
-                  <ConfigBridge>
-                    <App
-                      memPersist={finalMemPersist}
-                      thinking={thinkingSetting}
-                      historyPath={historyPath}
-                      initialSessions={initialSessions}
-                    />
-                  </ConfigBridge>
-                </ExplainModeProvider>
-              </CommandProvider>
-            </ToolApprovalProvider>
-          </NotificationProvider>
-        </ConfigProvider>
+        <InputProvider middleware={defaultMiddleware}>
+          <ConfigProvider initialConfig={mergedConfig}>
+            <NotificationProvider>
+              <ToolApprovalProvider
+                orchestratorManager={orchestratorManager}
+                requireToolApproval={finalRequireToolApproval}
+                onError={(msg) => console.error(msg)}
+              >
+                <CommandProvider>
+                  <ExplainModeProvider>
+                    <ConfigBridge>
+                      <App
+                        memPersist={finalMemPersist}
+                        thinking={thinkingSetting}
+                        historyPath={historyPath}
+                        initialSessions={initialSessions}
+                      />
+                    </ConfigBridge>
+                  </ExplainModeProvider>
+                </CommandProvider>
+              </ToolApprovalProvider>
+            </NotificationProvider>
+          </ConfigProvider>
+        </InputProvider>
       </StdoutDimensionsProvider>
     </ThemeProvider>,
     {

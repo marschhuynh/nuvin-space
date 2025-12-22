@@ -1,7 +1,9 @@
 import type React from 'react';
 import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import { processPasteChunk, createPasteState, type PasteState } from '@/utils/pasteHandler.js';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export type SelectInputItem<T = unknown> = {
   key?: string;
@@ -34,9 +36,10 @@ export type SelectInputHandle = {
   setSelectedIndex: (index: number) => void;
 };
 
-const DefaultItemComponent = ({ isSelected, label }: { isSelected?: boolean; label: string }) => (
-  <Text color={isSelected ? 'blue' : undefined}>{label}</Text>
-);
+const DefaultItemComponent = ({ isSelected, label }: { isSelected?: boolean; label: string }) => {
+  const { theme } = useTheme();
+  return <Text color={isSelected ? theme.colors.accent : undefined}>{label}</Text>;
+};
 
 const DefaultIndicatorComponent = ({ isSelected }: { isSelected?: boolean }) => (
   <Box>

@@ -76,7 +76,7 @@ export const useGlobalKeyboard = ({
     try {
       const { hasClipboardFiles, getClipboardFiles } = await import('../utils/clipboard.js');
 
-      onNotification('Checking clipboard...', 500);
+      onNotification('Checking clipboard...', 1000);
 
       const hasFiles = await hasClipboardFiles();
 

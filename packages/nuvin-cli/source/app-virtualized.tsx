@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, useEffect, useMemo } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import ansiEscapes from 'ansi-escapes';
 import * as crypto from 'node:crypto';
 import * as path from 'node:path';
@@ -13,7 +14,6 @@ import type { VirtualizedChatRef } from './components/VirtualizedChat/index.js';
 import { FlexLayout } from './components/VirtualizedList/index.js';
 import {
   useOrchestrator,
-  useKeyboardInput,
   useSessionManagement,
   useNotification,
   useStdoutDimensions,
@@ -275,8 +275,6 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
     },
     [send, appendLine, handleError],
   );
-
-  useKeyboardInput();
 
   useGlobalKeyboard({
     busy,

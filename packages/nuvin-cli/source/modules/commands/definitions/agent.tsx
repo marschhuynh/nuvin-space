@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Text, useInput } from 'ink';
+import { Text } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import type { AgentTemplate, ToolPort, AgentAwareToolPort } from '@nuvin/nuvin-core';
 import { AppModal } from '@/components/AppModal.js';
 import AgentModal, { type AgentInfo } from '@/components/AgentModal/AgentModal.js';

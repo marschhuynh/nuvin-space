@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import type { MemoryPort, Message } from '@nuvin/nuvin-core';
 import Spinner from 'ink-spinner';
 import { useTheme } from '@/contexts/ThemeContext.js';
@@ -270,7 +271,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
     const commandMenu = showCommandMenu && filteredCommandItems.length > 0 && (
       <Box flexDirection="column">
         <Box backgroundColor={theme.colors.accent}>
-          <Text color={theme.colors.accent} bold>
+          <Text color={theme.tokens.black} bold>
             {' '}
             Commands ({filteredCommandItems.length}) - Use ↑↓ to navigate, Enter to select
           </Text>

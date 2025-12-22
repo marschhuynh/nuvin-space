@@ -1,6 +1,6 @@
 import { forwardRef, useMemo, useCallback, useRef, useEffect, useState } from 'react';
 import { Box, Text } from 'ink';
-import { useInput } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import type { MemoryPort, Message } from '@nuvin/nuvin-core';
 import { ToolApprovalPrompt } from './ToolApprovalPrompt/ToolApprovalPrompt.js';
 import { ActiveCommand } from '@/modules/commands/components/ActiveCommand.js';

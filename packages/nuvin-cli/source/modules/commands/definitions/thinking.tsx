@@ -1,4 +1,5 @@
-import { Box, Text, useInput } from 'ink';
+import { Box, Text } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import * as crypto from 'node:crypto';
 import SelectInput from '@/components/SelectInput/index.js';
 import { AppModal } from '@/components/AppModal.js';

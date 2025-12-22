@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useInput } from 'ink';
+import { useInput } from '@/contexts/InputContext/index.js';
 import type { CommandSource, CustomCommandTemplate } from '@nuvin/nuvin-core';
 import { CommandForm } from './CommandForm.js';
 import { useCommandCreationState } from './useCommandCreationState.js';

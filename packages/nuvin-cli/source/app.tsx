@@ -10,7 +10,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary.js';
 import { InitialConfigSetup } from '@/components/InitialConfigSetup.js';
 import {
   useOrchestrator,
-  useKeyboardInput,
   useSessionManagement,
   useNotification,
   useStdoutDimensions,
@@ -257,8 +256,6 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
     },
     [send, appendLine, handleError],
   );
-
-  useKeyboardInput();
 
   useGlobalKeyboard({
     busy,
