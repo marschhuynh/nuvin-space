@@ -1,5 +1,15 @@
 # @nuvin/nuvin-core
 
+## 1.9.2
+
+### Patch Changes
+
+- [`cd1246c`](https://github.com/marschhuynh/nuvin-space/commit/cd1246cf84c94e58deacaab254b324af08ecc3e9) Thanks [@marschhuynh](https://github.com/marschhuynh)! - fix: update contextWindowUsage in real-time when LLM call completes
+
+  - Auto-calculate contextWindowUsage in recordLLMCall when contextWindowLimit is set
+  - Set contextWindowLimit before orchestrator.send() to enable immediate usage updates
+  - Fixes delayed contextWindowUsage display that only updated after request completion
+
 ## 1.9.1
 
 ### Patch Changes
