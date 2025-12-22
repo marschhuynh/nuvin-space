@@ -2,6 +2,8 @@ import type React from 'react';
 import type { ToolCall } from '@nuvin/nuvin-core';
 import { Box, Text } from 'ink';
 import { useTheme } from '@/contexts/ThemeContext.js';
+import { useStdoutDimensions } from '@/hooks/index.js';
+import { AutoScrollBox } from '@/components/AutoScrollBox.js';
 import { ToolContentRenderer } from './ToolContentRenderer';
 
 type ToolParametersProps = {
@@ -10,6 +12,7 @@ type ToolParametersProps = {
 
 export const ToolParameters: React.FC<ToolParametersProps> = ({ toolCall }) => {
   const { theme } = useTheme();
+  const [, rows] = useStdoutDimensions();
 
   const formatToolArguments = (call: ToolCall) => {
     try {
@@ -39,11 +42,12 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({ toolCall }) => {
   };
 
   const toolArgs = formatToolArguments(toolCall);
+  const maxHeight = Math.max(5, rows - 20);
 
   return (
-    <Box flexDirection="column">
+    <AutoScrollBox maxHeight={maxHeight} scrollStep={3}>
       {toolCall.function.name !== 'file_edit' && toolCall.function.name !== 'file_new' && (
-        <>
+        <Box flexDirection="column">
           <Box>
             <Text color={theme.toolApproval.statusText}>Parameters:</Text>
           </Box>
@@ -52,9 +56,9 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({ toolCall }) => {
               <Text dimColor>{`${key}: ${formatParameterValue(value)}`}</Text>
             </Box>
           ))}
-        </>
+        </Box>
       )}
       <ToolContentRenderer call={toolCall} />
-    </Box>
+    </AutoScrollBox>
   );
 };

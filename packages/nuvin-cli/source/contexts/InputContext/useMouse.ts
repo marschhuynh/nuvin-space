@@ -5,7 +5,7 @@ import type { MouseHandler, UseMouseOptions } from './types.js';
 export const useMouse = (handler: MouseHandler, options: UseMouseOptions = {}) => {
   const { subscribeMouse, enableMouseMode, disableMouseMode } = useContext(InputContext);
   const handlerRef = useRef(handler);
-  const { isActive = true, priority = 0 } = options;
+  const { isActive = true, priority } = options;
 
   useEffect(() => {
     handlerRef.current = handler;

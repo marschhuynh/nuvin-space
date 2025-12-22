@@ -158,7 +158,7 @@ export const InputProvider: React.FC<Props> = ({
     const subscriber: MouseSubscriber = {
       id,
       handler,
-      priority: options.priority ?? 0,
+      priority: options.priority ?? idCounterRef.current,
       isActive: options.isActive ?? true,
     };
 
@@ -261,7 +261,17 @@ export const InputProvider: React.FC<Props> = ({
       disableMouseMode,
       isMouseModeEnabled,
     }),
-    [subscribe, subscribeMouse, updateSubscriber, addMiddleware, setRawMode, isRawModeSupported, enableMouseMode, disableMouseMode, isMouseModeEnabled],
+    [
+      subscribe,
+      subscribeMouse,
+      updateSubscriber,
+      addMiddleware,
+      setRawMode,
+      isRawModeSupported,
+      enableMouseMode,
+      disableMouseMode,
+      isMouseModeEnabled,
+    ],
   );
 
   return <InputContext.Provider value={contextValue}>{children}</InputContext.Provider>;

@@ -3,13 +3,14 @@ import { useRef, useEffect, useCallback, useState, type ReactNode } from 'react'
 import { useMouse, type MouseEvent } from '../contexts/InputContext/index.js';
 
 type AutoScrollBoxProps = {
-  maxHeight: number | undefined;
+  maxHeight: number | string | undefined;
   children: ReactNode;
   scrollStep?: number;
   enableMouseScroll?: boolean;
   showScrollbar?: boolean;
   scrollbarColor?: string;
   scrollbarTrackColor?: string;
+  mousePriority?: number;
 } & Omit<BoxProps, 'ref' | 'overflow' | 'height'>;
 
 type ScrollInfo = {
@@ -67,6 +68,7 @@ export function AutoScrollBox({
   showScrollbar = true,
   scrollbarColor = 'cyan',
   scrollbarTrackColor = 'gray',
+  mousePriority = 0,
   ...boxProps
 }: AutoScrollBoxProps) {
   const boxRef = useRef<BoxRef>(null);
@@ -122,7 +124,7 @@ export function AutoScrollBox({
     [scrollBy, scrollStep],
   );
 
-  useMouse(handleMouseEvent, { isActive: enableMouseScroll });
+  useMouse(handleMouseEvent, { isActive: enableMouseScroll, priority: mousePriority });
 
   useEffect(() => {
     if (prevChildrenRef.current !== children) {
@@ -137,7 +139,7 @@ export function AutoScrollBox({
   const needsScrollbar = showScrollbar && scrollInfo.contentHeight > scrollInfo.containerHeight;
 
   return (
-    <Box flexDirection="row" {...(maxHeight !== undefined ? { maxHeight } : {})}>
+    <Box flexDirection="row" {...(maxHeight !== undefined ? { maxHeight } : {})} overflow="hidden">
       <Box ref={boxRef} overflow="scroll" flexGrow={1} {...boxProps} flexDirection="column">
         <Box ref={contentRef} flexShrink={0} flexDirection="column">
           {children}

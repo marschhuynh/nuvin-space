@@ -61,7 +61,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
     const [focusKey, setFocusKey] = useState(0);
     const [menuHasFocus, setMenuHasFocus] = useState(false);
     const [_vimMode, setVimMode] = useState<VimMode>('insert');
-    const [cols] = useStdoutDimensions();
+    const [cols, rows] = useStdoutDimensions();
 
     const onRecall = useCallback(
       (message: string) => {
@@ -269,7 +269,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
     };
 
     const commandMenu = showCommandMenu && filteredCommandItems.length > 0 && (
-      <Box flexDirection="column" position="absolute" bottom={0} width={cols} zIndex={1}>
+      <Box flexDirection="column" width={cols}>
         <Box backgroundColor={theme.colors.accent}>
           <Text color={theme.tokens.black} bold>
             {' '}

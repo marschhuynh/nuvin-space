@@ -45,13 +45,11 @@ export function FlexLayout({
   return (
     <Box flexDirection="column" width={width} height={height}>
       <Box flexDirection="column" flexGrow={1} flexShrink={1} overflow="hidden">
-        <AutoScrollBox maxHeight={height! - bottomHeight!}>
-          <Box flexDirection="column">
-            <WelcomeLogo key={`welcome-${headerKey}`} recentSessions={sessions ?? []} />
-            {mergedMessages.map((message: MessageLineType) => (
-              <MessageLine key={message.id} message={message} />
-            ))}
-          </Box>
+        <AutoScrollBox maxHeight={'100%'}>
+          <WelcomeLogo key={`welcome-${headerKey}`} recentSessions={sessions ?? []} />
+          {mergedMessages.map((message: MessageLineType) => (
+            <MessageLine key={message.id} message={message} />
+          ))}
         </AutoScrollBox>
       </Box>
       {bottom && (
