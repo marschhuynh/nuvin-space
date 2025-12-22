@@ -1,5 +1,14 @@
 # @nuvin/nuvin-cli
 
+## 1.20.2
+
+### Patch Changes
+
+- [`3f1e225`](https://github.com/marschhuynh/nuvin-space/commit/3f1e225233bc2fa7eabca8b2df1afe8f79ca488c) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Disable incremental rendering in CLI default config to avoid rendering artifacts and improve stability
+
+  - Set incrementalRendering to false in the CLI options
+  - No public API changes
+
 ## 1.20.1
 
 ### Patch Changes
