@@ -1,5 +1,23 @@
 # @nuvin/nuvin-cli
 
+## 1.19.1
+
+### Patch Changes
+
+- [`cd1246c`](https://github.com/marschhuynh/nuvin-space/commit/cd1246cf84c94e58deacaab254b324af08ecc3e9) Thanks [@marschhuynh](https://github.com/marschhuynh)! - fix: update contextWindowUsage in real-time when LLM call completes
+
+  - Auto-calculate contextWindowUsage in recordLLMCall when contextWindowLimit is set
+  - Set contextWindowLimit before orchestrator.send() to enable immediate usage updates
+  - Fixes delayed contextWindowUsage display that only updated after request completion
+
+- [`b0db36f`](https://github.com/marschhuynh/nuvin-space/commit/b0db36f204dafc7922876a6a7ede1fe9640cd1cd) Thanks [@marschhuynh](https://github.com/marschhuynh)! - chore(deps): pin @nuvin/ink override to 6.5.5
+
+  - Revert top-level package override and dependency entries to use @nuvin/ink@6.5.5 to avoid unexpected regression from 6.5.6.
+  - Updates pnpm overrides/resolutions to match the desired ink version.
+
+- Updated dependencies [[`cd1246c`](https://github.com/marschhuynh/nuvin-space/commit/cd1246cf84c94e58deacaab254b324af08ecc3e9)]:
+  - @nuvin/nuvin-core@1.9.2
+
 ## 1.19.0
 
 ### Minor Changes
