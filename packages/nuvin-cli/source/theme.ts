@@ -37,58 +37,60 @@ export const COLOR_TOKENS = {
   transparent: 'transparent',
 };
 
+const COLORS = {
+  // Status colors
+  success: COLOR_TOKENS.green,
+  error: COLOR_TOKENS.red,
+  warning: COLOR_TOKENS.yellow,
+  info: COLOR_TOKENS.cyan,
+
+  // UI element colors
+  primary: COLOR_TOKENS.green,
+  secondary: COLOR_TOKENS.magenta,
+  accent: COLOR_TOKENS.orange,
+  muted: COLOR_TOKENS.gray,
+
+  // Message type colors
+  user: COLOR_TOKENS.cyan,
+  assistant: COLOR_TOKENS.green,
+  system: COLOR_TOKENS.gray,
+  thinking: COLOR_TOKENS.yellow,
+
+  // Tool-related colors
+  tool: COLOR_TOKENS.green,
+  toolResult: COLOR_TOKENS.green,
+  toolSuccess: COLOR_TOKENS.green,
+  toolError: COLOR_TOKENS.red,
+  toolDuration: COLOR_TOKENS.gray,
+
+  // Interactive elements
+  selected: COLOR_TOKENS.green,
+  unselected: COLOR_TOKENS.transparent,
+  highlight: COLOR_TOKENS.green,
+
+  // Text variants
+  text: COLOR_TOKENS.white,
+  textDim: COLOR_TOKENS.gray,
+  textBold: COLOR_TOKENS.white,
+
+  // Backgrounds and borders
+  background: COLOR_TOKENS.black,
+  border: COLOR_TOKENS.gray,
+
+  // Badge and status indicators
+  badge: {
+    info: COLOR_TOKENS.cyan,
+    success: COLOR_TOKENS.green,
+    warning: COLOR_TOKENS.yellow,
+    error: COLOR_TOKENS.red,
+  },
+};
+
 export const theme = {
   tokens: COLOR_TOKENS,
 
   // Primary colors (using COLOR_TOKENS)
-  colors: {
-    // Status colors
-    success: COLOR_TOKENS.green,
-    error: COLOR_TOKENS.red,
-    warning: COLOR_TOKENS.yellow,
-    info: COLOR_TOKENS.cyan,
-
-    // UI element colors
-    primary: COLOR_TOKENS.green,
-    secondary: COLOR_TOKENS.magenta,
-    accent: COLOR_TOKENS.orange,
-    muted: COLOR_TOKENS.gray,
-
-    // Message type colors
-    user: COLOR_TOKENS.cyan,
-    assistant: COLOR_TOKENS.green,
-    system: COLOR_TOKENS.gray,
-    thinking: COLOR_TOKENS.yellow,
-
-    // Tool-related colors
-    tool: COLOR_TOKENS.green,
-    toolResult: COLOR_TOKENS.green,
-    toolSuccess: COLOR_TOKENS.green,
-    toolError: COLOR_TOKENS.red,
-    toolDuration: COLOR_TOKENS.gray,
-
-    // Interactive elements
-    selected: COLOR_TOKENS.green,
-    unselected: COLOR_TOKENS.transparent,
-    highlight: COLOR_TOKENS.green,
-
-    // Text variants
-    text: COLOR_TOKENS.white,
-    textDim: COLOR_TOKENS.gray,
-    textBold: COLOR_TOKENS.white,
-
-    // Backgrounds and borders
-    background: COLOR_TOKENS.black,
-    border: COLOR_TOKENS.gray,
-
-    // Badge and status indicators
-    badge: {
-      info: COLOR_TOKENS.cyan,
-      success: COLOR_TOKENS.green,
-      warning: COLOR_TOKENS.yellow,
-      error: COLOR_TOKENS.red,
-    },
-  },
+  colors: COLORS,
 
   // Status mappings for tool results and execution states
   status: {
@@ -196,7 +198,7 @@ export const theme = {
     help: COLOR_TOKENS.gray,
     input: COLOR_TOKENS.white,
     item: COLOR_TOKENS.white,
-    selectedItem: COLOR_TOKENS.green,
+    selectedItem: COLORS.accent,
   },
 
   // Thinking mode colors

@@ -1,5 +1,5 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
-import { Box, render, useInput, Text, type BoxRef, useStdout, useStdin, type Key } from 'ink';
+import { Box, render, Text, type BoxRef, useStdout, useStdin, useInput, type Key } from 'ink';
 
 const randomHeight = () => 3 + Math.floor(Math.random() * 5);
 
