@@ -65,6 +65,10 @@ export class InMemoryMetricsPort implements MetricsPort {
     this.snapshot.currentCachedTokens = cached;
     this.snapshot.currentCost = actualCost;
 
+    if (this.snapshot.contextWindowLimit && prompt > 0) {
+      this.snapshot.contextWindowUsage = prompt / this.snapshot.contextWindowLimit;
+    }
+
     this.emit();
   }
 

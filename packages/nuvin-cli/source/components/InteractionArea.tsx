@@ -183,7 +183,7 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
       return <ActiveCommand />;
     default:
       return (
-        <Box flexDirection="column" marginTop={1}>
+        <Box flexDirection="column" marginTop={2}>
           {queuedMessages.length > 0 && (
             <Box flexDirection="row" marginLeft={2}>
               <Text color={theme.colors.secondary} dimColor>

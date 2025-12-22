@@ -104,10 +104,10 @@ const FooterComponent: React.FC<FooterProps> = ({
                 / {formatTokens(metrics.totalTokens)}
               </Text>
             )}
-            <Text color={theme.footer.model} dimColor>
+            {/* <Text color={theme.footer.model} dimColor>
               {' '}
               (↑{formatTokens(metrics.currentPromptTokens)} ↓{formatTokens(metrics.currentCompletionTokens)})
-            </Text>
+            </Text> */}
             {metrics.currentCachedTokens > 0 && (
               <Text color={theme.tokens.green} dimColor>
                 {' '}

@@ -856,6 +856,19 @@ export class OrchestratorManager {
     return limits?.contextWindow ?? null;
   }
 
+  private async ensureContextWindowLimitSet(provider: string, model: string): Promise<void> {
+    const metrics = this.orchestrator?.getMetrics?.();
+    if (!metrics) return;
+
+    const llm = this.orchestrator?.getLLM();
+    const limits = await modelLimitsCache.getLimit(provider, model, llm?.getModels?.bind(llm));
+
+    if (limits) {
+      const currentSnapshot = metrics.getSnapshot();
+      metrics.setContextWindow(limits.contextWindow, currentSnapshot.contextWindowUsage ?? 0);
+    }
+  }
+
   async send(
     content: UserMessagePayload,
     opts: SendMessageOptions = {},
@@ -889,6 +902,8 @@ export class OrchestratorManager {
         this.model = agentConfig.model;
       }
     }
+
+    await this.ensureContextWindowLimitSet(currentConfig.provider, currentConfig.model);
 
     const conversationId = opts.conversationId ?? this.conversationContext.getActiveConversationId();
 
