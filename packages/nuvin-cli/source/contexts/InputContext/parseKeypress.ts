@@ -1,8 +1,13 @@
-import type { Key } from './types.js';
+import type { Key, MouseEvent } from './types.js';
 
 export type ParseResult = {
   input: string;
   key: Key;
+};
+
+export type MouseParseResult = {
+  mouse: MouseEvent | null;
+  consumed: boolean;
 };
 
 let kittyProtocolEnabled = false;
@@ -243,3 +248,66 @@ export const parseKeypress = (data: string): ParseResult => {
 
   return { input: data, key: createEmptyKey() };
 };
+
+export function parseMouseEvent(data: string): MouseParseResult {
+  const hasSgrMouse = data.includes('\x1b[<');
+  const hasX10Mouse = data.startsWith('\x1b[M') && data.length >= 6;
+
+  if (!hasSgrMouse && !hasX10Mouse) {
+    return { mouse: null, consumed: false };
+  }
+
+  const sgrRegex = /\x1b\[<(\d+);(\d+);(\d+)([Mm])/g;
+  let match: RegExpExecArray | null;
+  let wheelUpCount = 0;
+  let wheelDownCount = 0;
+  let lastMouse: MouseEvent | null = null;
+  let lastX = 0;
+  let lastY = 0;
+
+  while ((match = sgrRegex.exec(data)) !== null) {
+    const button = parseInt(match[1]!, 10);
+    const x = parseInt(match[2]!, 10);
+    const y = parseInt(match[3]!, 10);
+    const isRelease = match[4] === 'm';
+    lastX = x;
+    lastY = y;
+
+    if (button === 64) {
+      wheelUpCount++;
+    } else if (button === 65) {
+      wheelDownCount++;
+    } else if (button >= 32 && button < 64) {
+      lastMouse = { type: 'drag', button: button - 32, x, y };
+    } else if (isRelease) {
+      lastMouse = { type: 'release', button, x, y };
+    } else {
+      lastMouse = { type: 'click', button, x, y };
+    }
+  }
+
+  if (wheelUpCount > 0) {
+    return { mouse: { type: 'wheel-up', button: 64, x: lastX, y: lastY, count: wheelUpCount }, consumed: true };
+  }
+  if (wheelDownCount > 0) {
+    return { mouse: { type: 'wheel-down', button: 65, x: lastX, y: lastY, count: wheelDownCount }, consumed: true };
+  }
+  if (lastMouse) {
+    return { mouse: lastMouse, consumed: true };
+  }
+
+  if (data.length >= 6 && data.startsWith('\x1b[M')) {
+    const rawButton = data.charCodeAt(3) - 32;
+    const x = data.charCodeAt(4) - 32;
+    const y = data.charCodeAt(5) - 32;
+    const button = rawButton & 3;
+
+    if (rawButton === 64) return { mouse: { type: 'wheel-up', button: 64, x, y, count: 1 }, consumed: true };
+    if (rawButton === 65) return { mouse: { type: 'wheel-down', button: 65, x, y, count: 1 }, consumed: true };
+    if (rawButton & 32) return { mouse: { type: 'drag', button, x, y }, consumed: true };
+    if (rawButton === 3) return { mouse: { type: 'release', button, x, y }, consumed: true };
+    return { mouse: { type: 'click', button, x, y }, consumed: true };
+  }
+
+  return { mouse: null, consumed: false };
+}

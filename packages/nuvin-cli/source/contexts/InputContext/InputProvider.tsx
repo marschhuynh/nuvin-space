@@ -1,36 +1,41 @@
 import type React from 'react';
-import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { useStdin, useStdout } from 'ink';
 import { InputContext } from './InputContext.js';
-import { parseKeypress, setKittyProtocolEnabled } from './parseKeypress.js';
-import type { Subscriber, InputMiddleware, InputContextValue, InputHandler, UseInputOptions, Key } from './types.js';
+import { parseKeypress, setKittyProtocolEnabled, parseMouseEvent } from './parseKeypress.js';
+import type {
+  Subscriber,
+  MouseSubscriber,
+  InputMiddleware,
+  InputContextValue,
+  InputHandler,
+  MouseHandler,
+  UseInputOptions,
+  UseMouseOptions,
+  Key,
+  MouseEvent,
+} from './types.js';
 
-// Kitty keyboard protocol escape codes
-// CSI > flags u - push keyboard mode
-// CSI < u - pop keyboard mode
-// Flag 0b1 (1) = Disambiguate escape codes (fixes Shift+Enter, etc.)
 const KITTY_KEYBOARD_ENABLE = '\x1b[>1u';
 const KITTY_KEYBOARD_DISABLE = '\x1b[<u';
 
-// Detect terminals that support Kitty keyboard protocol
+const MOUSE_MODE_ENABLE = '\x1b[?1000h\x1b[?1002h\x1b[?1006h';
+const MOUSE_MODE_DISABLE = '\x1b[?1006l\x1b[?1002l\x1b[?1000l';
+
 function supportsKittyProtocol(): boolean {
   const term = process.env.TERM || '';
   const termProgram = process.env.TERM_PROGRAM || '';
 
-  // Direct Kitty detection
   if (term === 'xterm-kitty' || process.env.KITTY_WINDOW_ID) {
     return true;
   }
 
-  // Other terminals known to support Kitty protocol
-  // See: https://sw.kovidgoyal.net/kitty/keyboard-protocol/
   const supportedTerminals = ['kitty', 'ghostty', 'WezTerm', 'foot', 'rio'];
 
   if (supportedTerminals.some((t) => termProgram.toLowerCase().includes(t.toLowerCase()))) {
     return true;
   }
 
-  // Check KITTY_* env vars
   for (const key of Object.keys(process.env)) {
     if (key.startsWith('KITTY_')) {
       return true;
@@ -61,16 +66,18 @@ export const InputProvider: React.FC<Props> = ({
   const { stdout } = useStdout();
 
   const subscribersRef = useRef<Map<string, Subscriber>>(new Map());
+  const mouseSubscribersRef = useRef<Map<string, MouseSubscriber>>(new Map());
   const middlewareRef = useRef<InputMiddleware[]>(initialMiddleware);
   const idCounterRef = useRef(0);
   const rawModeEnabledRef = useRef(false);
   const kittyProtocolEnabledRef = useRef(false);
+  const mouseEnableCountRef = useRef(0);
+  const [isMouseModeEnabled, setIsMouseModeEnabled] = useState(false);
 
   useEffect(() => {
     middlewareRef.current = initialMiddleware;
   }, [initialMiddleware]);
 
-  // Enable raw mode on mount to ensure middleware can always process input
   useEffect(() => {
     if (isRawModeSupported && !rawModeEnabledRef.current) {
       setRawMode(true);
@@ -85,7 +92,6 @@ export const InputProvider: React.FC<Props> = ({
     };
   }, [isRawModeSupported, setRawMode]);
 
-  // Enable Kitty keyboard protocol on mount
   useEffect(() => {
     const shouldEnable = enableKittyProtocol === true || (enableKittyProtocol === 'auto' && supportsKittyProtocol());
 
@@ -103,6 +109,30 @@ export const InputProvider: React.FC<Props> = ({
       }
     };
   }, [enableKittyProtocol, stdout]);
+
+  const enableMouseMode = useCallback(() => {
+    mouseEnableCountRef.current++;
+    if (mouseEnableCountRef.current === 1 && stdout) {
+      stdout.write(MOUSE_MODE_ENABLE);
+      setIsMouseModeEnabled(true);
+    }
+  }, [stdout]);
+
+  const disableMouseMode = useCallback(() => {
+    mouseEnableCountRef.current = Math.max(0, mouseEnableCountRef.current - 1);
+    if (mouseEnableCountRef.current === 0 && stdout) {
+      stdout.write(MOUSE_MODE_DISABLE);
+      setIsMouseModeEnabled(false);
+    }
+  }, [stdout]);
+
+  useEffect(() => {
+    return () => {
+      if (stdout && mouseEnableCountRef.current > 0) {
+        stdout.write(MOUSE_MODE_DISABLE);
+      }
+    };
+  }, [stdout]);
 
   const subscribe = useCallback(
     (handler: InputHandler, options: UseInputOptions = {}) => {
@@ -123,8 +153,24 @@ export const InputProvider: React.FC<Props> = ({
     [isRawModeSupported, setRawMode],
   );
 
+  const subscribeMouse = useCallback((handler: MouseHandler, options: UseMouseOptions = {}) => {
+    const id = `mouse_sub_${++idCounterRef.current}`;
+    const subscriber: MouseSubscriber = {
+      id,
+      handler,
+      priority: options.priority ?? 0,
+      isActive: options.isActive ?? true,
+    };
+
+    mouseSubscribersRef.current.set(id, subscriber);
+
+    return () => {
+      mouseSubscribersRef.current.delete(id);
+    };
+  }, []);
+
   const updateSubscriber = useCallback((id: string, options: Partial<UseInputOptions>) => {
-    const subscriber = subscribersRef.current.get(id);
+    const subscriber = subscribersRef.current.get(id) || mouseSubscribersRef.current.get(id);
     if (subscriber) {
       if (options.isActive !== undefined) {
         subscriber.isActive = options.isActive;
@@ -156,26 +202,44 @@ export const InputProvider: React.FC<Props> = ({
     }
   }, []);
 
+  const distributeMouse = useCallback((event: MouseEvent) => {
+    const sortedSubscribers = Array.from(mouseSubscribersRef.current.values())
+      .filter((s) => s.isActive)
+      .sort((a, b) => b.priority - a.priority);
+
+    for (const subscriber of sortedSubscribers) {
+      const result = subscriber.handler(event);
+      if (result === true) break;
+    }
+  }, []);
+
   useEffect(() => {
     if (!internal_eventEmitter) return;
 
     const handleInput = (data: string) => {
-      const { input, key } = parseKeypress(data);
+      const { mouse, consumed } = parseMouseEvent(data);
+      if (consumed && mouse) {
+        distributeMouse(mouse);
+      }
 
-      const middleware = middlewareRef.current;
-      let index = 0;
+      if (!consumed) {
+        const { input, key } = parseKeypress(data);
 
-      const next = () => {
-        if (index < middleware.length) {
-          const currentMiddleware = middleware[index];
-          index++;
-          currentMiddleware?.(input, key, next);
-        } else {
-          distributeInput(input, key);
-        }
-      };
+        const middleware = middlewareRef.current;
+        let index = 0;
 
-      next();
+        const next = () => {
+          if (index < middleware.length) {
+            const currentMiddleware = middleware[index];
+            index++;
+            currentMiddleware?.(input, key, next);
+          } else {
+            distributeInput(input, key);
+          }
+        };
+
+        next();
+      }
     };
 
     internal_eventEmitter.on('input', handleInput);
@@ -183,17 +247,21 @@ export const InputProvider: React.FC<Props> = ({
     return () => {
       internal_eventEmitter.off('input', handleInput);
     };
-  }, [internal_eventEmitter, distributeInput]);
+  }, [internal_eventEmitter, distributeInput, distributeMouse]);
 
   const contextValue: InputContextValue = useMemo(
     () => ({
       subscribe,
+      subscribeMouse,
       updateSubscriber,
       addMiddleware,
       setRawMode,
       isRawModeSupported,
+      enableMouseMode,
+      disableMouseMode,
+      isMouseModeEnabled,
     }),
-    [subscribe, updateSubscriber, addMiddleware, setRawMode, isRawModeSupported],
+    [subscribe, subscribeMouse, updateSubscriber, addMiddleware, setRawMode, isRawModeSupported, enableMouseMode, disableMouseMode, isMouseModeEnabled],
   );
 
   return <InputContext.Provider value={contextValue}>{children}</InputContext.Provider>;
