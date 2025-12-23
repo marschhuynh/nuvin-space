@@ -831,7 +831,7 @@ export class AgentOrchestrator {
   private toInvocations(toolCalls: ToolCall[]): ToolInvocation[] {
     return convertToolCalls(toolCalls, {
       strict: this.cfg.strictToolValidation ?? false,
-      throwOnError: true,
+      throwOnError: false,
     });
   }
 }
