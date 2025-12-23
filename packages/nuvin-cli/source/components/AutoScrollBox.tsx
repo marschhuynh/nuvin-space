@@ -97,14 +97,22 @@ export function AutoScrollBox({
 
   const scrollBy = useCallback(
     (delta: number) => {
-      if (!boxRef.current) return;
+      if (!boxRef.current || !contentRef.current) return;
       const currentPos = boxRef.current.getScrollPosition();
       if (!currentPos) return;
       const newY = Math.max(0, currentPos.y + delta);
       boxRef.current.scrollTo({ x: 0, y: newY });
       const actualPos = boxRef.current.getScrollPosition();
-      if (actualPos && actualPos.y > 0) {
-        isUserScrolledRef.current = true;
+      if (actualPos) {
+        const containerDim = measureElement(boxRef.current);
+        const contentDim = measureElement(contentRef.current);
+        const maxScrollY = contentDim.height - containerDim.height;
+        const isAtBottom = actualPos.y >= maxScrollY - 1;
+        if (isAtBottom) {
+          isUserScrolledRef.current = false;
+        } else if (actualPos.y > 0) {
+          isUserScrolledRef.current = true;
+        }
       }
       updateScrollInfo();
     },
