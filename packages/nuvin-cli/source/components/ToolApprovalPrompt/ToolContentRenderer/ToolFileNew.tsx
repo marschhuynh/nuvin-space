@@ -40,7 +40,7 @@ function addLineNumbers(content: string): {
 
 export function FileNewToolContent({ call }: { call: ToolCall }) {
   const args = useMemo(() => parseArgs(call), [call]);
-  const [width] = useStdoutDimensions();
+  const { cols: width } = useStdoutDimensions();
 
   if (!args)
     return (

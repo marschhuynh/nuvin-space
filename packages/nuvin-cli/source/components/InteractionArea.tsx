@@ -8,6 +8,7 @@ import { InputArea, type InputAreaHandle } from './InputArea.js';
 import { useCommand } from '@/modules/commands/hooks/useCommand.js';
 import { useToolApproval } from '@/contexts/ToolApprovalContext.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
+import { useAltMode } from '@/contexts/AltModeContext.js';
 
 type InteractionAreaProps = {
   busy?: boolean;
@@ -52,6 +53,7 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
   const { commands } = useCommand();
   const { pendingApproval, toolApprovalMode, handleApprovalResponse } = useToolApproval();
   const { theme } = useTheme();
+  const { altMode } = useAltMode();
 
   const escStageRef = useRef<'none' | 'armed-clear' | 'armed-stop'>('none');
   const [queuedMessages, setQueuedMessages] = useState<string[]>([]);
@@ -180,7 +182,13 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
       return <ToolApprovalPrompt toolCalls={pendingApproval.toolCalls} onApproval={handleApprovalResponse} />;
 
     case 'command':
-      return <ActiveCommand />;
+      return altMode ? (
+        <Box position="absolute" bottom={0} zIndex={10} backgroundColor={theme.colors.background}>
+          <ActiveCommand />
+        </Box>
+      ) : (
+        <ActiveCommand />
+      );
     default:
       return (
         <Box flexDirection="column" marginTop={2}>

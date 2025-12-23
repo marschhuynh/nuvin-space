@@ -131,7 +131,7 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
   toolResult,
   messageId,
 }) => {
-  const [cols] = useStdoutDimensions();
+  const { cols } = useStdoutDimensions();
   const { theme } = useTheme();
   const { explainMode } = useExplainMode();
 

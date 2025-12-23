@@ -35,7 +35,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
   subAgentMetrics,
 }) => {
   const { theme } = useTheme();
-  const [cols] = useStdoutDimensions();
+  const { cols } = useStdoutDimensions();
   const durationText = formatDuration(toolResult.durationMs);
   const { text, color, statusPosition = 'top' } = getStatusMessage(toolResult, toolCall, theme, subAgentMetrics);
 

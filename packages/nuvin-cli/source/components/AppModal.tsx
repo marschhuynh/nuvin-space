@@ -72,7 +72,7 @@ export const AppModal: FC<AppModalProps> = ({
   height,
   footer,
 }) => {
-  const [cols] = useStdoutDimensions();
+  const { cols } = useStdoutDimensions();
   const { theme: globalTheme } = useTheme();
   const theme = MODAL_THEMES[type];
   const finalBorderColor = borderColor || theme.borderColor;

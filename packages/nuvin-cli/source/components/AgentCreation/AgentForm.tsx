@@ -28,7 +28,7 @@ interface AgentFormProps {
 }
 
 const ResponsiveBox: React.FC<BoxProps & { children: React.ReactNode }> = ({ children, ...rest }) => {
-  const [cols] = useStdoutDimensions();
+  const { cols } = useStdoutDimensions();
 
   return (
     <Box flexDirection={cols < 80 ? 'column' : 'row'} gap={2} {...rest}>
@@ -53,7 +53,7 @@ export const AgentForm: React.FC<AgentFormProps> = ({
   onFieldSubmit,
   onToolsChange,
 }) => {
-  const [cols] = useStdoutDimensions();
+  const { cols } = useStdoutDimensions();
   const { theme } = useTheme();
 
   const editingTitle = mode === 'edit' ? 'Edit Agent' : 'Edit Generated Agent';

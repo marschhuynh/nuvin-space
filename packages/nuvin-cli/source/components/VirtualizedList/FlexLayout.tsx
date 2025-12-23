@@ -43,7 +43,7 @@ export function FlexLayout({
   });
 
   return (
-    <Box flexDirection="column" width={width} height={height} padding={1}>
+    <Box flexDirection="column" width={width} height={height} paddingX={1}>
       <Box flexDirection="column" flexGrow={1} flexShrink={1} overflow="hidden">
         <AutoScrollBox maxHeight={'100%'} mousePriority={10}>
           <WelcomeLogo key={`welcome-${headerKey}`} recentSessions={sessions ?? []} />

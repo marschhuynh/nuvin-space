@@ -21,7 +21,7 @@ type MessageLineProps = {
 };
 
 const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundColor, liveMessage = false }) => {
-  const [cols, rows] = useStdoutDimensions();
+  const { cols, rows } = useStdoutDimensions();
   const { theme } = useTheme();
   const isStreaming = message.metadata?.isStreaming === true;
   const streamingContent = message.content;

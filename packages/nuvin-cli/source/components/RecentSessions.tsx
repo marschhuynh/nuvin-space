@@ -10,8 +10,6 @@ type RecentSessionsProps = {
   recentSessions: SessionInfo[];
 };
 
-
-
 const version = getVersion();
 const ICON_2 = `╭──┴──┴──┴──┴──┴──╮
 │  ●  ●  ● ─────  │
@@ -20,7 +18,7 @@ const ICON_2 = `╭──┴──┴──┴──┴──┴──╮
 ╰──┬──┬──┬──┬──┬──╯`;
 
 const WelcomeLogo = ({ recentSessions }: { recentSessions: SessionInfo[] }) => {
-  const [cols, _rows] = useStdoutDimensions();
+  const { cols } = useStdoutDimensions();
 
   return (
     <Box flexDirection="row" padding={0} width={cols} marginTop={1} marginBottom={4}>
@@ -39,7 +37,7 @@ const WelcomeLogo = ({ recentSessions }: { recentSessions: SessionInfo[] }) => {
 // Recent sessions list component
 const RecentSessions = ({ recentSessions }: RecentSessionsProps) => {
   const { theme } = useTheme();
-  const [cols, _rows] = useStdoutDimensions();
+  const { cols } = useStdoutDimensions();
 
   return (
     <Box flexDirection="column" width={cols}>

@@ -42,7 +42,7 @@ type Props = {
 
 export default function App({ apiKey: _apiKey, memPersist = false, historyPath, initialSessions }: Props) {
   const { explainMode } = useExplainMode();
-  const [cols, _rows] = useStdoutDimensions();
+  const { cols } = useStdoutDimensions();
   const { messages, clearMessages, setLines, appendLine, updateLine, updateLineMetadata, handleError } = useMessages();
   const [busy, setBusy] = useState(false);
   const [metrics, setMetrics] = useState<MetricsSnapshot>(createEmptySnapshot());

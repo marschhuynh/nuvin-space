@@ -20,7 +20,7 @@ export const Markdown: React.FC<MarkdownProps> = ({
   reflowText = true,
   maxWidth,
 }) => {
-  const [cols] = useStdoutDimensions();
+  const { cols } = useStdoutDimensions();
 
   const rendererConfig = useMemo(
     () => ({

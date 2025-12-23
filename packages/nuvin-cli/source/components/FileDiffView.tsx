@@ -245,7 +245,7 @@ type DiffLineViewProps = {
 };
 
 export function DiffLineView({ line, lineNumWidth = 3 }: DiffLineViewProps) {
-  const [cols] = useStdoutDimensions();
+  const { cols } = useStdoutDimensions();
   const lineNum = line.oldLineNum || line.newLineNum || 0;
   const lineNumStr = `${String(lineNum).padStart(lineNumWidth, ' ')}│ `;
 

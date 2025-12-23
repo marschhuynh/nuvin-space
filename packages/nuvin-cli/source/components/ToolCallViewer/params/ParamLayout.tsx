@@ -9,7 +9,7 @@ type ParamLayoutProps = {
 };
 
 export const ParamLayout: React.FC<ParamLayoutProps> = ({ statusColor, children }) => {
-  const [cols] = useStdoutDimensions();
+  const { cols } = useStdoutDimensions();
 
   if (!children) return null;
 

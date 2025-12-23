@@ -146,7 +146,7 @@ const VISIBLE_ITEMS = 7;
 
 export const HistorySelection: React.FC<HistorySelectionProps> = ({ availableSessions }) => {
   const { theme } = useTheme();
-  const [cols, _rows] = useStdoutDimensions();
+  const { cols } = useStdoutDimensions();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const lastSelectedRef = useRef<string | null>(null);
 
@@ -203,9 +203,7 @@ export const HistorySelection: React.FC<HistorySelectionProps> = ({ availableSes
                 setTimeout(() => setSelectedIndex(itemIndex), 0);
               }
             }
-            return (
-              <SessionItem cols={cols - 2} item={props.value} isSelected={!!props.isSelected} />
-            );
+            return <SessionItem cols={cols - 2} item={props.value} isSelected={!!props.isSelected} />;
           }}
           onSelect={(item) => eventBus.emit('ui:history:selected', item.value)}
         />

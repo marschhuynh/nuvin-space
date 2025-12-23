@@ -14,12 +14,12 @@ const DEFAULT_ROWS = 24;
 
 const StdoutDimensionsContext = createContext<StdoutDimensions>({ cols: DEFAULT_COLS, rows: DEFAULT_ROWS });
 
-export function StdoutDimensionsProvider({ children }: { children: React.ReactNode }) {
+export function StdoutDimensionsProvider({ children, altMode }: { children: React.ReactNode; altMode?: boolean }) {
   const { stdout } = useStdout();
   const [dimensions, setDimensions] = useState<StdoutDimensions>(() => {
     // Validate initial dimensions
-    const cols = Math.max(MIN_COLS, Math.min(stdout.columns || DEFAULT_COLS, 1000));
-    const rows = Math.max(MIN_ROWS, Math.min(stdout.rows || DEFAULT_ROWS, 1000));
+    const cols = Math.max(MIN_COLS, Math.min(stdout.columns || DEFAULT_COLS, 1000)) - (altMode ? 2 : 0);
+    const rows = Math.max(MIN_ROWS, Math.min(stdout.rows || DEFAULT_ROWS, 1000)) - (altMode ? 2 : 0);
     return { cols, rows };
   });
 
@@ -38,7 +38,7 @@ export function StdoutDimensionsProvider({ children }: { children: React.ReactNo
           if (prev.cols === validCols && prev.rows === validRows) {
             return prev;
           }
-          return { cols: validCols, rows: validRows };
+          return { cols: validCols - (altMode ? 2 : 0), rows: validRows };
         });
       } catch (error) {
         // Fallback to safe defaults if any error occurs during resize
@@ -57,12 +57,12 @@ export function StdoutDimensionsProvider({ children }: { children: React.ReactNo
     return () => {
       stdout.off('resize', handleResize);
     };
-  }, [stdout]);
+  }, [stdout, altMode]);
 
   return <StdoutDimensionsContext.Provider value={dimensions}>{children}</StdoutDimensionsContext.Provider>;
 }
 
-export function useStdoutDimensionsContext(): [number, number] {
+export function useStdoutDimensionsContext(): { cols: number; rows: number } {
   const { cols, rows } = useContext(StdoutDimensionsContext);
-  return [cols, rows];
+  return { cols, rows };
 }

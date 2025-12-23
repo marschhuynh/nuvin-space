@@ -81,6 +81,8 @@ export function AutoScrollBox({
     contentHeight: 0,
   });
 
+  const needsScrollbar = showScrollbar && scrollInfo.contentHeight > scrollInfo.containerHeight;
+
   const updateScrollInfo = useCallback(() => {
     if (!boxRef.current || !contentRef.current) return;
     const pos = boxRef.current.getScrollPosition();
@@ -124,7 +126,7 @@ export function AutoScrollBox({
     [scrollBy, scrollStep],
   );
 
-  useMouse(handleMouseEvent, { isActive: enableMouseScroll, priority: mousePriority });
+  useMouse(handleMouseEvent, { isActive: enableMouseScroll && needsScrollbar, priority: mousePriority });
 
   useEffect(() => {
     if (prevChildrenRef.current !== children) {
@@ -135,8 +137,6 @@ export function AutoScrollBox({
     }
     updateScrollInfo();
   }, [children, updateScrollInfo]);
-
-  const needsScrollbar = showScrollbar && scrollInfo.contentHeight > scrollInfo.containerHeight;
 
   return (
     <Box flexDirection="row" {...(maxHeight !== undefined ? { maxHeight } : {})} overflow="hidden">

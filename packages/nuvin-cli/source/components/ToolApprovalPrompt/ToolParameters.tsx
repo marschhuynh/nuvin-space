@@ -12,7 +12,7 @@ type ToolParametersProps = {
 
 export const ToolParameters: React.FC<ToolParametersProps> = ({ toolCall }) => {
   const { theme } = useTheme();
-  const [, rows] = useStdoutDimensions();
+  const { rows } = useStdoutDimensions();
 
   const formatToolArguments = (call: ToolCall) => {
     try {

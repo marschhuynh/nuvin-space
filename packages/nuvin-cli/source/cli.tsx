@@ -23,6 +23,7 @@ import { ConfigManager, type CLIConfig, type ProviderKey } from './config/index.
 import { ConfigCliHandler } from './config/cli-handler.js';
 import { orchestratorManager } from './services/OrchestratorManager.js';
 import ansiEscapes from 'ansi-escapes';
+import { AltModeProvider } from './contexts/AltModeContext.js';
 
 process.stdout.write('\x1b[?2004h');
 
@@ -392,32 +393,34 @@ const cli = meow(
 
   const { waitUntilExit } = render(
     <ThemeProvider>
-      <StdoutDimensionsProvider>
-        <InputProvider middleware={defaultMiddleware}>
-          <ConfigProvider initialConfig={mergedConfig}>
-            <NotificationProvider>
-              <ToolApprovalProvider
-                orchestratorManager={orchestratorManager}
-                requireToolApproval={finalRequireToolApproval}
-                onError={(msg) => console.error(msg)}
-              >
-                <CommandProvider>
-                  <ExplainModeProvider>
-                    <ConfigBridge>
-                      <App
-                        memPersist={finalMemPersist}
-                        thinking={thinkingSetting}
-                        historyPath={historyPath}
-                        initialSessions={initialSessions}
-                      />
-                    </ConfigBridge>
-                  </ExplainModeProvider>
-                </CommandProvider>
-              </ToolApprovalProvider>
-            </NotificationProvider>
-          </ConfigProvider>
-        </InputProvider>
-      </StdoutDimensionsProvider>
+      <AltModeProvider altMode={cli.flags.alt}>
+        <StdoutDimensionsProvider altMode={cli.flags.alt}>
+          <InputProvider middleware={defaultMiddleware}>
+            <ConfigProvider initialConfig={mergedConfig}>
+              <NotificationProvider>
+                <ToolApprovalProvider
+                  orchestratorManager={orchestratorManager}
+                  requireToolApproval={finalRequireToolApproval}
+                  onError={(msg) => console.error(msg)}
+                >
+                  <CommandProvider>
+                    <ExplainModeProvider>
+                      <ConfigBridge>
+                        <App
+                          memPersist={finalMemPersist}
+                          thinking={thinkingSetting}
+                          historyPath={historyPath}
+                          initialSessions={initialSessions}
+                        />
+                      </ConfigBridge>
+                    </ExplainModeProvider>
+                  </CommandProvider>
+                </ToolApprovalProvider>
+              </NotificationProvider>
+            </ConfigProvider>
+          </InputProvider>
+        </StdoutDimensionsProvider>
+      </AltModeProvider>
     </ThemeProvider>,
     {
       exitOnCtrlC: false,
