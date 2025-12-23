@@ -1,5 +1,13 @@
 # @nuvin/nuvin-core
 
+## 1.9.4
+
+### Patch Changes
+
+- [`59a4717`](https://github.com/marschhuynh/nuvin-space/commit/59a4717de2688be1f2e1e1a9f18ecbbb9bc0fcbf) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Improve BashTool cleanup with proper timer clearing, event listener removal, and comprehensive finally block to prevent resource leaks.
+
+- [`59a4717`](https://github.com/marschhuynh/nuvin-space/commit/59a4717de2688be1f2e1e1a9f18ecbbb9bc0fcbf) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add Windows platform support for BashTool with platform-specific process killing and detached process spawning.
+
 ## 1.9.3
 
 ### Patch Changes
