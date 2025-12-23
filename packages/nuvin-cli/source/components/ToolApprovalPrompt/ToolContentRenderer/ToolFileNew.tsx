@@ -53,9 +53,6 @@ export function FileNewToolContent({ call }: { call: ToolCall }) {
 
   return (
     <Box flexDirection="column" marginTop={1} width={width - 8} overflow="hidden">
-      <Box marginBottom={1}>
-        <Text bold color="cyan"># {args.file_path}</Text>
-      </Box>
       {lines.map((line) => (
         <Box key={`${line.lineNumber}-${line.content.slice(0, 20)}`}>
           <Box flexWrap="nowrap" width={lineNumberWidth + 1}>

@@ -37,7 +37,7 @@ const MODAL_THEMES: Record<AppModalType, ModalTheme> = {
 
 export interface AppModalProps {
   visible: boolean;
-  title?: string;
+  title?: string | ReactNode;
   rightTitle?: string | ReactNode;
   footer?: string | ReactNode;
   type?: AppModalType;
@@ -106,9 +106,12 @@ export const AppModal: FC<AppModalProps> = ({
         justifyContent="space-between"
       >
         {title ? (
-          <Text color={finalTitleColor} bold>
-            {` + ${title}`}
-          </Text>
+          <Box>
+            <Text color={finalTitleColor}>{` + `}</Text>
+            <Text color={finalTitleColor} bold>
+              {title}
+            </Text>
+          </Box>
         ) : null}
 
         {rightTitle ? (

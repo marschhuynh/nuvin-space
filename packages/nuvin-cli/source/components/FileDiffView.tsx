@@ -322,7 +322,7 @@ type FileDiffViewProps = {
   lineNumbers?: LineNumbers;
 };
 
-export function FileDiffView({ blocks, filePath, showPath = true, lineNumbers }: FileDiffViewProps) {
+export function FileDiffView({ blocks, filePath, showPath = false, lineNumbers }: FileDiffViewProps) {
   return (
     <Box flexDirection="column">
       {showPath && filePath && (

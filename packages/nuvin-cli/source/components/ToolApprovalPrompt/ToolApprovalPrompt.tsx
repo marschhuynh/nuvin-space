@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Box, Text } from 'ink';
 import { useInput } from '@/contexts/InputContext/index.js';
 import type { ToolCall, ToolApprovalDecision } from '@nuvin/nuvin-core';
@@ -27,6 +27,30 @@ export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
 
   const currentTool = toolCalls[currentToolIndex];
   const isLastTool = currentToolIndex === toolCalls.length - 1;
+
+  const toolTitle = useMemo(() => {
+    const toolName = currentTool.function.name;
+
+    if (toolName === 'file_new' || toolName === 'file_edit') {
+      try {
+        const args = JSON.parse(currentTool.function.arguments) as { file_path?: string };
+        if (args.file_path) {
+          return (
+            <>
+              <Text bold>{`${toolName}: `}</Text>
+              <Text bold={false} color={theme.colors.info}>
+                {args.file_path}
+              </Text>
+            </>
+          );
+        }
+      } catch {
+        // Fall through to default
+      }
+    }
+
+    return toolName;
+  }, [currentTool]);
 
   const handleEditSubmit = () => {
     if (editValue.trim().length === 0) return;
@@ -151,7 +175,7 @@ export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
   return (
     <AppModal
       visible
-      title={currentTool.function.name}
+      title={<Text>{toolTitle}</Text>}
       footer={
         <Box marginLeft={1}>
           <Text color={theme.toolApproval.description} dimColor>
