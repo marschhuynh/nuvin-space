@@ -1,5 +1,11 @@
 # @nuvin/nuvin-core
 
+## 1.9.3
+
+### Patch Changes
+
+- [`1844522`](https://github.com/marschhuynh/nuvin-space/commit/1844522d698a177bd0a54e1877904701b2fa2da7) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add support for Zai's glm-4.7 model with context window of 200k and max output of 128k tokens.
+
 ## 1.9.2
 
 ### Patch Changes
