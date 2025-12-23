@@ -60,7 +60,11 @@ function DemoDisplay({ messages, metadata, messageCount }: DemoProps) {
     <ThemeProvider>
       <ConfigProvider initialConfig={mockConfig}>
         <NotificationProvider>
-          <ToolApprovalProvider orchestratorManager={null} requireToolApproval={false} onError={(msg) => console.error(msg)}>
+          <ToolApprovalProvider
+            orchestratorManager={null}
+            requireToolApproval={false}
+            onError={(msg) => console.error(msg)}
+          >
             <CommandProvider>
               <DemoDisplayContent messages={messages} metadata={metadata} messageCount={messageCount} />
             </CommandProvider>

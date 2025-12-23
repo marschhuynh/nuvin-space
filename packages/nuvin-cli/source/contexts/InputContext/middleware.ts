@@ -19,7 +19,7 @@ export const pasteDetectionMiddleware: InputMiddleware = (input, key, next) => {
 };
 
 export const explainToggleMiddleware: InputMiddleware = (input, key, next) => {
-  if (key.ctrl && input === 'e') {
+  if (key.ctrl && input === 'b') {
     eventBus.emit('ui:keyboard:explainToggle', '');
     return;
   }

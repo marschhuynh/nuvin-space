@@ -27,6 +27,8 @@ const createEmptyKey = (): Key => ({
   rightArrow: false,
   pageDown: false,
   pageUp: false,
+  home: false,
+  end: false,
   return: false,
   escape: false,
   ctrl: false,
@@ -236,6 +238,8 @@ export const parseKeypress = (data: string): ParseResult => {
     else if (name === 'right') key.rightArrow = true;
     else if (name === 'pageup') key.pageUp = true;
     else if (name === 'pagedown') key.pageDown = true;
+    else if (name === 'home') key.home = true;
+    else if (name === 'end') key.end = true;
     else if (name === 'return') key.return = true;
     else if (name === 'escape') key.escape = true;
     else if (name === 'tab') key.tab = true;

@@ -139,11 +139,31 @@ function TextInput({
 
       if (key.leftArrow) {
         if (showCursor) {
-          moveCursor(currentCursorOffset - 1);
+          if (key.meta) {
+            const lineInfo = getLineInfo(currentValue, currentCursorOffset);
+            moveCursor(lineInfo.lineStart);
+          } else {
+            moveCursor(currentCursorOffset - 1);
+          }
         }
       } else if (key.rightArrow) {
         if (showCursor) {
-          moveCursor(currentCursorOffset + 1);
+          if (key.meta) {
+            const lineInfo = getLineInfo(currentValue, currentCursorOffset);
+            moveCursor(lineInfo.lineEnd);
+          } else {
+            moveCursor(currentCursorOffset + 1);
+          }
+        }
+      } else if (key.home || (key.ctrl && input === 'a')) {
+        if (showCursor) {
+          const lineInfo = getLineInfo(currentValue, currentCursorOffset);
+          moveCursor(lineInfo.lineStart);
+        }
+      } else if (key.end || (key.ctrl && input === 'e')) {
+        if (showCursor) {
+          const lineInfo = getLineInfo(currentValue, currentCursorOffset);
+          moveCursor(lineInfo.lineEnd);
         }
       } else if (key.upArrow) {
         if (!showCursor) {

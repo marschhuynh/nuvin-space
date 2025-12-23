@@ -5,6 +5,8 @@ export type Key = {
   rightArrow: boolean;
   pageDown: boolean;
   pageUp: boolean;
+  home: boolean;
+  end: boolean;
   return: boolean;
   escape: boolean;
   ctrl: boolean;
