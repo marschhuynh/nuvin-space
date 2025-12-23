@@ -1,5 +1,38 @@
 # @nuvin/nuvin-cli
 
+## 1.21.0
+
+### Minor Changes
+
+- [`1844522`](https://github.com/marschhuynh/nuvin-space/commit/1844522d698a177bd0a54e1877904701b2fa2da7) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Introduce registry-based tool approval renderer system for flexible parameter display; add file path visibility to file_edit and file_new tools.
+
+### Patch Changes
+
+- [`461a39d`](https://github.com/marschhuynh/nuvin-space/commit/461a39d6f70e16f438de5b023d6d13903786a748) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Improve agent creation form validation and UX; add focus handling and clearer error messages.
+
+- [`c9964f5`](https://github.com/marschhuynh/nuvin-space/commit/c9964f51756e6000ed29baab2f7d45487131c90a) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Expose mousePriority to AutoScrollBox used in VirtualizedList and ToolParameters to improve mouse interaction handling.
+
+- [`026e708`](https://github.com/marschhuynh/nuvin-space/commit/026e7088a903768bd6f65695488bbbb593ffcb2a) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Change explain toggle shortcut from Ctrl+E to Ctrl+B in InputContext middleware; update demo-mode formatting.
+
+- [`1844522`](https://github.com/marschhuynh/nuvin-space/commit/1844522d698a177bd0a54e1877904701b2fa2da7) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add support for Zai's glm-4.7 model with context window of 200k and max output of 128k tokens.
+
+- [`026e708`](https://github.com/marschhuynh/nuvin-space/commit/026e7088a903768bd6f65695488bbbb593ffcb2a) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add Home/End navigation and meta/ctrl shortcuts to TextInput; update parseKeypress and types to recognize `home` and `end` keys.
+
+- [`461a39d`](https://github.com/marschhuynh/nuvin-space/commit/461a39d6f70e16f438de5b023d6d13903786a748) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Expose better stdout dimension handling and update StdoutDimensionsContext to reflect terminal resizes more reliably.
+
+- [`1844522`](https://github.com/marschhuynh/nuvin-space/commit/1844522d698a177bd0a54e1877904701b2fa2da7) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Clean up formatting in Markdown test snapshot.
+
+- [`1844522`](https://github.com/marschhuynh/nuvin-space/commit/1844522d698a177bd0a54e1877904701b2fa2da7) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Simplify ToolCallViewer by hiding pending approval tools and using parseToolArguments from nuvin-core.
+
+- [`461a39d`](https://github.com/marschhuynh/nuvin-space/commit/461a39d6f70e16f438de5b023d6d13903786a748) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Adjust tool parameter layout and spacing for better readability in ToolCallViewer and ToolParameters components.
+
+- [`461a39d`](https://github.com/marschhuynh/nuvin-space/commit/461a39d6f70e16f438de5b023d6d13903786a748) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Improve stdout sizing and virtualized list layout to better handle dynamic terminal sizes and varying message heights. This reduces visual clipping and improves scroll behavior.
+
+- [`461a39d`](https://github.com/marschhuynh/nuvin-space/commit/461a39d6f70e16f438de5b023d6d13903786a748) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix markdown renderer behavior for edge-case inputs, preventing incorrect inline code highlighting and improving line wrapping.
+
+- Updated dependencies [[`1844522`](https://github.com/marschhuynh/nuvin-space/commit/1844522d698a177bd0a54e1877904701b2fa2da7)]:
+  - @nuvin/nuvin-core@1.9.3
+
 ## 1.20.2
 
 ### Patch Changes
