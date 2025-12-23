@@ -1,6 +1,6 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
-import { type ToolCall, type ToolExecutionResult, ErrorReason } from '@nuvin/nuvin-core';
+import { type ToolCall, type ToolExecutionResult, ErrorReason, parseToolArguments } from '@nuvin/nuvin-core';
 import type { MessageLine as MessageLineType } from '@/adapters/index.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import { useExplainMode } from '@/contexts/ExplainModeContext.js';
@@ -23,15 +23,9 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
 
   const isAwaitingApproval = pendingApproval?.toolCalls.some((tc) => tc.id === toolCall.id) ?? false;
 
-  const parseArguments = (tc: ToolCall): Record<string, unknown> => {
-    try {
-      return typeof tc.function.arguments === 'string'
-        ? JSON.parse(tc.function.arguments)
-        : tc.function.arguments || {};
-    } catch {
-      return {};
-    }
-  };
+  if (isAwaitingApproval) {
+    return null;
+  }
 
   const formatValue = (value: unknown): string => {
     if (typeof value === 'string') return value;
@@ -41,7 +35,7 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
     return String(value);
   };
 
-  const args = parseArguments(toolCall);
+  const args = parseToolArguments(toolCall.function.arguments);
   const finalDuration = toolResult?.metadata?.duration;
   const toolExecutionResult = toolResult?.metadata?.toolResult as ToolExecutionResult | undefined;
   const isDenied =
@@ -82,8 +76,6 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
 
   const ParamRenderer = getParameterRenderer();
 
-  const displayParameters = !isAwaitingApproval || toolName === 'file_new' || toolName === 'file_edit';
-
   return (
     <Box flexDirection="column">
       <Box flexDirection="row">
@@ -95,21 +87,17 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
         <Text bold>{displayName}</Text>
       </Box>
 
-      {displayParameters && (
-        <ParamRenderer toolCall={toolCall} args={args} statusColor={statusColor} formatValue={formatValue} />
-      )}
+      <ParamRenderer toolCall={toolCall} args={args} statusColor={statusColor} formatValue={formatValue} />
 
       {!hasResult && !isDenied && !isEdited && (
         <Box flexDirection="row" marginLeft={2}>
           <Text dimColor color={statusColor}>
             ╰─{' '}
           </Text>
-          <Text>{isAwaitingApproval ? 'Awaiting approval ...' : 'Running ...'}</Text>
-          {!isAwaitingApproval && (
-            <Box marginLeft={1}>
-              <ToolTimer hasResult={hasResult} finalDuration={finalDuration} />
-            </Box>
-          )}
+          <Text>Running ...</Text>
+          <Box marginLeft={1}>
+            <ToolTimer hasResult={hasResult} finalDuration={finalDuration} />
+          </Box>
         </Box>
       )}
 

@@ -81,6 +81,5 @@ Successfully removed the --require-approval CLI flag:
     * Runtime /sudo command
   * No CLI bypass for disabling tool approval anymore
 
-The build completed successfully and the help output no longer shows the
-removed flag."
+The build completed successfully and the help output no longer shows the removed flag."
 `;

@@ -34,7 +34,7 @@ const DEFAULT_MODELS: Record<string, string[]> = {
   openrouter: ['openai/gpt-4o', 'openai/gpt-4o-mini'],
   deepinfra: ['meta-llama/Meta-Llama-3.1-70B-Instruct', 'meta-llama/Meta-Llama-3.1-8B-Instruct'],
   github: ['claude-sonnet-4.5', 'gpt-4.1', 'gpt-5', 'gpt-5-mini', 'grok-code-fast-1', 'claude-sonnet-4'],
-  zai: ['glm-4.6', 'glm-4.5'],
+  zai: ['glm-4.7', 'glm-4.6', 'glm-4.5'],
   moonshot: ['kimi-latest', 'kimi-k2-thinking'],
   lmstudio: [],
   anthropic: ['claude-sonnet-4-5', 'claude-haiku-4-5', 'claude-sonnet-4'],

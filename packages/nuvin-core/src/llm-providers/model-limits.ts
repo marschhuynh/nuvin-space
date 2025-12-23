@@ -63,6 +63,7 @@ export function normalizeModelLimits(provider: string, model: RawModelResponse):
 
 const FALLBACK_LIMITS: Record<string, Record<string, ModelLimits>> = {
   zai: {
+    'glm-4.7': { contextWindow: 200000, maxOutput: 128000 },
     'glm-4.6': { contextWindow: 200000, maxOutput: 128000 },
   },
   openrouter: {

@@ -35,7 +35,7 @@ export function FileEditToolContent({ call }: { call: ToolCall }) {
       blocks={[{ search: args.old_text, replace: args.new_text }]}
       filePath={args.file_path}
       lineNumbers={lineNumbers}
-      showPath={false}
+      showPath={true}
     />
   );
 }
