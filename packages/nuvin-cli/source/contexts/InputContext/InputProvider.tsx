@@ -47,12 +47,24 @@ function supportsKittyProtocol(): boolean {
 
 type Props = {
   children: React.ReactNode;
+  stdout?: NodeJS.WriteStream;
   middleware?: InputMiddleware[];
   enableKittyProtocol?: boolean | 'auto';
 };
 
+/**
+ * InputProvider manages keyboard and mouse input distribution to subscribers.
+ *
+ * Features:
+ * - Priority-based event distribution (higher priority = executed first)
+ * - Auto-incrementing priority for declarative component order
+ * - Middleware chain for preprocessing input
+ * - Optional Kitty Protocol support for enhanced keyboard input
+ * - Mouse mode support with reference counting
+ */
 export const InputProvider: React.FC<Props> = ({
   children,
+  stdout: externalStdout,
   middleware: initialMiddleware = [],
   enableKittyProtocol = 'auto',
 }) => {
@@ -63,12 +75,15 @@ export const InputProvider: React.FC<Props> = ({
     internal_eventEmitter,
   } = useStdin() as ReturnType<typeof useStdin> & { internal_eventEmitter: import('node:events').EventEmitter };
 
-  const { stdout } = useStdout();
+  const { stdout: _stdout } = useStdout();
+
+  const stdout = externalStdout || _stdout;
 
   const subscribersRef = useRef<Map<string, Subscriber>>(new Map());
   const mouseSubscribersRef = useRef<Map<string, MouseSubscriber>>(new Map());
   const middlewareRef = useRef<InputMiddleware[]>(initialMiddleware);
   const idCounterRef = useRef(0);
+  const priorityStackCounterRef = useRef(0);
   const rawModeEnabledRef = useRef(false);
   const kittyProtocolEnabledRef = useRef(false);
   const mouseEnableCountRef = useRef(0);
@@ -134,31 +149,48 @@ export const InputProvider: React.FC<Props> = ({
     };
   }, [stdout]);
 
-  const subscribe = useCallback(
-    (handler: InputHandler, options: UseInputOptions = {}) => {
-      const id = `input_sub_${++idCounterRef.current}`;
-      const subscriber: Subscriber = {
-        id,
-        handler,
-        priority: options.priority ?? 0,
-        isActive: options.isActive ?? true,
-      };
+  /**
+   * Subscribe to keyboard input events.
+   *
+   * Priority system:
+   * - If priority is explicitly set, that value is used
+   * - If not set, priority auto-increments (later registrations = higher priority)
+   * - This means components lower in the tree naturally take precedence
+   *
+   * @param handler - Function to handle input events
+   * @param options - Configuration options (isActive, priority)
+   * @returns Unsubscribe function
+   */
+  const subscribe = useCallback((handler: InputHandler, options: UseInputOptions = {}) => {
+    const id = `input_sub_${++idCounterRef.current}`;
+    const priority = options.priority ?? ++priorityStackCounterRef.current;
 
-      subscribersRef.current.set(id, subscriber);
+    const subscriber: Subscriber = {
+      id,
+      handler,
+      priority,
+      isActive: options.isActive ?? true,
+    };
 
-      return () => {
-        subscribersRef.current.delete(id);
-      };
-    },
-    [isRawModeSupported, setRawMode],
-  );
+    subscribersRef.current.set(id, subscriber);
 
+    return () => {
+      subscribersRef.current.delete(id);
+    };
+  }, []);
+
+  /**
+   * Subscribe to mouse events.
+   * Uses same priority system as keyboard input.
+   */
   const subscribeMouse = useCallback((handler: MouseHandler, options: UseMouseOptions = {}) => {
     const id = `mouse_sub_${++idCounterRef.current}`;
+    const priority = options.priority ?? ++priorityStackCounterRef.current;
+
     const subscriber: MouseSubscriber = {
       id,
       handler,
-      priority: options.priority ?? idCounterRef.current,
+      priority,
       isActive: options.isActive ?? true,
     };
 
@@ -191,6 +223,10 @@ export const InputProvider: React.FC<Props> = ({
     };
   }, []);
 
+  /**
+   * Distribute input to all active subscribers in priority order.
+   * Stops when a handler returns true.
+   */
   const distributeInput = useCallback((input: string, key: Key) => {
     const sortedSubscribers = Array.from(subscribersRef.current.values())
       .filter((s) => s.isActive)
@@ -202,6 +238,10 @@ export const InputProvider: React.FC<Props> = ({
     }
   }, []);
 
+  /**
+   * Distribute mouse events to all active subscribers in priority order.
+   * Stops when a handler returns true.
+   */
   const distributeMouse = useCallback((event: MouseEvent) => {
     const sortedSubscribers = Array.from(mouseSubscribersRef.current.values())
       .filter((s) => s.isActive)
@@ -220,26 +260,25 @@ export const InputProvider: React.FC<Props> = ({
       const { mouse, consumed } = parseMouseEvent(data);
       if (consumed && mouse) {
         distributeMouse(mouse);
+        return;
       }
 
-      if (!consumed) {
-        const { input, key } = parseKeypress(data);
+      const { input, key } = parseKeypress(data);
 
-        const middleware = middlewareRef.current;
-        let index = 0;
+      const middleware = middlewareRef.current;
+      let index = 0;
 
-        const next = () => {
-          if (index < middleware.length) {
-            const currentMiddleware = middleware[index];
-            index++;
-            currentMiddleware?.(input, key, next);
-          } else {
-            distributeInput(input, key);
-          }
-        };
+      const next = () => {
+        if (index < middleware.length) {
+          const currentMiddleware = middleware[index];
+          index++;
+          currentMiddleware?.(input, key, next);
+        } else {
+          distributeInput(input, key);
+        }
+      };
 
-        next();
-      }
+      next();
     };
 
     internal_eventEmitter.on('input', handleInput);

@@ -4,4 +4,13 @@ export { useInput } from './useInput.js';
 export { useMouse } from './useMouse.js';
 export { ctrlCMiddleware, pasteDetectionMiddleware, explainToggleMiddleware, defaultMiddleware } from './middleware.js';
 export { setKittyProtocolEnabled, isKittyProtocolEnabled } from './parseKeypress.js';
-export type { Key, InputHandler, InputMiddleware, UseInputOptions, InputContextValue, MouseEvent, MouseHandler, UseMouseOptions } from './types.js';
+export type { 
+  Key, 
+  InputHandler, 
+  InputMiddleware, 
+  UseInputOptions, 
+  InputContextValue, 
+  MouseEvent, 
+  MouseHandler,
+  UseMouseOptions,
+} from './types.js';

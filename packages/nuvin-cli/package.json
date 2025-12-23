@@ -35,7 +35,6 @@
 		"clean": "rm -rf dist",
 		"dev": "tsup --watch",
 		"run:dev": "npx tsx source/cli.tsx",
-		"run:demo": "npx tsx source/cli.tsx",
 		"run:scroll": "npx tsx source/position-demo.tsx",
 		"run:prod": "node dist/cli.js",
 		"test": "vitest run",

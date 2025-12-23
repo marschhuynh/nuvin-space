@@ -45,7 +45,7 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({ toolCall }) => {
   const maxHeight = Math.max(5, rows - 20);
 
   return (
-    <AutoScrollBox maxHeight={maxHeight}>
+    <AutoScrollBox maxHeight={maxHeight} mousePriority={100}>
       {toolCall.function.name !== 'file_edit' && toolCall.function.name !== 'file_new' && (
         <Box flexDirection="column">
           <Box>
