@@ -103,6 +103,7 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
     const execArgs = this.shellArgs(cmd, executable);
 
     let child: ReturnType<typeof spawn>;
+    const isWindows = os.platform() === 'win32';
     try {
       child = spawn(executable, execArgs, {
         cwd,
@@ -110,6 +111,7 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
         stdio: ['ignore', 'pipe', 'pipe'],
         shell: false,
         windowsHide: true,
+        detached: !isWindows,
       });
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
@@ -118,19 +120,25 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
       throw error;
     }
 
-    child.on('error', (err) => {
+    child.once('error', (err) => {
       if ('code' in err && err.code === 'ENOENT') {
-        child.emit('close', -1, null);
+        if (!child.killed) {
+          child.emit('close', -1, null);
+        }
       }
     });
 
     let timer: NodeJS.Timeout | null = null;
+    let abortKillTimer: NodeJS.Timeout | null = null;
+    let abortHandler: (() => void) | null = null;
     let timedOut = false;
+    let truncated = false;
+
     const deadline = new Promise<never>((_, rej) => {
       timer = setTimeout(() => {
         timedOut = true;
         try {
-          child.kill('SIGKILL');
+          this.killProcessGroup(child, isWindows);
         } catch {}
         rej(new Error(`Command timed out after ${timeoutMs} ms`));
       }, timeoutMs);
@@ -138,13 +146,16 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
 
     const abort = new Promise<never>((_, rej) => {
       if (signal) {
-        const abortHandler = () => {
-          if (timer) clearTimeout(timer);
+        abortHandler = () => {
+          if (timer) {
+            clearTimeout(timer);
+            timer = null;
+          }
           try {
-            child.kill('SIGTERM');
-            setTimeout(() => {
+            this.killProcessGroup(child, isWindows, 'SIGTERM');
+            abortKillTimer = setTimeout(() => {
               if (child && !child.killed) {
-                child.kill('SIGKILL');
+                this.killProcessGroup(child, isWindows);
               }
             }, 1000);
           } catch {}
@@ -163,22 +174,62 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
     const stderr: Buffer[] = [];
     let total = 0;
 
-    const capPush = (arr: Buffer[], chunk: Buffer) => {
+    const stdoutHandler = (chunk: Buffer) => {
+      if (truncated) return;
       total += chunk.length;
       if (total > maxOutputBytes) {
-        arr.push(Buffer.from(`\n[truncated at ${maxOutputBytes} bytes]\n`));
-        child.kill('SIGKILL');
+        truncated = true;
+        stdout.push(Buffer.from(`\n[truncated at ${maxOutputBytes} bytes]\n`));
+        this.killProcessGroup(child, isWindows);
         return;
       }
-      arr.push(chunk);
+      stdout.push(chunk);
+    };
+
+    const stderrHandler = (chunk: Buffer) => {
+      if (truncated) return;
+      total += chunk.length;
+      if (total > maxOutputBytes) {
+        truncated = true;
+        stderr.push(Buffer.from(`\n[truncated at ${maxOutputBytes} bytes]\n`));
+        this.killProcessGroup(child, isWindows);
+        return;
+      }
+      stderr.push(chunk);
     };
 
     if (child.stdout) {
-      child.stdout.on('data', (d: Buffer) => capPush(stdout, d));
+      child.stdout.on('data', stdoutHandler);
     }
     if (child.stderr) {
-      child.stderr.on('data', (d: Buffer) => capPush(stderr, d));
+      child.stderr.on('data', stderrHandler);
     }
+
+    const cleanup = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      if (abortKillTimer) {
+        clearTimeout(abortKillTimer);
+        abortKillTimer = null;
+      }
+      if (signal && abortHandler) {
+        signal.removeEventListener('abort', abortHandler);
+        abortHandler = null;
+      }
+      if (child.stdout) {
+        child.stdout.off('data', stdoutHandler);
+      }
+      if (child.stderr) {
+        child.stderr.off('data', stderrHandler);
+      }
+      if (child && child.pid && !child.killed) {
+        try {
+          this.killProcessGroup(child, isWindows);
+        } catch {}
+      }
+    };
 
     const exit = new Promise<{ code: number | null; signal: string | null }>((res) => {
       child.on('close', (code, signal) => res({ code, signal }));
@@ -186,7 +237,6 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
 
     try {
       const { code, signal: exitSignal } = await Promise.race([exit, deadline, abort]);
-      if (timer) clearTimeout(timer);
 
       const outText = Buffer.concat(stdout).toString('utf8');
       const errText = Buffer.concat(stderr).toString('utf8');
@@ -199,7 +249,6 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
 
       if (code !== 0) {
         const metadata: Record<string, unknown> = { code, signal: exitSignal, cwd };
-        // Detect common error patterns
         if (output.toLowerCase().includes('permission denied')) {
           return err(output, { ...metadata, errorReason: ErrorReason.PermissionDenied });
         }
@@ -211,7 +260,6 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
 
       return okText(output, { code, signal: exitSignal, cwd, stripped: stripAnsi });
     } catch (e) {
-      if (timer) clearTimeout(timer);
       const message = e instanceof Error ? e.message : String(e);
 
       if (message === 'ABORTED' || signal?.aborted) {
@@ -227,6 +275,26 @@ export class BashTool implements FunctionTool<BashParams, ToolExecutionContext, 
       }
 
       return err(message, { cwd }, ErrorReason.Unknown);
+    } finally {
+      cleanup();
+    }
+  }
+
+  private killProcessGroup(child: ReturnType<typeof spawn>, isWindows: boolean, signal: NodeJS.Signals = 'SIGKILL') {
+    if (!child.pid) return;
+
+    if (isWindows) {
+      try {
+        spawn('taskkill', ['/pid', child.pid.toString(), '/T', '/F'], { stdio: 'ignore' });
+      } catch {
+        child.kill(signal);
+      }
+    } else {
+      try {
+        process.kill(-child.pid, signal);
+      } catch {
+        child.kill(signal);
+      }
     }
   }
 
