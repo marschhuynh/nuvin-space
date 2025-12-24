@@ -18,7 +18,6 @@ type FooterProps = {
   vimMode?: 'insert' | 'normal';
   workingDirectory?: string;
   sessionId?: string;
-  focusArea?: 'input' | 'chat';
 };
 
 const FooterComponent: React.FC<FooterProps> = ({
@@ -28,7 +27,6 @@ const FooterComponent: React.FC<FooterProps> = ({
   vimMode = 'insert',
   workingDirectory,
   sessionId,
-  focusArea = 'input',
 }) => {
   const { notification } = useNotification();
   const { theme } = useTheme();
@@ -151,11 +149,7 @@ const FooterComponent: React.FC<FooterProps> = ({
           </Box>
           <Box alignSelf="flex-end" flexGrow={1} justifyContent="flex-end">
             <Text dimColor>
-              <Text color={focusArea === 'chat' ? theme.colors.accent : undefined}>
-                {focusArea === 'chat' ? '[SCROLL]' : ''}
-              </Text>
-              {focusArea === 'chat' && ' · '}
-              <Text color={theme.colors.accent}>Tab</Text> {focusArea === 'input' ? 'scroll' : 'input'}
+              <Text color={theme.colors.accent}>Tab</Text> input/scroll
               {' · '}
               <Text color={theme.colors.accent}>/</Text> command{' · '}
               <Text color={theme.colors.accent}>ESC×2</Text> stop{' · '}

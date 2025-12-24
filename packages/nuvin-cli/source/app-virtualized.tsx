@@ -410,7 +410,6 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
         vimModeEnabled={vimModeEnabled}
         vimMode={vimMode}
         workingDirectory={process.cwd()}
-        focusArea={focusArea}
       />
     </Box>
   );
