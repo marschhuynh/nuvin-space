@@ -1,5 +1,38 @@
 # @nuvin/nuvin-cli
 
+## 1.22.0
+
+### Minor Changes
+
+- [`6c8a0c2`](https://github.com/marschhuynh/nuvin-space/commit/6c8a0c2cc09ecedd364128b00fa0403e82e9d7d9) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add FocusContext for centralized keyboard focus management with Tab/Ctrl+N/P navigation between components
+
+### Patch Changes
+
+- [`a1f8287`](https://github.com/marschhuynh/nuvin-space/commit/a1f82872eba755e2dbf27ef00f9dde21d0bf43a0) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Remove focusArea prop from Footer component and simplify UI to display static navigation hints
+
+- [`6c8a0c2`](https://github.com/marschhuynh/nuvin-space/commit/6c8a0c2cc09ecedd364128b00fa0403e82e9d7d9) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add keyboard navigation to AutoScrollBox and improve input event handling
+
+- [`6c8a0c2`](https://github.com/marschhuynh/nuvin-space/commit/6c8a0c2cc09ecedd364128b00fa0403e82e9d7d9) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Refactor tool approval UI to use FocusContext and improve keyboard navigation
+
+  - Replace manual action selection with FocusContext-based focus system
+  - Add dedicated ActionButton components with proper focus handling
+  - ToolEditInput now integrates with focus system
+  - Simplify keyboard shortcuts to 1/2/3 with Tab/Ctrl+N/P for navigation
+
+- [`6c8a0c2`](https://github.com/marschhuynh/nuvin-space/commit/6c8a0c2cc09ecedd364128b00fa0403e82e9d7d9) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Improve modal UI styling and AutoScrollBox focus indicators
+
+  - Update AppModal styling with better borders and title background
+  - Add focus highlighting to AutoScrollBox with background color
+  - Consistent border characters across all UI components
+  - Better theme integration for modal components
+
+- [`6c8a0c2`](https://github.com/marschhuynh/nuvin-space/commit/6c8a0c2cc09ecedd364128b00fa0403e82e9d7d9) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Remove deprecated virtualized components and simplify chat display
+
+  - Delete VirtualizedChat and VirtualizedList components
+  - Clean up FlexLayout by removing chatFocus prop
+  - Replace ╰─ box drawing characters with └─ for consistency
+  - Streamline message rendering in MessageLine
+
 ## 1.21.1
 
 ### Patch Changes
