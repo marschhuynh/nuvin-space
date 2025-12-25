@@ -13,7 +13,7 @@ Located at: `packages/nuvin-cli/source/components/InitialConfigSetup.tsx`
 - Five provider options:
   - OpenRouter - Access multiple AI models
   - Anthropic - Direct Claude API
-  - GitHub Copilot - Use GitHub Copilot models  
+  - GitHub Copilot - Use GitHub Copilot models
   - Zai - Zai AI platform
   - Echo - Demo mode (no auth required)
 - Secure API key input with password masking
@@ -40,8 +40,8 @@ Located at: `packages/nuvin-cli/source/components/InitialConfigSetup.tsx`
 
 The setup screen appears when:
 ```typescript
-!config.activeProvider || 
-(config.activeProvider !== 'echo' && 
+!config.activeProvider ||
+(config.activeProvider !== 'echo' &&
  !config.providers?.[config.activeProvider]?.token &&
  !config.providers?.[config.activeProvider]?.apiKey &&
  !config.tokens?.[config.activeProvider] &&
@@ -69,7 +69,7 @@ Let's get you started. Choose your AI provider:
 │   GitHub Copilot                     │
 │    Use GitHub Copilot models         │
 │ ...                                   │
-╰──────────────────────────────────────╯
+└──────────────────────────────────────╯
 
 Use ↑↓ to navigate, Enter to select
 ```
@@ -87,7 +87,7 @@ Enter your OpenRouter API Key:
 │                                       │
 │ Get your API key from:               │
 │ https://openrouter.ai/keys           │
-╰──────────────────────────────────────╯
+└──────────────────────────────────────╯
 
 Enter to continue • Ctrl+C to exit
 ```
@@ -103,7 +103,7 @@ Choose a model for your conversations:
 │ ▶ openai/gpt-4o                      │
 │   openai/gpt-4o-mini                 │
 │   anthropic/claude-sonnet-4          │
-╰──────────────────────────────────────╯
+└──────────────────────────────────────╯
 
 Use ↑↓ to navigate, Enter to confirm
 ```

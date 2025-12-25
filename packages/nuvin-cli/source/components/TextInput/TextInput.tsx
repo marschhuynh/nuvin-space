@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Text } from 'ink';
 import type { Except } from 'type-fest';
-import { useInput, useFocus } from '@/contexts/InputContext/index.js';
+import { useInput } from '@/contexts/InputContext/index.js';
 import { moveCursorVertically, getLineInfo } from '@/utils/textNavigation.js';
 import type { LineInfo } from '@/utils/textNavigation.js';
 

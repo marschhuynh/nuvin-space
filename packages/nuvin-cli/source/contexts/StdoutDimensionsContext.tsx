@@ -19,7 +19,7 @@ export function StdoutDimensionsProvider({ children, altMode }: { children: Reac
   const [dimensions, setDimensions] = useState<StdoutDimensions>(() => {
     // Validate initial dimensions
     const cols = Math.max(MIN_COLS, Math.min(stdout.columns || DEFAULT_COLS, 1000)) - (altMode ? 2 : 0);
-    const rows = Math.max(MIN_ROWS, Math.min(stdout.rows || DEFAULT_ROWS, 1000)) - (altMode ? 2 : 0);
+    const rows = Math.max(MIN_ROWS, Math.min(stdout.rows || DEFAULT_ROWS, 1000));
     return { cols, rows };
   });
 

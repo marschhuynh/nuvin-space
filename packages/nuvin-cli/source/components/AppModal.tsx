@@ -29,7 +29,6 @@ export const AppModal: FC<AppModalProps> = ({
   visible,
   title,
   rightTitle,
-  type = 'default',
   titleColor,
   borderColor,
   children,

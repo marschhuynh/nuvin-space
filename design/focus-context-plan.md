@@ -1,437 +1,435 @@
-# FocusContext Design Plan
+# Focus Context Implementation Plan
 
-## Overview
+## Problem Statement
 
-Centralized focus management for the CLI app to control keyboard input across all components.
+When `AutoScrollBox` handles keyboard shortcuts (j/k/g/G) for scrolling, it conflicts with input fields where users need to type these characters. Multiple scrollable components also need a way to determine which one should receive navigation commands.
 
-## Current State
+## Solution Overview
 
-- Focus managed locally via `focusArea` state in `app-virtualized.tsx` (`'input' | 'chat'`)
-- Components use `useInput({ isActive: condition })` to conditionally listen to keyboard input
-- Modal components (ToolApprovalPrompt, MCPModal, OAuthUI) override focus implicitly
-- No unified way to manage focus priority or nested focus scenarios
+Create a global `FocusContext` that tracks which component currently has focus. Each component checks if it's focused before handling input. Components decide their own behavior based on what input they receive.
 
-## Proposed Architecture
+## Design
 
-### Types
+### FocusContext API
 
-```typescript
-type FocusLayer =
-  | 'input'          // Main input area
-  | 'chat'           // Scrollable chat area
-  | 'modal'          // Any modal overlay
-  | 'tool-approval'  // Tool approval prompt
-  | 'command'        // Active command UI
-  | 'menu'           // Command menu / ComboBox
-  | 'auth';          // Auth flow UI
-
-type FocusContextValue = {
-  // Current focus state
-  activeLayer: FocusLayer;
-  focusStack: FocusLayer[];
-
-  // Focus control
-  pushFocus: (layer: FocusLayer) => void;
-  popFocus: () => void;
-  setFocus: (layer: FocusLayer) => void;
-
-  // Focus query helpers
-  hasFocus: (layer: FocusLayer) => boolean;
-  isInputActive: () => boolean;
-};
+```ts
+interface FocusContextValue {
+  id: string;  // Auto-generated unique ID for this component
+  isFocused: boolean;  // True if this component has focus
+  focus: () => void;  // Set focus to this component
+  clearFocus: () => void;  // Clear all focus
+}
 ```
 
-### Context Implementation
+**Note**: Each call to `useFocus()` gets a unique ID and returns whether that specific instance is focused.
 
-```typescript
-// packages/nuvin-cli/source/contexts/FocusContext.tsx
+### Component Behavior
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+**AutoScrollBox**
+- Needs unique `id` prop (optional, auto-generated if not provided)
+- Only handles j/k/g/G when `focusedId === myId`
+- Returns `true` from handler to consume these keys when focused
+- Calls `setFocus(myId)` on click (if clicking outside current focused element)
 
-type FocusLayer =
-  | 'input'
-  | 'chat'
-  | 'modal'
-  | 'tool-approval'
-  | 'command'
-  | 'menu'
-  | 'auth';
+**Input/Text Fields**
+- Needs unique `id` prop
+- When focused, handles all keyboard input including j/k/g/G for typing
+- Returns `true` from handler when focused (consumes all keys)
+- Calls `setFocus(myId)` on focus/click
 
-type FocusContextValue = {
-  activeLayer: FocusLayer;
-  focusStack: FocusLayer[];
-  pushFocus: (layer: FocusLayer) => void;
-  popFocus: () => void;
-  setFocus: (layer: FocusLayer) => void;
-  hasFocus: (layer: FocusLayer) => boolean;
-  isInputActive: () => boolean;
-};
+**Other Components**
+- Can participate in focus system similarly
+- Check `focusedId === myId` before handling input
 
-const FocusContext = createContext<FocusContextValue | undefined>(undefined);
+## Implementation Steps
 
-type FocusProviderProps = {
-  children: ReactNode;
-  initialLayer?: FocusLayer;
-};
+### 1. Create FocusContext Files
 
-export function FocusProvider({ children, initialLayer = 'input' }: FocusProviderProps) {
-  const [focusStack, setFocusStack] = useState<FocusLayer[]>([initialLayer]);
+**File**: `packages/nuvin-cli/source/contexts/InputContext/FocusContext.tsx`
 
-  const activeLayer = focusStack[focusStack.length - 1] ?? 'input';
+```tsx
+import { createContext, useContext, useState, useCallback, useMemo, useId, ReactNode } from 'react';
 
-  const pushFocus = useCallback((layer: FocusLayer) => {
-    setFocusStack((prev) => [...prev, layer]);
-  }, []);
-
-  const popFocus = useCallback(() => {
-    setFocusStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
-  }, []);
-
-  const setFocus = useCallback((layer: FocusLayer) => {
-    setFocusStack([layer]);
-  }, []);
-
-  const hasFocus = useCallback(
-    (layer: FocusLayer) => activeLayer === layer,
-    [activeLayer],
-  );
-
-  const isInputActive = useCallback(
-    () => activeLayer === 'input',
-    [activeLayer],
-  );
-
-  const value: FocusContextValue = {
-    activeLayer,
-    focusStack,
-    pushFocus,
-    popFocus,
-    setFocus,
-    hasFocus,
-    isInputActive,
-  };
-
-  return <FocusContext.Provider value={value}>{children}</FocusContext.Provider>;
+interface FocusContextInternal {
+  focusedId: string | null;
+  setFocusedId: (id: string) => void;
+  clearFocus: () => void;
 }
 
-export function useFocus() {
+interface FocusContextValue {
+  id: string;
+  isFocused: boolean;
+  focus: () => void;
+  clearFocus: () => void;
+}
+
+const FocusContext = createContext<FocusContextInternal | undefined>(undefined);
+
+export function FocusProvider({ children }: { children: ReactNode }) {
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+
+  const clearFocus = useCallback(() => {
+    setFocusedId(null);
+  }, []);
+
+  const value = useMemo(
+    () => ({ focusedId, setFocusedId, clearFocus }),
+    [focusedId, clearFocus]
+  );
+
+  return (
+    <FocusContext.Provider value={value}>
+      {children}
+    </FocusContext.Provider>
+  );
+}
+
+export function useFocus(): FocusContextValue {
   const context = useContext(FocusContext);
   if (!context) {
     throw new Error('useFocus must be used within a FocusProvider');
   }
-  return context;
-}
-```
 
-### Custom Hook: useFocusedInput
+  const id = useId();
+  const { focusedId, setFocusedId, clearFocus } = context;
 
-```typescript
-// packages/nuvin-cli/source/hooks/useFocusedInput.ts
+  const isFocused = focusedId === id;
 
-import { useInput, type Key } from 'ink';
-import { useFocus, type FocusLayer } from '@/contexts/FocusContext.js';
+  const focus = useCallback(() => {
+    setFocusedId(id);
+  }, [id, setFocusedId]);
 
-type InputHandler = (input: string, key: Key) => void;
-
-type UseFocusedInputOptions = {
-  override?: boolean; // Force active regardless of focus
-};
-
-export function useFocusedInput(
-  layer: FocusLayer,
-  handler: InputHandler,
-  options?: UseFocusedInputOptions,
-) {
-  const { hasFocus } = useFocus();
-  const isActive = options?.override ?? hasFocus(layer);
-
-  useInput(handler, { isActive });
-}
-```
-
-### Hook: useFocusLayer (for modals/overlays)
-
-```typescript
-// packages/nuvin-cli/source/hooks/useFocusLayer.ts
-
-import { useEffect } from 'react';
-import { useFocus, type FocusLayer } from '@/contexts/FocusContext.js';
-
-export function useFocusLayer(layer: FocusLayer, active: boolean = true) {
-  const { pushFocus, popFocus, hasFocus } = useFocus();
-
-  useEffect(() => {
-    if (active) {
-      pushFocus(layer);
-      return () => popFocus();
-    }
-  }, [active, layer, pushFocus, popFocus]);
-
-  return hasFocus(layer);
-}
-```
-
-## Usage Examples
-
-### 1. Main App Setup
-
-```tsx
-// app-virtualized.tsx
-
-import { FocusProvider } from '@/contexts/FocusContext.js';
-
-export function App() {
-  return (
-    <FocusProvider initialLayer="input">
-      <MainContent />
-    </FocusProvider>
+  return useMemo(
+    () => ({ id, isFocused, focus, clearFocus }),
+    [id, isFocused, focus, clearFocus]
   );
 }
 ```
 
-### 2. InputArea Component
+### 2. Update InputProvider to Include FocusProvider
+
+**File**: `packages/nuvin-cli/source/contexts/InputContext/InputProvider.tsx`
+
+Wrap existing provider content with `FocusProvider`:
 
 ```tsx
-// components/InputArea.tsx
+<FocusProvider>
+  {/* existing InputProvider content */}
+</FocusProvider>
+```
 
-import { useFocus } from '@/contexts/FocusContext.js';
+### 3. Export from Index
 
-export function InputArea() {
-  const { hasFocus } = useFocus();
+**File**: `packages/nuvin-cli/source/contexts/InputContext/index.ts`
 
-  return (
-    <TextInput
-      focus={hasFocus('input')}
-      // ...
-    />
-  );
+```ts
+export { useFocus, FocusProvider } from './FocusContext.js';
+```
+
+### 4. Update AutoScrollBox to Use Focus
+
+**File**: `packages/nuvin-cli/source/components/AutoScrollBox.tsx`
+
+Changes:
+- Import and use `useFocus` (ID is auto-generated)
+- Update `handleKeyboardEvent` to check `isFocused` before handling j/k/g/G
+- Optionally call `focus()` on box click
+
+```tsx
+import { useFocus } from '../contexts/InputContext/index.js';
+
+type AutoScrollBoxProps = {
+  // ... existing props (no id prop needed)
+} & Omit<BoxProps, 'ref' | 'overflow' | 'height'>;
+
+export function AutoScrollBox(props: AutoScrollBoxProps) {
+  const { isFocused, focus } = useFocus();
+
+  const handleKeyboardEvent = useCallback((input: string, key: Key) => {
+    if (!isFocused || !needsScrollbar || !enableKeyboardScroll) {
+      if (isFocused && (input === 'j' || input === 'k' || input === 'g' || input === 'G')) {
+        // Consume navigation keys when focused but no scrolling needed
+        return true;
+      }
+      return;
+    }
+
+    if (input === 'j') {
+      scrollBy(scrollStep);
+      return true;
+    }
+    if (input === 'k') {
+      scrollBy(-scrollStep);
+      return true;
+    }
+    if (input === 'g') {
+      boxRef.current?.scrollTo({ x: 0, y: 0 });
+      return true;
+    }
+    if (input === 'G') {
+      boxRef.current?.scrollToBottom();
+      return true;
+    }
+  }, [isFocused, scrollBy, scrollStep, needsScrollbar]);
+
+  // Optional: Call focus() on click
+  useMouse((event) => {
+    if (event.type === 'click') {
+      focus();
+    }
+  }, {});
 }
 ```
 
-### 3. Chat/Scroll Area with Tab Toggle
+### 5. Consider Click Handling for Focus
+
+AutoScrollBox needs to capture clicks to set focus. This can be done by:
+- Adding an `onClick` handler to the outer Box
+- Or using useMouse to detect click events within the box
 
 ```tsx
-// app-virtualized.tsx
+useMouse((event) => {
+  if (event.type === 'click') {
+    setFocus(id);
+  }
+}, {});
+```
 
-import { useFocus } from '@/contexts/FocusContext.js';
-import { useFocusedInput } from '@/hooks/useFocusedInput.js';
+## How It Works
 
-function MainContent() {
-  const { activeLayer, setFocus } = useFocus();
+### Scenario 1: AutoScrollBox Only
 
-  // Global Tab handler to toggle between input/chat
-  useFocusedInput('input', (_input, key) => {
-    if (key.tab) {
-      setFocus('chat');
-    }
-  });
+1. Nothing focused: `focusedId = null`
+2. User presses 'j': AutoScrollBox doesn't handle (not focused)
+3. User clicks AutoScrollBox: `setFocus('autoscroll-1')`
+4. User presses 'j': AutoScrollBox handles scroll down
 
-  useFocusedInput('chat', (_input, key) => {
-    if (key.tab) {
-      setFocus('input');
-    }
-  });
+### Scenario 2: Input and AutoScrollBox
 
-  return (
-    <>
-      <VirtualizedChat focus={activeLayer === 'chat'} />
-      <InputArea />
-    </>
-  );
+1. Input clicked: Input calls `setFocus('input-1')`
+2. User types 'j': Input handles as character (focused)
+3. User presses 'G': Input handles as character (focused)
+4. User clicks AutoScrollBox: AutoScrollBox calls `setFocus('autoscroll-1')`
+5. User presses 'j': AutoScrollBox scrolls down (focused)
+
+### Scenario 3: Multiple AutoScrollBoxes
+
+1. ScrollBox A clicked: `setFocus('scroll-a')`
+2. User presses 'j': ScrollBox A scrolls (focused)
+3. User presses 'k': ScrollBox A scrolls up (focused)
+4. User clicks ScrollBox B: `setFocus('scroll-b')`
+5. User presses 'j': ScrollBox B scrolls (focused)
+
+## Alternative Approach (if needed)
+
+If auto-focus on click feels too aggressive, could add config:
+
+```tsx
+type AutoScrollBoxProps = {
+  // ...
+  focusable?: boolean; // default: false - doesn't auto-focus
 }
 ```
 
-### 4. Modal Component (auto push/pop focus)
+Or have a separate "navigation mode" toggle that users press to switch between editing and navigation.
 
-```tsx
-// components/MCPModal.tsx
+## Migration Notes
 
-import { useFocusLayer } from '@/hooks/useFocusLayer.js';
-import { useFocusedInput } from '@/hooks/useFocusedInput.js';
+### For Existing Components
 
-type Props = {
-  visible: boolean;
-  onClose: () => void;
-};
+Phases 1-3 handle the core migration:
+- **Phase 2**: TextInput gets focus management
+- **Phase 3**: AutoScrollBox gets focus checking
+- **Phase 5**: Components register as focusable for cycling
 
-export function MCPModal({ visible, onClose }: Props) {
-  // Automatically push 'modal' when visible, pop when closed
-  const hasFocus = useFocusLayer('modal', visible);
+Other interactive components (Select, ComboBox, etc.) can follow the same pattern:
+1. Call `useFocus()` hook - ID is auto-generated
+2. Check `isFocused` before handling keyboard input
+3. Call `focus()` when component becomes active
+4. Call `register()` in useEffect for Tab cycling (Phase 5)
 
-  useFocusedInput('modal', (_input, key) => {
-    if (key.escape) {
-      onClose();
-    }
-  });
+### Backward Compatibility
 
-  if (!visible) return null;
+- `id` prop is optional - auto-generated with `useId()`
+- Existing behavior mostly preserved - just adds new focus management
+- Keyboard shortcuts only work when explicitly focused
+- Phase 5 features are purely additive - existing code continues to work
 
-  return (
-    <AppModal>
-      <SelectInput focus={hasFocus} />
-    </AppModal>
-  );
-}
-```
+## Edge Cases
 
-### 5. Tool Approval Prompt
+1. **No focus needed**: `focusedId = null` - nothing handles navigation keys
+2. **Auto-focus first**: App could call `setFocus('default-box')` on mount
+3. **Escape clears focus**: Components could bind Escape to `clearFocus()`
 
-```tsx
-// components/ToolApprovalPrompt/ToolApprovalPrompt.tsx
+## Implementation Phases
 
-import { useFocusLayer } from '@/hooks/useFocusLayer.js';
-import { useFocusedInput } from '@/hooks/useFocusedInput.js';
+### Phase 1: Core FocusContext Implementation
+**Goal**: Create the foundation for focus management
 
-export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
-  // Always active when rendered
-  useFocusLayer('tool-approval', true);
+**Tasks**:
+1. Create `FocusContext.tsx` with basic API (steps 1-3 above)
+2. Wrap `InputProvider` with `FocusProvider`
+3. Export `useFocus` hook from index
 
-  useFocusedInput('tool-approval', (input, key) => {
-    if (key.return) {
-      // handle approval
-    }
-    if (input === '1') {
-      handleToolDecision('approve');
-    }
-    // ...
-  });
+**Validation**: FocusContext is available throughout the app
 
-  return <AppModal>...</AppModal>;
-}
-```
+### Phase 2: TextInput Focus Integration
+**Goal**: Ensure TextInput properly consumes input when focused
 
-### 6. Nested Focus (Menu inside Modal)
+**Tasks**:
+1. Update TextInput to accept optional `id` prop
+2. Call `setFocus(id)` when TextInput becomes focused
+3. Ensure TextInput handler returns `true` when focused and handling input
+4. Test that focused TextInput prevents input propagation
 
-```tsx
-// components/CommandModal.tsx
+**Validation**: TextInput blocks all keyboard input from reaching other handlers when focused
 
-import { useFocusLayer } from '@/hooks/useFocusLayer.js';
-import { useFocus } from '@/contexts/FocusContext.js';
+### Phase 3: AutoScrollBox Focus Integration
+**Goal**: Make AutoScrollBox respect focus for navigation keys
 
-export function CommandModal({ visible }: Props) {
-  const { pushFocus, popFocus } = useFocus();
-  const [menuOpen, setMenuOpen] = useState(false);
+**Tasks**:
+1. Add optional `id` prop to AutoScrollBox (auto-generate with `useId` if not provided)
+2. Use `useFocus` hook to track focus state
+3. Update `handleKeyboardEvent` to check `isFocused` before handling j/k/g/G
+4. Add click handling to call `setFocus(id)` (optional - start simple)
 
-  // Modal layer
-  useFocusLayer('modal', visible);
+**Validation**: AutoScrollBox only scrolls with j/k/g/G when focused
 
-  // When menu opens, push menu layer on top
-  useEffect(() => {
-    if (menuOpen) {
-      pushFocus('menu');
-      return () => popFocus();
-    }
-  }, [menuOpen]);
+### Phase 4: Focus Indicators & UX
+**Goal**: Provide visual feedback for focus state
 
-  return (
-    <AppModal>
-      <Button onPress={() => setMenuOpen(true)}>Open Menu</Button>
-      {menuOpen && <SelectInput focus={true} />}
-    </AppModal>
-  );
-}
-```
+**Tasks**:
+1. Add visual indicator to AutoScrollBox when focused
+   ```tsx
+   const { isFocused } = useFocus();
+   
+   <Box
+     borderStyle="round"
+     borderColor={isFocused ? 'cyan' : 'dim'}
+     // ... other props
+   >
+   ```
+2. Add focus indicator to TextInput (cursor already provides this)
+3. Consider adding focus breadcrumb in app status bar
+4. Add default focus on app mount (typically to input area)
 
-### 7. Command Component (Active Command)
+**Validation**: Users can clearly see which component has focus
 
-```tsx
-// modules/commands/definitions/mcp.tsx
+### Phase 5: Focus Switching & Navigation
+**Goal**: Allow users to switch focus between components using keyboard shortcuts
 
-import { useFocusLayer } from '@/hooks/useFocusLayer.js';
-import { useFocusedInput } from '@/hooks/useFocusedInput.js';
+**Tasks**:
+1. Extend FocusContext to track focusable components:
+   ```tsx
+   interface FocusContextValue {
+     focusedId: string | null;
+     focusableIds: string[];
+     setFocus: (id: string) => void;
+     clearFocus: () => void;
+     isFocused: (id: string) => boolean;
+     registerFocusable: (id: string) => () => void;
+     cycleFocus: (direction?: 'forward' | 'backward') => void;
+   }
+   ```
 
-export function MCPCommand({ onClose }: CommandComponentProps) {
-  useFocusLayer('command', true);
+2. Update FocusProvider implementation:
+   ```tsx
+   export function FocusProvider({ children }: { children: ReactNode }) {
+     const [focusedId, setFocusedId] = useState<string | null>(null);
+     const focusableIdsRef = useRef<Set<string>>(new Set());
 
-  useFocusedInput('command', (_input, key) => {
-    if (key.escape) {
-      onClose();
-    }
-  });
+     const registerFocusable = useCallback((id: string) => {
+       focusableIdsRef.current.add(id);
+       return () => {
+         focusableIdsRef.current.delete(id);
+       };
+     }, []);
 
-  return <MCPModal visible onClose={onClose} />;
-}
-```
+     const cycleFocus = useCallback((direction: 'forward' | 'backward' = 'forward') => {
+       const ids = Array.from(focusableIdsRef.current);
+       if (ids.length === 0) return;
 
-### 8. Conditional Focus Override
+       const currentIndex = focusedId ? ids.indexOf(focusedId) : -1;
+       let nextIndex: number;
 
-```tsx
-// For global shortcuts that should work regardless of focus layer
+       if (direction === 'forward') {
+         nextIndex = (currentIndex + 1) % ids.length;
+       } else {
+         nextIndex = currentIndex <= 0 ? ids.length - 1 : currentIndex - 1;
+       }
 
-import { useInput } from 'ink';
+       setFocusedId(ids[nextIndex] || null);
+     }, [focusedId]);
 
-function GlobalShortcuts() {
-  // Always active - bypasses focus system for critical shortcuts
-  useInput((_input, key) => {
-    if (key.ctrl && input === 'c') {
-      process.exit(0);
-    }
-  }, { isActive: true });
+     // ... rest of implementation
+   }
+   ```
 
-  return null;
-}
-```
+3. Update components to register as focusable:
+   ```tsx
+   // In AutoScrollBox
+   const { isFocused, focus, register } = useFocus();
 
-## Integration Points
+   useEffect(() => {
+     return register();
+   }, [register]);
+   ```
 
-| Component | Layer | Integration Method |
-|-----------|-------|-------------------|
-| `InputArea` | `input` | `hasFocus('input')` |
-| `VirtualizedChat` | `chat` | `hasFocus('chat')` |
-| `ToolApprovalPrompt` | `tool-approval` | `useFocusLayer('tool-approval')` |
-| `MCPModal` | `modal` | `useFocusLayer('modal', visible)` |
-| `ActiveCommand` | `command` | `useFocusLayer('command')` |
-| `ComboBox` | `menu` | `useFocusLayer('menu', isOpen)` |
-| `OAuthUI` | `auth` | `useFocusLayer('auth')` |
-| `HistorySelection` | `modal` | `useFocusLayer('modal')` |
+4. Add global focus switching shortcut in app:
+   ```tsx
+   // In app.tsx or app-virtualized.tsx
+   const { cycleFocus } = useFocusCycle();
 
-## Migration Strategy
+   useInput((input, key) => {
+     // Ctrl+W to cycle focus forward
+     if (key.ctrl && input === 'w') {
+       cycleFocus('forward');
+       return true;
+     }
 
-1. **Phase 1**: Create `FocusContext.tsx`, `useFocusedInput.ts`, `useFocusLayer.ts`
-2. **Phase 2**: Wrap app with `FocusProvider` in `app-virtualized.tsx`
-3. **Phase 3**: Replace local `focusArea` state with context usage
-4. **Phase 4**: Update `InputArea` and `InteractionArea` to use context
-5. **Phase 5**: Update modal components (MCPModal, ToolApprovalPrompt, etc.)
-6. **Phase 6**: Update command definitions to use `useFocusLayer`
-7. **Phase 7**: Remove legacy `focus` props where no longer needed
+     // Ctrl+Shift+W to cycle focus backward
+     if (key.ctrl && key.shift && input === 'w') {
+       cycleFocus('backward');
+       return true;
+     }
 
-## Benefits
+     // Tab to cycle focus forward (alternative)
+     if (key.tab && !key.shift) {
+       cycleFocus('forward');
+       return true;
+     }
 
-1. **Single Source of Truth** - All focus state in one place
-2. **Automatic Focus Restoration** - Stack-based push/pop handles modal close gracefully
-3. **Easier Debugging** - Can log `focusStack` to see focus history
-4. **Type Safety** - `FocusLayer` union prevents invalid focus targets
-5. **Composable** - Hooks make it easy to integrate with any component
-6. **Testable** - Context can be mocked for testing
+     // Shift+Tab to cycle focus backward
+     if (key.tab && key.shift) {
+       cycleFocus('backward');
+       return true;
+     }
+   }, { priority: 1000 }); // Very high priority to intercept first
+   ```
 
-## Files to Create
+5. Document focus shortcuts in help/readme
 
-```
-packages/nuvin-cli/source/
-├── contexts/
-│   └── FocusContext.tsx       # New
-├── hooks/
-│   ├── useFocusedInput.ts     # New
-│   └── useFocusLayer.ts       # New
-```
+**Validation**:
+- Users can press Ctrl+W (or Tab) to cycle through focusable components
+- Focus indicator moves to the next component in sequence
+- Keyboard shortcuts work correctly for the newly focused component
 
-## Files to Modify
+**Alternative Shortcuts**:
+- `Ctrl+W` / `Ctrl+Shift+W`: Cycle forward/backward (tmux/screen-like)
+- `Tab` / `Shift+Tab`: Standard UI navigation pattern
+- `Ctrl+N` / `Ctrl+P`: Vim-like next/previous
+- `F6` / `Shift+F6`: Eclipse/IntelliJ-style panel switching
 
-```
-packages/nuvin-cli/source/
-├── app-virtualized.tsx        # Add FocusProvider, remove local focusArea
-├── components/
-│   ├── InputArea.tsx          # Use useFocus()
-│   ├── InteractionArea.tsx    # Use useFocus()
-│   ├── MCPModal.tsx           # Use useFocusLayer()
-│   ├── ToolApprovalPrompt/
-│   │   └── ToolApprovalPrompt.tsx  # Use useFocusLayer()
-│   └── auth/
-│       ├── OAuthUI.tsx        # Use useFocusLayer()
-│       └── DeviceFlowUI.tsx   # Use useFocusLayer()
-├── modules/commands/definitions/
-│   ├── mcp.tsx                # Use useFocusLayer()
-│   ├── history.tsx            # Use useFocusLayer()
-│   ├── thinking.tsx           # Use useFocusLayer()
-│   └── command.tsx            # Use useFocusLayer()
-```
+**Considerations**:
+- Tab might conflict with TextInput tab completion or indentation
+- Choose shortcut that doesn't conflict with common terminal or vim bindings
+- Make focus switching optional/configurable
+
+## Future Enhancements
+
+1. **Focus history**: Remember last focused component and restore on return (Ctrl+Tab style)
+2. **Visibility-based focus**: Auto-focus when component becomes visible (e.g., modal opens)
+3. **Focus groups**: Group related focusable components (e.g., all inputs in a form)
+4. **Focus trapping**: Keep focus within modals/overlays until closed
+5. **Programmatic focus**: Allow parent components to focus children imperatively
+6. **Focus persistence**: Remember focus state across app sessions

@@ -11,7 +11,7 @@ export interface ToolEditInputHandle {
 type ToolEditInputProps = {
   value: string;
   onChange: (value: string) => void;
-  onSubmit: () => void;
+  onSubmit: (value: string) => void;
   onCancel: () => void;
   onFocusChange?: (focused: boolean) => void;
 };
@@ -52,12 +52,6 @@ export const ToolEditInput = forwardRef<ToolEditInputHandle, ToolEditInputProps>
             placeholder="Input your changes here"
             onSubmit={onSubmit}
           />
-          {/* {isFocused ? (
-          ) : (
-            <Text dimColor color={theme.toolApproval.description}>
-              {localValue || 'Input your changes here'}
-            </Text>
-          )} */}
         </Box>
       </Box>
     );

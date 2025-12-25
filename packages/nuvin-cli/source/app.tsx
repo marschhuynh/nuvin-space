@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, useEffect, useMemo } from 'react';
-import { Box, Spacer, Text } from 'ink';
+import { Box, Text } from 'ink';
 import ansiEscapes from 'ansi-escapes';
 import * as crypto from 'node:crypto';
 import * as path from 'node:path';
@@ -8,6 +8,7 @@ import type { UserMessagePayload } from '@nuvin/nuvin-core';
 import { ChatDisplay, Footer, InteractionArea, type InputAreaHandle } from '@/components/index.js';
 import { ErrorBoundary } from '@/components/ErrorBoundary.js';
 import { InitialConfigSetup } from '@/components/InitialConfigSetup.js';
+
 import {
   useOrchestrator,
   useSessionManagement,
@@ -403,14 +404,13 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
         </Box>
       }
     >
-      <Box flexDirection="column" height="100%" width="100%">
+      <Box flexDirection="column" minHeight={10} position="relative">
         <ChatDisplay
           key={`chat-display-${headerKey}`}
           messages={messages}
           headerKey={headerKey}
           sessions={initialSessions}
         />
-        <Spacer />
 
         {!explainMode && !isExiting && (
           <InteractionArea

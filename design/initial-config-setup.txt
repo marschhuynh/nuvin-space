@@ -32,7 +32,7 @@ STEP 1: Provider Selection
                 │    Echo (Demo)                                                    │
                 │     Demo mode - echoes back your messages                         │
                 │                                                                    │
-                ╰────────────────────────────────────────────────────────────────────╯
+                └────────────────────────────────────────────────────────────────────╯
 
                                        Use ↑↓ to navigate, Enter to select
 
@@ -60,7 +60,7 @@ STEP 2: Authentication (for non-echo providers)
                 │                                                                    │
                 │  Get your API key from https://openrouter.ai/keys                 │
                 │                                                                    │
-                ╰────────────────────────────────────────────────────────────────────╯
+                └────────────────────────────────────────────────────────────────────╯
 
                                       Enter to continue • Ctrl+C to exit
 
@@ -87,7 +87,7 @@ STEP 3: Model Selection
                 │    openai/gpt-4o-mini                                             │
                 │    anthropic/claude-sonnet-4                                      │
                 │                                                                    │
-                ╰────────────────────────────────────────────────────────────────────╯
+                └────────────────────────────────────────────────────────────────────╯
 
                                       Use ↑↓ to navigate, Enter to confirm
 
