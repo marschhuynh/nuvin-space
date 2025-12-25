@@ -47,13 +47,13 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
 
         if (isStreaming) {
           return (
-            <Box flexDirection="column" marginY={1}>
+            <Box flexDirection="column" marginY={1} width={'100%'}>
               <Box flexShrink={0} marginRight={1}>
                 <Text color={theme.messageTypes.assistant} bold>
                   ● [assistant]
                 </Text>
               </Box>
-              <AutoScrollBox maxHeight={maxHeight} marginX={2}>
+              <AutoScrollBox maxHeight={maxHeight} marginX={2} width={'100%'}>
                 <Markdown enableCache>{streamingContent}</Markdown>
               </AutoScrollBox>
             </Box>

@@ -263,7 +263,7 @@ const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandCompon
       onClose={deactivate}
       closeOnEscape={false}
       closeOnEnter={false}
-      height={17}
+      height={18}
     >
       {content}
     </AppModal>

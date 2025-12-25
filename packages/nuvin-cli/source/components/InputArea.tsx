@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { Box, Text } from 'ink';
-import { useInput } from '@/contexts/InputContext/index.js';
+import { useFocus, useInput } from '@/contexts/InputContext/index.js';
 import type { MemoryPort, Message } from '@nuvin/nuvin-core';
 import Spinner from 'ink-spinner';
 import { useTheme } from '@/contexts/ThemeContext.js';
@@ -24,7 +24,6 @@ type InputAreaProps = {
   busy: boolean;
   messageQueueLength: number;
   showToolApproval?: boolean;
-  focus?: boolean;
   useAbsoluteMenu?: boolean;
 
   commandItems: Array<{ label: string; value: string }>;
@@ -42,7 +41,6 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
     {
       busy,
       showToolApproval = false,
-      focus = true,
       useAbsoluteMenu: _useAbsoluteMenu = false,
 
       commandItems,
@@ -62,6 +60,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
     const [menuHasFocus, setMenuHasFocus] = useState(false);
     const [_vimMode, setVimMode] = useState<VimMode>('insert');
     const { cols } = useStdoutDimensions();
+    const { isFocused } = useFocus();
 
     const onRecall = useCallback(
       (message: string) => {
@@ -88,7 +87,6 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
         clear: () => {
           setInput('');
           setMenuVisibility(false);
-          setFocusKey((prev) => prev + 1);
           if (onInputChanged) {
             onInputChanged('');
           }
@@ -175,7 +173,11 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
     }, [input, commandItems, setMenuVisibility, onInputChanged]);
 
     useInput(
-      (_input, key) => {
+      (input, key) => {
+        if (key.ctrl && (input === 'n' || input === 'p')) {
+          return;
+        }
+
         if (!showCommandMenu || filteredCommandItems.length === 0) {
           return;
         }
@@ -208,7 +210,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
           return;
         }
       },
-      { isActive: showCommandMenu && filteredCommandItems.length > 0 },
+      { isActive: isFocused && showCommandMenu && filteredCommandItems.length > 0 },
     );
 
     const handleVimModeChange = useCallback(
@@ -313,7 +315,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
               onChange={handleChange}
               onSubmit={handleSubmit}
               placeholder="Type your message..."
-              focus={focus && !showToolApproval && !menuHasFocus}
+              focus={!showToolApproval && !menuHasFocus}
               vimModeEnabled={vimModeEnabled}
               onVimModeChange={handleVimModeChange}
               onUpArrow={showCommandMenu ? undefined : handleUpArrow}

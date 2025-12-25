@@ -16,7 +16,6 @@ export type FlexLayoutProps = {
   messages?: MessageLineType[];
   sessions?: SessionInfo[] | null;
   headerKey?: number;
-  chatFocus?: boolean;
 };
 
 export function FlexLayout({

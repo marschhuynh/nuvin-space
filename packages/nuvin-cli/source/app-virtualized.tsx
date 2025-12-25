@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import { Box, Text } from 'ink';
-import { useInput } from '@/contexts/InputContext/index.js';
+import { useInput, useFocusCycle } from '@/contexts/InputContext/index.js';
+import { logger } from '@/utils/file-logger.js';
 import ansiEscapes from 'ansi-escapes';
 import * as crypto from 'node:crypto';
 import * as path from 'node:path';
@@ -36,8 +37,6 @@ import { OrchestratorStatus } from './types/orchestrator.js';
 const ENTER_ALT_SCREEN = '\x1b[?1049h';
 const EXIT_ALT_SCREEN = '\x1b[?1049l';
 
-type FocusArea = 'input' | 'chat';
-
 type Props = {
   provider?: ProviderKey;
   model?: string;
@@ -57,7 +56,6 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
   const currentSessionIdRef = useRef<string | null>(null);
 
   const [_setupComplete, setSetupComplete] = useState(false);
-  const [focusArea, setFocusArea] = useState<FocusArea>('input');
 
   const { setNotification } = useNotification();
   const { config, reload: reloadConfig } = useConfig();
@@ -76,10 +74,28 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
   const inputAreaRef = useRef<InputAreaHandle>(null);
 
   const historyLoadedRef = useRef(false);
+  const { cycleFocus } = useFocusCycle();
 
-  useInput((_input, key) => {
-    if (key.tab) {
-      setFocusArea((prev) => (prev === 'input' ? 'chat' : 'input'));
+  useInput((input, key) => {
+    if (key.tab && !key.shift) {
+      logger.error('[App] Tab pressed, calling cycleFocus forward');
+      cycleFocus('forward');
+      return true;
+    }
+    if (key.shift && key.tab) {
+      logger.error('[App] Shift+Tab pressed, calling cycleFocus backward');
+      cycleFocus('backward');
+      return true;
+    }
+    if (key.ctrl && input === 'n') {
+      logger.error('[App] Ctrl+N pressed, calling cycleFocus forward');
+      cycleFocus('forward');
+      return true;
+    }
+    if (key.ctrl && input === 'p') {
+      logger.error('[App] Ctrl+P pressed, calling cycleFocus backward');
+      cycleFocus('backward');
+      return true;
     }
   });
 
@@ -394,7 +410,6 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
           hasActiveCommand={!!activeCommand}
           memory={orchestratorManager.getMemory()}
           abortRef={abortRef}
-          focus={focusArea === 'input'}
           useAbsoluteMenu={false}
           onNotification={setNotification}
           onBusyChange={setBusy}
@@ -455,7 +470,6 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
         messages={messages}
         sessions={initialSessions}
         headerKey={headerKey}
-        chatFocus={focusArea === 'chat'}
       />
     </ErrorBoundary>
   );

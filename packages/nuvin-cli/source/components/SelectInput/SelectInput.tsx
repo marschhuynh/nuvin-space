@@ -152,7 +152,7 @@ export const SelectInput = forwardRef<SelectInputHandle, SelectInputProps<unknow
   const hasMoreBelow = hasLimit && limit !== undefined && scrollOffset + limit < items.length;
 
   return (
-    <Box flexDirection="column">
+    <Box flexDirection="column" flexShrink={0}>
       {showScrollIndicators && (
         <Box marginLeft={1} height={1}>
           {hasMoreAbove ? <Text dimColor> ▲ {scrollOffset} more</Text> : null}

@@ -1,11 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { Box, Text } from 'ink';
-import { useInput } from '@/contexts/InputContext/index.js';
 import type { ToolCall, ToolApprovalDecision } from '@nuvin/nuvin-core';
+import { useInput } from '@/contexts/InputContext/index.js';
+import { FocusProvider } from '@/contexts/InputContext/FocusContext.js';
 import { ToolParameters } from './ToolParameters.js';
 import { ToolProgressInfo } from './ToolProgressInfo.js';
 import { ToolActions } from './ToolActions.js';
-import { ToolEditInput } from './ToolEditInput.js';
+import { ToolEditInput, type ToolEditInputHandle } from './ToolEditInput.js';
 import { AppModal } from '@/components/AppModal.js';
 import { useToolApproval } from '@/contexts/ToolApprovalContext.js';
 import { theme } from '@/theme.js';
@@ -16,17 +17,66 @@ type Props = {
   onCancel?: () => void;
 };
 
-export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
+function ToolApprovalPromptContent({
+  toolCalls,
+  onApproval,
+}: {
+  toolCalls: ToolCall[];
+  onApproval: (decision: ToolApprovalDecision, approvedCalls?: ToolCall[], editInstruction?: string) => void;
+}) {
   const { addSessionApprovedTool } = useToolApproval();
+  const editInputRef = useRef<ToolEditInputHandle>(null);
   const [currentToolIndex, setCurrentToolIndex] = useState(0);
   const [approvedCalls, setApprovedCalls] = useState<ToolCall[]>([]);
   const [_deniedCalls, setDeniedCalls] = useState<ToolCall[]>([]);
-  const [selectedAction, setSelectedAction] = useState(0); // 0=Yes, 1=No, 2=Yes for session
   const [isEditMode, setIsEditMode] = useState(false);
   const [editValue, setEditValue] = useState('');
 
   const currentTool = toolCalls[currentToolIndex];
   const isLastTool = currentToolIndex === toolCalls.length - 1;
+
+  const handleToolDecision = useCallback(
+    (decision: 'approve' | 'deny' | 'approve_session') => {
+      if (decision === 'approve') {
+        setApprovedCalls((prev) => [...prev, currentTool]);
+      } else if (decision === 'deny') {
+        setDeniedCalls((prev) => [...prev, currentTool]);
+      } else if (decision === 'approve_session') {
+        addSessionApprovedTool(currentTool.function.name);
+
+        const currentToolName = currentTool.function.name;
+        const toolsWithSameName = toolCalls
+          .slice(currentToolIndex)
+          .filter((tool) => tool.function.name === currentToolName);
+
+        setApprovedCalls((prev) => [...prev, ...toolsWithSameName]);
+
+        const nextDifferentToolIndex = toolCalls
+          .slice(currentToolIndex + 1)
+          .findIndex((tool) => tool.function.name !== currentToolName);
+
+        if (nextDifferentToolIndex === -1) {
+          onApproval('approve', [...approvedCalls, ...toolsWithSameName]);
+          return;
+        }
+
+        setCurrentToolIndex(currentToolIndex + 1 + nextDifferentToolIndex);
+        return;
+      }
+
+      if (isLastTool) {
+        const finalApproved = decision === 'approve' ? [...approvedCalls, currentTool] : approvedCalls;
+        if (finalApproved.length > 0) {
+          onApproval('approve', finalApproved);
+        } else {
+          onApproval('deny');
+        }
+      } else {
+        setCurrentToolIndex((prev) => prev + 1);
+      }
+    },
+    [currentTool, toolCalls, currentToolIndex, approvedCalls, isLastTool, onApproval, addSessionApprovedTool],
+  );
 
   const toolTitle = useMemo(() => {
     const toolName = currentTool.function.name;
@@ -37,140 +87,50 @@ export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
         if (args.file_path) {
           return (
             <>
-              <Text bold>{`${toolName}: `}</Text>
-              <Text bold={false} color={theme.colors.info}>
+              <Text color={theme.modal.title} bold>{`${toolName}: `}</Text>
+              <Text bold={false} color={theme.modal.subtitle}>
                 {args.file_path}
               </Text>
             </>
           );
         }
-      } catch {
-        // Fall through to default
-      }
+      } catch {}
     }
 
     return toolName;
   }, [currentTool]);
 
-  const handleEditSubmit = () => {
-    if (editValue.trim().length === 0) return;
-    onApproval('edit', undefined, editValue.trim());
+  const handleEditSubmit = (value: string) => {
+    if (value.trim().length === 0) return;
+    onApproval('edit', undefined, value.trim());
   };
 
   const handleEditCancel = () => {
     setIsEditMode(false);
     setEditValue('');
-    setSelectedAction(0);
   };
 
-  // Handle keyboard navigation
-  // selectedAction: 0=Yes, 1=No, 2=Yes for session, 3=Edit (isEditMode)
-  useInput((input, key) => {
-    if (isEditMode) return;
-
-    if (key.tab) {
-      if (key.shift) {
-        if (selectedAction === 0) {
-          setIsEditMode(true);
-        } else {
-          setSelectedAction((prev) => prev - 1);
-        }
-      } else {
-        if (selectedAction === 2) {
-          setIsEditMode(true);
-        } else {
-          setSelectedAction((prev) => prev + 1);
-        }
-      }
-      return;
-    }
-
-    if (key.return) {
-      const decisions = ['approve', 'deny', 'approve_session'] as const;
-      handleToolDecision(decisions[selectedAction]);
-      return;
-    }
-
-    if (key.leftArrow) {
-      setSelectedAction((prev) => (prev === 0 ? 2 : prev - 1));
-      return;
-    }
-
-    if (key.rightArrow) {
-      setSelectedAction((prev) => (prev === 2 ? 0 : prev + 1));
-      return;
-    }
-
-    // Handle number key shortcuts
-    if (input === '1') {
-      handleToolDecision('approve');
-      return;
-    }
-    if (input === '2') {
-      handleToolDecision('deny');
-      return;
-    }
-    if (input === '3') {
-      handleToolDecision('approve_session');
-      return;
-    }
-    if (input === '4') {
-      setIsEditMode(true);
-      return;
-    }
-  });
-
-  const handleToolDecision = (decision: 'approve' | 'deny' | 'approve_session') => {
-    if (decision === 'approve') {
-      setApprovedCalls((prev) => [...prev, currentTool]);
-    } else if (decision === 'deny') {
-      setDeniedCalls((prev) => [...prev, currentTool]);
-    } else if (decision === 'approve_session') {
-      // Add current tool to session-approved list
-      addSessionApprovedTool(currentTool.function.name);
-
-      // Find all tools with the same name in the current batch (current + remaining)
-      const currentToolName = currentTool.function.name;
-      const toolsWithSameName = toolCalls
-        .slice(currentToolIndex)
-        .filter((tool) => tool.function.name === currentToolName);
-
-      // Approve all instances of this tool in current batch
-      setApprovedCalls((prev) => [...prev, ...toolsWithSameName]);
-
-      // Find the next tool with a different name
-      const nextDifferentToolIndex = toolCalls
-        .slice(currentToolIndex + 1)
-        .findIndex((tool) => tool.function.name !== currentToolName);
-
-      if (nextDifferentToolIndex === -1) {
-        // No more different tools - we're done, approve everything
-        onApproval('approve', [...approvedCalls, ...toolsWithSameName]);
-        return;
-      }
-
-      // Move to the next different tool
-      setCurrentToolIndex(currentToolIndex + 1 + nextDifferentToolIndex);
-      setSelectedAction(0); // Reset to first action
-      return;
-    }
-
-    if (isLastTool) {
-      // Last tool - send final decision
-      const finalApproved = decision === 'approve' ? [...approvedCalls, currentTool] : approvedCalls;
-      if (finalApproved.length > 0) {
-        onApproval('approve', finalApproved);
-      } else {
-        onApproval('deny');
-      }
-    } else {
-      // Move to next tool
-      setCurrentToolIndex((prev) => prev + 1);
-      setSelectedAction(0); // Reset to first action
-    }
+  const handleActionExecute = (action: number) => {
+    handleToolDecision(['approve', 'deny', 'approve_session'][action] as 'approve' | 'deny' | 'approve_session');
   };
 
-  const footerText = isEditMode ? 'Enter Submit • Esc Cancel' : '1/2/3 Quick Select • 4 Edit • Tab/←→ Navigate';
+  useInput(
+    (input) => {
+      const decisions: Record<string, 'approve' | 'deny' | 'approve_session'> = {
+        '1': 'approve',
+        '2': 'deny',
+        '3': 'approve_session',
+      };
+
+      if (decisions[input]) {
+        handleToolDecision(decisions[input]);
+        return true;
+      }
+    },
+    { isActive: true },
+  );
+
+  const footerText = isEditMode ? 'Enter Submit • Esc Cancel' : 'Tab/Ctrl+N/P Cycle Focus • 1/2/3 Quick Select';
 
   return (
     <AppModal
@@ -186,18 +146,13 @@ export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
       rightTitle={<ToolProgressInfo currentIndex={currentToolIndex} totalTools={toolCalls.length} />}
     >
       <Box flexDirection="column" width="100%">
-        {/* Parameters / Specialized Content */}
         <ToolParameters toolCall={currentTool} />
-
-        {/* Action Buttons */}
         <Box flexDirection="row" justifyContent="space-between" alignItems="center" marginTop={1}>
-          <ToolActions selectedAction={isEditMode ? -1 : selectedAction} />
+          <ToolActions onActionExecute={handleActionExecute} />
         </Box>
-
-        {/* Edit Input */}
         <Box marginY={1}>
           <ToolEditInput
-            isFocused={isEditMode}
+            ref={editInputRef}
             value={editValue}
             onChange={setEditValue}
             onSubmit={handleEditSubmit}
@@ -206,5 +161,13 @@ export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
         </Box>
       </Box>
     </AppModal>
+  );
+}
+
+export function ToolApprovalPrompt({ toolCalls, onApproval }: Props) {
+  return (
+    <FocusProvider>
+      <ToolApprovalPromptContent toolCalls={toolCalls} onApproval={onApproval} />
+    </FocusProvider>
   );
 }

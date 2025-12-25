@@ -1,52 +1,77 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
+import { useInput } from '@/contexts/InputContext';
+import { useFocus } from '@/contexts/InputContext/FocusContext.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
 
 type ToolActionsProps = {
-  selectedAction: number;
+  onActionExecute: (action: number) => void;
 };
 
-export const ToolActions: React.FC<ToolActionsProps> = ({ selectedAction }) => {
+type ActionButtonProps = {
+  label: string;
+  labelSelectedColor: string;
+  labelDefaultColor: string;
+  onActionExecute: () => void;
+  autoFocus?: boolean;
+};
+
+const ActionButton: React.FC<ActionButtonProps> = ({
+  label,
+  labelSelectedColor,
+  labelDefaultColor,
+  onActionExecute,
+  autoFocus,
+}) => {
+  const { theme } = useTheme();
+  const { isFocused } = useFocus({ active: true, autoFocus });
+
+  useInput(
+    (_input, key) => {
+      if (key.return) {
+        onActionExecute();
+        return true;
+      }
+    },
+    { isActive: isFocused },
+  );
+
+  return (
+    <Box alignItems="center">
+      <Text color={isFocused ? theme.toolApproval.actionSelected : 'transparent'} bold>
+        {isFocused ? '❯ ' : '  '}
+      </Text>
+      <Text dimColor={!isFocused} color={isFocused ? labelSelectedColor : labelDefaultColor} bold>
+        {label}
+      </Text>
+    </Box>
+  );
+};
+
+export const ToolActions: React.FC<ToolActionsProps> = ({ onActionExecute }) => {
   const { theme } = useTheme();
 
   return (
     <Box flexDirection="row" gap={2}>
-      <Box alignItems="center">
-        <Text color={selectedAction === 0 ? theme.toolApproval.actionSelected : 'transparent'} bold>
-          {selectedAction === 0 ? '❯ ' : '  '}
-        </Text>
-        <Text
-          dimColor={selectedAction !== 0}
-          color={selectedAction === 0 ? theme.toolApproval.actionApprove : 'white'}
-          bold
-        >
-          Yes
-        </Text>
-      </Box>
-      <Box alignItems="center">
-        <Text color={selectedAction === 1 ? theme.toolApproval.actionSelected : 'transparent'} bold>
-          {selectedAction === 1 ? '❯ ' : '  '}
-        </Text>
-        <Text
-          dimColor={selectedAction !== 1}
-          color={selectedAction === 1 ? theme.toolApproval.actionSelected : theme.toolApproval.actionDeny}
-          bold
-        >
-          No
-        </Text>
-      </Box>
-      <Box alignItems="center">
-        <Text color={selectedAction === 2 ? theme.toolApproval.actionSelected : 'transparent'} bold>
-          {selectedAction === 2 ? '❯ ' : '  '}
-        </Text>
-        <Text
-          dimColor={selectedAction !== 2}
-          color={selectedAction === 2 ? theme.toolApproval.actionSelected : theme.toolApproval.actionReview}
-          bold
-        >
-          Yes, for this session
-        </Text>
-      </Box>
+      <ActionButton
+        label="Yes"
+        labelSelectedColor={theme.toolApproval.actionApprove}
+        labelDefaultColor="white"
+        onActionExecute={() => onActionExecute(0)}
+        autoFocus
+      />
+      <ActionButton
+        label="No"
+        labelSelectedColor={theme.toolApproval.actionSelected}
+        labelDefaultColor={theme.toolApproval.actionDeny}
+        onActionExecute={() => onActionExecute(1)}
+      />
+      <ActionButton
+        label="Yes, for this session"
+        labelSelectedColor={theme.toolApproval.actionSelected}
+        labelDefaultColor={theme.toolApproval.actionReview}
+        onActionExecute={() => onActionExecute(2)}
+      />
     </Box>
   );
 };

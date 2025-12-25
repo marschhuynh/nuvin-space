@@ -117,13 +117,14 @@ export const theme = {
 
   // Command and help colors
   modal: {
-    title: COLOR_TOKENS.cyan,
-    subtitle: COLOR_TOKENS.gray,
+    title: COLOR_TOKENS.black,
+    subtitle: COLOR_TOKENS.black,
+    titleBackground: COLORS.accent,
     sectionHeader: COLOR_TOKENS.yellow,
     keyBinding: COLOR_TOKENS.green,
     description: COLOR_TOKENS.gray,
     help: COLOR_TOKENS.gray,
-    background: COLOR_TOKENS.black,
+    background: COLOR_TOKENS.transparent,
   },
 
   // Command and help colors

@@ -149,8 +149,6 @@ const FooterComponent: React.FC<FooterProps> = ({
           </Box>
           <Box alignSelf="flex-end" flexGrow={1} justifyContent="flex-end">
             <Text dimColor>
-              <Text color={theme.colors.accent}>Tab</Text> input/scroll
-              {' · '}
               <Text color={theme.colors.accent}>/</Text> command{' · '}
               <Text color={theme.colors.accent}>ESC×2</Text> stop{' · '}
               <Text color={theme.colors.accent}>Ctrl+E</Text> show detail

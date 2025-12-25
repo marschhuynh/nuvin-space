@@ -1,6 +1,7 @@
 import { type BoxRef, Box, type BoxProps, measureElement, Text } from 'ink';
 import { useRef, useEffect, useCallback, useState, type ReactNode } from 'react';
-import { useMouse, type MouseEvent } from '../contexts/InputContext/index.js';
+import { useMouse, useInput, useFocus, type MouseEvent, type Key } from '../contexts/InputContext/index.js';
+import { useTheme } from '@/contexts/ThemeContext.js';
 
 type AutoScrollBoxProps = {
   maxHeight: number | string | undefined;
@@ -11,6 +12,7 @@ type AutoScrollBoxProps = {
   scrollbarColor?: string;
   scrollbarTrackColor?: string;
   mousePriority?: number;
+  enableKeyboardScroll?: boolean;
 } & Omit<BoxProps, 'ref' | 'overflow' | 'height'>;
 
 type ScrollInfo = {
@@ -69,8 +71,10 @@ export function AutoScrollBox({
   scrollbarColor = 'cyan',
   scrollbarTrackColor = 'gray',
   mousePriority = 0,
+  enableKeyboardScroll = true,
   ...boxProps
 }: AutoScrollBoxProps) {
+  const { theme } = useTheme();
   const boxRef = useRef<BoxRef>(null);
   const contentRef = useRef<BoxRef>(null);
   const prevChildrenRef = useRef(children);
@@ -82,6 +86,7 @@ export function AutoScrollBox({
   });
 
   const needsScrollbar = showScrollbar && scrollInfo.contentHeight > scrollInfo.containerHeight;
+  const { isFocused } = useFocus({ active: needsScrollbar });
 
   const updateScrollInfo = useCallback(() => {
     if (!boxRef.current || !contentRef.current) return;
@@ -121,6 +126,11 @@ export function AutoScrollBox({
 
   const handleMouseEvent = useCallback(
     (event: MouseEvent) => {
+      // if (event.type === 'click') {
+      //   focus();
+      //   return true;
+      // }
+
       const multiplier = event.count || 1;
       if (event.type === 'wheel-up') {
         scrollBy(-scrollStep * multiplier);
@@ -134,7 +144,42 @@ export function AutoScrollBox({
     [scrollBy, scrollStep],
   );
 
+  const handleKeyboardEvent = useCallback(
+    (input: string, _key: Key) => {
+      if (!isFocused || !needsScrollbar || !enableKeyboardScroll) {
+        if (isFocused && (input === 'j' || input === 'k' || input === 'g' || input === 'G')) {
+          return true;
+        }
+        return;
+      }
+
+      if (input === 'j') {
+        scrollBy(scrollStep);
+        return true;
+      }
+      if (input === 'k') {
+        scrollBy(-scrollStep);
+        return true;
+      }
+      if (input === 'g') {
+        if (!boxRef.current || !contentRef.current) return;
+        boxRef.current.scrollTo({ x: 0, y: 0 });
+        isUserScrolledRef.current = true;
+        updateScrollInfo();
+        return true;
+      }
+      if (input === 'G') {
+        boxRef.current?.scrollToBottom();
+        isUserScrolledRef.current = false;
+        updateScrollInfo();
+        return true;
+      }
+    },
+    [isFocused, scrollBy, scrollStep, needsScrollbar, updateScrollInfo, enableKeyboardScroll],
+  );
+
   useMouse(handleMouseEvent, { isActive: enableMouseScroll && needsScrollbar, priority: mousePriority });
+  useInput(handleKeyboardEvent, { isActive: needsScrollbar, priority: mousePriority });
 
   useEffect(() => {
     if (prevChildrenRef.current !== children) {
@@ -147,7 +192,14 @@ export function AutoScrollBox({
   }, [children, updateScrollInfo]);
 
   return (
-    <Box flexDirection="row" {...(maxHeight !== undefined ? { maxHeight } : {})} overflow="hidden">
+    <Box
+      flexDirection="row"
+      {...(maxHeight !== undefined ? { maxHeight } : {})}
+      overflow="hidden"
+      // borderStyle={isFocused ? 'round' : undefined}
+      // borderColor={isFocused ? 'cyan' : undefined}
+      backgroundColor={isFocused ? theme.tokens.dim : 'transparent'}
+    >
       <Box ref={boxRef} overflow="scroll" flexGrow={1} {...boxProps} flexDirection="column">
         <Box ref={contentRef} flexShrink={0} flexDirection="column">
           {children}

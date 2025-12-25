@@ -1,58 +1,67 @@
-import type React from 'react';
+import { forwardRef, useImperativeHandle, useState, useEffect } from 'react';
 import { Box, Text } from 'ink';
-import { useInput } from '@/contexts/InputContext/index.js';
-import TextInput from '@/components/TextInput/index.js';
+import { useInput, useFocus } from '@/contexts/InputContext/index.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
+import TextInput from '../TextInput';
+
+export interface ToolEditInputHandle {
+  focus: () => void;
+}
 
 type ToolEditInputProps = {
-  isFocused: boolean;
   value: string;
   onChange: (value: string) => void;
   onSubmit: () => void;
   onCancel: () => void;
+  onFocusChange?: (focused: boolean) => void;
 };
 
-export const ToolEditInput: React.FC<ToolEditInputProps> = ({ isFocused, value, onChange, onSubmit, onCancel }) => {
-  const { theme } = useTheme();
+export const ToolEditInput = forwardRef<ToolEditInputHandle, ToolEditInputProps>(
+  ({ value: externalValue, onSubmit, onCancel }, ref) => {
+    const { theme } = useTheme();
+    const { isFocused, focus } = useFocus();
+    const [localValue, setLocalValue] = useState(externalValue);
 
-  useInput(
-    (_input, key) => {
-      if (key.escape) {
-        onCancel();
-        return;
-      }
-      if (key.return && value.trim().length > 0) {
-        onSubmit();
-        return;
-      }
-    },
-    { isActive: isFocused },
-  );
+    useImperativeHandle(ref, () => ({ focus }), [focus]);
 
-  return (
-    <Box flexDirection="row" alignItems="center">
-      {isFocused ? (
-        <Text color={isFocused ? theme.toolApproval.actionSelected : 'transparent'} bold>
-          {isFocused ? '❯ ' : ''}
+    useEffect(() => {
+      setLocalValue(externalValue);
+    }, [externalValue]);
+
+    useInput(
+      (_input, key) => {
+        if (key.escape) {
+          onCancel();
+          return true;
+        }
+        return false;
+      },
+      { isActive: isFocused },
+    );
+
+    return (
+      <Box flexDirection="row" alignItems="flex-start">
+        <Text color={isFocused ? theme.toolApproval.actionSelected : theme.toolApproval.description} bold={isFocused}>
+          {isFocused ? '❯ ' : '│ '}
         </Text>
-      ) : (
-        <Text color={theme.toolApproval.description} dimColor={!isFocused}>
-          {'│ '}
-        </Text>
-      )}
-      {isFocused ? (
-        <TextInput
-          value={value}
-          onChange={onChange}
-          focus={isFocused}
-          placeholder="Input your changes here"
-          showCursor={true}
-        />
-      ) : (
-        <Text dimColor color={theme.toolApproval.description}>
-          Input your changes here
-        </Text>
-      )}
-    </Box>
-  );
-};
+        <Box flexGrow={1}>
+          <TextInput
+            focus={isFocused}
+            value={localValue}
+            onChange={setLocalValue}
+            placeholder="Input your changes here"
+            onSubmit={onSubmit}
+          />
+          {/* {isFocused ? (
+          ) : (
+            <Text dimColor color={theme.toolApproval.description}>
+              {localValue || 'Input your changes here'}
+            </Text>
+          )} */}
+        </Box>
+      </Box>
+    );
+  },
+);
+
+ToolEditInput.displayName = 'ToolEditInput';

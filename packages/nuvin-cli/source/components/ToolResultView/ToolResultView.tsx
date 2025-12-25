@@ -124,7 +124,7 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       {showStatusTop && (
         <Box flexDirection="row">
           <Text dimColor color={color}>
-            {`${hasMoreContent ? '├─' : '╰─'} ${text}`}
+            {`${hasMoreContent ? '├─' : '└─'} ${text}`}
           </Text>
         </Box>
       )}
@@ -146,13 +146,13 @@ export const ToolResultView: React.FC<ToolResultViewProps> = ({
       {showDone && (
         <Box flexDirection="row">
           <Text dimColor color={color}>
-            {`╰─ Done${durationText && (toolResult.durationMs ?? 0) > 1000 ? ` in ${durationText}` : ''}`}
+            {`└─ Done${durationText && (toolResult.durationMs ?? 0) > 1000 ? ` in ${durationText}` : ''}`}
           </Text>
         </Box>
       )}
       {showStatusBottom && (
         <Box flexDirection="row">
-          <Text dimColor color={color}>{`╰─ ${text}`}</Text>
+          <Text dimColor color={color}>{`└─ ${text}`}</Text>
         </Box>
       )}
     </Box>

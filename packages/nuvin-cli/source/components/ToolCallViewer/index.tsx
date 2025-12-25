@@ -92,7 +92,7 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
       {!hasResult && !isDenied && !isEdited && (
         <Box flexDirection="row" marginLeft={2}>
           <Text dimColor color={statusColor}>
-            ╰─{' '}
+            └─{' '}
           </Text>
           <Text>Running ...</Text>
           <Box marginLeft={1}>
@@ -104,7 +104,7 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
       {isDenied && (
         <Box flexDirection="row" marginLeft={2}>
           <Text dimColor color={theme.colors.warning}>
-            ╰─ Denied
+            └─ Denied
           </Text>
         </Box>
       )}
@@ -112,7 +112,7 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
       {isEdited && (
         <Box flexDirection="row" marginLeft={2}>
           <Text dimColor color={theme.colors.warning}>
-            ╰─ Edited
+            └─ Edited
           </Text>
         </Box>
       )}

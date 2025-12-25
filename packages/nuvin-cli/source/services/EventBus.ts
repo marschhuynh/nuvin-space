@@ -14,6 +14,7 @@ type EventMap = {
   'ui:keyboard:ctrlc': undefined;
   'ui:keyboard:paste': undefined;
   'ui:keyboard:explainToggle': string;
+  'ui:focus:cycle': 'forward' | 'backward';
   'ui:input:toggleVimMode': undefined;
   'ui:history:selected': {
     sessionId: string;

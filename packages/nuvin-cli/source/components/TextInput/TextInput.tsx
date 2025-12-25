@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Text } from 'ink';
 import type { Except } from 'type-fest';
-import { useInput } from '@/contexts/InputContext/index.js';
+import { useInput, useFocus } from '@/contexts/InputContext/index.js';
 import { moveCursorVertically, getLineInfo } from '@/utils/textNavigation.js';
 import type { LineInfo } from '@/utils/textNavigation.js';
 
@@ -71,7 +71,7 @@ function TextInput({
       const pasteResult = processPaste(input);
 
       if (pasteResult.shouldWaitForMore) {
-        return;
+        return true;
       }
 
       if (pasteResult.processedInput !== null) {
@@ -84,18 +84,18 @@ function TextInput({
 
       if (vimAction.type === 'move-cursor') {
         moveCursor(vimAction.offset);
-        return;
+        return true;
       }
 
       if (vimAction.type === 'set-value') {
         setValue(vimAction.value, vimAction.offset);
-        return;
+        return true;
       }
 
       if (vimAction.type === 'enter-insert-and-set-value') {
         setValue(vimAction.value, vimAction.offset);
         enterInsertMode();
-        return;
+        return true;
       }
 
       if (vimAction.type === 'enter-insert-mode') {
@@ -103,30 +103,37 @@ function TextInput({
         if (vimAction.offset !== undefined) {
           moveCursor(vimAction.offset);
         }
-        return;
+        return true;
       }
 
       if (vimAction.type === 'submit') {
         if (onSubmit) {
           onSubmit(currentValue);
         }
-        return;
+        return true;
       }
 
       if (vimAction.type !== 'none') {
-        return;
+        return true;
       }
 
       if (vimModeEnabled && vimMode === 'normal') {
-        return;
+        return true;
       }
 
       if (key.meta && input === '\u0003') {
         onChange('copied');
-        return;
+        return true;
       }
 
-      if ((key.ctrl && input === 'c') || (key.ctrl && input === 'v') || key.tab || (key.shift && key.tab)) {
+      if (
+        (key.ctrl && input === 'c') ||
+        (key.ctrl && input === 'v') ||
+        key.tab ||
+        (key.shift && key.tab) ||
+        (key.ctrl && input === 'n') ||
+        (key.ctrl && input === 'p')
+      ) {
         return;
       }
 
@@ -134,7 +141,7 @@ function TextInput({
         if (onSubmit) {
           onSubmit(currentValue);
         }
-        return;
+        return true;
       }
 
       if (key.leftArrow) {
@@ -146,6 +153,7 @@ function TextInput({
             moveCursor(currentCursorOffset - 1);
           }
         }
+        return true;
       } else if (key.rightArrow) {
         if (showCursor) {
           if (key.meta) {
@@ -155,46 +163,51 @@ function TextInput({
             moveCursor(currentCursorOffset + 1);
           }
         }
+        return true;
       } else if (key.home || (key.ctrl && input === 'a')) {
         if (showCursor) {
           const lineInfo = getLineInfo(currentValue, currentCursorOffset);
           moveCursor(lineInfo.lineStart);
         }
+        return true;
       } else if (key.end || (key.ctrl && input === 'e')) {
         if (showCursor) {
           const lineInfo = getLineInfo(currentValue, currentCursorOffset);
           moveCursor(lineInfo.lineEnd);
         }
+        return true;
       } else if (key.upArrow) {
         if (!showCursor) {
-          return;
+          return true;
         }
         const lineInfo = getLineInfo(currentValue, currentCursorOffset);
         if (onUpArrow) {
           onUpArrow(lineInfo);
           if (lineInfo.lineIndex === 0) {
-            return;
+            return true;
           }
         }
         const target = moveCursorVertically(currentValue, currentCursorOffset, 'up');
         if (target !== null) {
           moveCursor(target);
         }
+        return true;
       } else if (key.downArrow) {
         if (!showCursor) {
-          return;
+          return true;
         }
         const lineInfo = getLineInfo(currentValue, currentCursorOffset);
         if (onDownArrow) {
           onDownArrow(lineInfo);
           if (lineInfo.lineIndex === lineInfo.lines.length - 1) {
-            return;
+            return true;
           }
         }
         const target = moveCursorVertically(currentValue, currentCursorOffset, 'down');
         if (target !== null) {
           moveCursor(target);
         }
+        return true;
       } else if (key.backspace || key.delete) {
         if (currentCursorOffset > 0) {
           const nextValue =
@@ -203,6 +216,7 @@ function TextInput({
           const nextCursorOffset = currentCursorOffset - 1;
           setValue(nextValue, nextCursorOffset);
         }
+        return true;
       } else {
         const nextValue =
           currentValue.slice(0, currentCursorOffset) +
@@ -212,6 +226,7 @@ function TextInput({
         const nextCursorWidth = input.length > 1 ? input.length : 0;
 
         setValue(nextValue, nextCursorOffset, nextCursorWidth);
+        return true;
       }
     },
     { isActive: focus },

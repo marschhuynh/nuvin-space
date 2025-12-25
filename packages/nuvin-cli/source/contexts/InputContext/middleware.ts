@@ -26,8 +26,29 @@ export const explainToggleMiddleware: InputMiddleware = (input, key, next) => {
   next();
 };
 
+export const focusCycleMiddleware: InputMiddleware = (input, key, next) => {
+  if (key.tab && !key.shift) {
+    eventBus.emit('ui:focus:cycle', 'forward');
+    return;
+  }
+  if (key.shift && key.tab) {
+    eventBus.emit('ui:focus:cycle', 'backward');
+    return;
+  }
+  if (key.ctrl && input === 'n') {
+    eventBus.emit('ui:focus:cycle', 'forward');
+    return;
+  }
+  if (key.ctrl && input === 'p') {
+    eventBus.emit('ui:focus:cycle', 'backward');
+    return;
+  }
+  next();
+};
+
 export const defaultMiddleware: InputMiddleware[] = [
   ctrlCMiddleware,
   pasteDetectionMiddleware,
   explainToggleMiddleware,
+  focusCycleMiddleware,
 ];

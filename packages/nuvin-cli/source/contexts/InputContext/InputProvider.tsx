@@ -3,6 +3,8 @@ import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { useStdin, useStdout } from 'ink';
 import { InputContext } from './InputContext.js';
 import { parseKeypress, setKittyProtocolEnabled, parseMouseEvent } from './parseKeypress.js';
+import { FocusProvider } from './FocusContext.js';
+import { logger } from '../../utils/file-logger.js';
 import type {
   Subscriber,
   MouseSubscriber,
@@ -165,6 +167,8 @@ export const InputProvider: React.FC<Props> = ({
     const id = `input_sub_${++idCounterRef.current}`;
     const priority = options.priority ?? ++priorityStackCounterRef.current;
 
+    logger.error('[subscribe] id=' + id + ', priority=' + priority + ', isActive=' + (options.isActive ?? true));
+
     const subscriber: Subscriber = {
       id,
       handler,
@@ -175,6 +179,7 @@ export const InputProvider: React.FC<Props> = ({
     subscribersRef.current.set(id, subscriber);
 
     return () => {
+      logger.error('[unsubscribe] id=' + id);
       subscribersRef.current.delete(id);
     };
   }, []);
@@ -232,8 +237,11 @@ export const InputProvider: React.FC<Props> = ({
       .filter((s) => s.isActive)
       .sort((a, b) => b.priority - a.priority);
 
+    logger.error('[distributeInput] key.tab=' + key.tab + ', key.ctrl=' + key.ctrl + ', input=' + JSON.stringify(input) + ', subscribers=' + sortedSubscribers.length);
+    
     for (const subscriber of sortedSubscribers) {
       const result = subscriber.handler(input, key);
+      logger.error('[distributeInput] handler id=' + subscriber.id + ', priority=' + subscriber.priority + ', result=' + result);
       if (result === true) break;
     }
   }, []);
@@ -313,5 +321,9 @@ export const InputProvider: React.FC<Props> = ({
     ],
   );
 
-  return <InputContext.Provider value={contextValue}>{children}</InputContext.Provider>;
+  return (
+    <InputContext.Provider value={contextValue}>
+      <FocusProvider>{children}</FocusProvider>
+    </InputContext.Provider>
+  );
 };
