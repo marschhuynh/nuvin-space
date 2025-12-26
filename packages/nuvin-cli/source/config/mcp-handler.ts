@@ -15,16 +15,20 @@ export interface MCPServerConfig {
 
 export class MCPCliHandler {
   private configManager: ConfigManager;
+  private profile?: string;
 
-  constructor() {
+  constructor(profile?: string) {
     this.configManager = ConfigManager.getInstance();
+    this.profile = profile;
   }
 
   private globalScope: ConfigScope = 'global';
   private scopeExplicit = false;
 
-  async handleMCPCommand(args: string[]): Promise<void> {
-    await this.configManager.load();
+  async handleMCPCommand(args: string[], profile?: string): Promise<void> {
+    this.profile = profile;
+
+    await this.configManager.load({ profile: this.profile });
 
     const remaining = [...args];
     
@@ -421,7 +425,11 @@ export class MCPCliHandler {
 MCP Server Management Commands
 
 Usage:
-  nuvin mcp [--local|--global] <command> [options]
+  nuvin [OPTIONS] mcp <command> [options]
+
+Profile Options (go before 'mcp'):
+  --profile NAME          Use specific profile for this command
+                         (e.g., nuvin --profile work mcp add server)
 
 Scope Options (must come before command):
   --scope <local|global>  Config scope (default: global)
@@ -440,7 +448,7 @@ Commands:
 
 Add Server (short syntax):
   nuvin mcp add <name> <command> [args...]
-  
+
 Add Options (stdio transport):
   --command <cmd>         Executable command
   --args <a,b,c>          Comma-separated arguments
@@ -462,12 +470,12 @@ Other Options:
   --timeout <ms>          Override timeout (for test)
 
 Examples:
-  nuvin mcp --local add chrome-devtools npx chrome-devtools-mcp@latest
+  nuvin --profile work mcp add api --url "https://api.example.com"
+  nuvin --profile personal mcp list
   nuvin mcp add fs npx -y @anthropic-ai/mcp-server-filesystem /home
-  nuvin mcp add api --url "https://mcp.example.com" --header "Authorization=Bearer token"
-  nuvin mcp list --json
-  nuvin mcp show fs
+  nuvin mcp --local add chrome-devtools npx chrome-devtools-mcp@latest
   nuvin mcp --local disable github
+  nuvin mcp show fs
   nuvin mcp test fs --verbose
   nuvin mcp --local remove old-server
 `);

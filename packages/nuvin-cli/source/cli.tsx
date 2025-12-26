@@ -165,6 +165,9 @@ const cli = meow(
     );
   };
 
+  // Extract --profile flag BEFORE processing subcommands
+  const normalizedProfile = ensureString(cli.flags.profile as string | undefined);
+
   const processEnvironmentVariables = (): Partial<CLIConfig> => {
     const envConfig: Partial<CLIConfig> = {
       providers: {},
@@ -231,8 +234,8 @@ const cli = meow(
   if (cli.input.length > 0 && cli.input[0] === 'config') {
     const configHandler = new ConfigCliHandler();
     // Pass the original process.argv instead of processed cli.input to preserve flags
-    const configArgs = process.argv.slice(3); // Skip 'node', 'cli.js', 'config'
-    await configHandler.handleConfigCommand(configArgs);
+    const configArgs = cli.input.slice(1);
+    await configHandler.handleConfigCommand(configArgs, normalizedProfile);
     process.exit(0);
   }
 
@@ -240,8 +243,8 @@ const cli = meow(
   if (cli.input.length > 0 && cli.input[0] === 'profile') {
     const { ProfileCliHandler } = await import('./config/profile-handler.js');
     const profileHandler = new ProfileCliHandler();
-    const profileArgs = process.argv.slice(3);
-    await profileHandler.handleProfileCommand(profileArgs);
+    const profileArgs = cli.input.slice(1);
+    await profileHandler.handleProfileCommand(profileArgs, normalizedProfile);
     process.exit(0);
   }
 
@@ -249,15 +252,14 @@ const cli = meow(
   if (cli.input.length > 0 && cli.input[0] === 'mcp') {
     const { MCPCliHandler } = await import('./config/mcp-handler.js');
     const mcpHandler = new MCPCliHandler();
-    const mcpArgs = process.argv.slice(3);
-    await mcpHandler.handleMCPCommand(mcpArgs);
+    const mcpArgs = cli.input.slice(1);
+    await mcpHandler.handleMCPCommand(mcpArgs, normalizedProfile);
     process.exit(0);
   }
 
   const configManager = ConfigManager.getInstance();
 
   const normalizedExplicitConfig = ensureString(cli.flags.config as string | undefined);
-  const normalizedProfile = ensureString(cli.flags.profile as string | undefined);
 
   let fileConfig: CLIConfig = {};
   try {

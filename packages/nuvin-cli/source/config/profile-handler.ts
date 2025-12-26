@@ -9,7 +9,7 @@ export class ProfileCliHandler {
     this.profileManager = new ProfileManager(console.log);
   }
 
-  async handleProfileCommand(args: string[]): Promise<void> {
+  async handleProfileCommand(args: string[], _profile?: string): Promise<void> {
     await this.profileManager.initialize();
 
     const [command, ...rest] = args;

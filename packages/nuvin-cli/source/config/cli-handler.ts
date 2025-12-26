@@ -3,12 +3,15 @@ import type { ConfigScope } from './types.js';
 
 export class ConfigCliHandler {
   private configManager: ConfigManager;
+  private profile?: string;
 
-  constructor() {
+  constructor(profile?: string) {
     this.configManager = ConfigManager.getInstance();
+    this.profile = profile;
   }
 
-  async handleConfigCommand(args: string[]): Promise<void> {
+  async handleConfigCommand(args: string[], profile?: string): Promise<void> {
+    this.profile = profile;
     if (args.length === 0) {
       this.showHelp();
       return;
@@ -50,7 +53,7 @@ export class ConfigCliHandler {
     const scope = scopeIndex !== -1 && args[scopeIndex + 1] ? (args[scopeIndex + 1] as ConfigScope) : undefined;
 
     try {
-      await this.configManager.load();
+      await this.configManager.load({ profile: this.profile });
       const value = this.configManager.get(key, scope);
 
       if (value === undefined) {
@@ -82,7 +85,7 @@ export class ConfigCliHandler {
     }
 
     try {
-      await this.configManager.load();
+      await this.configManager.load({ profile: this.profile });
       const parsedValue = this.parseValue(value);
       await this.configManager.set(key, parsedValue, scope);
       console.log(`Set ${key} = ${this.formatValue(parsedValue)} (${scope} scope)`);
@@ -97,7 +100,7 @@ export class ConfigCliHandler {
     const scope = scopeIndex !== -1 && args[scopeIndex + 1] ? (args[scopeIndex + 1] as ConfigScope) : undefined;
 
     try {
-      await this.configManager.load();
+      await this.configManager.load({ profile: this.profile });
 
       if (scope) {
         const scopeSource = this.configManager.getScopeSource(scope);
