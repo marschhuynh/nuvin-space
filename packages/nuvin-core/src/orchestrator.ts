@@ -251,7 +251,7 @@ export class AgentOrchestrator {
    * Read-only tools and todo management tools are auto-approved.
    */
   private shouldBypassApproval(toolName: string): boolean {
-    const readOnlyTools = ['file_read', 'dir_ls', 'web_search', 'web_fetch'];
+    const readOnlyTools = ['file_read', 'dir_ls', 'web_search', 'web_fetch', 'glob', 'grep'];
     const todoTools = ['todo_write', 'todo_read'];
     return readOnlyTools.includes(toolName) || todoTools.includes(toolName);
   }
