@@ -387,9 +387,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
         onUpdateCompleted: (_success, message) => {
           setNotification(message, 5000);
         },
-        onError: (error) => {
-          console.error('Update check failed:', error);
-        },
+        onError: (_error) => {},
       });
     };
 
