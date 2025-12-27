@@ -121,6 +121,10 @@ function TextInput({
         return true;
       }
 
+      if (key.escape) {
+        return;
+      }
+
       if (key.meta && input === '\u0003') {
         onChange('copied');
         return true;

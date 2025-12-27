@@ -56,6 +56,7 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
   const escStageRef = useRef<'none' | 'armed-clear' | 'armed-stop'>('none');
   const [queuedMessages, setQueuedMessages] = useState<string[]>([]);
   const isProcessingQueueRef = useRef(false);
+  const escTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!busy && queuedMessages.length > 0 && onInputSubmit && !isProcessingQueueRef.current) {
@@ -98,16 +99,20 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
               if (hasInput) {
                 onNotification('Press ESC again to clear input (or once more to stop process)', 1500);
                 escStageRef.current = 'armed-clear';
-                setTimeout(() => {
+                if (escTimeoutRef.current) clearTimeout(escTimeoutRef.current);
+                escTimeoutRef.current = setTimeout(() => {
                   escStageRef.current = 'none';
+                  escTimeoutRef.current = null;
                 }, 1500);
                 return;
               }
             }
             onNotification('Press ESC again to stop the process', 1500);
             escStageRef.current = 'armed-stop';
-            setTimeout(() => {
+            if (escTimeoutRef.current) clearTimeout(escTimeoutRef.current);
+            escTimeoutRef.current = setTimeout(() => {
               escStageRef.current = 'none';
+              escTimeoutRef.current = null;
             }, 1500);
             return;
           }
@@ -118,13 +123,17 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
               ref.current.clear();
             }
             escStageRef.current = 'armed-stop';
-            setTimeout(() => {
+            if (escTimeoutRef.current) clearTimeout(escTimeoutRef.current);
+            escTimeoutRef.current = setTimeout(() => {
               escStageRef.current = 'none';
+              escTimeoutRef.current = null;
             }, 1500);
             return;
           }
 
           if (escStageRef.current === 'armed-stop') {
+            if (escTimeoutRef.current) clearTimeout(escTimeoutRef.current);
+            escTimeoutRef.current = null;
             onNotification(null);
             escStageRef.current = 'none';
             try {
@@ -144,8 +153,10 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
             if (hasInput) {
               onNotification('Press ESC again to clear the input', 1500);
               escStageRef.current = 'armed-clear';
-              setTimeout(() => {
+              if (escTimeoutRef.current) clearTimeout(escTimeoutRef.current);
+              escTimeoutRef.current = setTimeout(() => {
                 escStageRef.current = 'none';
+                escTimeoutRef.current = null;
               }, 1500);
               return;
             }
@@ -153,6 +164,8 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
         }
 
         if (escStageRef.current === 'armed-clear') {
+          if (escTimeoutRef.current) clearTimeout(escTimeoutRef.current);
+          escTimeoutRef.current = null;
           onNotification(null);
           escStageRef.current = 'none';
           if (typeof ref !== 'function' && ref?.current) {

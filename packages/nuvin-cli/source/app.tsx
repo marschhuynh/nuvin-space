@@ -404,7 +404,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
         </Box>
       }
     >
-      <Box flexDirection="column" minHeight={10} position="relative">
+      <Box flexDirection="column" minHeight={6} position="relative">
         <ChatDisplay
           key={`chat-display-${headerKey}`}
           messages={messages}
