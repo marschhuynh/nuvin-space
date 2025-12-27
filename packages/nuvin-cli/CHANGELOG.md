@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.24.1
+
+### Patch Changes
+
+- [`42abdc1`](https://github.com/marschhuynh/nuvin-space/commit/42abdc147353077e80ee34f3302b066d715190dc) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Remove debug logger statements from focus and input handling
+
 ## 1.24.0
 
 ### Minor Changes
