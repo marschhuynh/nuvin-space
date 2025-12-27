@@ -2,6 +2,8 @@ import {
   isAssignSuccess,
   isBashSuccess,
   isDirLsSuccess,
+  isGlobSuccess,
+  isGrepSuccess,
   isFileEditSuccess,
   isFileNewSuccess,
   isFileReadSuccess,
@@ -201,6 +203,48 @@ export const dirLsStrategy: StatusStrategy = {
     }
 
     return createStatusMessage('Listing failed', statusColor, '');
+  },
+};
+
+export const globStrategy: StatusStrategy = {
+  getStatus(result: ToolExecutionResult, params: StatusParams): StatusMessage {
+    const { statusColor } = params;
+
+    if (isGlobSuccess(result)) {
+      const count = get(result, 'metadata.count') as number | undefined;
+      const truncated = get(result, 'metadata.truncated') as boolean | undefined;
+      let text = count !== undefined ? `Found ${count} files` : 'Search complete';
+      if (truncated) text += ' (truncated)';
+      return createStatusMessage(text, statusColor, '');
+    }
+
+    if (isEditedResult(result)) {
+      return createStatusMessage('Edited', statusColor, '');
+    }
+
+    return createStatusMessage('Search failed', statusColor, '');
+  },
+};
+
+export const grepStrategy: StatusStrategy = {
+  getStatus(result: ToolExecutionResult, params: StatusParams): StatusMessage {
+    const { statusColor } = params;
+
+    if (isGrepSuccess(result)) {
+      const matchCount = get(result, 'metadata.matchCount') as number | undefined;
+      const fileCount = get(result, 'metadata.fileCount') as number | undefined;
+      const truncated = get(result, 'metadata.truncated') as boolean | undefined;
+      let text = matchCount !== undefined ? `Found ${matchCount} matches` : 'Search complete';
+      if (fileCount !== undefined) text += ` in ${fileCount} files`;
+      if (truncated) text += ' (truncated)';
+      return createStatusMessage(text, statusColor, '');
+    }
+
+    if (isEditedResult(result)) {
+      return createStatusMessage('Edited', statusColor, '');
+    }
+
+    return createStatusMessage('Search failed', statusColor, '');
   },
 };
 

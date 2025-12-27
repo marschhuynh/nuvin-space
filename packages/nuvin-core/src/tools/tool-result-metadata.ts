@@ -50,6 +50,22 @@ export type DirLsMetadata = {
   includeHidden: boolean;
 };
 
+export type GlobToolMetadata = {
+  searchPath: string;
+  pattern: string;
+  count: number;
+  truncated: boolean;
+};
+
+export type GrepToolMetadata = {
+  searchPath: string;
+  pattern: string;
+  include?: string;
+  matchCount: number;
+  fileCount: number;
+  truncated: boolean;
+};
+
 export type WebSearchMetadata = {
   offset: number;
   totalRequested: number;
@@ -104,6 +120,8 @@ export type ToolMetadataMap = {
   file_edit: FileEditMetadata;
   file_new: FileNewMetadata;
   dir_ls: DirLsMetadata;
+  glob: GlobToolMetadata;
+  grep: GrepToolMetadata;
   web_search: WebSearchMetadata;
   web_fetch: WebFetchMetadata;
   todo_write: TodoWriteMetadata;

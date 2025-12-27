@@ -21,6 +21,8 @@ import { FileEditTool } from './tools/FileEditTool.js';
 import type { FunctionTool } from './tools/types.js';
 import { BashTool } from './tools/BashTool.js';
 import { DirLsTool } from './tools/DirLsTool.js';
+import { GlobTool } from './tools/GlobTool.js';
+import { GrepTool } from './tools/GrepTool.js';
 import { AgentRegistry } from './agent-registry.js';
 import { AssignTool } from './tools/AssignTool.js';
 import { AgentManagerCommandRunner, DelegationServiceFactory } from './delegation/index.js';
@@ -54,6 +56,8 @@ export class ToolRegistry implements ToolPort, AgentAwareToolPort, OrchestratorA
       new FileEditTool(),
       new BashTool(),
       new DirLsTool({ allowAbsolute: true }),
+      new GlobTool({ allowAbsolute: true }),
+      new GrepTool({ allowAbsolute: true }),
     ];
 
     for (const tool of toolInstances) {

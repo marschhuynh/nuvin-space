@@ -42,6 +42,19 @@ export type DirLsArgs = {
   description?: string;
 };
 
+export type GlobArgs = {
+  pattern: string;
+  path?: string;
+  description?: string;
+};
+
+export type GrepArgs = {
+  pattern: string;
+  path?: string;
+  include?: string;
+  description?: string;
+};
+
 export type WebSearchArgs = {
   query: string;
   count?: number;
@@ -84,6 +97,8 @@ export type ToolArguments =
   | FileEditArgs
   | FileNewArgs
   | DirLsArgs
+  | GlobArgs
+  | GrepArgs
   | WebSearchArgs
   | WebFetchArgs
   | TodoWriteArgs
@@ -138,6 +153,14 @@ export function isWebFetchArgs(args: ToolArguments): args is WebFetchArgs {
   return 'url' in args && typeof args.url === 'string';
 }
 
+export function isGlobArgs(args: ToolArguments): args is GlobArgs {
+  return 'pattern' in args && typeof args.pattern === 'string' && !('include' in args);
+}
+
+export function isGrepArgs(args: ToolArguments): args is GrepArgs {
+  return 'pattern' in args && typeof args.pattern === 'string' && ('include' in args || !('path' in args && !args.path));
+}
+
 export function isDirLsArgs(args: ToolArguments): args is DirLsArgs {
   // Check that it has path or no specific other tool markers
   // Must be checked AFTER other more specific tools
@@ -158,6 +181,8 @@ export type ToolParameterMap = {
   file_edit: FileEditArgs;
   file_new: FileNewArgs;
   dir_ls: DirLsArgs;
+  glob: GlobArgs;
+  grep: GrepArgs;
   web_search: WebSearchArgs;
   web_fetch: WebFetchArgs;
   todo_write: TodoWriteArgs;

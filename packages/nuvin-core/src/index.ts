@@ -71,6 +71,8 @@ export type {
   FileEditArgs,
   FileNewArgs,
   DirLsArgs,
+  GlobArgs,
+  GrepArgs,
   WebSearchArgs,
   WebFetchArgs,
   TodoWriteArgs,
@@ -84,6 +86,8 @@ export {
   isFileEditArgs,
   isFileNewArgs,
   isDirLsArgs,
+  isGlobArgs,
+  isGrepArgs,
   isWebSearchArgs,
   isWebFetchArgs,
   isTodoWriteArgs,
@@ -102,6 +106,8 @@ export type {
   FileEditMetadata,
   FileNewMetadata,
   DirLsMetadata,
+  GlobToolMetadata,
+  GrepToolMetadata,
   WebSearchMetadata,
   WebFetchMetadata,
   TodoWriteMetadata,
@@ -113,6 +119,8 @@ export type { FileReadResult, FileReadSuccessResult, FileReadErrorResult, FileRe
 export type { FileEditResult, FileEditSuccessResult } from './tools/FileEditTool.js';
 export type { FileNewResult, FileNewSuccessResult, FileNewParams } from './tools/FileNewTool.js';
 export type { DirLsResult, DirLsSuccessResult, DirLsParams, DirEntry } from './tools/DirLsTool.js';
+export type { GlobResult, GlobSuccessResult, GlobParams } from './tools/GlobTool.js';
+export type { GrepResult, GrepSuccessResult, GrepParams } from './tools/GrepTool.js';
 export type { WebSearchToolResult, WebSearchSuccessResult, WebSearchParams, WebSearchResult } from './tools/WebSearchTool.js';
 export type { WebFetchResult, WebFetchSuccessResult, WebFetchParams } from './tools/WebFetchTool.js';
 export type { TodoWriteResult, TodoWriteSuccessResult } from './tools/TodoWriteTool.js';
@@ -143,6 +151,10 @@ export {
   isFileNewSuccess,
   isDirLsResult,
   isDirLsSuccess,
+  isGlobResult,
+  isGlobSuccess,
+  isGrepResult,
+  isGrepSuccess,
   isWebSearchResult,
   isWebSearchSuccess,
   isWebFetchResult,

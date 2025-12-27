@@ -4,6 +4,8 @@ import type { FileReadSuccessResult as FileReadSuccess } from './FileReadTool.js
 import type { FileEditSuccessResult as FileEditSuccess } from './FileEditTool.js';
 import type { FileNewSuccessResult as FileNewSuccess } from './FileNewTool.js';
 import type { DirLsSuccessResult as DirLsSuccess } from './DirLsTool.js';
+import type { GlobSuccessResult as GlobSuccess } from './GlobTool.js';
+import type { GrepSuccessResult as GrepSuccess } from './GrepTool.js';
 import type { WebSearchSuccessResult as WebSearchSuccess } from './WebSearchTool.js';
 import type { WebFetchSuccessResult as WebFetchSuccess } from './WebFetchTool.js';
 import type { TodoWriteSuccessResult as TodoWriteSuccess } from './TodoWriteTool.js';
@@ -22,6 +24,8 @@ type FileReadSuccessResult = WithToolExecutionFields<FileReadSuccess>;
 type FileEditSuccessResult = WithToolExecutionFields<FileEditSuccess>;
 type FileNewSuccessResult = WithToolExecutionFields<FileNewSuccess>;
 type DirLsSuccessResult = WithToolExecutionFields<DirLsSuccess>;
+type GlobSuccessResult = WithToolExecutionFields<GlobSuccess>;
+type GrepSuccessResult = WithToolExecutionFields<GrepSuccess>;
 type WebSearchSuccessResult = WithToolExecutionFields<WebSearchSuccess>;
 type WebFetchSuccessResult = WithToolExecutionFields<WebFetchSuccess>;
 type TodoWriteSuccessResult = WithToolExecutionFields<TodoWriteSuccess>;
@@ -65,6 +69,22 @@ export function isDirLsResult(result: ToolExecutionResult): result is ToolExecut
 
 export function isDirLsSuccess(result: ToolExecutionResult): result is DirLsSuccessResult {
   return result.name === 'dir_ls' && result.status === 'success' && result.type === 'json';
+}
+
+export function isGlobResult(result: ToolExecutionResult): result is ToolExecutionResult {
+  return result.name === 'glob';
+}
+
+export function isGlobSuccess(result: ToolExecutionResult): result is GlobSuccessResult {
+  return result.name === 'glob' && result.status === 'success' && result.type === 'text';
+}
+
+export function isGrepResult(result: ToolExecutionResult): result is ToolExecutionResult {
+  return result.name === 'grep';
+}
+
+export function isGrepSuccess(result: ToolExecutionResult): result is GrepSuccessResult {
+  return result.name === 'grep' && result.status === 'success' && result.type === 'text';
 }
 
 export function isWebSearchResult(result: ToolExecutionResult): result is ToolExecutionResult {

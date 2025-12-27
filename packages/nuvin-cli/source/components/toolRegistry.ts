@@ -11,6 +11,8 @@ import {
   bashToolStrategy,
   defaultStrategy,
   dirLsStrategy,
+  globStrategy,
+  grepStrategy,
   fileEditStrategy,
   fileNewStrategy,
   fileReadStrategy,
@@ -68,6 +70,18 @@ const TOOL_REGISTRY: Record<string, ToolMetadata> = {
     statusStrategy: dirLsStrategy,
     paramRenderer: DefaultParamRender,
     collapsedByDefault: true,
+  },
+  glob: {
+    displayName: 'Find files',
+    statusStrategy: globStrategy,
+    paramRenderer: DefaultParamRender,
+    collapsedByDefault: false,
+  },
+  grep: {
+    displayName: 'Search content',
+    statusStrategy: grepStrategy,
+    paramRenderer: DefaultParamRender,
+    collapsedByDefault: false,
   },
   todo_write: {
     displayName: 'Update todo',
