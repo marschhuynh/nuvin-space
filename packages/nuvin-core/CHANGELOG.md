@@ -1,5 +1,11 @@
 # @nuvin/nuvin-core
 
+## 1.10.0
+
+### Minor Changes
+
+- [`7ab770f`](https://github.com/marschhuynh/nuvin-space/commit/7ab770f4b65e2fb6745db6e2419ea66d3d679de8) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add glob and grep tools for advanced file and content searching
+
 ## 1.9.4
 
 ### Patch Changes

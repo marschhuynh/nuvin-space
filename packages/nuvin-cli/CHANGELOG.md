@@ -1,5 +1,16 @@
 # @nuvin/nuvin-cli
 
+## 1.24.0
+
+### Minor Changes
+
+- [`7ab770f`](https://github.com/marschhuynh/nuvin-space/commit/7ab770f4b65e2fb6745db6e2419ea66d3d679de8) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add glob and grep tools for advanced file and content searching
+
+### Patch Changes
+
+- Updated dependencies [[`7ab770f`](https://github.com/marschhuynh/nuvin-space/commit/7ab770f4b65e2fb6745db6e2419ea66d3d679de8)]:
+  - @nuvin/nuvin-core@1.10.0
+
 ## 1.23.1
 
 ### Patch Changes
