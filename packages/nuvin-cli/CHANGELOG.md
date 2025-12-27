@@ -1,5 +1,15 @@
 # @nuvin/nuvin-cli
 
+## 1.23.1
+
+### Patch Changes
+
+- [`615ebcd`](https://github.com/marschhuynh/nuvin-space/commit/615ebcdf93aad800454c632f6c764a860a486ca7) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Enhanced command menu and focus system with profile preservation, initial LLM setup, new CommandMenu component, and improved keyboard navigation
+
+- [`7acbf62`](https://github.com/marschhuynh/nuvin-space/commit/7acbf622f2e8351d18ac6d0f4e64bb68c48e37de) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Compact: Fix mcp handler change and minor adjustments
+
+- [`2c8a132`](https://github.com/marschhuynh/nuvin-space/commit/2c8a132bd2cb7fd5f1b9d5c7349ba2d38ebef709) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Improve ESC key handling with proper timeout clearing and sequence management
+
 ## 1.23.0
 
 ### Minor Changes
