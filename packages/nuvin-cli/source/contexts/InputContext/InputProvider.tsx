@@ -4,7 +4,6 @@ import { useStdin, useStdout } from 'ink';
 import { InputContext } from './InputContext.js';
 import { parseKeypress, setKittyProtocolEnabled, parseMouseEvent } from './parseKeypress.js';
 import { FocusProvider } from './FocusContext.js';
-import { logger } from '../../utils/file-logger.js';
 import type {
   Subscriber,
   MouseSubscriber,

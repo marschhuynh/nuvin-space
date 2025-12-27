@@ -9,7 +9,6 @@ import {
   type ReactNode,
   useEffect,
 } from 'react';
-import { logger } from '../../utils/file-logger.js';
 import { eventBus } from '../../services/EventBus.js';
 
 interface FocusContextInternal {

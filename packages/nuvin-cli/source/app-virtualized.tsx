@@ -1,7 +1,6 @@
 import { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import { Box, Text } from 'ink';
 import { useInput, useFocusCycle } from '@/contexts/InputContext/index.js';
-import { logger } from '@/utils/file-logger.js';
 import ansiEscapes from 'ansi-escapes';
 import * as crypto from 'node:crypto';
 import * as path from 'node:path';
