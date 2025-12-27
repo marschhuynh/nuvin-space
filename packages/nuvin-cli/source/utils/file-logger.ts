@@ -295,7 +295,7 @@ export function getDefaultLogger(options?: FileLoggerOptions): FileLogger {
   if (!defaultLogger) {
     defaultLogger = new FileLogger({
       logDir: '.',
-      minLevel: 'debug',
+      minLevel: 'error',
       ...options,
     });
   }

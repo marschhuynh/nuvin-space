@@ -87,8 +87,22 @@ export class MCPCliHandler {
         if (!command) {
           this.showHelp();
         } else {
-          console.error(`Unknown mcp command: ${command}`);
-          this.showHelp();
+          console.error(`\nError: Unknown mcp command '${command}'\n`);
+          console.log('Available commands:');
+          console.log('  list              List all MCP servers');
+          console.log('  add <name>        Add a new MCP server (stdio or HTTP)');
+          console.log('  remove <name>     Remove an MCP server');
+          console.log('  show <name>       Show server configuration');
+          console.log('  enable <name>     Enable a server');
+          console.log('  disable <name>    Disable a server');
+          console.log('  test <name>       Test server connection');
+          console.log('  help              Show detailed help');
+          console.log('\nExamples:');
+          console.log('  nuvin mcp add myserver npx @org/mcp-server');
+          console.log('  nuvin mcp add api --url https://api.example.com');
+          console.log('  nuvin --profile work mcp add jira --url https://mcp.atlassian.com');
+          console.log('  nuvin mcp list');
+          console.log('\nFor more details, run: nuvin mcp help\n');
           process.exit(1);
         }
     }
@@ -143,17 +157,13 @@ export class MCPCliHandler {
 
     const config = this.parseServerOptions(options);
 
-    if (config.transport === 'http') {
-      if (!config.url) {
-        console.error('Error: --url is required for HTTP transport');
-        process.exit(1);
-      }
-    } else {
-      if (!config.command) {
-        console.error('Error: command is required for stdio transport');
-        console.log('Usage: nuvin mcp add <name> <command> [args...]');
-        process.exit(1);
-      }
+    if (config.url) {
+      // HTTP transport - no command needed
+    } else if (!config.command) {
+      console.error('Error: command is required for stdio transport');
+      console.log('Usage: nuvin mcp add <name> <command> [args...]');
+      console.log('       nuvin mcp add <name> --url <url> [options]');
+      process.exit(1);
     }
 
     await this.configManager.set(`mcp.servers.${name}`, config, this.globalScope);
