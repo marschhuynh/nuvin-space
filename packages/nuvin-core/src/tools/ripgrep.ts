@@ -106,18 +106,54 @@ async function downloadFile(url: string, dest: string): Promise<void> {
 
 async function extractTarGz(tarPath: string, destDir: string, rgFilename: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const proc = spawn('tar', ['-xzf', tarPath, '-C', destDir, '--strip-components=1', `--include=*/${rgFilename}`], {
+    const tempExtractDir = path.join(os.tmpdir(), `ripgrep-extract-${Date.now()}`);
+    mkdirSync(tempExtractDir, { recursive: true });
+
+    const proc = spawn('tar', ['-xzf', tarPath, '-C', tempExtractDir], {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
     let stderr = '';
     proc.stderr?.on('data', (chunk) => { stderr += chunk.toString(); });
 
-    proc.on('close', (code) => {
-      if (code === 0) {
-        resolve(path.join(destDir, rgFilename));
-      } else {
+    proc.on('close', async (code) => {
+      if (code !== 0) {
         reject(new Error(`tar extraction failed: ${stderr}`));
+        return;
+      }
+
+      try {
+        const { readdirSync, copyFileSync, rmSync } = await import('node:fs');
+        
+        const findRg = (dir: string): string | null => {
+          const entries = readdirSync(dir, { withFileTypes: true });
+          for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+            if (entry.isFile() && entry.name === rgFilename) {
+              return fullPath;
+            }
+            if (entry.isDirectory()) {
+              const found = findRg(fullPath);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+
+        const rgPath = findRg(tempExtractDir);
+        if (!rgPath) {
+          reject(new Error(`${rgFilename} not found in extracted archive`));
+          return;
+        }
+
+        const destPath = path.join(destDir, rgFilename);
+        copyFileSync(rgPath, destPath);
+        chmodSync(destPath, 0o755);
+        
+        rmSync(tempExtractDir, { recursive: true, force: true });
+        resolve(destPath);
+      } catch (err) {
+        reject(err);
       }
     });
     proc.on('error', reject);
@@ -126,10 +162,13 @@ async function extractTarGz(tarPath: string, destDir: string, rgFilename: string
 
 async function extractZip(zipPath: string, destDir: string, rgFilename: string): Promise<string> {
   return new Promise((resolve, reject) => {
+    const tempExtractDir = path.join(os.tmpdir(), `ripgrep-extract-${Date.now()}`);
+    mkdirSync(tempExtractDir, { recursive: true });
+
     const proc = spawn('powershell', [
       '-NoProfile',
       '-Command',
-      `Expand-Archive -Path "${zipPath}" -DestinationPath "${destDir}" -Force`,
+      `Expand-Archive -Path "${zipPath}" -DestinationPath "${tempExtractDir}" -Force`,
     ], {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -137,17 +176,43 @@ async function extractZip(zipPath: string, destDir: string, rgFilename: string):
     let stderr = '';
     proc.stderr?.on('data', (chunk) => { stderr += chunk.toString(); });
 
-    proc.on('close', (code) => {
-      if (code === 0) {
-        const extractedDir = path.join(destDir, path.basename(zipPath, '.zip'));
-        const rgPath = path.join(extractedDir, rgFilename);
-        if (existsSync(rgPath)) {
-          resolve(rgPath);
-        } else {
-          reject(new Error(`rg.exe not found in extracted archive`));
-        }
-      } else {
+    proc.on('close', async (code) => {
+      if (code !== 0) {
         reject(new Error(`zip extraction failed: ${stderr}`));
+        return;
+      }
+
+      try {
+        const { readdirSync, copyFileSync, rmSync } = await import('node:fs');
+        
+        const findRg = (dir: string): string | null => {
+          const entries = readdirSync(dir, { withFileTypes: true });
+          for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+            if (entry.isFile() && entry.name === rgFilename) {
+              return fullPath;
+            }
+            if (entry.isDirectory()) {
+              const found = findRg(fullPath);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+
+        const rgPath = findRg(tempExtractDir);
+        if (!rgPath) {
+          reject(new Error(`${rgFilename} not found in extracted archive`));
+          return;
+        }
+
+        const destPath = path.join(destDir, rgFilename);
+        copyFileSync(rgPath, destPath);
+        
+        rmSync(tempExtractDir, { recursive: true, force: true });
+        resolve(destPath);
+      } catch (err) {
+        reject(err);
       }
     });
     proc.on('error', reject);
@@ -181,17 +246,10 @@ async function downloadRipgrep(): Promise<string> {
     const isWindows = os.platform() === 'win32';
     const rgFilename = isWindows ? 'rg.exe' : 'rg';
 
-    let extractedPath: string;
     if (info.extension === 'tar.gz') {
-      extractedPath = await extractTarGz(archivePath, cacheDir, rgFilename);
+      await extractTarGz(archivePath, cacheDir, rgFilename);
     } else {
-      extractedPath = await extractZip(archivePath, tempDir, rgFilename);
-      const { copyFileSync } = await import('node:fs');
-      copyFileSync(extractedPath, cachedPath);
-    }
-
-    if (!isWindows) {
-      chmodSync(cachedPath, 0o755);
+      await extractZip(archivePath, cacheDir, rgFilename);
     }
 
     return cachedPath;

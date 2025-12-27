@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { GlobTool } from '../tools/GlobTool.js';
+import * as Ripgrep from '../tools/ripgrep.js';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
@@ -8,7 +9,9 @@ describe('GlobTool', () => {
   const tool = new GlobTool({ allowAbsolute: true });
   let testDir: string;
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    await Ripgrep.filepath();
+
     testDir = path.join(os.tmpdir(), `glob-tool-test-${Date.now()}`);
     mkdirSync(testDir, { recursive: true });
     mkdirSync(path.join(testDir, 'src'), { recursive: true });
@@ -20,7 +23,7 @@ describe('GlobTool', () => {
     writeFileSync(path.join(testDir, 'src', 'utils.ts'), 'export function util() {}');
     writeFileSync(path.join(testDir, 'src', 'helper.js'), 'module.exports = {};');
     writeFileSync(path.join(testDir, 'lib', 'lib.ts'), 'export const lib = 1;');
-  });
+  }, 60000);
 
   describe('basic pattern matching', () => {
     it('should find files with *.ts pattern in directory', async () => {

@@ -74,6 +74,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
       );
     }, [input, commandItems, showCommandMenu]);
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: ref only used to reset selected index
     useEffect(() => {
       commandMenuRef.current?.setSelectedIndex(0);
     }, [filteredCommandItems.length]);

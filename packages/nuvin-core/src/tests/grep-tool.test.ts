@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { GrepTool } from '../tools/GrepTool.js';
+import * as Ripgrep from '../tools/ripgrep.js';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
@@ -8,7 +9,9 @@ describe('GrepTool', () => {
   const tool = new GrepTool({ allowAbsolute: true });
   let testDir: string;
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    await Ripgrep.filepath();
+
     testDir = path.join(os.tmpdir(), `grep-tool-test-${Date.now()}`);
     mkdirSync(testDir, { recursive: true });
     mkdirSync(path.join(testDir, 'src'), { recursive: true });
@@ -45,7 +48,7 @@ function greet(name) {
   console.log("Hello, " + name);
 }
 `);
-  });
+  }, 60000);
 
   describe('basic pattern matching', () => {
     it('should find matches for simple pattern', async () => {
