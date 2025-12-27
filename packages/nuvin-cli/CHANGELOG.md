@@ -1,5 +1,44 @@
 # @nuvin/nuvin-cli
 
+## 1.23.0
+
+### Minor Changes
+
+- [`6313135`](https://github.com/marschhuynh/nuvin-space/commit/631313587aec57358f856e940719a8b5337a6ce3) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add profile parameter support to subcommand handlers
+
+  **ConfigCliHandler:**
+
+  - Added `private profile?: string` field
+  - Updated constructor to accept `profile?: string` parameter
+  - Updated `handleConfigCommand()` to accept `profile?: string`
+  - All `configManager.load()` calls now pass `{ profile: this.profile }`
+
+  **ProfileCliHandler:**
+
+  - Updated `handleProfileCommand()` signature to accept `profile?: string` (for API consistency)
+  - Profile commands operate on registry, so parameter is unused
+
+  **MCPCliHandler:**
+
+  - Added `private profile?: string` field
+  - Updated constructor to accept `profile?: string` parameter
+  - Updated `handleMCPCommand()` to accept `profile?: string`
+  - Updated `configManager.load()` to pass `{ profile: this.profile }`
+
+  **Help text updates:**
+
+  - Added profile usage examples to MCP help (`nuvin --profile work mcp add server`)
+  - Updated CLI help to clarify `--profile` must come before subcommand
+
+### Patch Changes
+
+- [`6313135`](https://github.com/marschhuynh/nuvin-space/commit/631313587aec57358f856e940719a8b5337a6ce3) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Fix `--profile` flag being passed as argument to subcommand handlers
+
+  - Changed subcommand handlers from `process.argv.slice(3)` to `cli.input.slice(1)`
+  - This fixes the issue where `nuvin --profile work mcp list` showed "Unknown mcp command: work"
+  - Affected handlers: config, profile, and mcp subcommands
+  - meow parses flags into `cli.flags`, so we must use `cli.input` for positional arguments only
+
 ## 1.22.0
 
 ### Minor Changes
