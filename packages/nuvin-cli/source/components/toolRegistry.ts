@@ -67,7 +67,7 @@ const TOOL_REGISTRY: Record<string, ToolMetadata> = {
     displayName: 'List directory',
     statusStrategy: dirLsStrategy,
     paramRenderer: DefaultParamRender,
-    collapsedByDefault: false,
+    collapsedByDefault: true,
   },
   todo_write: {
     displayName: 'Update todo',
