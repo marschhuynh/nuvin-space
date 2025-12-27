@@ -45,9 +45,7 @@ export function FocusProvider({ children }: { children: ReactNode }) {
 
   const cycleFocus = useCallback((direction: 'forward' | 'backward' = 'forward') => {
     const ids = Array.from(focusableIdsRef.current);
-    logger.error('[cycleFocus] direction: ' + direction + ', ids: ' + JSON.stringify(ids));
     if (ids.length === 0) {
-      logger.error('[cycleFocus] No focusable ids, returning');
       return;
     }
 
@@ -62,7 +60,6 @@ export function FocusProvider({ children }: { children: ReactNode }) {
       }
 
       const nextId = ids[nextIndex] || null;
-      logger.error('[cycleFocus] currentId: ' + currentFocusedId + ', nextId: ' + nextId);
       return nextId;
     });
   }, []);

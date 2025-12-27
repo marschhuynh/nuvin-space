@@ -78,22 +78,18 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
 
   useInput((input, key) => {
     if (key.tab && !key.shift) {
-      logger.error('[App] Tab pressed, calling cycleFocus forward');
       cycleFocus('forward');
       return true;
     }
     if (key.shift && key.tab) {
-      logger.error('[App] Shift+Tab pressed, calling cycleFocus backward');
       cycleFocus('backward');
       return true;
     }
     if (key.ctrl && input === 'n') {
-      logger.error('[App] Ctrl+N pressed, calling cycleFocus forward');
       cycleFocus('forward');
       return true;
     }
     if (key.ctrl && input === 'p') {
-      logger.error('[App] Ctrl+P pressed, calling cycleFocus backward');
       cycleFocus('backward');
       return true;
     }
