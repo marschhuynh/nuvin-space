@@ -134,7 +134,7 @@ function TextInput({
         (key.ctrl && input === 'n') ||
         (key.ctrl && input === 'p')
       ) {
-        return;
+        return true;
       }
 
       if (key.return) {

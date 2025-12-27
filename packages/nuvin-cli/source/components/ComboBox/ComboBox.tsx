@@ -19,6 +19,7 @@ export type ComboBoxProps = {
   enableRotation?: boolean;
   showSearchInput?: boolean;
   showItemCount?: boolean;
+  focus?: boolean;
   onSelect: (item: ComboBoxItem) => void;
   onCancel?: () => void;
 };
@@ -30,6 +31,7 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
   enableRotation = false,
   showSearchInput = true,
   showItemCount = true,
+  focus = true,
   onSelect,
   onCancel,
 }) => {
@@ -139,7 +141,7 @@ export const ComboBox: React.FC<ComboBoxProps> = ({
             items={selectInputItems}
             limit={maxDisplayItems}
             enableRotation={enableRotation}
-            focus={true}
+            focus={focus}
             showScrollIndicators={true}
             onSelect={(item) => onSelect(item.value)}
             itemComponent={({ isSelected, label }) => (

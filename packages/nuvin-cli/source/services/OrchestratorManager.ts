@@ -396,6 +396,11 @@ export class OrchestratorManager {
       this.sessionDir = hasExplicitSession && this.memPersist ? sessionDir : null;
       this.sessionInitialized = hasExplicitSession;
       this.mcpManager = mcpManager;
+
+      // Set initial LLM - will be refreshed on each send() call
+      const initialLLM = this.createLLM();
+      this.orchestrator.setLLM(initialLLM);
+
       this.status = OrchestratorStatus.READY;
 
       // Only initialize default conversation if we have an explicit session

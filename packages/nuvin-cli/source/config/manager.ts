@@ -82,8 +82,9 @@ export class ConfigManager {
   }
 
   async load(options: ConfigLoadOptions = {}): Promise<ConfigLoadResult> {
-    // Initialize profile support
-    await this.initializeProfile(options.profile);
+    // Initialize profile support - preserve current profile if no explicit profile specified
+    const profileToUse = options.profile ?? (this.currentProfile !== DEFAULT_PROFILE ? this.currentProfile : undefined);
+    await this.initializeProfile(profileToUse);
 
     const cwd = options.cwd ? path.resolve(options.cwd) : process.cwd();
     this.localDir = path.join(cwd, '.nuvin-cli');

@@ -166,8 +166,8 @@ export const SelectInput = forwardRef<SelectInputHandle, SelectInputProps<unknow
 
         return (
           <Box key={key}>
-            <IndicatorComponent isSelected={isSelected} />
-            <ItemComponent isSelected={isSelected} label={item.label} value={item.value} />
+            <IndicatorComponent isSelected={focus && isSelected} />
+            <ItemComponent isSelected={focus && isSelected} label={item.label} value={item.value} />
           </Box>
         );
       })}

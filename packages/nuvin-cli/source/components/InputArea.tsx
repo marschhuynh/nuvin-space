@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import { Box, Text } from 'ink';
 import { useFocus, useInput } from '@/contexts/InputContext/index.js';
 import type { MemoryPort, Message } from '@nuvin/nuvin-core';
@@ -7,7 +7,7 @@ import { useTheme } from '@/contexts/ThemeContext.js';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import { useInputHistory } from '@/hooks/useInputHistory.js';
 import TextInput from './TextInput/index.js';
-import { ComboBox } from './ComboBox/index.js';
+import { CommandMenu, type CommandMenuHandle } from './CommandMenu/index.js';
 
 type VimMode = 'insert' | 'normal';
 
@@ -55,12 +55,28 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
   ) => {
     const { theme } = useTheme();
     const [input, setInput] = useState('');
-    const [showCommandMenu, setShowCommandMenu] = useState(false);
     const [focusKey, setFocusKey] = useState(0);
-    const [menuHasFocus, setMenuHasFocus] = useState(false);
     const [_vimMode, setVimMode] = useState<VimMode>('insert');
     const { cols } = useStdoutDimensions();
-    const { isFocused } = useFocus();
+    const { isFocused } = useFocus({ autoFocus: true, active: true });
+    const commandMenuRef = useRef<CommandMenuHandle>(null);
+
+    const showCommandMenu = input.startsWith('/');
+
+    const filteredCommandItems = useMemo(() => {
+      if (!showCommandMenu) return [];
+      const inputParts = input.split(/\s+/);
+      const commandPart = inputParts[0];
+      return commandItems.filter(
+        (item) =>
+          item.value.toLowerCase().includes(commandPart.toLowerCase()) ||
+          item.label.toLowerCase().includes(commandPart.toLowerCase()),
+      );
+    }, [input, commandItems, showCommandMenu]);
+
+    useEffect(() => {
+      commandMenuRef.current?.setSelectedIndex(0);
+    }, [filteredCommandItems.length]);
 
     const onRecall = useCallback(
       (message: string) => {
@@ -77,60 +93,37 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
       onRecall,
     });
 
-    const setMenuVisibility = useCallback((visible: boolean) => {
-      setShowCommandMenu(visible);
-    }, []);
-
     useImperativeHandle(
       ref,
       () => ({
         clear: () => {
           setInput('');
-          setMenuVisibility(false);
-          if (onInputChanged) {
-            onInputChanged('');
-          }
+          onInputChanged?.('');
         },
         getValue: () => input,
         setValue: (value: string) => {
           setInput(value);
-          if (onInputChanged) {
-            onInputChanged(value);
-          }
+          onInputChanged?.(value);
         },
         setValueForRecall: (value: string) => {
           setInput(value);
           setFocusKey((prev) => prev + 1);
-          if (onInputChanged) {
-            onInputChanged(value);
-          }
+          onInputChanged?.(value);
         },
         appendValue: (text: string) => {
           setInput((current) => {
             const newValue = current + text;
-            if (onInputChanged) {
-              onInputChanged(newValue);
-            }
+            onInputChanged?.(newValue);
             return newValue;
           });
           setFocusKey((prev) => prev + 1);
         },
         closeMenu: () => {
-          setMenuVisibility(false);
+          setInput('');
         },
       }),
-      [setMenuVisibility, onInputChanged, input],
+      [onInputChanged, input],
     );
-
-    const filteredCommandItems = commandItems.filter((item) => {
-      const inputParts = input.split(/\s+/);
-      const commandPart = inputParts[0];
-
-      return (
-        item.value.toLowerCase().includes(commandPart.toLowerCase()) ||
-        item.label.toLowerCase().includes(commandPart.toLowerCase())
-      );
-    });
 
     useEffect(() => {
       if (vimModeEnabled) {
@@ -142,150 +135,72 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
 
     const handleChange = (value: string) => {
       setInput(value);
-      const shouldShowMenu = value.startsWith('/');
-      setMenuVisibility(shouldShowMenu);
-
-      if (onInputChanged) {
-        onInputChanged(value);
-      }
-
-      if (!shouldShowMenu) {
-        setMenuHasFocus(false);
-      }
+      onInputChanged?.(value);
     };
-
-    const handleTabCompletion = useCallback(() => {
-      if (!input.startsWith('/')) return;
-
-      const inputParts = input.split(/\s+/);
-      const commandPart = inputParts[0];
-      const args = inputParts.slice(1).join(' ');
-
-      const matches = commandItems.filter((item) => item.value.toLowerCase().startsWith(commandPart.toLowerCase()));
-
-      if (matches.length > 0) {
-        const completed = args ? `${matches[0].value} ${args}` : matches[0].value;
-        setInput(completed);
-        setMenuVisibility(true);
-        setFocusKey((prev) => prev + 1);
-        onInputChanged?.(completed);
-      }
-    }, [input, commandItems, setMenuVisibility, onInputChanged]);
-
-    useInput(
-      (input, key) => {
-        if (key.ctrl && (input === 'n' || input === 'p')) {
-          return;
-        }
-
-        if (!showCommandMenu || filteredCommandItems.length === 0) {
-          return;
-        }
-
-        if (key.tab) {
-          if (input.startsWith('/') && !menuHasFocus) {
-            handleTabCompletion();
-            return;
-          }
-
-          setMenuHasFocus((prev) => !prev);
-          setFocusKey((prev) => prev + 1);
-          return;
-        }
-
-        if (key.upArrow || key.downArrow) {
-          if (!menuHasFocus) {
-            setMenuHasFocus(true);
-          }
-          return;
-        }
-
-        if (key.escape) {
-          if (menuHasFocus) {
-            setMenuHasFocus(false);
-            setFocusKey((prev) => prev + 1);
-          } else {
-            setMenuVisibility(false);
-          }
-          return;
-        }
-      },
-      { isActive: isFocused && showCommandMenu && filteredCommandItems.length > 0 },
-    );
 
     const handleVimModeChange = useCallback(
       (mode: VimMode) => {
         setVimMode(mode);
-        if (onVimModeChanged) {
-          onVimModeChanged(mode);
-        }
+        onVimModeChanged?.(mode);
       },
       [onVimModeChanged],
     );
 
-    const handleSubmit = async (value: string, fromCommandMenu?: boolean) => {
-      if (fromCommandMenu && !menuHasFocus) {
-        return;
-      }
-
-      const trimmed = value.trim();
-
-      if (trimmed.startsWith('/')) {
-        const inputParts = trimmed.split(/\s+/);
-        const commandPart = inputParts[0];
-        const args = inputParts.slice(1).join(' ').trim();
-        const commandMatch = commandItems.find((item) => item.value === commandPart);
-
-        if (commandMatch) {
-          setInput('');
-          setMenuVisibility(false);
-          setMenuHasFocus(false);
-          onInputChanged?.('');
-          await onInputSubmit?.(trimmed);
-          return;
-        }
-
-        if (showCommandMenu) {
-          if (filteredCommandItems.length > 0) {
-            const first = filteredCommandItems[0];
-            const completed = args ? `${first.value} ${args}` : first.value;
-            setInput('');
-            setMenuVisibility(false);
-            setMenuHasFocus(false);
-            onInputChanged?.('');
-            await onInputSubmit?.(completed);
-          }
-          return;
-        }
-      }
-
-      if (trimmed && !trimmed.startsWith('/')) {
-        addMessage(trimmed);
-      }
-
-      setInput('');
-      setMenuVisibility(false);
-      setMenuHasFocus(false);
-      onInputChanged?.('');
-      await onInputSubmit?.(value);
-    };
-
-    const commandMenu = showCommandMenu && filteredCommandItems.length > 0 && (
-      <Box flexDirection="column" width={cols}>
-        <Box backgroundColor={theme.colors.accent}>
-          <Text color={theme.tokens.black} bold>
-            {' '}
-            Commands ({filteredCommandItems.length}) - Use ↑↓ to navigate, Enter to select
-          </Text>
-        </Box>
-        <ComboBox
-          items={filteredCommandItems}
-          onSelect={(item) => handleSubmit(item.value, true)}
-          showSearchInput={false}
-          showItemCount={false}
-        />
-      </Box>
+    const submitCommand = useCallback(
+      async (command: string) => {
+        setInput('');
+        onInputChanged?.('');
+        await onInputSubmit?.(command);
+      },
+      [onInputChanged, onInputSubmit],
     );
+
+    const handleSubmit = useCallback(
+      async (value: string) => {
+        const trimmed = value.trim();
+
+        if (showCommandMenu && filteredCommandItems.length > 0) {
+          const selected = commandMenuRef.current?.getSelectedItem();
+          if (selected) {
+            const inputParts = trimmed.split(/\s+/);
+            const args = inputParts.slice(1).join(' ').trim();
+            const completed = args ? `${selected.value} ${args}` : selected.value;
+            await submitCommand(completed);
+            return;
+          }
+        }
+
+        if (trimmed.startsWith('/')) {
+          const commandMatch = commandItems.find((item) => item.value === trimmed.split(/\s+/)[0]);
+          if (commandMatch) {
+            await submitCommand(trimmed);
+            return;
+          }
+        }
+
+        if (trimmed && !trimmed.startsWith('/')) {
+          addMessage(trimmed);
+        }
+
+        setInput('');
+        onInputChanged?.('');
+        await onInputSubmit?.(value);
+      },
+      [showCommandMenu, filteredCommandItems, commandItems, submitCommand, addMessage, onInputChanged, onInputSubmit],
+    );
+
+    useInput(
+      (_input, key) => {
+        if (key.escape && showCommandMenu) {
+          setInput('');
+          onInputChanged?.('');
+        }
+      },
+      { isActive: isFocused && !showToolApproval },
+    );
+
+    const handleTextInputUpArrow = showCommandMenu ? undefined : handleUpArrow;
+    const handleTextInputDownArrow = showCommandMenu ? undefined : handleDownArrow;
 
     return (
       <Box
@@ -298,11 +213,18 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
         borderRight={false}
         position="relative"
       >
-        {commandMenu}
+        {showCommandMenu && filteredCommandItems.length > 0 && (
+          <CommandMenu
+            ref={commandMenuRef}
+            items={filteredCommandItems}
+            width={cols}
+            focus={isFocused && !showToolApproval}
+          />
+        )}
         <Box flexShrink={0} minWidth={1}>
           {!busy ? (
             <Text color={theme.input.prompt} bold>
-              {'❯'}
+              {isFocused ? '❯' : ' '}
             </Text>
           ) : (
             <Spinner type="dots" />
@@ -315,11 +237,11 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
               onChange={handleChange}
               onSubmit={handleSubmit}
               placeholder="Type your message..."
-              focus={!showToolApproval && !menuHasFocus}
+              focus={isFocused && !showToolApproval}
               vimModeEnabled={vimModeEnabled}
               onVimModeChange={handleVimModeChange}
-              onUpArrow={showCommandMenu ? undefined : handleUpArrow}
-              onDownArrow={showCommandMenu ? undefined : handleDownArrow}
+              onUpArrow={handleTextInputUpArrow}
+              onDownArrow={handleTextInputDownArrow}
             />
           </Box>
         </Box>
