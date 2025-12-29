@@ -87,12 +87,16 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
 
   useInput(
     (_input, key) => {
-      if (key.escape && abortRef && onNotification && onBusyChange) {
+      if (key.escape) {
         if (pendingApproval) {
           return;
         }
 
         if (busy) {
+          if (!abortRef || !onNotification || !onBusyChange) {
+            return;
+          }
+
           if (escStageRef.current === 'none') {
             if (typeof ref !== 'function' && ref?.current) {
               const hasInput = ref.current.getValue && ref.current.getValue().trim() !== '';
@@ -136,22 +140,30 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
             escTimeoutRef.current = null;
             onNotification(null);
             escStageRef.current = 'none';
+            
+            // Only clear busy state if we successfully create/abort controller
             try {
-              abortRef.current?.abort();
-            } catch {
-            } finally {
-              onBusyChange(false);
+              const controller = abortRef.current;
+              if (controller) {
+                controller.abort();
+                onBusyChange(false);
+              } 
+            } catch (error) {
+              // Ignore abort errors
             }
             return;
           }
           return;
         }
 
-        if (escStageRef.current === 'none') {
-          if (typeof ref !== 'function' && ref?.current) {
+        // Handle ESC when not busy
+        if (typeof ref !== 'function' && ref?.current) {
+          if (escStageRef.current === 'none') {
             const hasInput = ref.current.getValue && ref.current.getValue().trim() !== '';
             if (hasInput) {
-              onNotification('Press ESC again to clear the input', 1500);
+              if (onNotification) {
+                onNotification('Press ESC again to clear the input', 1500);
+              }
               escStageRef.current = 'armed-clear';
               if (escTimeoutRef.current) clearTimeout(escTimeoutRef.current);
               escTimeoutRef.current = setTimeout(() => {
@@ -161,17 +173,17 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
               return;
             }
           }
-        }
 
-        if (escStageRef.current === 'armed-clear') {
-          if (escTimeoutRef.current) clearTimeout(escTimeoutRef.current);
-          escTimeoutRef.current = null;
-          onNotification(null);
-          escStageRef.current = 'none';
-          if (typeof ref !== 'function' && ref?.current) {
+          if (escStageRef.current === 'armed-clear') {
+            if (escTimeoutRef.current) clearTimeout(escTimeoutRef.current);
+            escTimeoutRef.current = null;
+            if (onNotification) {
+              onNotification(null);
+            }
+            escStageRef.current = 'none';
             ref.current.clear();
+            return;
           }
-          return;
         }
       }
     },

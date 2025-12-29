@@ -15,7 +15,7 @@ const ICON_2 = `╭──┴──┴──┴──┴──┴──╮
 │  ●  ●  ● ─────  │
 │  NUVIN          │
 │  >_     ${version.padEnd(7, ' ')} │
-└──┬──┬──┬──┬──┬──╯`;
+╰──┬──┬──┬──┬──┬──╯`;
 
 const WelcomeLogo = ({ recentSessions }: { recentSessions: SessionInfo[] }) => {
   const { cols } = useStdoutDimensions();
