@@ -1,6 +1,6 @@
 import type { HttpTransport, HttpHeaders, TransportResponse } from './transport.js';
 import { calculateBackoff, parseRetryAfterHeader } from './backoff.js';
-import { isRetryableError, isRetryableStatusCode } from './error-classification.js';
+import { isRetryableError, isRetryableStatusCode, DEFAULT_RETRYABLE_STATUS_CODES } from './error-classification.js';
 
 export interface RetryConfig {
   maxRetries: number;
@@ -16,10 +16,10 @@ export interface RetryConfig {
 export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,
   baseDelayMs: 1000,
-  maxDelayMs: 60000,
+  maxDelayMs: 100000,
   backoffMultiplier: 2,
   jitterFactor: 0.2,
-  retryableStatusCodes: [429, 500, 502, 503, 504],
+  retryableStatusCodes: DEFAULT_RETRYABLE_STATUS_CODES,
 };
 
 export class AbortError extends Error {

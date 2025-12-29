@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GithubLLM } from '../llm-providers/llm-github';
 import type { HttpTransport } from '../transports/index.js';
+import { LLMErrorTransport } from '../transports/index.js';
 
 // We need to mock the transport to intercept calls
 class TestGithubLLM extends GithubLLM {
@@ -15,7 +16,7 @@ class TestGithubLLM extends GithubLLM {
   }
 
   protected createTransport(): HttpTransport {
-    return this.mockTransport;
+    return new LLMErrorTransport(this.mockTransport);
   }
 }
 
@@ -76,7 +77,7 @@ describe('GithubLLM', () => {
       text: () => Promise.resolve('Unauthorized'),
     } as any);
 
-    await expect(llm.getModels()).rejects.toThrow('Unauthorized');
+    await expect(llm.getModels()).rejects.toThrow('Authentication failed');
   });
 
   it('should pass abort signal to transport', async () => {

@@ -1,6 +1,12 @@
 import type { LLMPort } from '../ports.js';
 import { BaseLLM } from './base-llm.js';
-import { FetchTransport, createTransport, RetryTransport, type RetryConfig } from '../transports/index.js';
+import {
+  FetchTransport,
+  createTransport,
+  RetryTransport,
+  LLMErrorTransport,
+  type RetryConfig,
+} from '../transports/index.js';
 import providerConfig from './llm-provider-config.json';
 import { normalizeModelInfo, deduplicateModels, type ModelInfo } from './model-limits.js';
 
@@ -81,10 +87,8 @@ export class GenericLLM extends BaseLLM implements LLMPort {
       this.customHeaders,
     );
 
-    if (this.retryConfig) {
-      return new RetryTransport(authTransport, this.retryConfig);
-    }
-    return authTransport;
+    const transport = this.retryConfig ? new RetryTransport(authTransport, this.retryConfig) : authTransport;
+    return new LLMErrorTransport(transport);
   }
 
   async getModels(signal?: AbortSignal): Promise<ModelInfo[]> {
@@ -103,12 +107,6 @@ export class GenericLLM extends BaseLLM implements LLMPort {
     if (typeof this.modelConfig === 'string') {
       const transport = this.createTransport();
       const res = await transport.get(this.modelConfig, undefined, signal);
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Failed to fetch models: ${res.status} ${text}`);
-      }
-
       const data: ModelsListResponse = await res.json();
       const models = data.data.map((m) => normalizeModelInfo(this.providerName, m));
       return deduplicateModels(models);
@@ -116,12 +114,6 @@ export class GenericLLM extends BaseLLM implements LLMPort {
 
     const transport = this.createTransport();
     const res = await transport.get('/models', undefined, signal);
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Failed to fetch models: ${res.status} ${text}`);
-    }
-
     const data: ModelsListResponse = await res.json();
     const models = data.data.map((m) => normalizeModelInfo(this.providerName, m));
     return deduplicateModels(models);

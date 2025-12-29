@@ -361,7 +361,7 @@ describe('BaseLLM', () => {
         topP: 1,
       };
 
-      await expect(llm.generateCompletion(params)).rejects.toThrow('LLM error 500');
+      await expect(llm.generateCompletion(params)).rejects.toThrow('Service temporarily unavailable');
     });
 
     it('should handle usage data with input/output token names', async () => {
@@ -675,7 +675,7 @@ describe('BaseLLM', () => {
         topP: 0,
       };
 
-      await expect(llm.streamCompletion(params)).rejects.toThrow('Unauthorized');
+      await expect(llm.streamCompletion(params)).rejects.toThrow('Authentication failed');
     });
 
     it('should handle missing reader gracefully', async () => {

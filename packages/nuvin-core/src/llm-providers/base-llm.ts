@@ -1,5 +1,6 @@
 import type { CompletionParams, CompletionResult, LLMPort, UsageData, ToolCall } from '../ports.js';
 import type { HttpTransport, RetryConfig } from '../transports/index.js';
+import { isRetryableStatusCode, DEFAULT_RETRYABLE_STATUS_CODES } from '../transports/index.js';
 import { mergeChoices } from './llm-utils.js';
 
 export interface BaseLLMOptions {
@@ -167,6 +168,19 @@ export abstract class BaseLLM implements LLMPort {
     return this.transport;
   }
 
+  protected throwResponseError(statusCode: number, message: string): never {
+    if (statusCode === 429 || statusCode === 408) {
+      throw new LLMError('Rate limit exceeded. Please try again later.', statusCode, true);
+    } else if (statusCode === 401 || statusCode === 403) {
+      throw new LLMError('Authentication failed. Please check your API key.', statusCode, false);
+    } else if (statusCode === 400) {
+      throw new LLMError(`Invalid request: ${message}`, statusCode, false);
+    } else if (isRetryableStatusCode(statusCode, DEFAULT_RETRYABLE_STATUS_CODES)) {
+      throw new LLMError('Service temporarily unavailable. Please try again later.', statusCode, true);
+    }
+    throw new LLMError(message, statusCode, false);
+  }
+
   protected applyCacheControl(params: CompletionParams): CompletionParams {
     if (!this.enablePromptCaching) {
       return params;
@@ -254,8 +268,7 @@ export abstract class BaseLLM implements LLMPort {
 
     if (!res.ok) {
       const text = await res.text();
-      const isRetryable = res.status === 429 || res.status >= 500;
-      throw new LLMError(text || `LLM error ${res.status}`, res.status, isRetryable);
+      this.throwResponseError(res.status, text || `LLM error ${res.status}`);
     }
 
     const data: LLMCompletionResponse = await res.json();
@@ -294,8 +307,7 @@ export abstract class BaseLLM implements LLMPort {
 
     if (!res.ok) {
       const text = await res.text();
-      const isRetryable = res.status === 429 || res.status >= 500;
-      throw new LLMError(text || `LLM stream error ${res.status}`, res.status, isRetryable);
+      this.throwResponseError(res.status, text || `LLM error ${res.status}`);
     }
 
     const reader = res.body?.getReader();

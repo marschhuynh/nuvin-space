@@ -1,6 +1,6 @@
 import { LLMError } from '../llm-providers/base-llm.js';
 
-const DEFAULT_RETRYABLE_STATUS_CODES = [429, 500, 502, 503, 504];
+export const DEFAULT_RETRYABLE_STATUS_CODES = [408, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524];
 
 const RETRYABLE_NETWORK_ERRORS = [
   'econnrefused',
@@ -11,6 +11,12 @@ const RETRYABLE_NETWORK_ERRORS = [
   'network',
   'fetch failed',
   'socket hang up',
+  'terminated',
+  'connection reset',
+  'connection refused',
+  'connection timed out',
+  'network request failed',
+  'aborted due to connection closure',
 ];
 
 const NON_RETRYABLE_PATTERNS = [

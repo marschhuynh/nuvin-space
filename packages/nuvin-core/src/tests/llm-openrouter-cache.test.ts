@@ -17,6 +17,8 @@ const mockTransport: MockedHttpTransport = {
 vi.mock('../transports/index.js', () => ({
   FetchTransport: vi.fn().mockImplementation(() => mockTransport),
   createTransport: vi.fn().mockImplementation(() => mockTransport),
+  RetryTransport: vi.fn().mockImplementation((inner: unknown) => inner),
+  LLMErrorTransport: vi.fn().mockImplementation((inner: unknown) => inner),
 }));
 
 import { createLLM } from '../llm-providers/llm-factory.js';

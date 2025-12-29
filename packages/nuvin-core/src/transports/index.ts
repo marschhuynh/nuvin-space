@@ -9,4 +9,10 @@ export { createTransport } from './transport-factory.js';
 export { RetryTransport, AbortError, DEFAULT_RETRY_CONFIG } from './retry-transport.js';
 export type { RetryConfig } from './retry-transport.js';
 export { calculateBackoff, parseRetryAfterHeader } from './backoff.js';
-export { isRetryableError, isRetryableStatusCode, getErrorStatusCode } from './error-classification.js';
+export {
+  isRetryableError,
+  isRetryableStatusCode,
+  getErrorStatusCode,
+  DEFAULT_RETRYABLE_STATUS_CODES,
+} from './error-classification.js';
+export { LLMErrorTransport } from './llm-error-transport.js';

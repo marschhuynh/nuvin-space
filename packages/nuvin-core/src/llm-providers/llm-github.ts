@@ -1,6 +1,12 @@
 import type { LLMPort, UsageData } from '../ports.js';
 import { BaseLLM, LLMError } from './base-llm.js';
-import { FetchTransport, GithubAuthTransport, RetryTransport, type RetryConfig } from '../transports/index.js';
+import {
+  FetchTransport,
+  GithubAuthTransport,
+  RetryTransport,
+  LLMErrorTransport,
+  type RetryConfig,
+} from '../transports/index.js';
 import { normalizeModelInfo, deduplicateModels, type ModelInfo } from './model-limits.js';
 
 type GithubOptions = {
@@ -54,10 +60,8 @@ export class GithubLLM extends BaseLLM implements LLMPort {
       accessToken: this.opts.accessToken,
     });
 
-    if (this.retryConfig) {
-      return new RetryTransport(authTransport, this.retryConfig);
-    }
-    return authTransport;
+    const transport = this.retryConfig ? new RetryTransport(authTransport, this.retryConfig) : authTransport;
+    return new LLMErrorTransport(transport);
   }
 
   protected transformUsage(rawUsage: unknown): UsageData | undefined {
@@ -86,12 +90,6 @@ export class GithubLLM extends BaseLLM implements LLMPort {
 
   async getModels(signal?: AbortSignal): Promise<ModelInfo[]> {
     const res = await this.getTransport().get('/models', undefined, signal);
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new LLMError(text || `Failed to fetch models: ${res.status}`, res.status);
-    }
-
     const body = (await res.json()) as GithubModelsResponse;
     const models = body.data.map((m) => normalizeModelInfo('github', m as unknown as Record<string, unknown>));
     return deduplicateModels(models);
@@ -99,19 +97,20 @@ export class GithubLLM extends BaseLLM implements LLMPort {
 
   private handleError(error: unknown, model: string): never {
     if (error instanceof LLMError) {
-      // Check for specific GitHub API error format
       try {
-        // The error message might be a JSON string if it came from BaseLLM reading the body
-        const errorBody = JSON.parse(error.message);
+        let jsonToParse = error.message;
+        if (jsonToParse.startsWith('Invalid request: ')) {
+          jsonToParse = jsonToParse.slice('Invalid request: '.length);
+        }
+        const errorBody = JSON.parse(jsonToParse);
         if (errorBody?.error?.code === 'unsupported_api_for_model') {
           throw new LLMError(
             `The model '${model}' is not supported for chat completions. Please select a different model using '/model'.`,
             error.statusCode,
-            false, // Not retryable
+            false,
           );
         }
       } catch (e) {
-        // If parsing fails or checks fail, just rethrow original
         if (e instanceof LLMError && e.message.includes('not supported')) {
           throw e;
         }

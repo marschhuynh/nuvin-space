@@ -13,7 +13,7 @@ import {
 } from 'ai';
 import { LLMError } from './base-llm.js';
 import { normalizeModelInfo, deduplicateModels, type ModelInfo } from './model-limits.js';
-import { FetchTransport, AnthropicAuthTransport, type HttpTransport, type RetryConfig } from '../transports/index.js';
+import { FetchTransport, AnthropicAuthTransport, LLMErrorTransport, type HttpTransport, type RetryConfig, isRetryableStatusCode, isRetryableError, DEFAULT_RETRYABLE_STATUS_CODES } from '../transports/index.js';
 
 type AnthropicAISDKOptions = {
   apiKey?: string;
@@ -71,7 +71,7 @@ export class AnthropicAISDKLLM {
 
   private getTransport(): HttpTransport {
     if (!this.transport) {
-      this.transport = this.getAuthTransport().createRetryTransport();
+      this.transport = new LLMErrorTransport(this.getAuthTransport().createRetryTransport());
     }
     return this.transport;
   }
@@ -351,35 +351,34 @@ export class AnthropicAISDKLLM {
       const statusCode = error.statusCode;
       const message = error.message || 'API call failed';
 
-      if (statusCode === 429) {
+      if (statusCode === 429 || statusCode === 408) {
         throw new LLMError('Rate limit exceeded. Please try again later.', statusCode, true, error);
       } else if (statusCode === 401 || statusCode === 403) {
         throw new LLMError('Authentication failed. Please check your API key.', statusCode, false, error);
       } else if (statusCode === 400) {
         throw new LLMError(`Invalid request: ${message}`, statusCode, false, error);
-      } else if (statusCode && statusCode >= 500) {
+      } else if (statusCode && isRetryableStatusCode(statusCode, DEFAULT_RETRYABLE_STATUS_CODES)) {
         throw new LLMError('Service temporarily unavailable. Please try again later.', statusCode, true, error);
       }
 
-      throw new LLMError(message, statusCode, error.isRetryable, error);
+      throw new LLMError(message, statusCode, error.isRetryable ?? isRetryableError(error, DEFAULT_RETRYABLE_STATUS_CODES), error);
     }
 
     if (error && typeof error === 'object' && 'statusCode' in error && 'message' in error) {
       const statusCode = typeof error.statusCode === 'number' ? error.statusCode : undefined;
       const message = typeof error.message === 'string' ? error.message : 'Unknown error';
-      const isRetryable = 'isRetryable' in error && typeof error.isRetryable === 'boolean' ? error.isRetryable : false;
 
-      if (statusCode === 429) {
+      if (statusCode === 429 || statusCode === 408) {
         throw new LLMError('Rate limit exceeded. Please try again later.', statusCode, true, error);
       } else if (statusCode === 401 || statusCode === 403) {
         throw new LLMError('Authentication failed. Please check your API key.', statusCode, false, error);
       } else if (statusCode === 400) {
         throw new LLMError(`Invalid request: ${message}`, statusCode, false, error);
-      } else if (statusCode && statusCode >= 500) {
+      } else if (statusCode && isRetryableStatusCode(statusCode, DEFAULT_RETRYABLE_STATUS_CODES)) {
         throw new LLMError('Service temporarily unavailable. Please try again later.', statusCode, true, error);
       }
 
-      throw new LLMError(message, statusCode, isRetryable, error);
+      throw new LLMError(message, statusCode, isRetryableError(error, DEFAULT_RETRYABLE_STATUS_CODES), error);
     }
 
     if (error instanceof Error) {
@@ -389,6 +388,11 @@ export class AnthropicAISDKLLM {
 
       if (error.message.includes('rate limit')) {
         throw new LLMError('Rate limit exceeded. Please try again later.', 429, true, error);
+      }
+
+      const isNetworkRetryable = isRetryableError(error, DEFAULT_RETRYABLE_STATUS_CODES);
+      if (isNetworkRetryable) {
+        throw new LLMError('Network error occurred. Please try again.', undefined, true, error);
       }
 
       throw new LLMError(error.message, undefined, false, error);
@@ -525,22 +529,9 @@ export class AnthropicAISDKLLM {
       throw new LLMError('No API key or OAuth credentials provided', 401, false);
     }
 
-    try {
-      const res = await this.getTransport().get('/models', undefined, signal);
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new LLMError(text || `Failed to fetch models: ${res.status}`, res.status);
-      }
-
-      const data = (await res.json()) as { data: Record<string, unknown>[] };
-      const models = data.data.map((model) => normalizeModelInfo('anthropic', model));
-      return deduplicateModels(models);
-    } catch (error) {
-      if (error instanceof LLMError) {
-        throw error;
-      }
-      throw new LLMError(error instanceof Error ? error.message : 'Failed to fetch models', undefined, false, error);
-    }
+    const res = await this.getTransport().get('/models', undefined, signal);
+    const data = (await res.json()) as { data: Record<string, unknown>[] };
+    const models = data.data.map((model) => normalizeModelInfo('anthropic', model));
+    return deduplicateModels(models);
   }
 }
