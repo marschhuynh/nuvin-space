@@ -3,7 +3,6 @@ import { Box, Text } from 'ink';
 import { type ToolCall, type ToolExecutionResult, ErrorReason, parseToolArguments } from '@nuvin/nuvin-core';
 import type { MessageLine as MessageLineType } from '@/adapters/index.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
-import { useExplainMode } from '@/contexts/ExplainModeContext.js';
 import { useToolApproval } from '@/contexts/ToolApprovalContext.js';
 import { ToolResultView } from '@/components/ToolResultView/index.js';
 import { FileEditParamRender, FileNewParamRender, DefaultParamRender, AssignTaskParamRender } from './params/index.js';
@@ -18,7 +17,6 @@ type ToolCallProps = {
 
 export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, messageId }) => {
   const { theme } = useTheme();
-  const { explainMode } = useExplainMode();
   const { pendingApproval } = useToolApproval();
 
   const isAwaitingApproval = pendingApproval?.toolCalls.some((tc) => tc.id === toolCall.id) ?? false;
@@ -123,7 +121,7 @@ export const ToolCallViewer: React.FC<ToolCallProps> = ({ toolCall, toolResult, 
           toolCall={toolCall}
           messageId={`${messageId}-result-${toolCall.id}`}
           messageContent={toolResult?.content || ''}
-          fullMode={explainMode}
+          fullMode={false}
         />
       ) : null}
     </Box>

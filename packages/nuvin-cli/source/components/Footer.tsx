@@ -7,7 +7,6 @@ import { useTheme } from '@/contexts/ThemeContext.js';
 import { THINKING_LEVELS } from '@/config/types.js';
 import { useToolApproval } from '@/contexts/ToolApprovalContext.js';
 import { useConfig } from '@/contexts/ConfigContext.js';
-import { useExplainMode } from '@/contexts/ExplainModeContext.js';
 import { formatTokens, formatCost, formatDirectory, getUsageColor, getGitBranchAsync } from '@/utils/formatters.js';
 
 type FooterProps = {
@@ -31,7 +30,6 @@ const FooterComponent: React.FC<FooterProps> = ({
   const { notification } = useNotification();
   const { theme } = useTheme();
   const { toolApprovalMode } = useToolApproval();
-  const { explainMode } = useExplainMode();
   const { get, getCurrentProfile } = useConfig();
   const [gitBranch, setGitBranch] = useState<string | null>(null);
 
@@ -54,11 +52,7 @@ const FooterComponent: React.FC<FooterProps> = ({
   return (
     <Box justifyContent="space-between" flexDirection="column">
       <Box justifyContent="space-between" flexWrap="wrap">
-        {explainMode ? (
-          <Text color={theme.tokens.yellow} bold>
-            Ctrl+E to toggle
-          </Text>
-        ) : notification ? (
+        {notification ? (
           <Text color={theme.tokens.yellow}>{notification || ''}</Text>
         ) : (
           <Box alignSelf="flex-end">
@@ -81,7 +75,7 @@ const FooterComponent: React.FC<FooterProps> = ({
             </Text>
           </Box>
         )}
-        {!explainMode && (metrics?.currentTokens || metrics?.totalTokens) ? (
+        {(metrics?.currentTokens || metrics?.totalTokens) ? (
           <Box alignSelf="flex-end" flexGrow={1} justifyContent="flex-end">
             <Text color={theme.footer.model} dimColor bold>
               Tokens:

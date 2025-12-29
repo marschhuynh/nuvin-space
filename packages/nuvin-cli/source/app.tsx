@@ -25,7 +25,6 @@ import { useCommand } from '@/modules/commands/hooks/useCommand.js';
 import type { ProviderKey } from '@/const.js';
 import useMessages from '@/hooks/useMessage.js';
 import { useConfig } from '@/contexts/ConfigContext.js';
-import { useExplainMode } from '@/contexts/ExplainModeContext.js';
 import { orchestratorManager } from '@/services/OrchestratorManager.js';
 import type { SessionInfo } from '@/types.js';
 import { createEmptySnapshot } from '@nuvin/nuvin-core';
@@ -42,7 +41,6 @@ type Props = {
 };
 
 export default function App({ apiKey: _apiKey, memPersist = false, historyPath, initialSessions }: Props) {
-  const { explainMode } = useExplainMode();
   const { cols } = useStdoutDimensions();
   const { messages, clearMessages, setLines, appendLine, updateLine, updateLineMetadata, handleError } = useMessages();
   const [busy, setBusy] = useState(false);
@@ -341,7 +339,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
     } catch (error) {
       console.warn('Error during resize refresh, continuing with safe state:', error);
     }
-  }, [cols, onViewRefresh, explainMode]);
+  }, [cols, onViewRefresh]);
 
   useEffect(() => {
     const checkForUpdates = async () => {
@@ -410,7 +408,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
           sessions={initialSessions}
         />
 
-        {!explainMode && !isExiting && (
+        {!isExiting && (
           <InteractionArea
             ref={inputAreaRef}
             busy={busy}

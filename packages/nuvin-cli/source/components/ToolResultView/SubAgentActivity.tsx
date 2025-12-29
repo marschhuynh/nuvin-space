@@ -9,12 +9,10 @@ import {
 } from '@nuvin/nuvin-core';
 import type { MessageLine as MessageLineType } from '@/adapters/index.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
-import { useExplainMode } from '@/contexts/ExplainModeContext.js';
 import { ToolResultView } from './ToolResultView.js';
-import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import { ToolTimer } from '../ToolTimer.js';
 import { GradientRunText } from '../Gradient.js';
-import { formatCost, formatDuration, formatTokens } from '@/utils/formatters.js';
+import { formatCost, formatTokens } from '@/utils/formatters.js';
 
 type SubAgentActivityProps = {
   toolCall: ToolCall;
@@ -131,9 +129,7 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
   toolResult,
   messageId,
 }) => {
-  const { cols } = useStdoutDimensions();
   const { theme } = useTheme();
-  const { explainMode } = useExplainMode();
 
   // Parse arguments to display
   const args =
@@ -142,7 +138,6 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
       : toolCall.function.arguments;
 
   const agentParam = args.agent || 'unknown';
-  const taskParam = args.task || '';
   const taskDescriptionParam = args.description || '';
 
   const isCompleted = subAgentState.status === 'completed';
@@ -178,33 +173,6 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
 
       {/* Parameters: agent and task */}
       <Box flexDirection="column" marginLeft={2}>
-        {explainMode && (
-          <>
-            <Box
-              flexDirection="column"
-              borderStyle="single"
-              borderDimColor
-              borderColor={statusColor}
-              borderBottom={false}
-              borderRight={false}
-              borderTop={false}
-              paddingLeft={2}
-              width={cols - 6}
-            >
-              {Object.entries({ agent: agentParam, task: taskParam, description: taskDescriptionParam }).map(
-                ([key, value]) => (
-                  <Text key={key} dimColor>{`${key}: ${value}`}</Text>
-                ),
-              )}
-            </Box>
-            <Box flexDirection="row">
-              <Text dimColor color={statusColor}>
-                ├─{' '}
-              </Text>
-              <Text>Activities</Text>
-            </Box>
-          </>
-        )}
         <Box
           flexDirection="column"
           borderStyle="single"
@@ -218,7 +186,6 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
           {subAgentState.toolCalls.map((toolCall) => {
             // Parse arguments if available
             let argsDisplay = '';
-            const detailsDisplay: string | null = null;
 
             if (toolCall.arguments) {
               try {
@@ -253,20 +220,8 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
                     <Text dimColor wrap="truncate-end">
                       {argsDisplay}
                     </Text>
-                    <Box flexShrink={0}>
-                      {toolCall.durationMs !== undefined && explainMode && (
-                        <Text dimColor>{` (${formatDuration(toolCall.durationMs)})`}</Text>
-                      )}
-                    </Box>
                   </Box>
                 </Box>
-                {detailsDisplay && explainMode && (
-                  <Box marginLeft={3}>
-                    <Text dimColor color={theme.colors.textDim}>
-                      {detailsDisplay}
-                    </Text>
-                  </Box>
-                )}
               </Box>
             );
           })}
@@ -279,11 +234,9 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
             └─{' '}
           </Text>
           <GradientRunText text="Working ..." />
-          {!explainMode && (
-            <Box marginLeft={1}>
-              <ToolTimer hasResult={isCompleted} finalDuration={subAgentState.totalDurationMs} />
-            </Box>
-          )}
+          <Box marginLeft={1}>
+            <ToolTimer hasResult={isCompleted} finalDuration={subAgentState.totalDurationMs} />
+          </Box>
           {subAgentState.metrics && (
             <Box marginLeft={1}>
               <Text dimColor>
@@ -303,7 +256,7 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
             toolCall={toolCall}
             messageId={`${messageId}-result-${toolCall.id}`}
             messageContent={toolResult.content || ''}
-            fullMode={explainMode}
+            fullMode={false}
             subAgentMetrics={subAgentState.metrics}
           />
         </Box>

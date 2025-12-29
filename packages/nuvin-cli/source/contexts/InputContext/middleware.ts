@@ -18,14 +18,6 @@ export const pasteDetectionMiddleware: InputMiddleware = (input, key, next) => {
   next();
 };
 
-export const explainToggleMiddleware: InputMiddleware = (input, key, next) => {
-  if (key.ctrl && input === 'b') {
-    eventBus.emit('ui:keyboard:explainToggle', '');
-    return;
-  }
-  next();
-};
-
 export const focusCycleMiddleware: InputMiddleware = (input, key, next) => {
   if (key.tab && !key.shift) {
     eventBus.emit('ui:focus:cycle', 'forward');
@@ -49,6 +41,5 @@ export const focusCycleMiddleware: InputMiddleware = (input, key, next) => {
 export const defaultMiddleware: InputMiddleware[] = [
   ctrlCMiddleware,
   pasteDetectionMiddleware,
-  explainToggleMiddleware,
   focusCycleMiddleware,
 ];

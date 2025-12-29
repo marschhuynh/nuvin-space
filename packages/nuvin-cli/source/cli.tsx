@@ -15,7 +15,6 @@ import { ConfigProvider } from './contexts/ConfigContext.js';
 import { ConfigBridge } from './components/ConfigBridge.js';
 import { ThemeProvider } from './contexts/ThemeContext.js';
 import { StdoutDimensionsProvider } from './contexts/StdoutDimensionsContext.js';
-import { ExplainModeProvider } from './contexts/ExplainModeContext.js';
 import { InputProvider, defaultMiddleware } from './contexts/InputContext/index.js';
 
 import { getVersionInfo } from './utils/version.js';
@@ -406,16 +405,14 @@ const cli = meow(
                   onError={(msg) => console.error(msg)}
                 >
                   <CommandProvider>
-                    <ExplainModeProvider>
-                      <ConfigBridge>
-                        <App
-                          memPersist={finalMemPersist}
-                          thinking={thinkingSetting}
-                          historyPath={historyPath}
-                          initialSessions={initialSessions}
-                        />
-                      </ConfigBridge>
-                    </ExplainModeProvider>
+                    <ConfigBridge>
+                      <App
+                        memPersist={finalMemPersist}
+                        thinking={thinkingSetting}
+                        historyPath={historyPath}
+                        initialSessions={initialSessions}
+                      />
+                    </ConfigBridge>
                   </CommandProvider>
                 </ToolApprovalProvider>
               </NotificationProvider>
