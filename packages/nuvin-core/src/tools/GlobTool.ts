@@ -27,7 +27,7 @@ type GlobToolOptions = {
 };
 
 export class GlobTool implements FunctionTool<GlobParams, ToolExecutionContext, GlobResult> {
-  name = 'glob' as const;
+  name = 'glob_tool' as const;
 
   private readonly rootDir: string;
   private readonly allowAbsolute: boolean;

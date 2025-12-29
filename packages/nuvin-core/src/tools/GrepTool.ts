@@ -30,7 +30,7 @@ type GrepToolOptions = {
 const MAX_LINE_LENGTH = 2000;
 
 export class GrepTool implements FunctionTool<GrepParams, ToolExecutionContext, GrepResult> {
-  name = 'grep' as const;
+  name = 'grep_tool' as const;
 
   private readonly rootDir: string;
   private readonly allowAbsolute: boolean;

@@ -63,8 +63,8 @@ export { OrchestratorStatus } from '@/types/orchestrator.js';
 const enabledTools: string[] = [
   'bash_tool',
   'ls_tool',
-  'glob',
-  'grep',
+  'glob_tool',
+  'grep_tool',
   'file_new',
   'file_edit',
   'file_read',

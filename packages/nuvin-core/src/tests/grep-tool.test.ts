@@ -131,7 +131,7 @@ function greet(name) {
   describe('definition', () => {
     it('should return valid tool definition', () => {
       const def = tool.definition();
-      expect(def.name).toBe('grep');
+      expect(def.name).toBe('grep_tool');
       expect(def.description).toContain('regex pattern');
       expect(def.parameters.required).toContain('pattern');
     });

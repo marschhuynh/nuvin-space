@@ -72,19 +72,19 @@ export function isLsToolSuccess(result: ToolExecutionResult): result is LsSucces
 }
 
 export function isGlobResult(result: ToolExecutionResult): result is ToolExecutionResult {
-  return result.name === 'glob';
+  return result.name === 'glob_tool';
 }
 
 export function isGlobSuccess(result: ToolExecutionResult): result is GlobSuccessResult {
-  return result.name === 'glob' && result.status === 'success' && result.type === 'text';
+  return result.name === 'glob_tool' && result.status === 'success' && result.type === 'text';
 }
 
 export function isGrepResult(result: ToolExecutionResult): result is ToolExecutionResult {
-  return result.name === 'grep';
+  return result.name === 'grep_tool';
 }
 
 export function isGrepSuccess(result: ToolExecutionResult): result is GrepSuccessResult {
-  return result.name === 'grep' && result.status === 'success' && result.type === 'text';
+  return result.name === 'grep_tool' && result.status === 'success' && result.type === 'text';
 }
 
 export function isWebSearchResult(result: ToolExecutionResult): result is ToolExecutionResult {

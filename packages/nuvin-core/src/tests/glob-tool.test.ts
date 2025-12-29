@@ -94,7 +94,7 @@ describe('GlobTool', () => {
   describe('definition', () => {
     it('should return valid tool definition', () => {
       const def = tool.definition();
-      expect(def.name).toBe('glob');
+      expect(def.name).toBe('glob_tool');
       expect(def.description).toContain('glob pattern');
       expect(def.parameters.required).toContain('pattern');
     });

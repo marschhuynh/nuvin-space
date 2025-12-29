@@ -66,9 +66,7 @@ describe('RetryTransport', () => {
       const networkError = new Error('fetch failed');
       const mockResponse = createMockResponse(200);
 
-      vi.mocked(mockTransport.post)
-        .mockRejectedValueOnce(networkError)
-        .mockResolvedValueOnce(mockResponse);
+      vi.mocked(mockTransport.post).mockRejectedValueOnce(networkError).mockResolvedValueOnce(mockResponse);
 
       const retryTransport = new RetryTransport(mockTransport, {
         maxRetries: 3,
@@ -88,9 +86,7 @@ describe('RetryTransport', () => {
       const response429 = createMockResponse(429);
       const response200 = createMockResponse(200);
 
-      vi.mocked(mockTransport.post)
-        .mockResolvedValueOnce(response429)
-        .mockResolvedValueOnce(response200);
+      vi.mocked(mockTransport.post).mockResolvedValueOnce(response429).mockResolvedValueOnce(response200);
 
       const retryTransport = new RetryTransport(mockTransport, {
         maxRetries: 3,
@@ -110,9 +106,7 @@ describe('RetryTransport', () => {
       const response500 = createMockResponse(500);
       const response200 = createMockResponse(200);
 
-      vi.mocked(mockTransport.post)
-        .mockResolvedValueOnce(response500)
-        .mockResolvedValueOnce(response200);
+      vi.mocked(mockTransport.post).mockResolvedValueOnce(response500).mockResolvedValueOnce(response200);
 
       const retryTransport = new RetryTransport(mockTransport, {
         maxRetries: 3,
@@ -222,9 +216,7 @@ describe('RetryTransport', () => {
       const response429 = createMockResponse(429, { 'Retry-After': '0' });
       const response200 = createMockResponse(200);
 
-      vi.mocked(mockTransport.post)
-        .mockResolvedValueOnce(response429)
-        .mockResolvedValueOnce(response200);
+      vi.mocked(mockTransport.post).mockResolvedValueOnce(response429).mockResolvedValueOnce(response200);
 
       const onRetry = vi.fn();
       const retryTransport = new RetryTransport(mockTransport, {
@@ -244,9 +236,7 @@ describe('RetryTransport', () => {
       const response429 = createMockResponse(429, { 'Retry-After': '120' });
       const response200 = createMockResponse(200);
 
-      vi.mocked(mockTransport.post)
-        .mockResolvedValueOnce(response429)
-        .mockResolvedValueOnce(response200);
+      vi.mocked(mockTransport.post).mockResolvedValueOnce(response429).mockResolvedValueOnce(response200);
 
       const onRetry = vi.fn();
       const retryTransport = new RetryTransport(mockTransport, {
@@ -269,9 +259,7 @@ describe('RetryTransport', () => {
       const networkError = new Error('fetch failed');
       const mockResponse = createMockResponse(200);
 
-      vi.mocked(mockTransport.post)
-        .mockRejectedValueOnce(networkError)
-        .mockResolvedValueOnce(mockResponse);
+      vi.mocked(mockTransport.post).mockRejectedValueOnce(networkError).mockResolvedValueOnce(mockResponse);
 
       const onRetry = vi.fn();
       const retryTransport = new RetryTransport(mockTransport, {
@@ -323,7 +311,7 @@ describe('RetryTransport', () => {
     it('should have sensible defaults', () => {
       expect(DEFAULT_RETRY_CONFIG.maxRetries).toBe(3);
       expect(DEFAULT_RETRY_CONFIG.baseDelayMs).toBe(1000);
-      expect(DEFAULT_RETRY_CONFIG.maxDelayMs).toBe(60000);
+      expect(DEFAULT_RETRY_CONFIG.maxDelayMs).toBe(100000);
       expect(DEFAULT_RETRY_CONFIG.backoffMultiplier).toBe(2);
       expect(DEFAULT_RETRY_CONFIG.jitterFactor).toBe(0.2);
       expect(DEFAULT_RETRY_CONFIG.retryableStatusCodes).toContain(429);

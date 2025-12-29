@@ -71,13 +71,13 @@ const TOOL_REGISTRY: Record<string, ToolMetadata> = {
     paramRenderer: DefaultParamRender,
     collapsedByDefault: true,
   },
-  glob: {
+  glob_tool: {
     displayName: 'Find files',
     statusStrategy: globStrategy,
     paramRenderer: DefaultParamRender,
     collapsedByDefault: false,
   },
-  grep: {
+  grep_tool: {
     displayName: 'Search content',
     statusStrategy: grepStrategy,
     paramRenderer: DefaultParamRender,

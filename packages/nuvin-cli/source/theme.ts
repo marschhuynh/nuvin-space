@@ -5,27 +5,33 @@
 
 export function lightenColor(hex: string, percent: number): string {
   const num = parseInt(hex.replace('#', ''), 16);
-  const r = Math.min(255, Math.floor((num >> 16) + (255 - (num >> 16)) * percent));
-  const g = Math.min(255, Math.floor(((num >> 8) & 0x00ff) + (255 - ((num >> 8) & 0x00ff)) * percent));
-  const b = Math.min(255, Math.floor((num & 0x0000ff) + (255 - (num & 0x0000ff)) * percent));
+  const rf = Math.min(255, (num >> 16) + (255 - (num >> 16)) * percent);
+  const gf = Math.min(255, ((num >> 8) & 0x00ff) + (255 - ((num >> 8) & 0x00ff)) * percent);
+  const bf = Math.min(255, (num & 0x0000ff) + (255 - (num & 0x0000ff)) * percent);
+  const r = Math.round(rf);
+  const g = Math.round(gf);
+  const b = Math.round(bf);
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
 
 export function darkenColor(hex: string, percent: number): string {
   const num = parseInt(hex.replace('#', ''), 16);
-  const r = Math.max(0, Math.floor((num >> 16) * (1 - percent)));
-  const g = Math.max(0, Math.floor(((num >> 8) & 0x00ff) * (1 - percent)));
-  const b = Math.max(0, Math.floor((num & 0x0000ff) * (1 - percent)));
+  const rf = Math.max(0, ((num >> 16) - 255 * percent) / (1 - percent));
+  const gf = Math.max(0, (((num >> 8) & 0x00ff) - 255 * percent) / (1 - percent));
+  const bf = Math.max(0, ((num & 0x0000ff) - 255 * percent) / (1 - percent));
+  const r = Math.round(rf);
+  const g = Math.round(gf);
+  const b = Math.round(bf);
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
 
 // 253,88,91
 export const COLOR_TOKENS = {
-  green: '#61de89',
-  greenBright: darkenColor('#61de89', 0.3),
+  green: '#3da25d',
+  greenBright: lightenColor('#3da25d', 0.4),
   cyan: '#00d9ff',
-  red: '#cb675e',
-  redBright: darkenColor('#cb675e', 0.3),
+  red: '#c5564c',
+  redBright: lightenColor('#c5564c', 0.4),
   orange: '#de935f',
   yellow: '#FFC371',
   blue: '#81a2be',
