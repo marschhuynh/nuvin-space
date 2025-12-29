@@ -65,7 +65,7 @@ const TOOL_REGISTRY: Record<string, ToolMetadata> = {
     paramRenderer: DefaultParamRender,
     collapsedByDefault: false,
   },
-  dir_ls: {
+  ls_tool: {
     displayName: 'List directory',
     statusStrategy: dirLsStrategy,
     paramRenderer: DefaultParamRender,

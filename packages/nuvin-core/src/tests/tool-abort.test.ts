@@ -149,7 +149,7 @@ describe('Tool Abort Functionality', () => {
       const calls: ToolInvocation[] = [
         { id: 'call_1', name: 'bash_tool', parameters: { cmd: 'echo "test"' } },
         { id: 'call_2', name: 'file_read', parameters: { path: 'test.txt' } },
-        { id: 'call_3', name: 'dir_ls', parameters: { path: '.' } },
+        { id: 'call_3', name: 'ls_tool', parameters: { path: '.' } },
       ];
 
       const results = await registry.executeToolCalls(calls, {}, 3, controller.signal);

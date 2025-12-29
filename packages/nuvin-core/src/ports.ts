@@ -5,7 +5,7 @@ import type {
   FileReadArgs,
   FileEditArgs,
   FileNewArgs,
-  DirLsArgs,
+  LsArgs,
   WebSearchArgs,
   WebFetchArgs,
   TodoWriteArgs,
@@ -16,7 +16,7 @@ import type {
   FileReadMetadata,
   FileEditMetadata,
   FileNewMetadata,
-  DirLsMetadata,
+  LsMetadata,
   WebSearchMetadata,
   WebFetchMetadata,
   TodoWriteMetadata,
@@ -227,7 +227,7 @@ export type ToolInvocation =
   | { id: string; name: 'file_read'; parameters: FileReadArgs; editInstruction?: string }
   | { id: string; name: 'file_edit'; parameters: FileEditArgs; editInstruction?: string }
   | { id: string; name: 'file_new'; parameters: FileNewArgs; editInstruction?: string }
-  | { id: string; name: 'dir_ls'; parameters: DirLsArgs; editInstruction?: string }
+  | { id: string; name: 'ls_tool'; parameters: LsArgs; editInstruction?: string }
   | { id: string; name: 'web_search'; parameters: WebSearchArgs; editInstruction?: string }
   | { id: string; name: 'web_fetch'; parameters: WebFetchArgs; editInstruction?: string }
   | { id: string; name: 'todo_write'; parameters: TodoWriteArgs; editInstruction?: string }
@@ -287,11 +287,11 @@ export type ToolExecutionResult =
     }
   | {
       id: string;
-      name: 'dir_ls';
+      name: 'ls_tool';
       status: 'success';
       type: 'text';
       result: string;
-      metadata?: DirLsMetadata;
+      metadata?: LsMetadata;
       durationMs?: number;
     }
   | {

@@ -51,7 +51,7 @@ const extractRelevantParameter = (toolName: string, args: ToolArguments): string
       if ('file_path' in args) return args.file_path;
       break;
 
-    case 'dir_ls':
+    case 'ls_tool':
       if ('path' in args) {
         let value = args.path || '.';
         if ('limit' in args && args.limit) {

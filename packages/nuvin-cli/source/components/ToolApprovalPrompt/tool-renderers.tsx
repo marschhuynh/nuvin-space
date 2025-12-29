@@ -86,7 +86,7 @@ const TOOL_REGISTRY: Record<string, ToolConfig> = {
     ],
   },
 
-  dir_ls: {
+  ls_tool: {
     parameters: [
       { key: 'path', label: 'Directory Path' },
       { key: 'limit', label: 'Entry Limit' },

@@ -26,7 +26,7 @@ const strategyRegistry: Record<string, StatusStrategy> = {
   web_fetch: webFetchStrategy,
   web_search: webSearchStrategy,
   todo_write: todoWriteStrategy,
-  dir_ls: dirLsStrategy,
+  ls_tool: dirLsStrategy,
 };
 
 function getKeyParam(toolCall?: ToolCall): string {

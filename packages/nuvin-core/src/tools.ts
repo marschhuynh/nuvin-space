@@ -20,7 +20,7 @@ import { FileNewTool } from './tools/FileNewTool.js';
 import { FileEditTool } from './tools/FileEditTool.js';
 import type { FunctionTool } from './tools/types.js';
 import { BashTool } from './tools/BashTool.js';
-import { DirLsTool } from './tools/DirLsTool.js';
+import { LsTool } from './tools/LsTool.js';
 import { GlobTool } from './tools/GlobTool.js';
 import { GrepTool } from './tools/GrepTool.js';
 import { AgentRegistry } from './agent-registry.js';
@@ -55,7 +55,7 @@ export class ToolRegistry implements ToolPort, AgentAwareToolPort, OrchestratorA
       new FileNewTool(),
       new FileEditTool(),
       new BashTool(),
-      new DirLsTool({ allowAbsolute: true }),
+      new LsTool({ allowAbsolute: true }),
       new GlobTool({ allowAbsolute: true }),
       new GrepTool({ allowAbsolute: true }),
     ];

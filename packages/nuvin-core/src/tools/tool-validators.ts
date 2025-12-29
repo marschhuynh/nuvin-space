@@ -150,7 +150,7 @@ export const validateFileNewParams: ToolValidator<'file_new'> = (params) => {
   };
 };
 
-export const validateDirLsParams: ToolValidator<'dir_ls'> = (params) => {
+export const validateLsParams: ToolValidator<'ls_tool'> = (params) => {
   const errors: string[] = [];
   
   if (params.path !== undefined && typeof params.path !== 'string') {
@@ -378,7 +378,7 @@ export const toolValidators: Partial<{
   file_read: validateFileReadParams,
   file_edit: validateFileEditParams,
   file_new: validateFileNewParams,
-  dir_ls: validateDirLsParams,
+  ls_tool: validateLsParams,
   web_search: validateWebSearchParams,
   web_fetch: validateWebFetchParams,
   todo_write: validateTodoWriteParams,

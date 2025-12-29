@@ -70,7 +70,7 @@ export type {
   FileReadArgs,
   FileEditArgs,
   FileNewArgs,
-  DirLsArgs,
+  LsArgs,
   GlobArgs,
   GrepArgs,
   WebSearchArgs,
@@ -85,7 +85,7 @@ export {
   isFileReadArgs,
   isFileEditArgs,
   isFileNewArgs,
-  isDirLsArgs,
+  isLsArgs,
   isGlobArgs,
   isGrepArgs,
   isWebSearchArgs,
@@ -105,7 +105,7 @@ export type {
   FileReadMetadata,
   FileEditMetadata,
   FileNewMetadata,
-  DirLsMetadata,
+  LsMetadata,
   GlobToolMetadata,
   GrepToolMetadata,
   WebSearchMetadata,
@@ -118,7 +118,7 @@ export type {
 export type { FileReadResult, FileReadSuccessResult, FileReadErrorResult, FileReadParams } from './tools/FileReadTool.js';
 export type { FileEditResult, FileEditSuccessResult } from './tools/FileEditTool.js';
 export type { FileNewResult, FileNewSuccessResult, FileNewParams } from './tools/FileNewTool.js';
-export type { DirLsResult, DirLsSuccessResult, DirLsParams, DirEntry } from './tools/DirLsTool.js';
+export type { LsResult, LsSuccessResult, LsParams, DirEntry } from './tools/LsTool.js';
 export type { GlobResult, GlobSuccessResult, GlobParams } from './tools/GlobTool.js';
 export type { GrepResult, GrepSuccessResult, GrepParams } from './tools/GrepTool.js';
 export type { WebSearchToolResult, WebSearchSuccessResult, WebSearchParams, WebSearchResult } from './tools/WebSearchTool.js';
@@ -149,8 +149,8 @@ export {
   isFileEditSuccess,
   isFileNewResult,
   isFileNewSuccess,
-  isDirLsResult,
-  isDirLsSuccess,
+  isLsToolResult,
+  isLsToolSuccess,
   isGlobResult,
   isGlobSuccess,
   isGrepResult,

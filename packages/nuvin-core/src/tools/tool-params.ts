@@ -36,7 +36,7 @@ export type FileNewArgs = {
   description?: string;
 };
 
-export type DirLsArgs = {
+export type LsArgs = {
   path?: string;
   limit?: number;
   description?: string;
@@ -96,7 +96,7 @@ export type ToolArguments =
   | FileReadArgs
   | FileEditArgs
   | FileNewArgs
-  | DirLsArgs
+  | LsArgs
   | GlobArgs
   | GrepArgs
   | WebSearchArgs
@@ -161,7 +161,7 @@ export function isGrepArgs(args: ToolArguments): args is GrepArgs {
   return 'pattern' in args && typeof args.pattern === 'string' && ('include' in args || !('path' in args && !args.path));
 }
 
-export function isDirLsArgs(args: ToolArguments): args is DirLsArgs {
+export function isLsArgs(args: ToolArguments): args is LsArgs {
   // Check that it has path or no specific other tool markers
   // Must be checked AFTER other more specific tools
   return (
@@ -180,7 +180,7 @@ export type ToolParameterMap = {
   file_read: FileReadArgs;
   file_edit: FileEditArgs;
   file_new: FileNewArgs;
-  dir_ls: DirLsArgs;
+  ls_tool: LsArgs;
   glob: GlobArgs;
   grep: GrepArgs;
   web_search: WebSearchArgs;

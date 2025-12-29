@@ -94,7 +94,7 @@ export function renderToolCall(tc: ToolCall): string {
       case 'file_read':
       case 'file_edit':
       case 'file_new':
-      case 'dir_ls':
+      case 'ls_tool':
       case 'web_fetch':
         if (args.path) {
           argsStr = `(${args.path})`;

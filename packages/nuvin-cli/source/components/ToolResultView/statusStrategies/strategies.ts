@@ -1,7 +1,7 @@
 import {
   isAssignSuccess,
   isBashSuccess,
-  isDirLsSuccess,
+  isLsToolSuccess,
   isGlobSuccess,
   isGrepSuccess,
   isFileEditSuccess,
@@ -191,10 +191,11 @@ export const dirLsStrategy: StatusStrategy = {
   getStatus(result: ToolExecutionResult, params: StatusParams): StatusMessage {
     const { statusColor } = params;
 
-    if (isDirLsSuccess(result)) {
-      const resultObj = result.result as { entries: unknown[]; truncated?: boolean };
-      const entryCount = resultObj.entries.length;
-      const truncated = resultObj.truncated ? ' (truncated)' : '';
+    if (isLsToolSuccess(result)) {
+      const text = result.result as string;
+      const totalMatch = text.match(/total:\s*(\d+)/i);
+      const entryCount = totalMatch ? parseInt(totalMatch[1], 10) : 0;
+      const truncated = text.includes('truncated:') ? ' (truncated)' : '';
       return createStatusMessage(`Listed ${entryCount} entries${truncated}`, statusColor, '');
     }
 

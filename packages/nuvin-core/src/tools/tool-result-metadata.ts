@@ -45,7 +45,7 @@ export type FileNewMetadata = {
   overwritten?: boolean;
 };
 
-export type DirLsMetadata = {
+export type LsMetadata = {
   limit: number;
   includeHidden: boolean;
 };
@@ -119,7 +119,7 @@ export type ToolMetadataMap = {
   file_read: FileReadMetadata;
   file_edit: FileEditMetadata;
   file_new: FileNewMetadata;
-  dir_ls: DirLsMetadata;
+  ls_tool: LsMetadata;
   glob: GlobToolMetadata;
   grep: GrepToolMetadata;
   web_search: WebSearchMetadata;

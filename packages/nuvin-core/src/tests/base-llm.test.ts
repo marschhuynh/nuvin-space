@@ -1018,7 +1018,7 @@ describe('BaseLLM', () => {
         'data: {"choices":[{"index":0,"delta":{"content":null,"tool_calls":[{"function":{"arguments":"\\":\\""},"index":0,"type":"function"}]}}]}',
         'data: {"choices":[{"index":0,"delta":{"content":null,"tool_calls":[{"function":{"arguments":"file1.ts\\"}"},"index":0,"type":"function"}]}}]}',
         // Second tool call starts - new ID but same index
-        'data: {"choices":[{"index":0,"delta":{"content":null,"tool_calls":[{"function":{"name":"dir_ls"},"id":"tooluse_2","index":0,"type":"function"}]}}]}',
+        'data: {"choices":[{"index":0,"delta":{"content":null,"tool_calls":[{"function":{"name":"ls_tool"},"id":"tooluse_2","index":0,"type":"function"}]}}]}',
         'data: {"choices":[{"index":0,"delta":{"content":null,"tool_calls":[{"function":{"arguments":""},"index":0,"type":"function"}]}}]}',
         'data: {"choices":[{"index":0,"delta":{"content":null,"tool_calls":[{"function":{"arguments":"{\\"path\\":\\""},"index":0,"type":"function"}]}}]}',
         'data: {"choices":[{"index":0,"delta":{"content":null,"tool_calls":[{"function":{"arguments":"dir1\\"}"},"index":0,"type":"function"}]}}]}',
@@ -1053,7 +1053,7 @@ describe('BaseLLM', () => {
 
       // Second tool call
       expect(result.tool_calls?.[1].id).toBe('tooluse_2');
-      expect(result.tool_calls?.[1].function.name).toBe('dir_ls');
+      expect(result.tool_calls?.[1].function.name).toBe('ls_tool');
       expect(result.tool_calls?.[1].function.arguments).toBe('{"path":"dir1"}');
 
       // Third tool call

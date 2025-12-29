@@ -1,17 +1,18 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
+import * as yaml from 'yaml';
 import type { ToolDefinition } from '../ports.js';
 import { ErrorReason } from '../ports.js';
 import type { FunctionTool, ToolExecutionContext, ExecResultError } from './types.js';
-import { okJson, err } from './result-helpers.js';
-import type { DirLsMetadata } from './tool-result-metadata.js';
+import { okText, err } from './result-helpers.js';
+import type { LsMetadata } from './tool-result-metadata.js';
 
-export type DirLsParams = {
+export type LsParams = {
   path?: string;
   limit?: number;
 };
 
-type DirLsToolOptions = {
+type LsToolOptions = {
   /** Workspace root for safe path resolution. Defaults to process.cwd(). */
   rootDir?: string;
 
@@ -28,27 +29,22 @@ export type DirEntry = {
   lineCount?: number;
 };
 
-export type DirLsSuccessResult = {
+export type LsSuccessResult = {
   status: 'success';
-  type: 'json';
-  result: {
-    path: string;
-    entries: DirEntry[];
-    truncated: boolean;
-    total: number;
-  };
-  metadata?: DirLsMetadata;
+  type: 'text';
+  result: string;
+  metadata?: LsMetadata;
 };
 
-export type DirLsResult = DirLsSuccessResult | ExecResultError;
+export type LsResult = LsSuccessResult | ExecResultError;
 
-export class DirLsTool implements FunctionTool<DirLsParams, ToolExecutionContext, DirLsResult> {
-  name = 'dir_ls' as const;
+export class LsTool implements FunctionTool<LsParams, ToolExecutionContext, LsResult> {
+  name = 'ls_tool' as const;
 
   private readonly rootDir: string;
   private readonly allowAbsolute: boolean;
 
-  constructor(opts: DirLsToolOptions = {}) {
+  constructor(opts: LsToolOptions = {}) {
     this.rootDir = path.resolve(opts.rootDir ?? process.cwd());
     this.allowAbsolute = !!opts.allowAbsolute;
   }
@@ -120,7 +116,7 @@ export class DirLsTool implements FunctionTool<DirLsParams, ToolExecutionContext
    *
    * @example
    * ```typescript
-   * const result = await dirLsTool.execute({ path: 'src/tools', limit: 50 });
+   * const result = await lsTool.execute({ path: 'src/tools', limit: 50 });
    * if (result.status === 'success' && result.type === 'json') {
    *   console.log(result.result.path); // 'src/tools'
    *   console.log(result.result.total); // number of entries
@@ -130,7 +126,7 @@ export class DirLsTool implements FunctionTool<DirLsParams, ToolExecutionContext
    * }
    * ```
    */
-  async execute(params: DirLsParams, context?: ToolExecutionContext): Promise<DirLsResult> {
+  async execute(params: LsParams, context?: ToolExecutionContext): Promise<LsResult> {
     try {
       const targetPath = params.path ?? '.';
       const includeHidden = true;
@@ -192,13 +188,22 @@ export class DirLsTool implements FunctionTool<DirLsParams, ToolExecutionContext
 
       results.sort((a, b) => a.name.localeCompare(b.name));
 
-      const result: DirLsSuccessResult = okJson(
-        {
-          path: targetPath,
-          entries: results,
-          truncated: entries.length > limit,
-          total: results.length,
-        },
+      const yamlData = {
+        path: targetPath,
+        total: results.length,
+        truncated: entries.length > limit,
+        entries: results.map((entry) => {
+          const e: Record<string, unknown> = { name: entry.name, type: entry.type };
+          if (entry.size !== undefined) e.size = entry.size;
+          if (entry.mode !== undefined) e.mode = entry.mode;
+          if (entry.mtime !== undefined) e.mtime = entry.mtime;
+          if (entry.lineCount !== undefined) e.lines = entry.lineCount;
+          return e;
+        }),
+      };
+
+      const result: LsSuccessResult = okText(
+        yaml.stringify(yamlData, { indent: 2, lineWidth: 0 }),
         {
           limit,
           includeHidden,

@@ -3,7 +3,7 @@ import type { BashSuccessResult as BashSuccess } from './BashTool.js';
 import type { FileReadSuccessResult as FileReadSuccess } from './FileReadTool.js';
 import type { FileEditSuccessResult as FileEditSuccess } from './FileEditTool.js';
 import type { FileNewSuccessResult as FileNewSuccess } from './FileNewTool.js';
-import type { DirLsSuccessResult as DirLsSuccess } from './DirLsTool.js';
+import type { LsSuccessResult as LsSuccess } from './LsTool.js';
 import type { GlobSuccessResult as GlobSuccess } from './GlobTool.js';
 import type { GrepSuccessResult as GrepSuccess } from './GrepTool.js';
 import type { WebSearchSuccessResult as WebSearchSuccess } from './WebSearchTool.js';
@@ -23,7 +23,7 @@ type BashSuccessResult = WithToolExecutionFields<BashSuccess>;
 type FileReadSuccessResult = WithToolExecutionFields<FileReadSuccess>;
 type FileEditSuccessResult = WithToolExecutionFields<FileEditSuccess>;
 type FileNewSuccessResult = WithToolExecutionFields<FileNewSuccess>;
-type DirLsSuccessResult = WithToolExecutionFields<DirLsSuccess>;
+type LsSuccessResult = WithToolExecutionFields<LsSuccess>;
 type GlobSuccessResult = WithToolExecutionFields<GlobSuccess>;
 type GrepSuccessResult = WithToolExecutionFields<GrepSuccess>;
 type WebSearchSuccessResult = WithToolExecutionFields<WebSearchSuccess>;
@@ -63,12 +63,12 @@ export function isFileNewSuccess(result: ToolExecutionResult): result is FileNew
   return result.name === 'file_new' && result.status === 'success' && result.type === 'text';
 }
 
-export function isDirLsResult(result: ToolExecutionResult): result is ToolExecutionResult {
-  return result.name === 'dir_ls';
+export function isLsToolResult(result: ToolExecutionResult): result is ToolExecutionResult {
+  return result.name === 'ls_tool';
 }
 
-export function isDirLsSuccess(result: ToolExecutionResult): result is DirLsSuccessResult {
-  return result.name === 'dir_ls' && result.status === 'success' && result.type === 'json';
+export function isLsToolSuccess(result: ToolExecutionResult): result is LsSuccessResult {
+  return result.name === 'ls_tool' && result.status === 'success' && result.type === 'text';
 }
 
 export function isGlobResult(result: ToolExecutionResult): result is ToolExecutionResult {

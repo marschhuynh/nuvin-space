@@ -178,7 +178,7 @@ Reference tool definitions from `packages/nuvin-core/src/tools/`:
 - `assign_task`: agent, task, description
 - `web_search`: query, count, domains, lang, region, recencyDays, description
 - `web_fetch`: url, description
-- `dir_ls`: path, limit
+- `ls_tool`: path, limit
 - `todo_write`: todos (array of todo objects)
 
 ## Best Practices

@@ -31,7 +31,7 @@ export type FileNewArgs = {
   description?: string;
 };
 
-export type DirLsArgs = {
+export type LsArgs = {
   path?: string;
   limit?: number;
   description?: string;
@@ -78,7 +78,7 @@ export type ToolArguments =
   | FileReadArgs
   | FileEditArgs
   | FileNewArgs
-  | DirLsArgs
+  | LsArgs
   | WebSearchArgs
   | WebFetchArgs
   | TodoWriteArgs
@@ -133,7 +133,7 @@ export function isWebFetchArgs(args: ToolArguments): args is WebFetchArgs {
   return 'url' in args && typeof args.url === 'string';
 }
 
-export function isDirLsArgs(args: ToolArguments): args is DirLsArgs {
+export function isLsArgs(args: ToolArguments): args is LsArgs {
   // Check that it has path or no specific other tool markers
   // Must be checked AFTER other more specific tools
   return (
