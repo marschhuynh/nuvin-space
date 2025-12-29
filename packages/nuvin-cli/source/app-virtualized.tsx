@@ -31,6 +31,7 @@ import { orchestratorManager } from './services/OrchestratorManager.js';
 import type { SessionInfo } from './types.js';
 import { createEmptySnapshot } from '@nuvin/nuvin-core';
 import { OrchestratorStatus } from './types/orchestrator.js';
+import { useTheme } from './contexts/ThemeContext.js';
 
 const ENTER_ALT_SCREEN = '\x1b[?1049h';
 const EXIT_ALT_SCREEN = '\x1b[?1049l';
@@ -46,6 +47,7 @@ type Props = {
 };
 
 export default function App({ apiKey: _apiKey, memPersist = false, historyPath, initialSessions }: Props) {
+  const theme = useTheme();
   const { cols, rows } = useStdoutDimensions();
   const { messages, clearMessages, setLines, appendLine, updateLine, updateLineMetadata, handleError } = useMessages();
   const [busy, setBusy] = useState(false);
@@ -161,7 +163,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
         type: 'info',
         content: 'Chat history cleared. Ready for new conversation.',
         metadata: { timestamp: new Date().toISOString() },
-        color: 'green',
+        color: theme.tokens.green,
       });
     };
 
