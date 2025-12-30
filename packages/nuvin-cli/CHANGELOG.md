@@ -1,5 +1,24 @@
 # @nuvin/nuvin-cli
 
+## 1.25.0
+
+### Minor Changes
+
+- [`9d1b7ea`](https://github.com/marschhuynh/nuvin-space/commit/9d1b7ea2de6c8e38713ec5c8316d2c9804d45b93) Thanks [@marschhuynh](https://github.com/marschhuynh)! - rename DirLsTool to LsTool, dir_ls to ls_tool, convert output to YAML
+
+- [`f72d754`](https://github.com/marschhuynh/nuvin-space/commit/f72d754c5b99fe10b7fd03ce807e8957b49e604a) Thanks [@marschhuynh](https://github.com/marschhuynh)! - rename glob to glob_tool, grep to grep_tool; improve color calculation accuracy and theme colors
+
+### Patch Changes
+
+- [`abdf7e4`](https://github.com/marschhuynh/nuvin-space/commit/abdf7e463b260ebae1ccaa05e79c26da04c21364) Thanks [@marschhuynh](https://github.com/marschhuynh)! - fix: improve ESC key handling and abort controller cleanup in InteractionArea
+
+- [`2aa6a68`](https://github.com/marschhuynh/nuvin-space/commit/2aa6a683e3a644db40726ce4768f152c0037d5d1) Thanks [@marschhuynh](https://github.com/marschhuynh)! - fix theme context destructuring; improve layout with useLayoutEffect and debounce; add error flow docs
+
+- [`3b96aca`](https://github.com/marschhuynh/nuvin-space/commit/3b96aca2b6d1bc19ca4833cd91498a175e09238d) Thanks [@marschhuynh](https://github.com/marschhuynh)! - remove unused explain mode feature
+
+- Updated dependencies [[`e8add82`](https://github.com/marschhuynh/nuvin-space/commit/e8add829649db481ab0f15422b90ee63c47fe951), [`9d1b7ea`](https://github.com/marschhuynh/nuvin-space/commit/9d1b7ea2de6c8e38713ec5c8316d2c9804d45b93), [`f72d754`](https://github.com/marschhuynh/nuvin-space/commit/f72d754c5b99fe10b7fd03ce807e8957b49e604a)]:
+  - @nuvin/nuvin-core@1.11.0
+
 ## 1.24.1
 
 ### Patch Changes
