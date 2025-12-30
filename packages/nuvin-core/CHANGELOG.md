@@ -1,5 +1,15 @@
 # @nuvin/nuvin-core
 
+## 1.11.0
+
+### Minor Changes
+
+- [`e8add82`](https://github.com/marschhuynh/nuvin-space/commit/e8add829649db481ab0f15422b90ee63c47fe951) Thanks [@marschhuynh](https://github.com/marschhuynh)! - add LLMErrorTransport and improve error classification with expanded retryable status codes
+
+- [`9d1b7ea`](https://github.com/marschhuynh/nuvin-space/commit/9d1b7ea2de6c8e38713ec5c8316d2c9804d45b93) Thanks [@marschhuynh](https://github.com/marschhuynh)! - rename DirLsTool to LsTool, dir_ls to ls_tool, convert output to YAML
+
+- [`f72d754`](https://github.com/marschhuynh/nuvin-space/commit/f72d754c5b99fe10b7fd03ce807e8957b49e604a) Thanks [@marschhuynh](https://github.com/marschhuynh)! - rename glob to glob_tool, grep to grep_tool; improve color calculation accuracy and theme colors
+
 ## 1.10.0
 
 ### Minor Changes
