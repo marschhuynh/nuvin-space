@@ -28,7 +28,7 @@ export const AgentList: React.FC<AgentListProps> = ({ agents, selectedAgentIndex
       {agents.map((agent, index) => {
         const isSelected = index === selectedAgentIndex;
         const enabled = isAgentEnabled(agent.id);
-        const statusColor = enabled ? 'green' : 'red';
+        const statusColor = enabled ? theme.tokens.green : theme.tokens.red;
         const statusIcon = enabled ? '✓' : '✗';
 
         return (
@@ -38,10 +38,7 @@ export const AgentList: React.FC<AgentListProps> = ({ agents, selectedAgentIndex
                 {statusIcon}
               </Text>
               <Text> </Text>
-              <Text
-                color={isSelected ? theme.tokens.cyan : theme.history.unselected}
-                bold={isSelected}
-              >
+              <Text color={isSelected ? theme.tokens.cyan : theme.history.unselected} bold={isSelected}>
                 {isSelected ? '› ' : '  '}
                 {agent.name}
               </Text>

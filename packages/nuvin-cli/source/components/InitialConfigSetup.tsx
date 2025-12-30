@@ -655,7 +655,7 @@ export function InitialConfigSetup({ onComplete, llmFactory }: Props) {
 
       {step === 'complete' && (
         <Box flexDirection="column" alignItems="center" marginTop={2}>
-          <Text color="green">Configuration saved successfully!</Text>
+          <Text color={theme.tokens.green}>Configuration saved successfully!</Text>
         </Box>
       )}
     </Box>

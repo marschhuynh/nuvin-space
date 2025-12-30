@@ -61,9 +61,7 @@ export class MCPServerManager {
       this.allowedToolsConfig = this.config.allowedTools;
     }
 
-    const serverEntries = Object.entries(servers).filter(
-      ([, cfg]) => cfg.enabled !== false
-    );
+    const serverEntries = Object.entries(servers).filter(([, cfg]) => cfg.enabled !== false);
 
     const initPromises = serverEntries.map(async ([serverId, serverCfg]) => {
       try {

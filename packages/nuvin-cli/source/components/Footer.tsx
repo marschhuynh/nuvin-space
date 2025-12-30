@@ -75,7 +75,7 @@ const FooterComponent: React.FC<FooterProps> = ({
             </Text>
           </Box>
         )}
-        {(metrics?.currentTokens || metrics?.totalTokens) ? (
+        {metrics?.currentTokens || metrics?.totalTokens ? (
           <Box alignSelf="flex-end" flexGrow={1} justifyContent="flex-end">
             <Text color={theme.footer.model} dimColor bold>
               Tokens:

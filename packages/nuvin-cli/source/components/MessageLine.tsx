@@ -5,6 +5,7 @@ import type { ToolCall } from '@nuvin/nuvin-core';
 import type { MessageLine as MessageLineType } from '@/adapters';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import type { SubAgentState } from '@/utils/eventProcessor.js';
+import { useStdoutDimensions } from '@/hooks/useStdoutDimensions';
 import { ToolCallViewer } from './ToolCallViewer';
 import { SubAgentActivity } from './ToolResultView/SubAgentActivity.js';
 import { AutoScrollBox } from './AutoScrollBox';
@@ -20,6 +21,7 @@ type MessageLineProps = {
 };
 
 const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundColor, liveMessage = false }) => {
+  const { rows } = useStdoutDimensions();
   const { theme } = useTheme();
   const isStreaming = message.metadata?.isStreaming === true;
   const streamingContent = message.content;
@@ -43,8 +45,8 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
       case 'assistant': {
         if (isStreaming) {
           return (
-            <Box flexDirection="column" marginY={1} width={'100%'}>
-              <Box flexShrink={0} marginRight={1}>
+            <Box flexDirection="column" marginY={1} width={'100%'} maxHeight={rows - 10}>
+              <Box flexShrink={0} marginRight={1} position="sticky" top={0}>
                 <Text color={theme.messageTypes.assistant} bold>
                   ● [assistant]
                 </Text>

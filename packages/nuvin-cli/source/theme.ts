@@ -27,11 +27,11 @@ export function darkenColor(hex: string, percent: number): string {
 
 // 253,88,91
 export const COLOR_TOKENS = {
-  green: '#3da25d',
-  greenBright: lightenColor('#3da25d', 0.4),
+  green: '#4bac78',
+  greenBright: '#5bd393',
   cyan: '#00d9ff',
   red: '#c5564c',
-  redBright: lightenColor('#c5564c', 0.4),
+  redBright: lightenColor('#c5564c', 0.3),
   orange: '#de935f',
   yellow: '#FFC371',
   blue: '#81a2be',

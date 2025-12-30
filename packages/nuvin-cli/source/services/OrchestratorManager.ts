@@ -47,6 +47,7 @@ import { LLMFactory } from './LLMFactory.js';
 import { OrchestratorStatus } from '@/types/orchestrator.js';
 import { modelLimitsCache } from './ModelLimitsCache.js';
 import { sessionMetricsService } from './SessionMetricsService.js';
+import { theme } from '@/theme.js';
 
 // Directory paths will be resolved dynamically based on active profile
 const defaultModels: Record<ProviderKey, string> = {
@@ -688,7 +689,7 @@ export class OrchestratorManager {
         type: 'system',
         content: `⚠️ Context window at ${Math.round(usage * 100)}% (${metrics.currentPromptTokens.toLocaleString()}/${limits.contextWindow.toLocaleString()} tokens). Running auto-summary...`,
         metadata: { timestamp: new Date().toISOString() },
-        color: 'yellow',
+        color: theme.tokens.yellow,
       });
 
       try {
@@ -698,7 +699,7 @@ export class OrchestratorManager {
           type: 'system',
           content: '✓ Auto-summary completed. Context window has been reduced.',
           metadata: { timestamp: new Date().toISOString() },
-          color: 'green',
+          color: theme.tokens.green,
         });
       } catch (error) {
         eventBus.emit('ui:line', {
@@ -706,7 +707,7 @@ export class OrchestratorManager {
           type: 'system',
           content: `⚠️ Auto-summary failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
           metadata: { timestamp: new Date().toISOString() },
-          color: 'red',
+          color: theme.tokens.red,
         });
       }
     } else if (usage >= OrchestratorManager.WARNING_THRESHOLD) {
@@ -715,7 +716,7 @@ export class OrchestratorManager {
         type: 'system',
         content: `⚠️ Context window at ${Math.round(usage * 100)}% (${metrics.currentPromptTokens.toLocaleString()}/${limits.contextWindow.toLocaleString()} tokens). Consider using /summary to reduce context.`,
         metadata: { timestamp: new Date().toISOString() },
-        color: 'yellow',
+        color: theme.tokens.yellow,
       });
     }
   }

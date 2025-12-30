@@ -3,6 +3,7 @@ import { AgentEventTypes, ErrorReason, type AgentEvent, type ToolCall, type SubA
 import type { MessageLine, LineMetadata } from '@/adapters/index.js';
 import { renderToolCall, flattenError } from './messageProcessor.js';
 import { enrichToolCallsWithLineNumbers } from './enrichToolCalls.js';
+import { theme } from '@/theme.js';
 
 const now = () => new Date().toISOString();
 
@@ -66,7 +67,7 @@ export function processAgentEvent(
           type: 'user',
           content: `${event.userContent}`,
           metadata: { timestamp: now() },
-          color: 'cyan',
+          color: theme.tokens.cyan,
         });
       }
       return {
@@ -95,7 +96,7 @@ export function processAgentEvent(
             timestamp: now(),
             toolCalls: enrichedToolCalls,
           },
-          color: 'blue',
+          color: theme.tokens.blue,
         });
 
         // Store tool calls by ID for later correlation with results
@@ -143,7 +144,7 @@ export function processAgentEvent(
             ? `${tool.name}: ${statusIcon} ${statusText}${durationText}`
             : `error: ${flattenError(tool).slice(0, 1000)}`;
 
-      const color = tool.status === 'success' ? 'green' : isWarning ? 'yellow' : 'red';
+      const color = tool.status === 'success' ? theme.tokens.green : isWarning ? theme.tokens.yellow : theme.tokens.red;
 
       const toolCall = state.recentToolCalls.get(tool.id);
 
@@ -241,7 +242,7 @@ export function processAgentEvent(
         type: 'error',
         content: `error: ${flattenError(event.error)}`,
         metadata: { timestamp: now() },
-        color: 'red',
+        color: theme.tokens.red,
       });
       return {
         ...state,

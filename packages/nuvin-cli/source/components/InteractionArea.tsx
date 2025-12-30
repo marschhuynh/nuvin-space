@@ -140,15 +140,15 @@ export const InteractionArea = forwardRef<InputAreaHandle, InteractionAreaProps>
             escTimeoutRef.current = null;
             onNotification(null);
             escStageRef.current = 'none';
-            
+
             // Only clear busy state if we successfully create/abort controller
             try {
               const controller = abortRef.current;
               if (controller) {
                 controller.abort();
                 onBusyChange(false);
-              } 
-            } catch (error) {
+              }
+            } catch (_error) {
               // Ignore abort errors
             }
             return;

@@ -76,10 +76,14 @@ const getSmartPreview = (message: string | undefined, maxLength: number = 50): s
   return result + (result.length < maxLength ? '...' : '');
 };
 
-const getSessionStatus = (lastMessage: string | undefined, messageCount: number) => {
+const getSessionStatus = (
+  lastMessage: string | undefined,
+  messageCount: number,
+  theme: ReturnType<typeof useTheme>['theme'],
+) => {
   if (!lastMessage) return { icon: '○', color: 'gray' };
   if (lastMessage.includes('Successfully') || lastMessage.includes('successfully')) {
-    return { icon: '✓', color: 'green' };
+    return { icon: '✓', color: theme.tokens.green };
   }
   if (lastMessage.includes('error') || lastMessage.includes('Error')) {
     return { icon: '✗', color: 'red' };
@@ -93,10 +97,10 @@ const getSessionStatus = (lastMessage: string | undefined, messageCount: number)
   return { icon: '●', color: 'blue' };
 };
 
-const getMessageCountBadge = (count: number) => {
+const getMessageCountBadge = (count: number, theme: ReturnType<typeof useTheme>['theme']) => {
   if (count === 1) return { text: '1 msg', color: 'gray' };
   if (count < 10) return { text: `${count} msgs`, color: 'cyan' };
-  if (count < 50) return { text: `${count} msgs`, color: 'green' };
+  if (count < 50) return { text: `${count} msgs`, color: theme.tokens.green };
   return { text: `${count} msgs`, color: 'magenta' };
 };
 
@@ -109,8 +113,8 @@ const SessionItem: React.FC<{ item: SessionInfo; isSelected: boolean; cols: numb
   const relativeTime = formatRelativeTime(item.timestamp);
   const displayText = item.topic || item.lastMessage;
   const smartPreview = getSmartPreview(displayText, cols - 5);
-  const status = getSessionStatus(item.lastMessage, item.messageCount);
-  const badge = getMessageCountBadge(item.messageCount);
+  const status = getSessionStatus(item.lastMessage, item.messageCount, theme);
+  const badge = getMessageCountBadge(item.messageCount, theme);
 
   const textColor = isSelected ? theme.history.selected : theme.history.unselected;
   const dimmed = !isSelected;

@@ -4,10 +4,12 @@ import { AppModal } from '@/components/AppModal.js';
 import { commandRegistry } from '@/modules/commands/registry.js';
 import type { CommandRegistry, CommandComponentProps } from '@/modules/commands/types.js';
 import { getVersionInfo } from '@/utils/version.js';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const { version, commit } = getVersionInfo();
 
 const HelpModal = ({ deactivate }: CommandComponentProps) => {
+  const { theme } = useTheme();
   return (
     <AppModal visible={true} title="Help" onClose={deactivate} closeOnEscape={true} closeOnEnter={true}>
       <Text color="gray" dimColor>
@@ -16,7 +18,7 @@ const HelpModal = ({ deactivate }: CommandComponentProps) => {
 
       <Box marginTop={1} flexDirection="column">
         <Text>
-          Press <Text color="green">ESC</Text> to close this help.
+          Press <Text color={theme.tokens.green}>ESC</Text> to close this help.
         </Text>
       </Box>
 
@@ -25,19 +27,19 @@ const HelpModal = ({ deactivate }: CommandComponentProps) => {
           Keybindings
         </Text>
         <Text>
-          • <Text color="green">/</Text> — Open command menu
+          • <Text color={theme.tokens.green}>/</Text> — Open command menu
         </Text>
         <Text>
-          • <Text color="green">ESC</Text> — Close active modal/menu, or clear input (double press)
+          • <Text color={theme.tokens.green}>ESC</Text> — Close active modal/menu, or clear input (double press)
         </Text>
         <Text>
-          • <Text color="green">↑/↓</Text> — Recall previous/next user messages (when typing)
+          • <Text color={theme.tokens.green}>↑/↓</Text> — Recall previous/next user messages (when typing)
         </Text>
         <Text>
-          • <Text color="green">Enter</Text> — Send message or select item
+          • <Text color={theme.tokens.green}>Enter</Text> — Send message or select item
         </Text>
         <Text>
-          • <Text color="green">Ctrl+C Ctrl+C</Text> — Exit application (double press)
+          • <Text color={theme.tokens.green}>Ctrl+C Ctrl+C</Text> — Exit application (double press)
         </Text>
       </Box>
 
@@ -47,7 +49,7 @@ const HelpModal = ({ deactivate }: CommandComponentProps) => {
         </Text>
         {commandRegistry.list({ includeHidden: false }).map((cmd) => (
           <Text key={cmd.id}>
-            • <Text color="green">{cmd.id}</Text> — {cmd.description}
+            • <Text color={theme.tokens.green}>{cmd.id}</Text> — {cmd.description}
           </Text>
         ))}
       </Box>

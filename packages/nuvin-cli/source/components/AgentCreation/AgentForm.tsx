@@ -149,7 +149,7 @@ export const AgentForm: React.FC<AgentFormProps> = ({
         </Box>
 
         <Box marginTop={1}>
-          <Text color="green">
+          <Text color={theme.tokens.green}>
             {mode === 'edit'
               ? 'Press Enter on each field to continue, or Ctrl+S to save immediately. ESC cancels editing.'
               : 'Press Enter on each field to continue, or Ctrl+S to save immediately. ESC returns to the preview.'}

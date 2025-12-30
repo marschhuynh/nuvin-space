@@ -174,7 +174,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
             type: 'info',
             content: `Loaded ${result.count} messages from ${historyPath}`,
             metadata: { timestamp: new Date().toISOString() },
-            color: 'green',
+            color: theme.tokens.green,
           });
 
           historyLoadedRef.current = true;
@@ -344,11 +344,10 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
     }
 
     resizeDebounceRef.current = setTimeout(() => {
-      // Clear terminal and refresh header
-      process.stdout.write(ansiEscapes.clearTerminal);
+      console.log(ansiEscapes.clearTerminal);
       onViewRefresh();
       resizeDebounceRef.current = null;
-    }, 50); // 100ms debounce delay
+    }, 200);
 
     return () => {
       if (resizeDebounceRef.current) {

@@ -29,17 +29,17 @@
   },
   "dependencies": {
     "husky": "^9.1.7",
-    "ink": "npm:@nuvin/ink@6.5.7"
+    "ink": "npm:@nuvin/ink@6.5.8"
   },
   "pnpm": {
     "overrides": {
-      "ink": "npm:@nuvin/ink@6.5.7"
+      "ink": "npm:@nuvin/ink@6.5.8"
     }
   },
   "overrides": {
-    "ink": "npm:@nuvin/ink@6.5.7"
+    "ink": "npm:@nuvin/ink@6.5.8"
   },
   "resolutions": {
-    "ink": "npm:@nuvin/ink@6.5.7"
+    "ink": "npm:@nuvin/ink@6.5.8"
   }
 }

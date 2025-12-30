@@ -8,7 +8,7 @@ import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
-import type { Theme } from '@/theme.js';
+import { theme, type Theme } from '@/theme.js';
 
 /**
  * Format token counts with appropriate suffixes
@@ -162,8 +162,8 @@ export const getGitBranch = (dir: string): string | null => {
  * Format message count with badge text and color
  */
 export const getMessageCountBadge = (count: number): { text: string; color: string } => {
-  if (count === 1) return { text: '1 msg', color: 'gray' };
-  if (count < 10) return { text: `${count} msgs`, color: 'cyan' };
-  if (count < 50) return { text: `${count} msgs`, color: 'green' };
-  return { text: `${count} msgs`, color: 'magenta' };
+  if (count === 1) return { text: '1 msg', color: theme.tokens.gray };
+  if (count < 10) return { text: `${count} msgs`, color: theme.tokens.cyan };
+  if (count < 50) return { text: `${count} msgs`, color: theme.tokens.green };
+  return { text: `${count} msgs`, color: theme.tokens.magenta };
 };

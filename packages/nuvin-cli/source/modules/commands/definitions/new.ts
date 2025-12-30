@@ -3,6 +3,7 @@ import ansiEscapes from 'ansi-escapes';
 import type { CommandRegistry } from '@/modules/commands/types.js';
 import { OrchestratorStatus } from '@/services/OrchestratorManager.js';
 import { sessionMetricsService } from '@/services/SessionMetricsService.js';
+import { theme } from '@/theme';
 
 export function registerNewCommand(registry: CommandRegistry) {
   registry.register({
@@ -41,7 +42,7 @@ export function registerNewCommand(registry: CommandRegistry) {
           type: 'info',
           content: 'Started new conversation',
           metadata: { timestamp: new Date().toISOString() },
-          color: 'green',
+          color: theme.tokens.green,
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);

@@ -12,28 +12,35 @@ interface MCPServerItemProps {
   reconnecting?: boolean;
 }
 
-export const MCPServerItem: React.FC<MCPServerItemProps> = ({ item, isSelected, allowedCount, totalCount, disabled, reconnecting }) => {
+export const MCPServerItem: React.FC<MCPServerItemProps> = ({
+  item,
+  isSelected,
+  allowedCount,
+  totalCount,
+  disabled,
+  reconnecting,
+}) => {
   const { theme } = useTheme();
   const isFailed = item.status === 'failed';
   const isPending = item.status === 'pending';
-  
+
   let statusColor: string;
   let statusIcon: string;
-  
+
   if (reconnecting) {
-    statusColor = 'cyan';
+    statusColor = theme.tokens.cyan;
     statusIcon = '↻';
   } else if (disabled) {
     statusColor = theme.history.unselected;
     statusIcon = '◌';
   } else if (isFailed) {
-    statusColor = 'red';
+    statusColor = theme.tokens.red;
     statusIcon = '✗';
   } else if (isPending) {
-    statusColor = 'yellow';
+    statusColor = theme.tokens.yellow;
     statusIcon = '○';
   } else {
-    statusColor = 'green';
+    statusColor = theme.tokens.green;
     statusIcon = '●';
   }
 
@@ -53,8 +60,9 @@ export const MCPServerItem: React.FC<MCPServerItemProps> = ({ item, isSelected, 
           {item.id}
         </Text>
         {reconnecting && (
-          <Text color="cyan" dimColor>
-            {' '}(connecting...)
+          <Text color={theme.tokens.cyan} dimColor>
+            {' '}
+            (connecting...)
           </Text>
         )}
         {!disabled && !reconnecting && (
@@ -65,7 +73,8 @@ export const MCPServerItem: React.FC<MCPServerItemProps> = ({ item, isSelected, 
         )}
         {disabled && !reconnecting && (
           <Text color={theme.history.unselected} dimColor>
-            {' '}(disabled)
+            {' '}
+            (disabled)
           </Text>
         )}
       </Box>

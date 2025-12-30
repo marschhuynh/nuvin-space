@@ -56,27 +56,33 @@ const AuthNavigationPrompt = ({ onNavigate, onCancel }: AuthNavigationPromptProp
       </Text>
       <Box marginTop={1} flexDirection="row" gap={2}>
         <Box alignItems="center">
-          <Text color={selectedAction === 0 ? theme.toolApproval?.actionSelected || 'cyan' : 'transparent'} bold>
+          <Text
+            color={selectedAction === 0 ? theme.toolApproval?.actionSelected || theme.tokens.cyan : 'transparent'}
+            bold
+          >
             {selectedAction === 0 ? '❯ ' : '  '}
           </Text>
           <Text
             dimColor={selectedAction !== 0}
-            color={selectedAction === 0 ? theme.toolApproval?.actionApprove || 'green' : 'white'}
+            color={selectedAction === 0 ? theme.toolApproval?.actionApprove || theme.tokens.green : theme.tokens.white}
             bold
           >
             Yes
           </Text>
         </Box>
         <Box alignItems="center">
-          <Text color={selectedAction === 1 ? theme.toolApproval?.actionSelected || 'cyan' : 'transparent'} bold>
+          <Text
+            color={selectedAction === 1 ? theme.toolApproval?.actionSelected || theme.tokens.cyan : 'transparent'}
+            bold
+          >
             {selectedAction === 1 ? '❯ ' : '  '}
           </Text>
           <Text
             dimColor={selectedAction !== 1}
             color={
               selectedAction === 1
-                ? theme.toolApproval?.actionSelected || 'cyan'
-                : theme.toolApproval?.actionDeny || 'red'
+                ? theme.toolApproval?.actionSelected || theme.tokens.cyan
+                : theme.toolApproval?.actionDeny || theme.tokens.red
             }
             bold
           >

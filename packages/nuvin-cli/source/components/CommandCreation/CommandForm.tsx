@@ -129,9 +129,7 @@ export const CommandForm: React.FC<CommandFormProps> = ({
         </Box>
 
         <Box marginTop={1}>
-          <Text color="green">
-            Tab/Enter to navigate fields • Ctrl+S to save • ESC to cancel
-          </Text>
+          <Text color={theme.tokens.green}>Tab/Enter to navigate fields • Ctrl+S to save • ESC to cancel</Text>
         </Box>
       </Box>
     </AppModal>

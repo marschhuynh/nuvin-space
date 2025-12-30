@@ -49,7 +49,7 @@ export const AgentPreview: React.FC<AgentPreviewProps> = ({ preview }) => {
         </Box>
 
         <Box marginTop={1}>
-          <Text color="green">Press Y to save this agent, N to edit fields, ESC to cancel</Text>
+          <Text color={theme.tokens.green}>Press Y to save this agent, N to edit fields, ESC to cancel</Text>
         </Box>
       </Box>
     </AppModal>

@@ -1,6 +1,7 @@
 import type { ToolCall } from '@nuvin/nuvin-core';
 import * as crypto from 'node:crypto';
 import type { MessageLine } from '@/adapters/index.js';
+import { theme } from '@/theme';
 
 /**
  * Flattens error object to string format 'key:"value"|key:"value"'
@@ -279,7 +280,7 @@ export function processMessageToUILines(msg: {
         timestamp: msg.timestamp || new Date().toISOString(),
         toolResult,
       },
-      color: toolResult.status === 'success' ? 'green' : 'red',
+      color: toolResult.status === 'success' ? theme.tokens.green : theme.tokens.red,
     });
   }
 

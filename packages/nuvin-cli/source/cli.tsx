@@ -24,6 +24,11 @@ import { orchestratorManager } from './services/OrchestratorManager.js';
 import ansiEscapes from 'ansi-escapes';
 import { AltModeProvider } from './contexts/AltModeContext.js';
 
+declare global {
+  // var __clipboardFiles: Buffer[] | undefined;
+  var __fullClear: () => void;
+}
+
 process.stdout.write('\x1b[?2004h');
 
 process.on('uncaughtException', (error) => {
@@ -424,7 +429,7 @@ const cli = meow(
     {
       exitOnCtrlC: false,
       patchConsole: true,
-      incrementalRendering: false,
+      incrementalRendering: true,
       maxFps: 60,
     },
   );

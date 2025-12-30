@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  ink: npm:@nuvin/ink@6.5.7
+  ink: npm:@nuvin/ink@6.5.8
 
 importers:
 
@@ -15,8 +15,8 @@ importers:
         specifier: ^9.1.7
         version: 9.1.7
       ink:
-        specifier: npm:@nuvin/ink@6.5.7
-        version: '@nuvin/ink@6.5.7(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)'
+        specifier: npm:@nuvin/ink@6.5.8
+        version: '@nuvin/ink@6.5.8(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)'
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.3.8
@@ -218,17 +218,17 @@ importers:
         specifier: ^0.6.5
         version: 0.6.5
       ink:
-        specifier: npm:@nuvin/ink@6.5.7
-        version: '@nuvin/ink@6.5.7(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)'
+        specifier: npm:@nuvin/ink@6.5.8
+        version: '@nuvin/ink@6.5.8(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)'
       ink-big-text:
         specifier: ^2.0.0
-        version: 2.0.0(@nuvin/ink@6.5.7(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3))(react@19.2.3)
+        version: 2.0.0(@nuvin/ink@6.5.8(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3))(react@19.2.3)
       ink-gradient:
         specifier: ^3.0.0
-        version: 3.0.0(@nuvin/ink@6.5.7(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3))
+        version: 3.0.0(@nuvin/ink@6.5.8(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3))
       ink-spinner:
         specifier: ^5.0.0
-        version: 5.0.0(@nuvin/ink@6.5.7(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3))(react@19.2.3)
+        version: 5.0.0(@nuvin/ink@6.5.8(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3))(react@19.2.3)
       marked:
         specifier: ^15.0.12
         version: 15.0.12
@@ -1047,8 +1047,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@nuvin/ink@6.5.7':
-    resolution: {integrity: sha512-oCrdZfvvls4f+sHmSiCMUbih2SUyV4oyvk+6USDFpILrpZUMBVlQuX9DIHSuDGzWItt1Hc2kX2F+Swb3MJavwA==}
+  '@nuvin/ink@6.5.8':
+    resolution: {integrity: sha512-xHbCG3WixX4qSr9A7vW6wSszEwdvwuiKsGmtux9HTderua+FXGu6NjI3h4pVpDZog2PKgikpMpcjLgMQrd5ATg==}
     engines: {node: '>=20'}
     peerDependencies:
       '@types/react': '>=19.0.0'
@@ -5731,7 +5731,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
 
-  '@nuvin/ink@6.5.7(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)':
+  '@nuvin/ink@6.5.8(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)':
     dependencies:
       '@alcalzone/ansi-tokenize': 0.2.2
       ansi-escapes: 7.2.0
@@ -7917,25 +7917,25 @@ snapshots:
 
   inherits@2.0.4: {}
 
-  ink-big-text@2.0.0(@nuvin/ink@6.5.7(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3))(react@19.2.3):
+  ink-big-text@2.0.0(@nuvin/ink@6.5.8(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3))(react@19.2.3):
     dependencies:
       cfonts: 3.3.1
-      ink: '@nuvin/ink@6.5.7(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)'
+      ink: '@nuvin/ink@6.5.8(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)'
       prop-types: 15.8.1
       react: 19.2.3
 
-  ink-gradient@3.0.0(@nuvin/ink@6.5.7(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)):
+  ink-gradient@3.0.0(@nuvin/ink@6.5.8(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)):
     dependencies:
       '@types/gradient-string': 1.1.6
       gradient-string: 2.0.2
-      ink: '@nuvin/ink@6.5.7(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)'
+      ink: '@nuvin/ink@6.5.8(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)'
       prop-types: 15.8.1
       strip-ansi: 7.1.2
 
-  ink-spinner@5.0.0(@nuvin/ink@6.5.7(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3))(react@19.2.3):
+  ink-spinner@5.0.0(@nuvin/ink@6.5.8(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3))(react@19.2.3):
     dependencies:
       cli-spinners: 2.9.2
-      ink: '@nuvin/ink@6.5.7(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)'
+      ink: '@nuvin/ink@6.5.8(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)'
       react: 19.2.3
 
   ink-testing-library@3.0.0(@types/react@19.2.7):

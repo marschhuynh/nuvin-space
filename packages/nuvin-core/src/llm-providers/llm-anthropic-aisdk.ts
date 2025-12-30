@@ -13,7 +13,16 @@ import {
 } from 'ai';
 import { LLMError } from './base-llm.js';
 import { normalizeModelInfo, deduplicateModels, type ModelInfo } from './model-limits.js';
-import { FetchTransport, AnthropicAuthTransport, LLMErrorTransport, type HttpTransport, type RetryConfig, isRetryableStatusCode, isRetryableError, DEFAULT_RETRYABLE_STATUS_CODES } from '../transports/index.js';
+import {
+  FetchTransport,
+  AnthropicAuthTransport,
+  LLMErrorTransport,
+  type HttpTransport,
+  type RetryConfig,
+  isRetryableStatusCode,
+  isRetryableError,
+  DEFAULT_RETRYABLE_STATUS_CODES,
+} from '../transports/index.js';
 
 type AnthropicAISDKOptions = {
   apiKey?: string;
@@ -98,6 +107,7 @@ export class AnthropicAISDKLLM {
       this.provider = createAnthropic({
         apiKey: this.opts.apiKey,
         baseURL: authTransport.getBaseUrl(),
+        fetch: authTransport.createFetchFunction(),
       });
     }
 
@@ -361,7 +371,12 @@ export class AnthropicAISDKLLM {
         throw new LLMError('Service temporarily unavailable. Please try again later.', statusCode, true, error);
       }
 
-      throw new LLMError(message, statusCode, error.isRetryable ?? isRetryableError(error, DEFAULT_RETRYABLE_STATUS_CODES), error);
+      throw new LLMError(
+        message,
+        statusCode,
+        error.isRetryable ?? isRetryableError(error, DEFAULT_RETRYABLE_STATUS_CODES),
+        error,
+      );
     }
 
     if (error && typeof error === 'object' && 'statusCode' in error && 'message' in error) {

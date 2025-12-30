@@ -11,7 +11,7 @@ interface MCPToolItemProps {
 
 export const MCPToolItem: React.FC<MCPToolItemProps> = ({ item: toolName, isSelected, allowed, index }) => {
   const { theme } = useTheme();
-  const statusColor = allowed ? 'green' : 'red';
+  const statusColor = allowed ? theme.tokens.green : theme.tokens.red;
   const statusIcon = allowed ? '✓' : '✗';
 
   return (

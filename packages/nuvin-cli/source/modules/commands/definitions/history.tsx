@@ -8,6 +8,7 @@ import { scanAvailableSessions, loadSessionHistory, getSessionDir } from '@/hook
 import { ConfigManager } from '@/config/manager.js';
 
 import type { SessionInfo } from '@/types.js';
+import { theme } from '@/theme';
 
 const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps) => {
   const [availableSessions, setAvailableSessions] = useState<SessionInfo[]>([]);
@@ -37,7 +38,7 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
             type: 'info',
             content: 'No previous session histories found.',
             metadata: { timestamp: new Date().toISOString() },
-            color: 'yellow',
+            color: theme.tokens.yellow,
           });
           deactivate();
           return;
@@ -51,7 +52,7 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
           type: 'error',
           content: `Failed to load session histories: ${message}`,
           metadata: { timestamp: new Date().toISOString() },
-          color: 'red',
+          color: theme.tokens.red,
         });
         deactivate();
       } finally {
@@ -94,7 +95,7 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
             type: 'info',
             content: `Switched to session ${session.sessionId} from ${sessionDate} (${result.cliMessages.length} messages loaded)`,
             metadata: { timestamp: new Date().toISOString() },
-            color: 'green',
+            color: theme.tokens.green,
           });
         } else if (result.kind === 'empty') {
           const msg =
@@ -106,7 +107,7 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
             type: 'info',
             content: msg,
             metadata: { timestamp: new Date().toISOString() },
-            color: 'yellow',
+            color: theme.tokens.yellow,
           });
         }
       } catch (err) {
@@ -116,7 +117,7 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
           type: 'error',
           content: `Failed to load session: ${message}`,
           metadata: { timestamp: new Date().toISOString() },
-          color: 'red',
+          color: theme.tokens.red,
         });
       }
     };

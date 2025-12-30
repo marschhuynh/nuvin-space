@@ -1,6 +1,7 @@
 import * as crypto from 'node:crypto';
 import type { CommandRegistry } from '@/modules/commands/types.js';
 import { compressConversation } from './compression.js';
+import { theme } from '@/theme.js';
 
 export function registerSummaryCommand(registry: CommandRegistry) {
   registry.register({
@@ -15,7 +16,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
           type: 'system',
           content: 'Orchestrator not initialized, wait a moment',
           metadata: { timestamp: new Date().toISOString() },
-          color: 'red',
+          color: theme.tokens.red,
         });
         return;
       }
@@ -27,7 +28,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
           type: 'system',
           content: 'Memory not initialized',
           metadata: { timestamp: new Date().toISOString() },
-          color: 'red',
+          color: theme.tokens.red,
         });
         return;
       }
@@ -39,7 +40,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
           type: 'system',
           content: 'No conversation history to summarize',
           metadata: { timestamp: new Date().toISOString() },
-          color: 'yellow',
+          color: theme.tokens.yellow,
         });
         return;
       }
@@ -54,7 +55,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
           type: 'system',
           content: '🧪 Using beta compression algorithm...',
           metadata: { timestamp: new Date().toISOString() },
-          color: 'cyan',
+          color: theme.tokens.cyan,
         });
 
         try {
@@ -67,7 +68,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
             type: 'system',
             content: `✓ Conversation compressed and new session created`,
             metadata: { timestamp: new Date().toISOString() },
-            color: 'green',
+            color: theme.tokens.green,
           });
 
           eventBus.emit('ui:line', {
@@ -75,7 +76,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
             type: 'system',
             content: `Compression stats: ${result.stats.original} → ${result.stats.compressed} messages (-${result.stats.removed}, ${((result.stats.removed / result.stats.original) * 100).toFixed(1)}% reduction)`,
             metadata: { timestamp: new Date().toISOString() },
-            color: 'cyan',
+            color: theme.tokens.cyan,
           });
 
           eventBus.emit('ui:line', {
@@ -83,7 +84,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
             type: 'system',
             content: `Removed: ${result.stats.staleReads} stale reads, ${result.stats.staleEdits} stale edits, ${result.stats.staleBash} stale bash, ${result.stats.failedBash} failed bash`,
             metadata: { timestamp: new Date().toISOString() },
-            color: 'cyan',
+            color: theme.tokens.cyan,
           });
 
           eventBus.emit('ui:header:refresh');
@@ -93,7 +94,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
             type: 'system',
             content: `Failed to compress conversation: ${error instanceof Error ? error.message : String(error)}`,
             metadata: { timestamp: new Date().toISOString() },
-            color: 'red',
+            color: theme.tokens.red,
           });
         }
         return;
@@ -104,7 +105,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
         type: 'system',
         content: 'Generating conversation summary...',
         metadata: { timestamp: new Date().toISOString() },
-        color: 'cyan',
+        color: theme.tokens.cyan,
       });
 
       try {
@@ -117,7 +118,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
           type: 'system',
           content: '✓ Conversation summarized and new session created',
           metadata: { timestamp: new Date().toISOString() },
-          color: 'green',
+          color: theme.tokens.green,
         });
 
         eventBus.emit('ui:line', {
@@ -134,7 +135,7 @@ export function registerSummaryCommand(registry: CommandRegistry) {
           type: 'system',
           content: `Failed to summarize conversation: ${error instanceof Error ? error.message : String(error)}`,
           metadata: { timestamp: new Date().toISOString() },
-          color: 'red',
+          color: theme.tokens.red,
         });
       }
     },

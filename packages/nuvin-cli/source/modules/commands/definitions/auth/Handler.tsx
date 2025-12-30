@@ -19,6 +19,7 @@ import { useDeviceFlow } from '@/hooks/useDeviceFlow.js';
 import { useOAuth } from '@/hooks/useOAuth.js';
 import { useAuthStorage } from '@/hooks/useAuthStorage.js';
 import { useNotification } from '@/hooks/useNotification.js';
+import { theme } from '@/theme.js';
 
 type Stage = 'provider' | 'method' | 'tokenEntry' | 'deviceFlow' | 'oauthMax' | 'oauthConsole';
 
@@ -29,14 +30,14 @@ type StatusMessage = {
 } | null;
 
 const getColorForStatus = (status: StatusMessage) => {
-  if (!status) return 'white';
+  if (!status) return theme.tokens.white;
   return status.type === 'error'
-    ? 'red'
+    ? theme.tokens.red
     : status.type === 'success'
-      ? 'green'
+      ? theme.tokens.green
       : status.type === 'info'
-        ? 'cyan'
-        : 'white';
+        ? theme.tokens.cyan
+        : theme.tokens.white;
 };
 
 export const AuthCommandComponent = ({ context, deactivate }: CommandComponentProps) => {

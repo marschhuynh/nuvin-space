@@ -180,7 +180,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
       eventBus.off('ui:lines:set', setLines);
       eventBus.off('ui:clear:complete', onClearComplete);
     };
-  }, [appendLine, handleError, clearMessages, setLines]);
+  }, [appendLine, handleError, clearMessages, setLines, theme.tokens.green]);
 
   useEffect(() => {
     if (!historyPath || historyLoadedRef.current) return;
@@ -206,7 +206,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
             type: 'info',
             content: `Loaded ${result.count} messages from ${historyPath}`,
             metadata: { timestamp: new Date().toISOString() },
-            color: 'green',
+            color: theme.tokens.green,
           });
 
           historyLoadedRef.current = true;
@@ -236,7 +236,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
     };
 
     loadHistory();
-  }, [historyPath, status, loadHistoryFromFile, setLines, appendLine]);
+  }, [historyPath, status, loadHistoryFromFile, setLines, appendLine, theme.tokens.green]);
 
   const processMessage = useCallback(
     async (submission: UserMessagePayload) => {
