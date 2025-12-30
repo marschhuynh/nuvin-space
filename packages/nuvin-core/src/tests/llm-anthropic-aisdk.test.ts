@@ -105,6 +105,7 @@ describe('AnthropicAISDKLLM', () => {
       expect(createAnthropic).toHaveBeenCalledWith({
         apiKey: 'test-api-key',
         baseURL: 'https://api.example.com',
+        fetch: expect.any(Function),
       });
     });
   });
@@ -139,6 +140,7 @@ describe('AnthropicAISDKLLM', () => {
       expect(createAnthropic).toHaveBeenCalledWith({
         apiKey: 'test-api-key',
         baseURL: 'https://api.example.com',
+        fetch: expect.any(Function),
       });
       expect(generateText).toHaveBeenCalledWith(
         expect.objectContaining({

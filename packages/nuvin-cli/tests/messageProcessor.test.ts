@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { processMessageToUILines } from '../source/utils/messageProcessor.js';
+import { theme } from '../source/theme.js';
 import type { ToolCall } from '@nuvin/nuvin-core';
 
 describe('processMessageToUILines - User messages', () => {
@@ -15,7 +16,7 @@ describe('processMessageToUILines - User messages', () => {
     expect(result.length).toBe(1);
     expect(result[0].type).toBe('user');
     expect(result[0].content).toBe('Hello, how are you?');
-    expect(result[0].color).toBe('cyan');
+    expect(result[0].color).toBe(theme.tokens.cyan);
     expect(result[0].metadata.timestamp).toBe('2025-01-01T00:00:00.000Z');
   });
 
@@ -125,7 +126,7 @@ describe('processMessageToUILines - Assistant messages', () => {
     expect(result[0].type).toBe('tool');
     expect(result[0].content.includes('bash_tool')).toBe(true);
     expect(result[0].content.includes('file_read')).toBe(true);
-    expect(result[0].color).toBe('blue');
+    expect(result[0].color).toBe(theme.tokens.blue);
     expect(result[0].metadata.toolCallCount).toBe(2);
   });
 
@@ -174,7 +175,7 @@ describe('processMessageToUILines - Tool messages', () => {
     expect(result[0].content.includes('bash_tool')).toBe(true);
     expect(result[0].content.includes('[+]')).toBe(true);
     expect(result[0].content.includes('success')).toBe(true);
-    expect(result[0].color).toBe('green');
+    expect(result[0].color).toBe(theme.tokens.green);
     expect(result[0].metadata.toolName).toBe('bash_tool');
     expect(result[0].metadata.status).toBe('success');
   });
@@ -193,7 +194,7 @@ describe('processMessageToUILines - Tool messages', () => {
     expect(result.length).toBe(1);
     expect(result[0].type).toBe('tool_result');
     expect(result[0].content.includes('error:')).toBe(true);
-    expect(result[0].color).toBe('red');
+    expect(result[0].color).toBe(theme.tokens.red);
     expect(result[0].metadata.toolName).toBe('file_read');
     expect(result[0].metadata.status).toBe('error');
   });
@@ -211,7 +212,7 @@ describe('processMessageToUILines - Tool messages', () => {
 
     expect(result.length).toBe(1);
     expect(result[0].metadata.status).toBe('error');
-    expect(result[0].color).toBe('red');
+    expect(result[0].color).toBe(theme.tokens.red);
   });
 
   it('handles tool message with "exception" pattern', () => {
@@ -227,7 +228,7 @@ describe('processMessageToUILines - Tool messages', () => {
 
     expect(result.length).toBe(1);
     expect(result[0].metadata.status).toBe('error');
-    expect(result[0].color).toBe('red');
+    expect(result[0].color).toBe(theme.tokens.red);
   });
 
   it('handles tool message without name field', () => {

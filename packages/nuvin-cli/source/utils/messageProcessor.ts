@@ -188,7 +188,7 @@ export function processMessageToUILines(msg: {
           timestamp: msg.timestamp || new Date().toISOString(),
           isStreaming: false,
         },
-        color: 'cyan',
+        color: theme.tokens.cyan,
       });
     }
   } else if (msg.role === 'assistant') {
@@ -217,7 +217,7 @@ export function processMessageToUILines(msg: {
           timestamp: msg.timestamp || new Date().toISOString(),
           toolCalls: msg.tool_calls,
         },
-        color: 'blue',
+        color: theme.tokens.blue,
       });
     }
   } else if (msg.role === 'tool') {
