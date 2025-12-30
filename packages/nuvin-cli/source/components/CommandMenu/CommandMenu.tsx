@@ -16,7 +16,7 @@ export type CommandMenuHandle = {
 
 export type CommandMenuProps = {
   items: CommandMenuItem[];
-  width: number;
+  width: number | string;
   focus?: boolean;
   onHighlight?: (item: CommandMenuItem) => void;
 };

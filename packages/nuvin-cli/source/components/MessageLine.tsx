@@ -5,7 +5,6 @@ import type { ToolCall } from '@nuvin/nuvin-core';
 import type { MessageLine as MessageLineType } from '@/adapters';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import type { SubAgentState } from '@/utils/eventProcessor.js';
-import { useStdoutDimensions } from '@/hooks/useStdoutDimensions';
 import { ToolCallViewer } from './ToolCallViewer';
 import { SubAgentActivity } from './ToolResultView/SubAgentActivity.js';
 import { AutoScrollBox } from './AutoScrollBox';
@@ -21,7 +20,6 @@ type MessageLineProps = {
 };
 
 const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundColor, liveMessage = false }) => {
-  const { cols, rows } = useStdoutDimensions();
   const { theme } = useTheme();
   const isStreaming = message.metadata?.isStreaming === true;
   const streamingContent = message.content;
@@ -43,8 +41,6 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
         );
 
       case 'assistant': {
-        const maxHeight = Math.max(10, rows - 12);
-
         if (isStreaming) {
           return (
             <Box flexDirection="column" marginY={1} width={'100%'}>
@@ -53,7 +49,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
                   ● [assistant]
                 </Text>
               </Box>
-              <AutoScrollBox maxHeight={maxHeight} marginX={2} width={'100%'}>
+              <AutoScrollBox maxHeight={'100%'} marginX={2} width={'100%'}>
                 <Markdown enableCache>{streamingContent}</Markdown>
               </AutoScrollBox>
             </Box>
@@ -201,7 +197,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
 
   return (
     <Box
-      width={cols}
+      width="100%"
       backgroundColor={backgroundColor}
       {...(liveMessage
         ? {

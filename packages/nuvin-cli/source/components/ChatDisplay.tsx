@@ -184,16 +184,18 @@ const ChatDisplayComponent: React.FC<ChatDisplayProps> = ({ messages, headerKey,
   }, [mergedMessages, staticItems]);
 
   return (
-    <Box flexDirection="column" flexShrink={1} flexGrow={1} overflow="hidden">
+    <Box flexDirection="column" flexShrink={1} overflow="hidden">
       {staticItemsWithHeader.length > 0 && (
-        <Static items={staticItemsWithHeader}>
-          {(item) => {
-            if (item.type === 'logo') {
-              return <WelcomeLogo key={item.id} recentSessions={item.sessions} />;
-            }
-            return <MessageLine key={item.id} message={item as MessageLineType} />;
-          }}
-        </Static>
+        <Box height={0} flexDirection="column">
+          <Static items={staticItemsWithHeader}>
+            {(item) => {
+              if (item.type === 'logo') {
+                return <WelcomeLogo key={item.id} recentSessions={item.sessions} />;
+              }
+              return <MessageLine key={item.id} message={item as MessageLineType} />;
+            }}
+          </Static>
+        </Box>
       )}
 
       {visible.map((line) => (

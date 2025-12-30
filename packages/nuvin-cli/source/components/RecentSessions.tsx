@@ -1,10 +1,10 @@
 import { Box, Text } from 'ink';
 import { useTheme } from '@/contexts/ThemeContext.js';
 import Gradient from 'ink-gradient';
-import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import type { SessionInfo } from '@/types.js';
 import { getVersion } from '@/utils/version';
 import { formatRelativeTime, getMessageCountBadge } from '@/utils/formatters.js';
+import { useStdoutDimensionsContext } from '@/contexts/StdoutDimensionsContext';
 
 type RecentSessionsProps = {
   recentSessions: SessionInfo[];
@@ -18,18 +18,15 @@ const ICON_2 = `╭──┴──┴──┴──┴──┴──╮
 ╰──┬──┬──┬──┬──┬──╯`;
 
 const WelcomeLogo = ({ recentSessions }: { recentSessions: SessionInfo[] }) => {
-  const { cols } = useStdoutDimensions();
-
+  const { cols } = useStdoutDimensionsContext();
   return (
-    <Box flexDirection="row" padding={0} width={cols} marginTop={1} marginBottom={4}>
-      <Box width={24} justifyContent="center" flexDirection="column" alignItems="center">
+    <Box flexDirection="row" width="100%" marginTop={1} marginBottom={4} flexWrap="nowrap">
+      <Box justifyContent="center" flexDirection="column" alignItems="center" marginRight={2}>
         <Gradient colors={['#FF5F6D', '#FFC371']}>
           <Text>{`${ICON_2}`}</Text>
         </Gradient>
       </Box>
-      <Box width={cols - 24}>
-        <RecentSessions recentSessions={recentSessions} />
-      </Box>
+      {cols >= 60 && <RecentSessions recentSessions={recentSessions} />}
     </Box>
   );
 };
@@ -37,10 +34,10 @@ const WelcomeLogo = ({ recentSessions }: { recentSessions: SessionInfo[] }) => {
 // Recent sessions list component
 const RecentSessions = ({ recentSessions }: RecentSessionsProps) => {
   const { theme } = useTheme();
-  const { cols } = useStdoutDimensions();
+  const { cols } = useStdoutDimensionsContext();
 
   return (
-    <Box flexDirection="column" width={cols}>
+    <Box flexDirection="column" overflow="hidden" width={cols - 24}>
       <Text color={theme.welcome.title} bold underline>
         Recent Sessions
       </Text>
@@ -55,10 +52,12 @@ const RecentSessions = ({ recentSessions }: RecentSessionsProps) => {
           const badge = getMessageCountBadge(session.messageCount);
 
           return (
-            <Box key={session.sessionId} flexDirection="row" flexWrap="nowrap" width={cols - 26}>
-              <Text color={theme.welcome.subtitle} dimColor wrap="truncate">
-                {`${relativeTime} - ${displayText}`}
-              </Text>
+            <Box key={session.sessionId} flexDirection="row" flexWrap="nowrap" overflow="hidden" flexShrink={1}>
+              <Box flexShrink={1} overflow="hidden">
+                <Text color={theme.welcome.subtitle} dimColor wrap="truncate">
+                  {`${relativeTime} - ${displayText}`}
+                </Text>
+              </Box>
               <Box flexWrap="nowrap" flexShrink={0} marginLeft={1}>
                 <Text color={badge.color} dimColor>
                   {badge.text}

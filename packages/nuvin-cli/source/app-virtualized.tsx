@@ -47,7 +47,7 @@ type Props = {
 };
 
 export default function App({ apiKey: _apiKey, memPersist = false, historyPath, initialSessions }: Props) {
-  const theme = useTheme();
+  const { theme } = useTheme();
   const { cols, rows } = useStdoutDimensions();
   const { messages, clearMessages, setLines, appendLine, updateLine, updateLineMetadata, handleError } = useMessages();
   const [busy, setBusy] = useState(false);

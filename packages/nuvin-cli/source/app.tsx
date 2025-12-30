@@ -1,6 +1,5 @@
-import { useCallback, useRef, useState, useEffect, useMemo } from 'react';
+import { useCallback, useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import { Box, Text } from 'ink';
-import ansiEscapes from 'ansi-escapes';
 import * as crypto from 'node:crypto';
 import * as path from 'node:path';
 import type { UserMessagePayload } from '@nuvin/nuvin-core';
@@ -30,6 +29,7 @@ import type { SessionInfo } from '@/types.js';
 import { createEmptySnapshot } from '@nuvin/nuvin-core';
 import { OrchestratorStatus } from '@/types/orchestrator.js';
 import { useTheme } from './contexts/ThemeContext';
+import ansiEscapes from 'ansi-escapes';
 
 type Props = {
   provider?: ProviderKey;
@@ -42,7 +42,7 @@ type Props = {
 };
 
 export default function App({ apiKey: _apiKey, memPersist = false, historyPath, initialSessions }: Props) {
-  const theme = useTheme();
+  const { theme } = useTheme();
   const { cols } = useStdoutDimensions();
   const { messages, clearMessages, setLines, appendLine, updateLine, updateLineMetadata, handleError } = useMessages();
   const [busy, setBusy] = useState(false);
@@ -147,7 +147,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
       eventBus.off('ui:lines:set', setLines);
       eventBus.off('ui:clear:complete', onClearComplete);
     };
-  }, [appendLine, handleError, clearMessages, setLines]);
+  }, [appendLine, handleError, clearMessages, setLines, theme.tokens.green]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: We only want to load once at startup when orchestrator is ready
   useEffect(() => {
@@ -178,6 +178,9 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
           });
 
           historyLoadedRef.current = true;
+          // Force refresh to ensure layout is correct after heavy static content load
+          // process.stdout.write(ansiEscapes.clearTerminal);
+          // onViewRefresh();
         } else {
           const msg =
             result.reason === 'no_messages'
@@ -324,9 +327,9 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
   }, [vimModeEnabled]);
 
   const initialColsRef = useRef(true);
+  const resizeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: cols dependency intentionally excluded to avoid re-renders
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!cols || cols < 10) return;
 
     // Skip the initial mount to avoid duplicate header rendering
@@ -335,12 +338,23 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
       return;
     }
 
-    try {
-      console.log(ansiEscapes.clearTerminal);
-      onViewRefresh();
-    } catch (error) {
-      console.warn('Error during resize refresh, continuing with safe state:', error);
+    // Debounce the clear and refresh to avoid excessive updates during rapid resize
+    if (resizeDebounceRef.current) {
+      clearTimeout(resizeDebounceRef.current);
     }
+
+    resizeDebounceRef.current = setTimeout(() => {
+      // Clear terminal and refresh header
+      process.stdout.write(ansiEscapes.clearTerminal);
+      onViewRefresh();
+      resizeDebounceRef.current = null;
+    }, 50); // 100ms debounce delay
+
+    return () => {
+      if (resizeDebounceRef.current) {
+        clearTimeout(resizeDebounceRef.current);
+      }
+    };
   }, [cols, onViewRefresh]);
 
   useEffect(() => {
@@ -402,7 +416,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
         </Box>
       }
     >
-      <Box flexDirection="column" minHeight={6} position="relative">
+      <Box flexDirection="column">
         <ChatDisplay
           key={`chat-display-${headerKey}`}
           messages={messages}

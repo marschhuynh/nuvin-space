@@ -28,18 +28,6 @@
     "rimraf": "^6.1.2"
   },
   "dependencies": {
-    "husky": "^9.1.7",
-    "ink": "npm:@nuvin/ink@6.5.7"
-  },
-  "pnpm": {
-    "overrides": {
-      "ink": "npm:@nuvin/ink@6.5.7"
-    }
-  },
-  "overrides": {
-    "ink": "npm:@nuvin/ink@6.5.7"
-  },
-  "resolutions": {
-    "ink": "npm:@nuvin/ink@6.5.7"
+    "husky": "^9.1.7"
   }
 }

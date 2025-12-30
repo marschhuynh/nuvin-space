@@ -4,7 +4,6 @@ import { useFocus, useInput } from '@/contexts/InputContext/index.js';
 import type { MemoryPort, Message } from '@nuvin/nuvin-core';
 import Spinner from 'ink-spinner';
 import { useTheme } from '@/contexts/ThemeContext.js';
-import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
 import { useInputHistory } from '@/hooks/useInputHistory.js';
 import TextInput from './TextInput/index.js';
 import { CommandMenu, type CommandMenuHandle } from './CommandMenu/index.js';
@@ -57,7 +56,6 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
     const [input, setInput] = useState('');
     const [focusKey, setFocusKey] = useState(0);
     const [_vimMode, setVimMode] = useState<VimMode>('insert');
-    const { cols } = useStdoutDimensions();
     const { isFocused } = useFocus({ autoFocus: true, active: true });
     const commandMenuRef = useRef<CommandMenuHandle>(null);
 
@@ -218,7 +216,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
           <CommandMenu
             ref={commandMenuRef}
             items={filteredCommandItems}
-            width={cols}
+            width="100%"
             focus={isFocused && !showToolApproval}
           />
         )}
@@ -231,7 +229,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
             <Spinner type="dots" />
           )}
           <Box minWidth={1} />
-          <Box width={cols - 2}>
+          <Box flexGrow={1}>
             <TextInput
               key={focusKey}
               value={input}
