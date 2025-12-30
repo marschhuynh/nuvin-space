@@ -1,5 +1,14 @@
 # @nuvin/nuvin-cli
 
+## 1.25.1
+
+### Patch Changes
+
+- [`1bdf26f`](https://github.com/marschhuynh/nuvin-space/commit/1bdf26f98d7d29b225d7227d87fd4e9d05f7eb83) Thanks [@marschhuynh](https://github.com/marschhuynh)! - fix: replace hardcoded colors with theme tokens; add fetch function to Anthropic transport; remove ink overrides
+
+- Updated dependencies [[`1bdf26f`](https://github.com/marschhuynh/nuvin-space/commit/1bdf26f98d7d29b225d7227d87fd4e9d05f7eb83)]:
+  - @nuvin/nuvin-core@1.11.1
+
 ## 1.25.0
 
 ### Minor Changes
