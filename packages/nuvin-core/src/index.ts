@@ -97,9 +97,24 @@ export type { ToolParameterMap, ToolName, TypedToolInvocation } from './tools/to
 export type { ParseResult } from './tools/tool-call-parser.js';
 export { parseJSON } from './tools/tool-call-parser.js';
 export type { ValidationResult, ToolValidator } from './tools/tool-validators.js';
-export { toolValidators } from './tools/tool-validators.js';
-export type { ToolCallValidation } from './tools/tool-call-converter.js';
-export { convertToolCall, convertToolCalls } from './tools/tool-call-converter.js';
+export {
+  toolValidators,
+  toolSchemas,
+  validateToolParams,
+  bashToolSchema,
+  fileReadSchema,
+  fileEditSchema,
+  fileNewSchema,
+  lsToolSchema,
+  webSearchSchema,
+  webFetchSchema,
+  todoWriteSchema,
+  assignTaskSchema,
+  globToolSchema,
+  grepToolSchema,
+} from './tools/tool-validators.js';
+export type { ToolCallValidation, ValidationError, ToolCallConversionResult } from './tools/tool-call-converter.js';
+export { convertToolCall, convertToolCalls, convertToolCallsWithErrorHandling } from './tools/tool-call-converter.js';
 export type {
   BashToolMetadata,
   FileReadMetadata,
@@ -115,13 +130,23 @@ export type {
   ToolErrorMetadata,
   ToolMetadataMap,
 } from './tools/tool-result-metadata.js';
-export type { FileReadResult, FileReadSuccessResult, FileReadErrorResult, FileReadParams } from './tools/FileReadTool.js';
+export type {
+  FileReadResult,
+  FileReadSuccessResult,
+  FileReadErrorResult,
+  FileReadParams,
+} from './tools/FileReadTool.js';
 export type { FileEditResult, FileEditSuccessResult } from './tools/FileEditTool.js';
 export type { FileNewResult, FileNewSuccessResult, FileNewParams } from './tools/FileNewTool.js';
 export type { LsResult, LsSuccessResult, LsParams, DirEntry } from './tools/LsTool.js';
 export type { GlobResult, GlobSuccessResult, GlobParams } from './tools/GlobTool.js';
 export type { GrepResult, GrepSuccessResult, GrepParams } from './tools/GrepTool.js';
-export type { WebSearchToolResult, WebSearchSuccessResult, WebSearchParams, WebSearchResult } from './tools/WebSearchTool.js';
+export type {
+  WebSearchToolResult,
+  WebSearchSuccessResult,
+  WebSearchParams,
+  WebSearchResult,
+} from './tools/WebSearchTool.js';
 export type { WebFetchResult, WebFetchSuccessResult, WebFetchParams } from './tools/WebFetchTool.js';
 export type { TodoWriteResult, TodoWriteSuccessResult } from './tools/TodoWriteTool.js';
 export type { AssignResult, AssignSuccessResult, AssignErrorResult } from './tools/AssignTool.js';

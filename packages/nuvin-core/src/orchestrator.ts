@@ -18,7 +18,6 @@ import {
   type RemindersPort,
   type SendMessageOptions,
   type ToolExecutionResult,
-  type ToolInvocation,
   type ToolPort,
   type ToolCall,
   type UserAttachment,
@@ -37,7 +36,7 @@ import { SimpleCost } from './cost.js';
 import { NoopReminders } from './reminders.js';
 import { SimpleContextBuilder } from './context.js';
 import { NoopEventPort } from './events.js';
-import { convertToolCalls } from './tools/tool-call-converter.js';
+import { convertToolCallsWithErrorHandling } from './tools/tool-call-converter.js';
 
 type AssistantChunkEvent = Extract<AgentEvent, { type: typeof AgentEventTypes.AssistantChunk }>;
 type AssistantMessageEvent = Extract<AgentEvent, { type: typeof AgentEventTypes.AssistantMessage }>;
@@ -578,13 +577,33 @@ export class AgentOrchestrator {
       }
 
       const approvedCalls = approvalResult.approvedCalls;
+      const availableTools = this.getAvailableToolNames();
+      const conversionResult = convertToolCallsWithErrorHandling(approvedCalls, {
+        strict: this.cfg.strictToolValidation ?? false,
+        availableTools,
+      });
 
-      const invocations = this.toInvocations(approvedCalls);
+      const validationErrors: ToolExecutionResult[] = [];
+      const validInvocations = conversionResult.invocations;
+
+      if (conversionResult.errors) {
+        for (const err of conversionResult.errors) {
+          validationErrors.push({
+            id: err.id,
+            name: err.name,
+            status: 'error',
+            type: 'text',
+            result: `Tool call validation failed (${err.errorType}): ${err.error}`,
+            metadata: { errorReason: ErrorReason.ValidationFailed },
+            durationMs: 0,
+          });
+        }
+      }
+
       if (opts.signal?.aborted) throw new Error('Aborted');
 
-      // TODO: change to use generators
-      const toolResults = await this.tools.executeToolCalls(
-        invocations,
+      const executionToolResults = await this.tools.executeToolCalls(
+        validInvocations,
         {
           conversationId: convo,
           agentId: this.cfg.id,
@@ -594,7 +613,8 @@ export class AgentOrchestrator {
         this.cfg.maxToolConcurrency ?? 3,
         opts.signal,
       );
-      allToolResults.push(...toolResults);
+
+      const allToolResults = [...validationErrors, ...executionToolResults];
 
       const assistantMsg: Message = {
         id: this.ids.uuid(),
@@ -606,7 +626,7 @@ export class AgentOrchestrator {
       };
 
       const toolResultMsgs: Message[] = [];
-      for (const tr of toolResults) {
+      for (const tr of allToolResults) {
         let contentStr: string;
         if (tr.status === 'error') {
           contentStr = tr.result as string;
@@ -648,7 +668,7 @@ export class AgentOrchestrator {
         content: result.content ?? null,
         tool_calls: approvedCalls,
       });
-      for (const tr of toolResults) {
+      for (const tr of allToolResults) {
         let contentStr: string;
         if (tr.status === 'error') {
           contentStr = tr.result as string;
@@ -828,10 +848,8 @@ export class AgentOrchestrator {
     }
   }
 
-  private toInvocations(toolCalls: ToolCall[]): ToolInvocation[] {
-    return convertToolCalls(toolCalls, {
-      strict: this.cfg.strictToolValidation ?? false,
-      throwOnError: false,
-    });
+  private getAvailableToolNames(): Set<string> {
+    const toolDefs = this.tools.getToolDefinitions(this.cfg.enabledTools ?? []);
+    return new Set(toolDefs.map((t) => t.function.name));
   }
 }

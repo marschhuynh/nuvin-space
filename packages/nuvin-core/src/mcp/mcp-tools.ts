@@ -1,8 +1,10 @@
 import type { ToolDefinition, ToolExecutionResult, ToolInvocation, ToolPort } from '../ports.js';
 import { ErrorReason } from '../ports.js';
 import type { CoreMCPClient, MCPToolSchema } from './mcp-client.js';
+import { jsonSchemaToZod } from 'json-zodify';
+import { z } from 'zod';
 
-type NameMap = Map<string, string>; // exposedName -> originalName
+type NameMap = Map<string, string>;
 
 interface MCPToolCallResponse {
   content: Array<{ type: string; text?: string }>;
@@ -36,7 +38,8 @@ function flattenMcpContent(
 
 export class MCPToolPort implements ToolPort {
   private map: NameMap = new Map();
-  private toolSchemas: Map<string, MCPToolSchema> = new Map(); // originalName -> schema
+  private toolSchemas: Map<string, MCPToolSchema> = new Map();
+  private zodSchemas: Map<string, unknown> = new Map();
   private prefix: string;
 
   constructor(
@@ -51,10 +54,19 @@ export class MCPToolPort implements ToolPort {
     const tools = this.client.getTools();
     this.map.clear();
     this.toolSchemas.clear();
+    this.zodSchemas.clear();
     for (const t of tools) {
       const exposed = toExposedName(t.name, this.prefix);
       this.map.set(exposed, t.name);
       this.toolSchemas.set(t.name, t);
+      if (t.inputSchema) {
+        try {
+          const zodSchema = jsonSchemaToZod(t.inputSchema);
+          this.zodSchemas.set(exposed, zodSchema);
+        } catch (e) {
+          console.warn(`[MCPToolPort] Failed to convert schema for ${t.name}:`, e);
+        }
+      }
     }
   }
 
@@ -138,6 +150,25 @@ DO NOT mention this explicitly to the user.
           if (!original) {
             return { id: c.id, name: c.name, status: 'error', type: 'text', result: `Unknown MCP tool: ${c.name}` };
           }
+
+          const zodSchema = this.zodSchemas.get(c.name);
+          if (zodSchema) {
+            const schema = zodSchema as z.ZodType<Record<string, unknown>>;
+            const validation = schema.safeParse(c.parameters || {});
+            if (!validation.success) {
+              const errors = validation.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`);
+              return {
+                id: c.id,
+                name: c.name,
+                status: 'error',
+                type: 'text',
+                result: `Parameter validation failed: ${errors.join('; ')}`,
+                metadata: { errorReason: ErrorReason.ValidationFailed },
+                durationMs: 0,
+              };
+            }
+          }
+
           try {
             const res = await this.client.callTool({ name: original, arguments: c.parameters || {} });
             const flat = flattenMcpContent((res as MCPToolCallResponse).content);

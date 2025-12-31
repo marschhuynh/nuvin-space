@@ -29,7 +29,9 @@
   },
   "dependencies": {
     "husky": "^9.1.7",
-    "ink": "npm:@nuvin/ink@6.5.8"
+    "ink": "npm:@nuvin/ink@6.5.8",
+    "json-zodify": "^1.0.2",
+    "zod": "^4.2.1"
   },
   "pnpm": {
     "overrides": {

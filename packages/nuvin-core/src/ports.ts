@@ -245,6 +245,7 @@ export enum ErrorReason {
   NetworkError = 'network_error',
   RateLimit = 'rate_limit',
   ToolNotFound = 'tool_not_found',
+  ValidationFailed = 'validation_failed',
   Unknown = 'unknown',
 }
 

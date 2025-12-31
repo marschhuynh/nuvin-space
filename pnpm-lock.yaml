@@ -17,6 +17,12 @@ importers:
       ink:
         specifier: npm:@nuvin/ink@6.5.8
         version: '@nuvin/ink@6.5.8(@types/react@19.2.7)(react-devtools-core@6.1.5)(react@19.2.3)'
+      json-zodify:
+        specifier: ^1.0.2
+        version: 1.0.2(zod@4.2.1)
+      zod:
+        specifier: ^4.2.1
+        version: 4.2.1
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.3.8
@@ -335,12 +341,18 @@ importers:
       cheerio:
         specifier: ^1.1.2
         version: 1.1.2
+      json-zodify:
+        specifier: ^1.0.2
+        version: 1.0.2(zod@4.2.1)
       turndown:
         specifier: ^7.2.2
         version: 7.2.2
       yaml:
         specifier: ^2.8.2
         version: 2.8.2
+      zod:
+        specifier: ^4.2.1
+        version: 4.2.1
     devDependencies:
       '@sindresorhus/tsconfig':
         specifier: ^3.0.1
@@ -3298,6 +3310,12 @@ packages:
 
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
+
+  json-zodify@1.0.2:
+    resolution: {integrity: sha512-xBqxkNLKlE8exeZFDI7ASqwDMXtVnvxJEh3YkCrXdZVI7XgSZqoWpDq7sF6Z3IGqlQmknxGzyF2C8Yo+lokBdA==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      zod: '>=4.0.0'
 
   json5@1.0.2:
     resolution: {integrity: sha512-g1MWMLBiz8FKi1e4w0UyVL3w+iJceWAFBAaBnnGKOpNa5f8TLktkbre1+s6oICydWAm+HRUGTmI+//xv2hvXYA==}
@@ -8272,6 +8290,10 @@ snapshots:
   json-schema@0.4.0: {}
 
   json-stable-stringify-without-jsonify@1.0.1: {}
+
+  json-zodify@1.0.2(zod@4.2.1):
+    dependencies:
+      zod: 4.2.1
 
   json5@1.0.2:
     dependencies:

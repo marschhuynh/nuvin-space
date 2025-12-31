@@ -19,6 +19,10 @@ const errorStatusMap: Record<ErrorReason, ErrorConfig> = {
   [ErrorReason.RateLimit]: { text: 'Rate limit', colorKey: 'warning' },
   [ErrorReason.InvalidInput]: { text: 'Invalid input', colorKey: 'error' },
   [ErrorReason.Unknown]: { text: 'Unknown error', colorKey: 'error' },
+  [ErrorReason.ValidationFailed]: {
+    text: '',
+    colorKey: 'warning'
+  }
 };
 
 export function getErrorStatus(

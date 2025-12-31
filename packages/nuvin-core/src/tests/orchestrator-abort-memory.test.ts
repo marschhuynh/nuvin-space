@@ -55,6 +55,14 @@ describe('AgentOrchestrator - Abort Memory Persistence', () => {
             parameters: { type: 'object', properties: {} },
           },
         },
+        {
+          type: 'function',
+          function: {
+            name: 'assign_task',
+            description: 'Assign a task to a specialist agent',
+            parameters: { type: 'object', properties: { agent: { type: 'string' }, task: { type: 'string' }, description: { type: 'string' } }, required: ['agent', 'task', 'description'] },
+          },
+        },
       ]),
       executeToolCalls: vi.fn(),
     };
@@ -97,7 +105,7 @@ describe('AgentOrchestrator - Abort Memory Persistence', () => {
         model: 'test-model',
         temperature: 0.7,
         topP: 1,
-        enabledTools: ['test_tool'],
+        enabledTools: ['test_tool', 'assign_task'],
         maxToolConcurrency: 3,
         requireToolApproval: false,
       },

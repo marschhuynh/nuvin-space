@@ -181,8 +181,8 @@ export type ToolParameterMap = {
   file_edit: FileEditArgs;
   file_new: FileNewArgs;
   ls_tool: LsArgs;
-  glob: GlobArgs;
-  grep: GrepArgs;
+  glob_tool: GlobArgs;
+  grep_tool: GrepArgs;
   web_search: WebSearchArgs;
   web_fetch: WebFetchArgs;
   todo_write: TodoWriteArgs;
