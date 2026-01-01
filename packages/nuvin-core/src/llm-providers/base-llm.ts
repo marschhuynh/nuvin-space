@@ -97,6 +97,7 @@ type LLMMessageDelta = {
   content?: string | null;
   reasoning?: string | null;
   reasoning_content?: string | null;
+  reasoning_text?: string | null;
   tool_calls?: LLMToolCallDelta[];
   [key: string]: unknown;
 };
@@ -285,6 +286,7 @@ export abstract class BaseLLM implements LLMPort {
       onReasoningChunk?: (delta: string) => void;
       onToolCallDelta?: (tc: ToolCall) => void;
       onStreamFinish?: (finishReason?: string, usage?: UsageData) => void;
+      onUsage?: (usage: UsageData) => void;
     } = {},
     signal?: AbortSignal,
   ): Promise<CompletionResult> {
@@ -347,17 +349,19 @@ export abstract class BaseLLM implements LLMPort {
 
         if (usageData) {
           usage = this.transformUsage(usageData);
-          if (lastFinishReason && handlers.onStreamFinish) {
-            handlers.onStreamFinish(lastFinishReason, usage);
-          } else {
-            handlers.onChunk?.('', usage);
+          if (usage) {
+            if (lastFinishReason && handlers.onStreamFinish) {
+              handlers.onStreamFinish(lastFinishReason, usage);
+            } else {
+              handlers.onUsage?.(usage);
+            }
           }
         }
 
         for (const ch of choices) {
           const delta: LLMMessageDelta = ch.delta ?? ch.message ?? {};
           const textDelta: string | undefined = delta.content ?? undefined;
-          const reasoningDelta: string | undefined = delta.reasoning_content ?? delta.reasoning ?? undefined;
+          const reasoningDelta: string | undefined = delta.reasoning_content ?? delta.reasoning ?? delta.reasoning_text ?? undefined;
 
           if (typeof reasoningDelta === 'string' && reasoningDelta.length > 0) {
             reasoning += reasoningDelta;
@@ -378,7 +382,7 @@ export abstract class BaseLLM implements LLMPort {
           }
 
           // Dynamically accumulate unknown fields into root object (extraFields)
-          const knownKeys = ['role', 'content', 'tool_calls', 'reasoning', 'reasoning_content'];
+          const knownKeys = ['role', 'content', 'tool_calls', 'reasoning', 'reasoning_content', 'reasoning_text'];
           for (const key of Object.keys(delta)) {
             if (knownKeys.includes(key)) continue;
 

@@ -606,6 +606,10 @@ export class AgentOrchestrator {
             };
             await this.events?.emit(finishEvent);
           },
+          onUsage: async (usage: UsageData) => {
+            const cost = this.cost.estimate(this.cfg.model, usage);
+            this.metrics?.recordLLMCall?.(usage, cost);
+          },
         },
         opts.signal,
       );
@@ -841,6 +845,10 @@ export class AgentOrchestrator {
                 ...(usage && { usage }),
               };
               await this.events?.emit(finishEvent);
+            },
+            onUsage: async (usage: UsageData) => {
+              const cost = this.cost.estimate(this.cfg.model, usage);
+              this.metrics?.recordLLMCall?.(usage, cost);
             },
           },
           opts.signal,

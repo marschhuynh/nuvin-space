@@ -141,6 +141,7 @@ export class GenericLLM extends BaseLLM implements LLMPort {
       onChunk?: (delta: string, usage?: import('../ports.js').UsageData) => void;
       onToolCallDelta?: (tc: import('../ports.js').ToolCall) => void;
       onStreamFinish?: (finishReason?: string, usage?: import('../ports.js').UsageData) => void;
+      onUsage?: (usage: import('../ports.js').UsageData) => void;
     },
     signal?: AbortSignal,
   ): Promise<import('../ports.js').CompletionResult> {

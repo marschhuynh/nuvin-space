@@ -473,6 +473,7 @@ export class AnthropicAISDKLLM {
       onChunk?: (delta: string, usage?: UsageData) => void;
       onToolCallDelta?: (tc: ToolCall) => void;
       onStreamFinish?: (finishReason?: string, usage?: UsageData) => void;
+      onUsage?: (usage: UsageData) => void;
     } = {},
     signal?: AbortSignal,
   ): Promise<CompletionResult> {

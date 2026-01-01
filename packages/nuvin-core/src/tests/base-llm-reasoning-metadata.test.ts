@@ -140,6 +140,39 @@ describe('BaseLLM - Reasoning & Metadata Support', () => {
       expect(postSpy).toHaveBeenCalled();
     });
 
+    it('should accumulate "reasoning_text" field and call onReasoningChunk (GitHub-style)', async () => {
+      // Simulating GitHub Copilot-style reasoning_text field
+      const chunks = [
+        'data: {"choices":[{"delta":{"content":null,"reasoning_text":"Let me think..."}}]}',
+        'data: {"choices":[{"delta":{"content":null,"reasoning_text":" I found the issue"}}]}',
+        'data: {"choices":[{"delta":{"content":"The fix is:"}}]}',
+        'data: {"choices":[{"delta":{"content":" to rename the file"}}]}',
+        'data: [DONE]',
+      ];
+
+      const mockResponse = createMockStreamResponse(chunks);
+      const postSpy = vi
+        .spyOn(llm.getTransportForSpy(), 'post')
+        .mockResolvedValueOnce(mockResponse as unknown as Response);
+
+      const params: CompletionParams = {
+        model: 'gpt-4',
+        messages: [],
+        temperature: 0,
+        topP: 0,
+      };
+
+      const reasoningChunks: string[] = [];
+      const result = await llm.streamCompletion(params, {
+        onReasoningChunk: (delta) => reasoningChunks.push(delta),
+      });
+
+      expect(result.content).toBe('The fix is: to rename the file');
+      expect(result.reasoning).toBe('Let me think... I found the issue');
+      expect(reasoningChunks).toEqual(['Let me think...', ' I found the issue']);
+      expect(postSpy).toHaveBeenCalled();
+    });
+
     it('should accumulate arbitrary unknown string fields into root', async () => {
       // Simulating a custom provider sending "thoughts" field
       const chunks = [

@@ -365,6 +365,7 @@ export class GenericAnthropicLLM implements LLMPort {
       onReasoningChunk?: (delta: string) => void;
       onToolCallDelta?: (tc: ToolCall) => void;
       onStreamFinish?: (finishReason?: string, usage?: UsageData) => void;
+      onUsage?: (usage: UsageData) => void;
     } = {},
     signal?: AbortSignal,
   ): Promise<CompletionResult> {

@@ -1222,6 +1222,7 @@ describe('BaseLLM', () => {
 
       const onChunk = vi.fn();
       const onStreamFinish = vi.fn();
+      const onUsage = vi.fn();
 
       const params: CompletionParams = {
         model: 'gpt-4',
@@ -1230,7 +1231,7 @@ describe('BaseLLM', () => {
         topP: 0,
       };
 
-      const result = await llm.streamCompletion(params, { onChunk, onStreamFinish });
+      const result = await llm.streamCompletion(params, { onChunk, onStreamFinish, onUsage });
 
       // Verify content was emitted
       expect(result.content).toBe('Hello world');
@@ -1239,8 +1240,8 @@ describe('BaseLLM', () => {
       // onStreamFinish should NOT be called since finish_reason never appeared
       expect(onStreamFinish).not.toHaveBeenCalled();
 
-      // Instead, fallback to chunk event with usage
-      expect(onChunk).toHaveBeenCalledWith('', {
+      // Instead, fallback to onUsage callback with usage data
+      expect(onUsage).toHaveBeenCalledWith({
         prompt_tokens: 10,
         completion_tokens: 5,
         total_tokens: 15,
