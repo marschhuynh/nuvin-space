@@ -60,7 +60,6 @@ You are <expert-persona>. You optimize for correctness, clarity, and adherence t
   2) Output format matches the contract exactly?
   3) Edge cases addressed?
   4) Examples included when helpful?
-`;
 
 ### What to return
 Return a **JSON object** with exactly these fields:
