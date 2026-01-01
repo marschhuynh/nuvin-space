@@ -264,20 +264,25 @@ export class AgentOrchestrator {
     originalToolCalls: ToolCall[],
     assistantContent: string | null,
     usage?: UsageData,
+    bypassToolCalls?: ToolCall[],
+    bypassResults?: ToolExecutionResult[],
   ): Promise<void> {
+    // Include both denied and bypass tool calls in assistant message
+    const allToolCalls = [...originalToolCalls, ...(bypassToolCalls || [])];
+
     const assistantMsg: Message = {
       id: this.ids.uuid(),
       role: 'assistant',
       content: assistantContent ?? null,
       timestamp: this.clock.iso(),
-      tool_calls: originalToolCalls,
+      tool_calls: allToolCalls,
       usage,
     };
 
     accumulatedMessages.push({
       role: 'assistant',
       content: assistantContent ?? null,
-      tool_calls: originalToolCalls,
+      tool_calls: allToolCalls,
     });
     turnHistory.push(assistantMsg);
 
@@ -299,6 +304,9 @@ export class AgentOrchestrator {
         timestamp: this.clock.iso(),
         tool_call_id: toolCall.id,
         name: toolCall.function.name,
+        status: 'error',
+        durationMs: 0,
+        metadata: { errorReason: ErrorReason.Denied },
       };
       turnHistory.push(toolMsg);
       toolResultMsgs.push(toolMsg);
@@ -319,7 +327,34 @@ export class AgentOrchestrator {
       });
     }
 
-    await this.memory.append(conversationId, [assistantMsg, ...toolResultMsgs]);
+    // Add bypass tool results (successful executions)
+    const bypassToolResultMsgs: Message[] = [];
+    if (bypassResults) {
+      for (const tr of bypassResults) {
+        let contentStr: string;
+        if (tr.status === 'error') {
+          contentStr = tr.result as string;
+        } else if (tr.type === 'text') {
+          contentStr = tr.result as string;
+        } else {
+          contentStr = JSON.stringify(tr.result, null, 2);
+        }
+
+        bypassToolResultMsgs.push({
+          id: tr.id,
+          role: 'tool',
+          content: contentStr,
+          timestamp: this.clock.iso(),
+          tool_call_id: tr.id,
+          name: tr.name,
+          status: tr.status,
+          durationMs: tr.durationMs,
+          metadata: tr.metadata,
+        });
+      }
+    }
+
+    await this.memory.append(conversationId, [assistantMsg, ...toolResultMsgs, ...bypassToolResultMsgs]);
 
     await this.events?.emit({
       type: AgentEventTypes.AssistantMessage,
@@ -338,47 +373,96 @@ export class AgentOrchestrator {
     turnHistory: Message[],
     assistantContent: string | null,
     usage?: UsageData,
-  ): Promise<{ approvedCalls: ToolCall[]; wasDenied: boolean; denialMessage?: string }> {
+    signal?: AbortSignal,
+  ): Promise<{ approvedCalls: ToolCall[]; bypassCalls: ToolCall[]; bypassResults: ToolExecutionResult[]; wasDenied: boolean; denialMessage?: string }> {
     if (this.cfg.requireToolApproval === false) {
-      return { approvedCalls: toolCalls, wasDenied: false };
+      return { approvedCalls: toolCalls, bypassCalls: [], bypassResults: [], wasDenied: false };
     }
 
     const callsNeedingApproval = toolCalls.filter((call) => !this.shouldBypassApproval(call.function.name));
     const callsToAutoApprove = toolCalls.filter((call) => this.shouldBypassApproval(call.function.name));
 
     if (callsNeedingApproval.length === 0) {
-      return { approvedCalls: callsToAutoApprove, wasDenied: false };
+      return { approvedCalls: callsToAutoApprove, bypassCalls: [], bypassResults: [], wasDenied: false };
+    }
+
+    // Execute bypass (read-only) tools in parallel while waiting for approval
+    const executeBypassTools = async (): Promise<ToolExecutionResult[]> => {
+      if (callsToAutoApprove.length === 0) return [];
+      
+      const availableTools = this.getAvailableToolNames();
+      const conversionResult = convertToolCallsWithErrorHandling(callsToAutoApprove, {
+        strict: this.cfg.strictToolValidation ?? false,
+        availableTools,
+      });
+      
+      const results = await this.tools.executeToolCalls(
+        conversionResult.invocations,
+        {
+          conversationId,
+          agentId: this.cfg.id,
+          messageId,
+          eventPort: this.events,
+        },
+        this.cfg.maxToolConcurrency ?? 3,
+        signal,
+      );
+      
+      // Emit tool results for bypass tools
+      for (const tr of results) {
+        await this.events?.emit({
+          type: AgentEventTypes.ToolResult,
+          conversationId,
+          messageId,
+          result: tr,
+        });
+      }
+      
+      return results;
+    };
+
+
+    // Execute bypass (read-only) tools immediately, before waiting for approval
+    let bypassResults: ToolExecutionResult[] = [];
+    if (callsToAutoApprove.length > 0) {
+      bypassResults = await executeBypassTools();
     }
 
     try {
-      const result = await this.waitForToolApproval(callsNeedingApproval, conversationId, messageId);
+      // Wait for approval of non-bypass tools
+      const approvalResult = await this.waitForToolApproval(callsNeedingApproval, conversationId, messageId);
 
-      if ('editInstruction' in result) {
-        const editInstruction = result.editInstruction;
-        const editedCalls = toolCalls.map((call) => ({
+      if ('editInstruction' in approvalResult) {
+        const editInstruction = approvalResult.editInstruction;
+        // Only apply edit to non-bypass tools (bypass already executed)
+        const editedCalls = callsNeedingApproval.map((call) => ({
           ...call,
           editInstruction,
         }));
-        return { approvedCalls: editedCalls, wasDenied: false };
+        return { approvedCalls: editedCalls, bypassCalls: callsToAutoApprove, bypassResults, wasDenied: false };
       }
 
-      return { approvedCalls: [...result, ...callsToAutoApprove], wasDenied: false };
+      return { approvedCalls: approvalResult, bypassCalls: callsToAutoApprove, bypassResults, wasDenied: false };
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Tool approval failed';
       const denialMessage = `Tool execution was not approved: ${errorMsg}`;
 
+      // Only deny the tools that needed approval - bypass tools already executed successfully
       await this.handleToolDenial(
         denialMessage,
         conversationId,
         messageId,
         accumulatedMessages,
         turnHistory,
-        toolCalls,
-        assistantContent,
+        callsNeedingApproval,  // Only deny non-bypass tools
+        assistantContent,  
         usage,
+        callsToAutoApprove,  // Include bypass tool calls
+        bypassResults,  // Include bypass results
       );
 
-      return { approvedCalls: [], wasDenied: true, denialMessage };
+      // Return bypass results even though approval was denied - they executed successfully
+      return { approvedCalls: [], bypassCalls: callsToAutoApprove, bypassResults, wasDenied: true, denialMessage };
     }
   }
 
@@ -568,6 +652,7 @@ export class AgentOrchestrator {
         turnHistory,
         result.content,
         result.usage,
+        opts.signal,
       );
 
       if (approvalResult.wasDenied) {
@@ -577,6 +662,8 @@ export class AgentOrchestrator {
       }
 
       const approvedCalls = approvalResult.approvedCalls;
+      const bypassCalls = approvalResult.bypassCalls;
+      const bypassResults = approvalResult.bypassResults;
       const availableTools = this.getAvailableToolNames();
       const conversionResult = convertToolCallsWithErrorHandling(approvedCalls, {
         strict: this.cfg.strictToolValidation ?? false,
@@ -614,14 +701,18 @@ export class AgentOrchestrator {
         opts.signal,
       );
 
-      const allToolResults = [...validationErrors, ...executionToolResults];
+      // Merge bypass results (pre-executed) with approved tool results
+      const allToolResults = [...bypassResults, ...validationErrors, ...executionToolResults];
+
+      // Include both approved and bypass calls for complete history
+      const allToolCalls = [...approvedCalls, ...bypassCalls];
 
       const assistantMsg: Message = {
         id: this.ids.uuid(),
         role: 'assistant',
         content: result.content ?? null,
         timestamp: this.clock.iso(),
-        tool_calls: approvedCalls,
+        tool_calls: allToolCalls,
         usage: result.usage,
       };
 
@@ -650,12 +741,16 @@ export class AgentOrchestrator {
 
         this.metrics?.recordToolCall?.();
 
-        await this.events?.emit({
-          type: AgentEventTypes.ToolResult,
-          conversationId: convo,
-          messageId: msgId,
-          result: tr,
-        });
+        // Only emit ToolResult for non-bypass tools (bypass already emitted in processToolApproval)
+        const isBypassResult = bypassResults.some(br => br.id === tr.id);
+        if (!isBypassResult) {
+          await this.events?.emit({
+            type: AgentEventTypes.ToolResult,
+            conversationId: convo,
+            messageId: msgId,
+            result: tr,
+          });
+        }
       }
 
       await this.memory.append(convo, [assistantMsg, ...toolResultMsgs]);
@@ -666,7 +761,7 @@ export class AgentOrchestrator {
         ...extraField,
         role: 'assistant',
         content: result.content ?? null,
-        tool_calls: approvedCalls,
+        tool_calls: allToolCalls,
       });
       for (const tr of allToolResults) {
         let contentStr: string;

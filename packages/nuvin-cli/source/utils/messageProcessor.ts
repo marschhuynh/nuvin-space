@@ -227,38 +227,32 @@ export function processMessageToUILines(msg: {
     // Extract tool name from message (messages have a 'name' field)
     const toolName = msg.name || msg.tool_call_id || 'unknown';
 
-    // Read status and durationMs from message if available (saved in history)
+    // Read status, durationMs, and full metadata from message if available (saved in history)
     const msgStatus = (msg as { status?: 'success' | 'error' }).status;
     const msgDurationMs = (msg as { durationMs?: number }).durationMs;
+    const msgMetadata = (msg as { metadata?: Record<string, unknown> }).metadata;
 
-    const toolResult: {
-      id: string;
-      name: string;
-      status: 'success' | 'error';
-      type: 'text';
-      result: string;
-      durationMs?: number;
-    } = {
+    // Determine final status
+    const finalStatus: 'success' | 'error' = msgStatus || 'success';
+    
+    // Build toolResult with proper discriminated union types
+    const baseResult = {
       id: msg.tool_call_id || 'unknown',
       name: toolName,
-      status: msgStatus || 'success',
-      type: 'text',
+      type: 'text' as const,
       result: textContent || '',
       durationMs: msgDurationMs,
     };
 
-    // Fallback: Check if content looks like an error (for old history without status)
-    if (!msgStatus && textContent) {
-      const lowerContent = textContent.toLowerCase();
-      if (
-        lowerContent.includes('error:') ||
-        lowerContent.includes('failed:') ||
-        lowerContent.startsWith('error ') ||
-        lowerContent.includes('exception:')
-      ) {
-        toolResult.status = 'error';
-      }
-    }
+    // Preserve full metadata for both success and error cases
+    const toolResult = finalStatus === 'success' 
+      ? { ...baseResult, status: 'success' as const, metadata: msgMetadata }
+      : { 
+          ...baseResult, 
+          status: 'error' as const, 
+          metadata: msgMetadata 
+        };
+
 
     const statusIcon = toolResult.status === 'success' ? '[+]' : '[!]';
     const durationText =

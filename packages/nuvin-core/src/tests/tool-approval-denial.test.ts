@@ -219,13 +219,15 @@ describe('AgentOrchestrator - Tool Approval Denial Flow', () => {
       });
       expect(savedHistory[1].tool_calls).toBeDefined();
       expect(savedHistory[1].tool_calls).toHaveLength(1);
-      expect(savedHistory[1].tool_calls![0].function.name).toBe('file_new');
+      expect(savedHistory[1].tool_calls?.[0].function.name).toBe('file_new');
 
       expect(savedHistory[2]).toMatchObject({
         role: 'tool',
         content: 'Tool execution denied by user',
         tool_call_id: 'call_1',
         name: 'file_new',
+        status: 'error',
+        metadata: { errorReason: ErrorReason.Denied },
       });
     });
 
@@ -883,6 +885,112 @@ DO NOT mention this explicitly to the user.
       expect(capturedInvocations).toHaveLength(2);
       expect(capturedInvocations[0].editInstruction).toBe(editInstruction);
       expect(capturedInvocations[1].editInstruction).toBe(editInstruction);
+    });
+  });
+
+  describe('Bypass Tools with Denial', () => {
+    it('should execute bypass tools successfully even when approval tools are denied', async () => {
+      const multiToolResponse: CompletionResult = {
+        content: '',
+        tool_calls: [
+          {
+            id: 'call_1',
+            type: 'function',
+            function: {
+              name: 'file_read',  // Bypass tool
+              arguments: JSON.stringify({ path: 'test.txt' }),
+            },
+          },
+          {
+            id: 'call_2',
+            type: 'function',
+            function: {
+              name: 'file_new',  // Requires approval
+              arguments: JSON.stringify({ file_path: 'output.txt', content: 'data' }),
+            },
+          },
+        ],
+      };
+
+      vi.mocked(mockLLM.generateCompletion).mockResolvedValue(multiToolResponse);
+
+      // Mock tool definitions to include file_read
+      vi.mocked(mockTools.getToolDefinitions).mockReturnValue([
+        {
+          type: 'function',
+          function: {
+            name: 'file_read',
+            description: 'Read a file',
+            parameters: {
+              type: 'object',
+              properties: { path: { type: 'string' } },
+              required: ['path'],
+            },
+          },
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'file_new',
+            description: 'Create a new file',
+            parameters: {
+              type: 'object',
+              properties: {
+                file_path: { type: 'string' },
+                content: { type: 'string' },
+              },
+              required: ['file_path', 'content'],
+            },
+          },
+        },
+      ]);
+
+      vi.mocked(mockTools.executeToolCalls).mockImplementation(async (calls) => {
+        return calls.map((c) => ({
+          id: c.id,
+          name: c.name,
+          status: 'success' as const,
+          type: 'text' as const,
+          result: c.name === 'file_read' ? 'File content here' : 'File created',
+          durationMs: 50,
+        }));
+      });
+
+      const sendPromise = orchestrator.send('Read and modify', { stream: false });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const approvalEvent = emittedEvents.find((e) => e.type === AgentEventTypes.ToolApprovalRequired);
+      expect(approvalEvent).toBeDefined();
+      expect((approvalEvent as any).toolCalls).toHaveLength(1);  // Only file_new needs approval
+      expect((approvalEvent as any).toolCalls[0].function.name).toBe('file_new');
+
+      // Deny the approval-required tool
+      orchestrator.handleToolApproval((approvalEvent as any).approvalId, 'deny');
+
+      await sendPromise;
+
+      // Check that file_read (bypass) succeeded
+      const fileReadResult = savedHistory.find((m) => m.role === 'tool' && m.name === 'file_read');
+      expect(fileReadResult).toBeDefined();
+      expect(fileReadResult!.content).toBe('File content here');
+
+      // Check that file_new was denied
+      const fileNewResult = savedHistory.find((m) => m.role === 'tool' && m.name === 'file_new');
+      expect(fileNewResult).toBeDefined();
+      expect(fileNewResult!.content).toBe('Tool execution denied by user');
+
+      // Verify ToolResult events
+      const toolResultEvents = emittedEvents.filter((e) => e.type === AgentEventTypes.ToolResult);
+      expect(toolResultEvents.length).toBeGreaterThanOrEqual(2);
+
+      const fileReadEvent = toolResultEvents.find((e) => (e as any).result?.name === 'file_read');
+      expect(fileReadEvent).toBeDefined();
+      expect((fileReadEvent as any).result.status).toBe('success');
+
+      const fileNewEvent = toolResultEvents.find((e) => (e as any).result?.name === 'file_new');
+      expect(fileNewEvent).toBeDefined();
+      expect((fileNewEvent as any).result.metadata?.errorReason).toBe(ErrorReason.Denied);
     });
   });
 });
