@@ -1,5 +1,11 @@
 # @nuvin/nuvin-core
 
+## 1.13.1
+
+### Patch Changes
+
+- [`d1bf395`](https://github.com/marschhuynh/nuvin-space/commit/d1bf395c46b95aac51e89f1505f2bf848f9abb67) Thanks [@marschhuynh](https://github.com/marschhuynh)! - fix: add onUsage callback to prevent empty assistant chunks during streaming
+
 ## 1.13.0
 
 ### Minor Changes
