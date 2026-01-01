@@ -1,5 +1,18 @@
 # @nuvin/nuvin-cli
 
+## 1.25.4
+
+### Patch Changes
+
+- [`4406892`](https://github.com/marschhuynh/nuvin-space/commit/4406892422e69e034fa6f00a00a720aef9ae4522) Thanks [@marschhuynh](https://github.com/marschhuynh)! - refactor(AgentCreation): integrate FocusContext; redesign form UI with tab nav
+
+  feat(AgentCreator): add retry logic and configurable options
+
+  refactor(prompt): simplify agent-creator template
+
+- Updated dependencies [[`4406892`](https://github.com/marschhuynh/nuvin-space/commit/4406892422e69e034fa6f00a00a720aef9ae4522)]:
+  - @nuvin/nuvin-core@1.13.2
+
 ## 1.25.3
 
 ### Patch Changes
