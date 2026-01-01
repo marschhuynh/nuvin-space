@@ -156,6 +156,72 @@ describe('Anthropic-compat Provider Type', () => {
       expect(result.reasoning).toBe('Let me analyze this problem step by step...');
     });
 
+    it('should send thinking disabled in request body', async () => {
+      const mockResponse = {
+        id: 'msg_123',
+        type: 'message',
+        role: 'assistant',
+        content: [{ type: 'text', text: 'Hello' }],
+        model: 'test-model',
+        stop_reason: 'end_turn',
+        usage: { input_tokens: 10, output_tokens: 5 },
+      };
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: vi.fn().mockResolvedValue(mockResponse),
+        text: vi.fn().mockResolvedValue(''),
+      } as any);
+
+      const llm = new GenericAnthropicLLM('https://api.test.com/v1', { apiKey: 'test-key' });
+      await llm.generateCompletion({
+        messages: [{ role: 'user', content: 'Hello' }],
+        model: 'test-model',
+        temperature: 0.7,
+        topP: 1,
+        thinking: { type: 'disabled' },
+      });
+
+      const fetchCall = (global.fetch as vi.Mock).mock.calls[0];
+      const requestBody = JSON.parse(fetchCall[1].body as string);
+
+      expect(requestBody.thinking).toEqual({ type: 'disabled' });
+    });
+
+    it('should send thinking enabled with budget_tokens in request body', async () => {
+      const mockResponse = {
+        id: 'msg_123',
+        type: 'message',
+        role: 'assistant',
+        content: [{ type: 'text', text: 'Hello' }],
+        model: 'test-model',
+        stop_reason: 'end_turn',
+        usage: { input_tokens: 10, output_tokens: 5 },
+      };
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: vi.fn().mockResolvedValue(mockResponse),
+        text: vi.fn().mockResolvedValue(''),
+      } as any);
+
+      const llm = new GenericAnthropicLLM('https://api.test.com/v1', { apiKey: 'test-key' });
+      await llm.generateCompletion({
+        messages: [{ role: 'user', content: 'Hello' }],
+        model: 'test-model',
+        temperature: 0.7,
+        topP: 1,
+        thinking: { type: 'enabled', budget_tokens: 4096 },
+      });
+
+      const fetchCall = (global.fetch as vi.Mock).mock.calls[0];
+      const requestBody = JSON.parse(fetchCall[1].body as string);
+
+      expect(requestBody.thinking).toEqual({ type: 'enabled', budget_tokens: 4096 });
+    });
+
     it('should stream thinking content via onReasoningChunk', async () => {
       const streamEvents = [
         'data: {"type":"message_start","message":{"id":"msg_123","type":"message","role":"assistant","content":[],"model":"test-model","usage":{"input_tokens":10,"output_tokens":0}}}',
@@ -217,6 +283,50 @@ describe('Anthropic-compat Provider Type', () => {
       expect(textChunks).toEqual(['Hello!']);
       expect(result.content).toBe('Hello!');
       expect(result.reasoning).toBe('Let me think...');
+    });
+
+    it('should send thinking disabled in streaming request', async () => {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(
+            encoder.encode(
+              JSON.stringify({
+                type: 'message_start',
+                message: { id: 'msg_123', usage: { input_tokens: 10, output_tokens: 0 } },
+              }),
+            ),
+          );
+          controller.enqueue(encoder.encode('\n'));
+          controller.enqueue(encoder.encode(JSON.stringify({ type: 'message_stop' })));
+          controller.close();
+        },
+      });
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        body: stream,
+        text: vi.fn().mockResolvedValue(''),
+      } as any);
+
+      const llm = new GenericAnthropicLLM('https://api.test.com/v1', { apiKey: 'test-key' });
+
+      await llm.streamCompletion(
+        {
+          messages: [{ role: 'user', content: 'Hello' }],
+          model: 'test-model',
+          temperature: 0.7,
+          topP: 1,
+          thinking: { type: 'disabled' },
+        },
+        { onChunk: () => {} },
+      );
+
+      const fetchCall = (global.fetch as vi.Mock).mock.calls[0];
+      const requestBody = JSON.parse(fetchCall[1].body as string);
+
+      expect(requestBody.thinking).toEqual({ type: 'disabled' });
     });
   });
 });

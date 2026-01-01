@@ -531,6 +531,20 @@ export class AgentOrchestrator {
 
     const reasoningParam = this.cfg.reasoningEffort ? { effort: this.cfg.reasoningEffort } : undefined;
 
+    const THINKING_BUDGET_TOKENS: Record<string, number> = {
+      LOW: 1024,
+      MEDIUM: 4096,
+      HIGH: 16384,
+    };
+
+    let thinkingParam: CompletionParams['thinking'] | undefined;
+    if (this.cfg.thinking && this.cfg.thinking !== 'OFF') {
+      const budgetTokens = THINKING_BUDGET_TOKENS[this.cfg.thinking] ?? 4096;
+      thinkingParam = { type: 'enabled', budget_tokens: budgetTokens };
+    } else if (this.cfg.thinking === 'OFF') {
+      thinkingParam = { type: 'disabled' };
+    }
+
     const params: CompletionParams = {
       messages: providerMsgs,
       model: this.cfg.model,
@@ -540,6 +554,7 @@ export class AgentOrchestrator {
       tools: toolDefs.length ? toolDefs : undefined,
       tool_choice: toolDefs.length ? 'auto' : 'none',
       reasoning: reasoningParam,
+      thinking: thinkingParam,
     };
 
     let streamedAssistantContent = '';

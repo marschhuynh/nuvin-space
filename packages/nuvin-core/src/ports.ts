@@ -106,6 +106,13 @@ export type CompletionParams = {
   reasoning?: {
     effort: string;
   };
+  // Claude-style thinking config (Anthropic API extended thinking)
+  thinking?: {
+    type: 'enabled';
+    budget_tokens: number;
+  } | {
+    type: 'disabled';
+  };
   usage?: {
     include?: boolean;
   };
@@ -465,6 +472,7 @@ export type AgentConfig = {
   maxToolConcurrency?: number;
   requireToolApproval?: boolean;
   reasoningEffort?: string;
+  thinking?: string; // OFF | LOW | MEDIUM | HIGH
   strictToolValidation?: boolean;
 };
 

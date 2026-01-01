@@ -191,6 +191,7 @@ export class OrchestratorManager {
       mcpAllowedTools,
       requireToolApproval,
       reasoningEffort,
+      thinking: thinkingValue,
       streamingChunks,
     };
   }
@@ -364,6 +365,7 @@ export class OrchestratorManager {
         maxToolConcurrency: 3,
         requireToolApproval: currentConfig.requireToolApproval,
         reasoningEffort: currentConfig.reasoningEffort,
+        thinking: currentConfig.thinking,
       };
 
       const agentDeps = {
@@ -384,6 +386,7 @@ export class OrchestratorManager {
           return {
             model: fresh.model,
             reasoningEffort: fresh.reasoningEffort,
+            thinking: fresh.thinking,
           };
         };
 
@@ -900,6 +903,7 @@ export class OrchestratorManager {
     const agentConfig: Partial<AgentConfig> = {
       model: currentConfig.model,
       reasoningEffort: currentConfig.reasoningEffort,
+      thinking: currentConfig.thinking,
       ...agentConfigOverrides,
     };
 

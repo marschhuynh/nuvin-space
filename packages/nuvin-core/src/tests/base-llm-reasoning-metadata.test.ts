@@ -107,6 +107,39 @@ describe('BaseLLM - Reasoning & Metadata Support', () => {
       expect(postSpy).toHaveBeenCalled();
     });
 
+    it('should accumulate "reasoning_content" field and call onReasoningChunk (GLM-style)', async () => {
+      // Simulating GLM-style reasoning_content field
+      const chunks = [
+        'data: {"choices":[{"delta":{"role":"assistant","reasoning_content":"The"}}]}',
+        'data: {"choices":[{"delta":{"role":"assistant","reasoning_content":" user"}}]}',
+        'data: {"choices":[{"delta":{"role":"assistant","content":"Hi"}}]}',
+        'data: {"choices":[{"delta":{"role":"assistant","content":" there"}}]}',
+        'data: [DONE]',
+      ];
+
+      const mockResponse = createMockStreamResponse(chunks);
+      const postSpy = vi
+        .spyOn(llm.getTransportForSpy(), 'post')
+        .mockResolvedValueOnce(mockResponse as unknown as Response);
+
+      const params: CompletionParams = {
+        model: 'glm-4.7',
+        messages: [],
+        temperature: 0,
+        topP: 0,
+      };
+
+      const reasoningChunks: string[] = [];
+      const result = await llm.streamCompletion(params, {
+        onReasoningChunk: (delta) => reasoningChunks.push(delta),
+      });
+
+      expect(result.content).toBe('Hi there');
+      expect(result.reasoning).toBe('The user');
+      expect(reasoningChunks).toEqual(['The', ' user']);
+      expect(postSpy).toHaveBeenCalled();
+    });
+
     it('should accumulate arbitrary unknown string fields into root', async () => {
       // Simulating a custom provider sending "thoughts" field
       const chunks = [

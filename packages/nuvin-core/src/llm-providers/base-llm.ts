@@ -96,6 +96,7 @@ type LLMMessageDelta = {
   role?: string;
   content?: string | null;
   reasoning?: string | null;
+  reasoning_content?: string | null;
   tool_calls?: LLMToolCallDelta[];
   [key: string]: unknown;
 };
@@ -281,6 +282,7 @@ export abstract class BaseLLM implements LLMPort {
     params: CompletionParams,
     handlers: {
       onChunk?: (delta: string, usage?: UsageData) => void;
+      onReasoningChunk?: (delta: string) => void;
       onToolCallDelta?: (tc: ToolCall) => void;
       onStreamFinish?: (finishReason?: string, usage?: UsageData) => void;
     } = {},
@@ -316,6 +318,7 @@ export abstract class BaseLLM implements LLMPort {
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
     let content = '';
+    let reasoning = '';
     const mergedToolCalls: ToolCall[] = [];
     let usage: UsageData | undefined;
     let lastFinishReason: string | undefined;
@@ -354,6 +357,13 @@ export abstract class BaseLLM implements LLMPort {
         for (const ch of choices) {
           const delta: LLMMessageDelta = ch.delta ?? ch.message ?? {};
           const textDelta: string | undefined = delta.content ?? undefined;
+          const reasoningDelta: string | undefined = delta.reasoning_content ?? delta.reasoning ?? undefined;
+
+          if (typeof reasoningDelta === 'string' && reasoningDelta.length > 0) {
+            reasoning += reasoningDelta;
+            handlers.onReasoningChunk?.(reasoningDelta);
+          }
+
           if (typeof textDelta === 'string' && textDelta.length > 0) {
             if (content === '') {
               const trimmedDelta = textDelta.replace(/^\n+/, '');
@@ -368,7 +378,7 @@ export abstract class BaseLLM implements LLMPort {
           }
 
           // Dynamically accumulate unknown fields into root object (extraFields)
-          const knownKeys = ['role', 'content', 'tool_calls'];
+          const knownKeys = ['role', 'content', 'tool_calls', 'reasoning', 'reasoning_content'];
           for (const key of Object.keys(delta)) {
             if (knownKeys.includes(key)) continue;
 
@@ -445,6 +455,7 @@ export abstract class BaseLLM implements LLMPort {
       content,
       ...(tool_calls ? { tool_calls } : {}),
       ...(usage ? { usage } : {}),
+      ...(reasoning && { reasoning }),
       ...extraFields,
     };
   }

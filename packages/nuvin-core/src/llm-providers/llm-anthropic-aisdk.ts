@@ -431,6 +431,12 @@ export class AnthropicAISDKLLM {
         maxOutputTokens: params.maxTokens ?? 10240,
         temperature: params.temperature,
         abortSignal: signal,
+        ...(params.thinking && {
+          thinking:
+            params.thinking.type === 'enabled'
+              ? { type: 'enabled' as const, budgetTokens: params.thinking.budget_tokens }
+              : { type: 'disabled' as const },
+        }),
       });
 
       const tool_calls: ToolCall[] | undefined =
@@ -486,6 +492,12 @@ export class AnthropicAISDKLLM {
       temperature: params.temperature,
       abortSignal: signal,
       maxRetries: 10,
+      ...(params.thinking && {
+        thinking:
+          params.thinking.type === 'enabled'
+            ? { type: 'enabled' as const, budgetTokens: params.thinking.budget_tokens }
+            : { type: 'disabled' as const },
+      }),
       onError: (event) => {
         streamError = event.error;
       },

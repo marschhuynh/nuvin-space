@@ -48,10 +48,10 @@ const ThinkingCommandComponent = ({ context, deactivate }: CommandComponentProps
   );
 
   const thinkingOptions = [
-    { label: 'OFF - Disable thinking display', value: THINKING_LEVELS.OFF },
-    { label: 'LOW - Minimal thinking output', value: THINKING_LEVELS.LOW },
-    { label: 'MEDIUM - Balanced thinking output (default)', value: THINKING_LEVELS.MEDIUM },
-    { label: 'HIGH - Detailed thinking output', value: THINKING_LEVELS.HIGH },
+    { label: 'OFF - Disable thinking (no thinking content returned)', value: THINKING_LEVELS.OFF },
+    { label: 'LOW - Minimal thinking (1024 token budget)', value: THINKING_LEVELS.LOW },
+    { label: 'MEDIUM - Balanced thinking (4096 token budget)', value: THINKING_LEVELS.MEDIUM },
+    { label: 'HIGH - Detailed thinking (16384 token budget)', value: THINKING_LEVELS.HIGH },
   ];
 
   const handleThinkingSelect = async (item: { label: string; value: string }) => {

@@ -140,6 +140,7 @@ export class AgentManager {
       maxToolConcurrency: this.delegatingConfig.maxToolConcurrency,
       requireToolApproval: false, // Specialists run autonomously
       reasoningEffort: freshConfig.reasoningEffort ?? this.delegatingConfig.reasoningEffort,
+      thinking: freshConfig.thinking ?? this.delegatingConfig.thinking,
     };
 
     // Create metrics port for this specialist agent

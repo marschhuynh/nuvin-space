@@ -52,6 +52,7 @@ type AnthropicRequestBody = {
   temperature?: number;
   top_p?: number;
   stream?: boolean;
+  thinking?: { type: 'enabled'; budget_tokens: number } | { type: 'disabled' };
 };
 
 type AnthropicContentBlock =
@@ -338,6 +339,12 @@ export class GenericAnthropicLLM implements LLMPort {
       ...(tools && { tool_choice: this.transformToolChoice(params.tool_choice) }),
       ...(params.temperature !== undefined && { temperature: params.temperature }),
       ...(params.topP !== undefined && { top_p: params.topP }),
+      ...(params.thinking && {
+        thinking:
+          params.thinking.type === 'enabled'
+            ? { type: 'enabled' as const, budget_tokens: params.thinking.budget_tokens }
+            : { type: 'disabled' as const },
+      }),
     };
 
     const res = await this.getTransport().post('/messages', body, undefined, signal);
@@ -374,6 +381,12 @@ export class GenericAnthropicLLM implements LLMPort {
       ...(tools && { tool_choice: this.transformToolChoice(params.tool_choice) }),
       ...(params.temperature !== undefined && { temperature: params.temperature }),
       ...(params.topP !== undefined && { top_p: params.topP }),
+      ...(params.thinking && {
+        thinking:
+          params.thinking.type === 'enabled'
+            ? { type: 'enabled' as const, budget_tokens: params.thinking.budget_tokens }
+            : { type: 'disabled' as const },
+      }),
     };
 
     const res = await this.getTransport().post('/messages', body, { Accept: 'text/event-stream' }, signal);
