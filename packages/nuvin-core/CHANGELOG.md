@@ -1,5 +1,13 @@
 # @nuvin/nuvin-core
 
+## 1.13.0
+
+### Minor Changes
+
+- [`a079ea9`](https://github.com/marschhuynh/nuvin-space/commit/a079ea9b40c2ba57e2d6fbf8acd7289bd3acccf2) Thanks [@marschhuynh](https://github.com/marschhuynh)! - feat: add thinking parameter support; add ZAI Anthropic-compatible provider; handle reasoning_content in streaming
+
+- [`ef1783b`](https://github.com/marschhuynh/nuvin-space/commit/ef1783b5846dc5082a73d0ea8ffcce87ae3aaa85) Thanks [@marschhuynh](https://github.com/marschhuynh)! - feat: add thinking parameter support with budget tokens; improve thinking UI labels; handle reasoning_content in streaming
+
 ## 1.12.0
 
 ### Minor Changes
