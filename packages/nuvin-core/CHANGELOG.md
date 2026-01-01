@@ -1,5 +1,17 @@
 # @nuvin/nuvin-core
 
+## 1.12.0
+
+### Minor Changes
+
+- [`65c048f`](https://github.com/marschhuynh/nuvin-space/commit/65c048fa33a22a24eb2f509528d50b554a4a1469) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add Anthropic-compatible provider support; add MiniMax provider; update provider configurations
+
+- [`42810b7`](https://github.com/marschhuynh/nuvin-space/commit/42810b71183d8df1e22054ef6433e503a277ecdc) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Execute bypass tools in parallel during tool approval flow; preserve full metadata
+
+### Patch Changes
+
+- [`66ae3f8`](https://github.com/marschhuynh/nuvin-space/commit/66ae3f8009805a8a5141dd10db6fc026066556c3) Thanks [@marschhuynh](https://github.com/marschhuynh)! - Add Zod-based tool parameter validation, MCP tool validation, and improved error handling
+
 ## 1.11.1
 
 ### Patch Changes
