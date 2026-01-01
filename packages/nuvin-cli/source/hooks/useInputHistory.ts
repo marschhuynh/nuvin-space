@@ -181,20 +181,7 @@ export const useInputHistory = ({ memory, currentInput, onRecall }: UseInputHist
       return [...prev, trimmed];
     });
     setIndex(-1);
-
-    if (memory) {
-      memory.get('cli').then((memMessages) => {
-        const userMessage: Message = {
-          id: `user-${Date.now()}`,
-          role: 'user',
-          content: trimmed,
-          timestamp: new Date().toISOString(),
-        };
-        const updated = [...memMessages, userMessage];
-        memory.set('cli', updated).catch(() => {});
-      }).catch(() => {});
-    }
-  }, [memory]);
+  }, []);
 
   return {
     handleUpArrow,
