@@ -186,6 +186,7 @@ describe('processMessageToUILines - Tool messages', () => {
       content: 'Error: File not found',
       tool_call_id: 'call_456',
       name: 'file_read',
+      status: 'error' as const,
       timestamp: '2025-01-01T00:00:02.000Z',
     };
 
@@ -205,6 +206,7 @@ describe('processMessageToUILines - Tool messages', () => {
       content: 'Failed: Connection timeout',
       tool_call_id: 'call_789',
       name: 'web_fetch',
+      status: 'error' as const,
       timestamp: '2025-01-01T00:00:02.000Z',
     };
 
@@ -221,6 +223,7 @@ describe('processMessageToUILines - Tool messages', () => {
       content: 'Exception: Invalid syntax',
       tool_call_id: 'call_012',
       name: 'bash_tool',
+      status: 'error' as const,
       timestamp: '2025-01-01T00:00:02.000Z',
     };
 
@@ -347,6 +350,7 @@ describe('processMessageToUILines - Edge cases', () => {
       content: 'ERROR: Something went wrong',
       tool_call_id: 'call_111',
       name: 'test_tool',
+      status: 'error' as const,
       timestamp: '2025-01-01T00:00:02.000Z',
     };
 

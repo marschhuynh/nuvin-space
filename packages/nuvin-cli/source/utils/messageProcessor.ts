@@ -232,9 +232,9 @@ export function processMessageToUILines(msg: {
     const msgDurationMs = (msg as { durationMs?: number }).durationMs;
     const msgMetadata = (msg as { metadata?: Record<string, unknown> }).metadata;
 
-    // Determine final status
+    // Use status from history, default to success if not present
     const finalStatus: 'success' | 'error' = msgStatus || 'success';
-    
+
     // Build toolResult with proper discriminated union types
     const baseResult = {
       id: msg.tool_call_id || 'unknown',
