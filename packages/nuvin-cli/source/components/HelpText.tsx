@@ -16,8 +16,13 @@ export const HelpText: React.FC<HelpTextProps> = ({ segments }) => {
 
   return (
     <>
-      {segments.map((segment) => (
-        <Text key={segment.text} color={segment.highlight ? 'white' : theme.history.help} dimColor={!segment.highlight}>
+      {segments.map((segment, index) => (
+        <Text
+          key={index}
+          color={segment.highlight ? theme.colors.accent : theme.history.help}
+          dimColor={!segment.highlight}
+          bold={segment.highlight}
+        >
           {segment.text}
         </Text>
       ))}

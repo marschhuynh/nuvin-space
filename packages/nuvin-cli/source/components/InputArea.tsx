@@ -229,7 +229,7 @@ const InputAreaComponent = forwardRef<InputAreaHandle, InputAreaProps>(
             <Spinner type="dots" />
           )}
           <Box minWidth={1} />
-          <Box flexGrow={1}>
+          <Box flexGrow={1} width="90%">
             <TextInput
               key={focusKey}
               value={input}

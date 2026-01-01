@@ -13,6 +13,9 @@ type AutoScrollBoxProps = {
   scrollbarTrackColor?: string;
   mousePriority?: number;
   enableKeyboardScroll?: boolean;
+  focus?: boolean;
+  manualFocus?: boolean;
+  onFocusChange?: (focused: boolean) => void;
 } & Omit<BoxProps, 'ref' | 'overflow' | 'height'>;
 
 type ScrollInfo = {
@@ -72,6 +75,9 @@ export function AutoScrollBox({
   scrollbarTrackColor = 'gray',
   mousePriority = 0,
   enableKeyboardScroll = true,
+  focus: externalFocus,
+  manualFocus = false,
+  onFocusChange,
   ...boxProps
 }: AutoScrollBoxProps) {
   const { theme } = useTheme();
@@ -86,7 +92,12 @@ export function AutoScrollBox({
   });
 
   const needsScrollbar = showScrollbar && scrollInfo.contentHeight > scrollInfo.containerHeight;
-  const { isFocused } = useFocus({ active: needsScrollbar });
+  const internalFocus = useFocus({ active: needsScrollbar && !manualFocus });
+  const isFocused = externalFocus !== undefined ? externalFocus : internalFocus.isFocused;
+
+  useEffect(() => {
+    onFocusChange?.(isFocused);
+  }, [isFocused, onFocusChange]);
 
   const updateScrollInfo = useCallback(() => {
     if (!boxRef.current || !contentRef.current) return;
@@ -196,8 +207,6 @@ export function AutoScrollBox({
       flexDirection="row"
       {...(maxHeight !== undefined ? { maxHeight } : {})}
       overflow="hidden"
-      // borderStyle={isFocused ? 'round' : undefined}
-      // borderColor={isFocused ? 'cyan' : undefined}
       backgroundColor={isFocused ? theme.tokens.dim : 'transparent'}
     >
       <Box ref={boxRef} overflow="scroll" flexGrow={1} {...boxProps} flexDirection="column">

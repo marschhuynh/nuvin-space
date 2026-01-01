@@ -1,14 +1,51 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
 import { useTheme } from '@/contexts/ThemeContext.js';
+import { useInput } from '@/contexts/InputContext/index.js';
+import { FocusProvider, useFocus } from '@/contexts/InputContext/FocusContext.js';
 import { AppModal } from '@/components/AppModal.js';
 import type { AgentTemplate } from '@nuvin/nuvin-core';
+import { HelpText } from '@/components/HelpText.js';
 
 interface AgentPreviewProps {
   preview: Partial<AgentTemplate> & { systemPrompt: string };
+  onSave: () => void;
+  onEdit: () => void;
 }
 
-export const AgentPreview: React.FC<AgentPreviewProps> = ({ preview }) => {
+type ActionButtonProps = {
+  label: string;
+  onExecute: () => void;
+  autoFocus?: boolean;
+};
+
+const ActionButton: React.FC<ActionButtonProps> = ({ label, onExecute, autoFocus }) => {
+  const { theme } = useTheme();
+  const { isFocused } = useFocus({ active: true, autoFocus });
+
+  useInput(
+    (_input, key) => {
+      if (key.return) {
+        onExecute();
+        return true;
+      }
+    },
+    { isActive: isFocused },
+  );
+
+  return (
+    <Box alignItems="center">
+      <Text color={isFocused ? theme.colors.primary : 'transparent'} bold>
+        {isFocused ? '❯ ' : '  '}
+      </Text>
+      <Text dimColor={!isFocused} color={isFocused ? theme.colors.primary : theme.modal.help} bold={isFocused}>
+        {label}
+      </Text>
+    </Box>
+  );
+};
+
+const AgentPreviewContent: React.FC<AgentPreviewProps> = ({ preview, onSave, onEdit }) => {
   const { theme } = useTheme();
 
   return (
@@ -48,10 +85,32 @@ export const AgentPreview: React.FC<AgentPreviewProps> = ({ preview }) => {
           <Text>{preview.temperature ?? 0.7}</Text>
         </Box>
 
+        <Box flexDirection="row" gap={2} marginTop={1}>
+          <ActionButton label="Save" onExecute={onSave} autoFocus />
+          <ActionButton label="Edit" onExecute={onEdit} />
+        </Box>
+
         <Box marginTop={1}>
-          <Text color={theme.tokens.green}>Press Y to save this agent, N to edit fields, ESC to cancel</Text>
+          <HelpText
+            segments={[
+              { text: 'Tab', highlight: true },
+              { text: ' to cycle • ' },
+              { text: 'Enter', highlight: true },
+              { text: ' to select • ' },
+              { text: 'ESC', highlight: true },
+              { text: ' to cancel' },
+            ]}
+          />
         </Box>
       </Box>
     </AppModal>
+  );
+};
+
+export const AgentPreview: React.FC<AgentPreviewProps> = (props) => {
+  return (
+    <FocusProvider>
+      <AgentPreviewContent {...props} />
+    </FocusProvider>
   );
 };

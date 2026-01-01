@@ -62,7 +62,6 @@ export const AgentCreation: React.FC<AgentCreationProps> = ({
         mode={mode}
         preview={preview}
         availableTools={availableTools}
-        activeField={state.activeField}
         editedName={state.editedName}
         editedId={state.editedId}
         editedDescription={state.editedDescription}
@@ -90,14 +89,25 @@ export const AgentCreation: React.FC<AgentCreationProps> = ({
               break;
           }
         }}
-        onFieldSubmit={state.handleFieldSubmit}
         onToolsChange={state.setEditedTools}
       />
     );
   }
 
   if (mode === 'create' && state.showPreview && preview) {
-    return <AgentPreview preview={preview} />;
+    return (
+      <AgentPreview
+        preview={preview}
+        onSave={() => {
+          onConfirm?.();
+          state.setDescription('');
+          state.setShowPreview(false);
+        }}
+        onEdit={() => {
+          state.handleStartEditing();
+        }}
+      />
+    );
   }
 
   if (mode === 'edit') {

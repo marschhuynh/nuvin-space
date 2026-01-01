@@ -2,24 +2,18 @@ import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Text } from 'ink';
 import { useInput } from '@/contexts/InputContext/index.js';
+import { useFocus } from '@/contexts/InputContext/FocusContext.js';
 import { useTheme } from '@/contexts/ThemeContext.js';
 
 interface ToolSelectInputProps {
-  focus: boolean;
   availableTools: string[];
   selectedTools: string[];
   onChange: (nextTools: string[]) => void;
-  onSubmit?: () => void;
 }
 
-export const ToolSelectInput: React.FC<ToolSelectInputProps> = ({
-  focus,
-  availableTools,
-  selectedTools,
-  onChange,
-  onSubmit,
-}) => {
+export const ToolSelectInput: React.FC<ToolSelectInputProps> = ({ availableTools, selectedTools, onChange }) => {
   const { theme } = useTheme();
+  const { isFocused } = useFocus({ active: true });
   const [highlightIndex, setHighlightIndex] = useState(0);
 
   const combinedTools = useMemo(() => {
@@ -33,11 +27,11 @@ export const ToolSelectInput: React.FC<ToolSelectInputProps> = ({
   }, [availableTools, selectedTools]);
 
   useEffect(() => {
-    if (!focus) {
+    if (!isFocused) {
       return;
     }
     setHighlightIndex(0);
-  }, [focus]);
+  }, [isFocused]);
 
   useEffect(() => {
     setHighlightIndex((current) => {
@@ -61,30 +55,26 @@ export const ToolSelectInput: React.FC<ToolSelectInputProps> = ({
 
   useInput(
     (input, key) => {
-      if (!focus || combinedTools.length === 0) {
+      if (!isFocused || combinedTools.length === 0) {
         return;
       }
 
-      if (key.upArrow) {
+      if (key.upArrow || key.leftArrow) {
         setHighlightIndex((prev) => (prev <= 0 ? combinedTools.length - 1 : prev - 1));
-        return;
+        return true;
       }
 
-      if (key.downArrow) {
+      if (key.downArrow || key.rightArrow) {
         setHighlightIndex((prev) => (prev >= combinedTools.length - 1 ? 0 : prev + 1));
-        return;
+        return true;
       }
 
       if (input === ' ') {
         toggleTool(combinedTools[highlightIndex]);
-        return;
-      }
-
-      if (key.return) {
-        onSubmit?.();
+        return true;
       }
     },
-    { isActive: focus },
+    { isActive: isFocused },
   );
 
   if (combinedTools.length === 0) {
@@ -99,20 +89,30 @@ export const ToolSelectInput: React.FC<ToolSelectInputProps> = ({
 
   return (
     <Box flexDirection="column">
-      <Box flexDirection="column">
+      <Text color={isFocused ? theme.colors.accent : theme.modal.help} bold={isFocused} dimColor={!isFocused}>
+        Tools:
+      </Text>
+      <Box flexDirection="row" alignItems="center" paddingX={1} flexWrap="wrap">
         {combinedTools.map((toolName, index) => {
-          const isHighlighted = focus && index === highlightIndex;
+          const isHighlighted = isFocused && index === highlightIndex;
           const isSelected = selectedTools.includes(toolName);
           return (
-            <Text key={toolName} color={isHighlighted ? theme.colors.primary : theme.modal.help} bold={isHighlighted}>
-              {isSelected ? '●' : '○'} {toolName}
-            </Text>
+            <Box key={toolName} marginRight={1}>
+              <Text
+                color={isHighlighted ? theme.colors.primary : isSelected ? theme.colors.accent : theme.modal.help}
+                bold={isHighlighted}
+                dimColor={!isHighlighted && !isSelected}
+              >
+                {isSelected ? '●' : '○'} {toolName}
+              </Text>
+            </Box>
           );
         })}
       </Box>
-
       <Box marginTop={1}>
-        <Text color={theme.modal.help}>Use ↑/↓ to navigate, Space to toggle selection, Enter to continue</Text>
+        <Text color={theme.modal.help} dimColor>
+          ↑/↓/←/→ Navigate • Space Toggle • Tab Continue
+        </Text>
       </Box>
     </Box>
   );

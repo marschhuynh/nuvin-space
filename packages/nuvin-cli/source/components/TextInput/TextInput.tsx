@@ -130,6 +130,10 @@ function TextInput({
         return true;
       }
 
+      if (key.ctrl && input === 's') {
+        return;
+      }
+
       if (
         (key.ctrl && input === 'c') ||
         (key.ctrl && input === 'v') ||

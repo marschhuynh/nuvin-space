@@ -1,4 +1,5 @@
 import { useInput } from '@/contexts/InputContext/index.js';
+import { eventBus } from '@/services/EventBus.js';
 import type { AgentCreationState, AgentCreationActions } from './useAgentCreationState.js';
 import type { AgentTemplate } from '@nuvin/nuvin-core';
 
@@ -44,7 +45,7 @@ export const useAgentCreationKeyboard = ({
         return;
       }
 
-      if (state.isEditing) {
+      if (state.isEditing || state.showPreview) {
         if (key.ctrl && input === 's') {
           actions.handleSaveEditing();
           onConfirm?.(actions.getUpdatedPreview());
@@ -52,33 +53,16 @@ export const useAgentCreationKeyboard = ({
         }
 
         if (key.tab && !key.shift) {
-          actions.moveFocus('next');
+          eventBus.emit('ui:focus:cycle', 'forward');
           return;
         }
 
         if (key.tab && key.shift) {
-          actions.moveFocus('prev');
-          return;
-        }
-
-        if (state.activeField === 'tools' && (key.upArrow || key.downArrow)) {
+          eventBus.emit('ui:focus:cycle', 'backward');
           return;
         }
 
         return;
-      }
-
-      // If preview is shown, allow confirmation
-      if (state.mode === 'create' && state.showPreview) {
-        if (input === 'y' || input === 'Y') {
-          // Confirm and save
-          onConfirm?.();
-          actions.setDescription('');
-          actions.setShowPreview(false);
-        } else if (input === 'n' || input === 'N') {
-          // Enter editing mode
-          actions.handleStartEditing();
-        }
       }
     },
     { isActive: visible },

@@ -6,14 +6,15 @@ import TextInput from '@/components/TextInput/index.js';
 import { ToolSelectInput } from './ToolSelectInput.js';
 import type { AgentTemplate } from '@nuvin/nuvin-core';
 import { useStdoutDimensions } from '@/hooks/useStdoutDimensions.js';
-
-type EditingField = 'name' | 'id' | 'description' | 'systemPrompt' | 'tools' | 'model' | 'temperature';
+import { FocusProvider } from '@/contexts/InputContext/FocusContext.js';
+import { HelpText } from '@/components/HelpText.js';
+import { AutoScrollBox } from '@/components/AutoScrollBox.js';
+import { Focusable } from '@/components/Focusable/index.js';
 
 interface AgentFormProps {
   mode: 'create' | 'edit';
   preview: Partial<AgentTemplate> & { systemPrompt: string };
   availableTools: string[];
-  activeField: string;
   editedName: string;
   editedId: string;
   editedDescription: string;
@@ -23,7 +24,6 @@ interface AgentFormProps {
   editedModel: string;
   error?: string;
   onFieldChange: (field: string, value: string) => void;
-  onFieldSubmit: (field: EditingField) => void;
   onToolsChange: (tools: string[]) => void;
 }
 
@@ -37,11 +37,31 @@ const ResponsiveBox: React.FC<BoxProps & { children: React.ReactNode }> = ({ chi
   );
 };
 
-export const AgentForm: React.FC<AgentFormProps> = ({
+const FormTextInput: React.FC<{
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  autoFocus?: boolean;
+}> = ({ label, value, onChange, autoFocus }) => {
+  const { theme } = useTheme();
+  return (
+    <Focusable autoFocus={autoFocus}>
+      {({ isFocused }) => (
+        <Box flexDirection="column">
+          <Text color={isFocused ? theme.colors.accent : theme.modal.help} bold={isFocused} dimColor={!isFocused}>
+            {label}
+          </Text>
+          <TextInput value={value} onChange={onChange} focus={isFocused} />
+        </Box>
+      )}
+    </Focusable>
+  );
+};
+
+const AgentFormContent: React.FC<AgentFormProps> = ({
   mode,
   preview,
   availableTools,
-  activeField,
   editedName,
   editedId,
   editedDescription,
@@ -50,7 +70,6 @@ export const AgentForm: React.FC<AgentFormProps> = ({
   editedModel,
   error,
   onFieldChange,
-  onFieldSubmit,
   onToolsChange,
 }) => {
   const { cols } = useStdoutDimensions();
@@ -74,88 +93,82 @@ export const AgentForm: React.FC<AgentFormProps> = ({
         </Box>
 
         <ResponsiveBox marginBottom={1} gap={2}>
-          <Box flexDirection="column" flexGrow={1} width={cols / 4}>
-            <Text color={theme.modal.help} dimColor>
-              Name:
-            </Text>
-            <TextInput
+          <Box flexGrow={1} width={cols / 4}>
+            <FormTextInput
+              label="Name:"
               value={editedName}
               onChange={(value) => onFieldChange('name', value)}
-              focus={activeField === 'name'}
-              onSubmit={() => onFieldSubmit('name')}
+              autoFocus
             />
           </Box>
 
-          <Box flexDirection="column" flexGrow={1} width={cols / 4}>
-            <Text color={theme.modal.help} dimColor>
-              ID{mode === 'edit' ? '' : ' (auto-gen)'}:
-            </Text>
-            <TextInput
+          <Box flexGrow={1} width={cols / 4}>
+            <FormTextInput
+              label={`ID${mode === 'edit' ? '' : ' (auto-gen)'}:`}
               value={editedId}
               onChange={(value) => onFieldChange('id', value)}
-              focus={activeField === 'id'}
-              onSubmit={() => onFieldSubmit('id')}
             />
           </Box>
 
-          <Box flexDirection="column" flexGrow={1} width={cols / 4}>
-            <Text color={theme.modal.help} dimColor>
-              Model:
-            </Text>
-            <TextInput
-              value={editedModel}
-              onChange={(value) => onFieldChange('model', value)}
-              focus={activeField === 'model'}
-              onSubmit={() => onFieldSubmit('model')}
-            />
+          <Box flexGrow={1} width={cols / 4}>
+            <FormTextInput label="Model:" value={editedModel} onChange={(value) => onFieldChange('model', value)} />
           </Box>
 
-          <Box flexDirection="column" flexGrow={1} width={cols / 4}>
-            <Text color={theme.modal.help} dimColor>
-              Temp (0-2):
-            </Text>
-            <TextInput
+          <Box flexGrow={1} width={cols / 4}>
+            <FormTextInput
+              label="Temp (0-2):"
               value={editedTemperature}
               onChange={(value) => onFieldChange('temperature', value)}
-              focus={activeField === 'temperature'}
-              onSubmit={() => onFieldSubmit('temperature')}
             />
           </Box>
         </ResponsiveBox>
 
         <Box flexDirection="column" marginBottom={1}>
-          <Text color={theme.modal.help} dimColor>
-            Tools:
-          </Text>
-          <ToolSelectInput
-            focus={activeField === 'tools'}
-            availableTools={availableTools}
-            selectedTools={editedTools}
-            onChange={onToolsChange}
-            onSubmit={() => onFieldSubmit('tools')}
-          />
+          <ToolSelectInput availableTools={availableTools} selectedTools={editedTools} onChange={onToolsChange} />
         </Box>
 
-        <Box flexDirection="column" marginBottom={1}>
-          <Text color={theme.modal.help} dimColor>
-            Description:
-          </Text>
-          <TextInput
+        <Box marginBottom={1}>
+          <FormTextInput
+            label="Description:"
             value={editedDescription}
             onChange={(value) => onFieldChange('description', value)}
-            focus={activeField === 'description'}
-            onSubmit={() => onFieldSubmit('description')}
           />
         </Box>
 
+        <Focusable>
+          {({ isFocused }) => (
+            <Box flexDirection="column" marginBottom={1}>
+              <Text color={isFocused ? theme.colors.accent : theme.modal.help} bold={isFocused} dimColor={!isFocused}>
+                System Prompt:
+              </Text>
+              <AutoScrollBox maxHeight={14} enableMouseScroll={false} focus={isFocused} manualFocus>
+                <Text color={theme.modal.subtitle}>{preview.systemPrompt}</Text>
+              </AutoScrollBox>
+            </Box>
+          )}
+        </Focusable>
+
         <Box marginTop={1}>
-          <Text color={theme.tokens.green}>
-            {mode === 'edit'
-              ? 'Press Enter on each field to continue, or Ctrl+S to save immediately. ESC cancels editing.'
-              : 'Press Enter on each field to continue, or Ctrl+S to save immediately. ESC returns to the preview.'}
-          </Text>
+          <HelpText
+            segments={[
+              { text: 'Tab', highlight: true },
+              { text: ' to cycle fields, ' },
+              { text: 'Ctrl+S', highlight: true },
+              { text: ' to save. ' },
+              { text: 'ESC', highlight: true },
+              { text: mode === 'edit' ? ' cancels editing.' : ' returns to the preview.' },
+            ]}
+          />
         </Box>
       </Box>
     </AppModal>
+  );
+};
+
+export const AgentForm: React.FC<AgentFormProps> = (props) => {
+  return (
+    <FocusProvider>
+      <AgentFormContent {...props} />
+    </FocusProvider>
   );
 };
