@@ -569,6 +569,14 @@ export class AgentOrchestrator {
             };
             await this.events?.emit(chunkEvent);
           },
+          onReasoningChunk: async (delta: string) => {
+            await this.events?.emit({
+              type: AgentEventTypes.ReasoningChunk,
+              conversationId: convo,
+              messageId: msgId,
+              delta,
+            });
+          },
           onStreamFinish: async (finishReason?: string, usage?: UsageData) => {
             if (usage) {
               const cost = this.cost.estimate(this.cfg.model, usage);
@@ -796,6 +804,14 @@ export class AgentOrchestrator {
                 ...(usage && { usage }),
               };
               await this.events?.emit(chunkEvent);
+            },
+            onReasoningChunk: async (delta: string) => {
+              await this.events?.emit({
+                type: AgentEventTypes.ReasoningChunk,
+                conversationId: convo,
+                messageId: msgId,
+                delta,
+              });
             },
             onStreamFinish: async (finishReason?: string, usage?: UsageData) => {
               if (usage) {

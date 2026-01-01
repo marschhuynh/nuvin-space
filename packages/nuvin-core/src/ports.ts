@@ -198,6 +198,7 @@ export interface LLMPort {
     params: CompletionParams,
     handlers?: {
       onChunk?: (delta: string, usage?: UsageData) => void;
+      onReasoningChunk?: (delta: string) => void;
       onToolCallDelta?: (tc: ToolCall) => void;
       onStreamFinish?: (finishReason?: string, usage?: UsageData) => void;
     },
@@ -481,6 +482,7 @@ export const AgentEventTypes = {
   ToolApprovalRequired: 'tool_approval_required',
   ToolApprovalResponse: 'tool_approval_response',
   ToolResult: 'tool_result',
+  ReasoningChunk: 'reasoning_chunk',
   AssistantChunk: 'assistant_chunk',
   AssistantMessage: 'assistant_message',
   StreamFinish: 'stream_finish',
@@ -533,6 +535,12 @@ export type AgentEvent =
       conversationId: string;
       messageId: string;
       result: ToolExecutionResult;
+    }
+  | {
+      type: typeof AgentEventTypes.ReasoningChunk;
+      conversationId: string;
+      messageId: string;
+      delta: string;
     }
   | {
       type: typeof AgentEventTypes.AssistantChunk;

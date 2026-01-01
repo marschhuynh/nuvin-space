@@ -4,6 +4,10 @@
       "key": "deepinfra",
       "type": "openai-compat",
       "baseUrl": "https://api.deepinfra.com/v1/openai",
+      "defaultModels": [
+        "meta-llama/Meta-Llama-3.1-70B-Instruct",
+        "meta-llama/Meta-Llama-3.1-8B-Instruct"
+      ],
       "features": {
         "promptCaching": false,
         "getModels": true
@@ -13,6 +17,10 @@
       "key": "openrouter",
       "type": "openai-compat",
       "baseUrl": "https://openrouter.ai/api/v1",
+      "defaultModels": [
+        "openai/gpt-4o",
+        "openai/gpt-4o-mini"
+      ],
       "features": {
         "promptCaching": true,
         "getModels": true,
@@ -23,6 +31,11 @@
       "key": "zai",
       "type": "openai-compat",
       "baseUrl": "https://api.z.ai/api/coding/paas/v4",
+      "defaultModels": [
+        "glm-4.7",
+        "glm-4.6",
+        "glm-4.5"
+      ],
       "features": {
         "promptCaching": false,
         "getModels": false
@@ -32,6 +45,10 @@
       "key": "moonshot",
       "type": "openai-compat",
       "baseUrl": "https://api.moonshot.ai/v1",
+      "defaultModels": [
+        "kimi-latest",
+        "kimi-k2-thinking"
+      ],
       "features": {
         "promptCaching": false,
         "getModels": true
@@ -49,6 +66,30 @@
       },
       "customHeaders": {
         "User-Agent": "KimiCLI/0.59"
+      }
+    },
+    {
+      "key": "minimax",
+      "label": "MiniMax Coding Plan",
+      "type": "anthropic-compat",
+      "baseUrl": "https://api.minimax.io/anthropic/v1",
+      "models": [
+        {
+          "id": "MiniMax-M2.1",
+          "name": "MiniMax M2.1",
+          "limits": {
+            "contextWindow": 200000,
+            "maxOutput": 16000
+          }
+        }
+      ],
+      "defaultModels": [
+        "MiniMax-M2.1"
+      ],
+      "features": {
+        "promptCaching": false,
+        "getModels": true,
+        "includeUsage": false
       }
     }
   ]

@@ -178,19 +178,39 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
           </Box>
         );
 
-      case 'thinking':
+      case 'thinking': {
+        if (isStreaming) {
+          return (
+            <Box flexDirection="column" marginY={1} width={'100%'} maxHeight={Math.min(rows - 10, 15)}>
+              <Box flexShrink={0} marginRight={1} position="sticky" top={0}>
+                <Text color={theme.messageTypes.thinking} bold>
+                  ● [thinking]
+                </Text>
+              </Box>
+              <AutoScrollBox maxHeight={'100%'} marginX={2} width={'100%'}>
+                <Text color={theme.colors.textDim} dimColor>
+                  {streamingContent}
+                </Text>
+              </AutoScrollBox>
+            </Box>
+          );
+        }
+
         return (
-          <Box flexDirection="row" marginTop={1}>
+          <Box flexDirection="column" marginY={1}>
             <Box flexShrink={0} marginRight={1}>
               <Text color={theme.messageTypes.thinking} bold>
-                ●
+                ● [thinking]
               </Text>
             </Box>
-            <Text color={theme.colors.textDim} dimColor>
-              {message.content}
-            </Text>
+            <Box marginX={2}>
+              <Text color={theme.colors.textDim} dimColor>
+                {streamingContent}
+              </Text>
+            </Box>
           </Box>
         );
+      }
 
       default:
         return <Text color={message.color}>{message.content}</Text>;

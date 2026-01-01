@@ -187,5 +187,41 @@ describe('LLM Factory - Custom Providers', () => {
       expect(modelA?.name).toBe('Model A');
       expect(modelA?.limits?.contextWindow).toBe(128000);
     });
+
+    it('should support explicit limits object in model config', async () => {
+      const providersWithExplicitLimits: Record<string, CustomProviderDefinition> = {
+        'custom-explicit-limits': {
+          type: 'openai-compat',
+          baseUrl: 'https://explicit-limits.ai/v1',
+          models: [
+            {
+              id: 'model-x',
+              name: 'Model X',
+              limits: { contextWindow: 200000, maxOutput: 16000 },
+            },
+            {
+              id: 'model-y',
+              name: 'Model Y',
+              limits: { contextWindow: 128000 },
+            },
+          ],
+        },
+      };
+
+      const llm = createLLM('custom-explicit-limits', { apiKey: 'test-key' }, providersWithExplicitLimits);
+      const models = await llm.getModels();
+
+      expect(models).toHaveLength(2);
+
+      const modelX = models.find((m) => m.id === 'model-x');
+      expect(modelX?.name).toBe('Model X');
+      expect(modelX?.limits?.contextWindow).toBe(200000);
+      expect(modelX?.limits?.maxOutput).toBe(16000);
+
+      const modelY = models.find((m) => m.id === 'model-y');
+      expect(modelY?.name).toBe('Model Y');
+      expect(modelY?.limits?.contextWindow).toBe(128000);
+      expect(modelY?.limits?.maxOutput).toBeUndefined();
+    });
   });
 });

@@ -233,6 +233,8 @@ export {
   getAvailableProviders,
   supportsGetModels,
   getProviderLabel,
+  getProviderAuthMethods,
+  getProviderDefaultModels,
   type LLMOptions,
 } from './llm-providers/index.js';
 export {

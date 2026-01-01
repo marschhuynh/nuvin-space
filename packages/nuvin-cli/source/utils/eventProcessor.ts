@@ -28,6 +28,8 @@ export type EventProcessorState = {
   recentToolCalls: Map<string, ToolCall>;
   streamingMessageId: string | null;
   streamingContent: string;
+  reasoningMessageId: string | null;
+  reasoningContent: string;
   subAgents: Map<string, SubAgentState>;
   lastToolCallMessageId: string | null; // Track most recent tool call message
   agentToMessageMap: Map<string, string>; // Map agent ID to tool call message ID
@@ -39,6 +41,8 @@ export const initialEventProcessorState: EventProcessorState = {
   recentToolCalls: new Map(),
   streamingMessageId: null,
   streamingContent: '',
+  reasoningMessageId: null,
+  reasoningContent: '',
   subAgents: new Map(),
   lastToolCallMessageId: null,
   agentToMessageMap: new Map(),
@@ -52,6 +56,8 @@ export const resetEventProcessorState = (): EventProcessorState => ({
   lastToolCallMessageId: null,
   agentToMessageMap: new Map(),
   toolCallToMessageMap: new Map(),
+  reasoningMessageId: null,
+  reasoningContent: '',
 });
 
 export function processAgentEvent(
@@ -75,6 +81,8 @@ export function processAgentEvent(
         recentToolCalls: state.recentToolCalls,
         streamingMessageId: null,
         streamingContent: '',
+        reasoningMessageId: null,
+        reasoningContent: '',
         subAgents: state.subAgents,
         lastToolCallMessageId: state.lastToolCallMessageId,
         agentToMessageMap: state.agentToMessageMap,
@@ -166,6 +174,39 @@ export function processAgentEvent(
       return state;
     }
 
+    case AgentEventTypes.ReasoningChunk: {
+      if (!callbacks.streamingEnabled) {
+        return state;
+      }
+
+      const chunk = event.delta || '';
+
+      if (!state.reasoningMessageId) {
+        const messageId = crypto.randomUUID();
+        callbacks.appendLine({
+          id: messageId,
+          type: 'thinking',
+          content: chunk,
+          metadata: { timestamp: now(), isStreaming: true },
+          color: theme.tokens.yellow,
+        });
+
+        return {
+          ...state,
+          reasoningMessageId: messageId,
+          reasoningContent: chunk,
+        };
+      }
+
+      const newContent = state.reasoningContent + chunk;
+      callbacks.updateLine?.(state.reasoningMessageId, newContent);
+
+      return {
+        ...state,
+        reasoningContent: newContent,
+      };
+    }
+
     case AgentEventTypes.AssistantChunk: {
       if (!callbacks.streamingEnabled) {
         return state;
@@ -205,6 +246,10 @@ export function processAgentEvent(
         return state;
       }
 
+      if (state.reasoningMessageId) {
+        callbacks.updateLineMetadata?.(state.reasoningMessageId, { isStreaming: false });
+      }
+
       if (callbacks.streamingEnabled && state.streamingMessageId) {
         callbacks.updateLine?.(state.streamingMessageId, event.content);
         callbacks.updateLineMetadata?.(state.streamingMessageId, { isStreaming: false });
@@ -212,6 +257,7 @@ export function processAgentEvent(
           ...state,
           streamingContent: event.content,
           streamingMessageId: null,
+          reasoningMessageId: null,
         };
       }
 
@@ -222,7 +268,10 @@ export function processAgentEvent(
         metadata: { timestamp: now(), isStreaming: false },
       });
 
-      return state;
+      return {
+        ...state,
+        reasoningMessageId: null,
+      };
     }
 
     case AgentEventTypes.StreamFinish: {
@@ -237,6 +286,9 @@ export function processAgentEvent(
       if (state.streamingMessageId) {
         callbacks.updateLineMetadata?.(state.streamingMessageId, { isStreaming: false });
       }
+      if (state.reasoningMessageId) {
+        callbacks.updateLineMetadata?.(state.reasoningMessageId, { isStreaming: false });
+      }
       callbacks.appendLine({
         id: crypto.randomUUID(),
         type: 'error',
@@ -247,6 +299,7 @@ export function processAgentEvent(
       return {
         ...state,
         streamingMessageId: null,
+        reasoningMessageId: null,
       };
     }
 

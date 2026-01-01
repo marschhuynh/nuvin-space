@@ -18,7 +18,7 @@ import { eventBus } from './EventBus.js';
 type ModelConfig = false | true | string | string[] | Array<{ id: string; name?: string; [key: string]: unknown }>;
 
 type CustomProviderDefinition = {
-  type?: 'openai-compat' | 'anthropic';
+  type?: 'openai-compat' | 'anthropic-compat';
   baseUrl?: string;
   models?: ModelConfig;
   customHeaders?: Record<string, string>;
@@ -151,21 +151,6 @@ export class LLMFactory implements LLMFactoryInterface {
     const retryConfig = { ...DEFAULT_RETRY_CONFIG, ...options.retry };
 
     switch (provider) {
-      case 'openrouter':
-      case 'deepinfra':
-      case 'zai':
-      case 'moonshot':
-        return createLLM(
-          provider,
-          {
-            apiKey: config.apiKey,
-            httpLogFile: options.httpLogFile,
-            version: getVersion(),
-            retry: retryConfig,
-          },
-          customProviders,
-        );
-
       case 'github':
         return new GithubLLM({
           accessToken: config.apiKey,

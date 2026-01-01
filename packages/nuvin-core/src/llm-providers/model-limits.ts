@@ -125,7 +125,21 @@ export function normalizeModelInfo(provider: string, model: RawModelResponse): M
     name = model.display_name as string;
   }
 
-  const limits = normalizeModelLimits(provider, model);
+  let limits: ModelLimits | null = null;
+
+  if (model.limits && typeof model.limits === 'object') {
+    const configLimits = model.limits as Record<string, unknown>;
+    if (configLimits.contextWindow && typeof configLimits.contextWindow === 'number') {
+      limits = {
+        contextWindow: configLimits.contextWindow,
+        ...(typeof configLimits.maxOutput === 'number' && { maxOutput: configLimits.maxOutput }),
+      };
+    }
+  }
+
+  if (!limits) {
+    limits = normalizeModelLimits(provider, model);
+  }
 
   return {
     id,

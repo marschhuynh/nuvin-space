@@ -9,16 +9,19 @@ import {
 } from '../transports/index.js';
 import providerConfig from './llm-provider-config.json';
 import { normalizeModelInfo, deduplicateModels, type ModelInfo } from './model-limits.js';
+import { GenericAnthropicLLM } from './llm-anthropic-compat.js';
 
 type ModelConfig = false | true | string | string[] | Array<{ id: string; name?: string; [key: string]: unknown }>;
 
 interface ProviderConfig {
   key: string;
   label?: string;
-  type?: 'openai-compat' | 'anthropic';
+  type?: 'openai-compat' | 'anthropic-compat';
   baseUrl: string;
   models?: ModelConfig;
   customHeaders?: Record<string, string>;
+  authMethods?: Array<{ label: string; value: string }>;
+  defaultModels?: string[];
   features: {
     promptCaching?: boolean;
     getModels?: boolean;
@@ -152,7 +155,7 @@ export class GenericLLM extends BaseLLM implements LLMPort {
 }
 
 export interface CustomProviderDefinition {
-  type?: 'openai-compat' | 'anthropic';
+  type?: 'openai-compat' | 'anthropic-compat';
   baseUrl?: string;
   models?: ModelConfig;
   customHeaders?: Record<string, string>;
@@ -213,6 +216,16 @@ export function createLLM(
 
   const modelConfig = normalizeModelConfig(config);
 
+  if (config.type === 'anthropic-compat') {
+    return new GenericAnthropicLLM(config.baseUrl, {
+      ...options,
+      providerName: config.key,
+      enablePromptCaching: options.enablePromptCaching ?? config.features.promptCaching,
+      customHeaders: config.customHeaders,
+      modelConfig,
+    });
+  }
+
   return new GenericLLM(
     config.baseUrl,
     modelConfig,
@@ -249,4 +262,22 @@ export function getProviderLabel(
   const allProviders = mergeProviders(customProviders);
   const config = allProviders.find((p) => p.key.toLowerCase() === providerKey.toLowerCase());
   return config?.label;
+}
+
+export function getProviderAuthMethods(
+  providerKey: string,
+  customProviders?: Record<string, CustomProviderDefinition>,
+): Array<{ label: string; value: string }> {
+  const allProviders = mergeProviders(customProviders);
+  const config = allProviders.find((p) => p.key.toLowerCase() === providerKey.toLowerCase());
+  return config?.authMethods ?? [{ label: 'API Key', value: 'token' }];
+}
+
+export function getProviderDefaultModels(
+  providerKey: string,
+  customProviders?: Record<string, CustomProviderDefinition>,
+): string[] {
+  const allProviders = mergeProviders(customProviders);
+  const config = allProviders.find((p) => p.key.toLowerCase() === providerKey.toLowerCase());
+  return config?.defaultModels ?? [];
 }

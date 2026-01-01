@@ -41,8 +41,8 @@ export interface ProviderConfig {
     refresh?: string;
     expires?: number;
   };
-  /** Provider type (openai-compat or anthropic) */
-  type?: 'openai-compat' | 'anthropic';
+  /** Provider type (openai-compat or anthropic-compat) */
+  type?: 'openai-compat' | 'anthropic-compat';
   /** Custom base URL for the provider */
   baseUrl?: string;
   /** Model configuration (false, true, endpoint path, or model list) */
