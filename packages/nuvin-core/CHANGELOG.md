@@ -1,5 +1,19 @@
 # @nuvin/nuvin-core
 
+## 1.13.3
+
+### Patch Changes
+
+- [`aa6474e`](https://github.com/marschhuynh/nuvin-space/commit/aa6474e5640ffdc9ff10efdd5b188dbca397421d) Thanks [@marschhuynh](https://github.com/marschhuynh)! - feat(core): add AgentStateManager and TaskOutputTool for improved sub-agent session management
+
+  refactor(core): refactor DefaultDelegationService with enhanced state tracking
+
+  feat(core): add MultiFileMemoryPersistence for robust session resumption
+
+  refactor(core): simplify AssignTool with direct AgentManager integration
+
+  refactor(cli): update SubAgentActivity UI for better tool result display
+
 ## 1.13.2
 
 ### Patch Changes
