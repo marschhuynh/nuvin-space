@@ -16,7 +16,7 @@ const params: AssignParams = {
 };
 
 describe('DefaultSpecialistAgentFactory', () => {
-  it('builds specialist config with injected system context and deterministic id', () => {
+  it('builds specialist config with injected system context and deterministic id', async () => {
     const factory = new DefaultSpecialistAgentFactory({
       systemContextProvider: () => ({
         timeISO: '2025-01-01T00:00:00.000Z',
@@ -28,7 +28,7 @@ describe('DefaultSpecialistAgentFactory', () => {
       idGenerator: () => 'custom-id',
     });
 
-    const config = factory.create({ template, params, context: undefined, currentDepth: 2 });
+    const config = await factory.create({ template, params, context: undefined, currentDepth: 2 });
 
     expect(config.agentId).toBe('custom-id');
     expect(config.agentName).toBe('Analyst');
@@ -39,14 +39,14 @@ describe('DefaultSpecialistAgentFactory', () => {
     expect(config.systemPrompt).toContain("System info:\n- Today's date: 2025-01-01T00:00:00.000Z");
   });
 
-  it('falls back to sensible defaults when optional template fields are missing', () => {
+  it('falls back to sensible defaults when optional template fields are missing', async () => {
     const factory = new DefaultSpecialistAgentFactory({ idGenerator: () => 'id-123' });
 
     const minimalTemplate: AgentTemplate = {
       systemPrompt: 'Just do it',
     };
 
-    const config = factory.create({ template: minimalTemplate, params, context: undefined, currentDepth: 0 });
+    const config = await factory.create({ template: minimalTemplate, params, context: undefined, currentDepth: 0 });
 
     expect(config.agentId).toBe('id-123');
     expect(config.agentName).toBe(params.agent);

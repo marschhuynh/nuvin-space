@@ -265,7 +265,6 @@ const ModelsCommandComponent = ({ context, deactivate, isActive }: CommandCompon
     <AppModal
       visible={true}
       title={getModalTitle(state.stage, state.selectedProvider)}
-      titleColor={theme.model.title}
       onClose={deactivate}
       closeOnEscape={false}
       closeOnEnter={false}

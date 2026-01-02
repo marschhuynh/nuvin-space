@@ -217,7 +217,6 @@ const CommandCommandComponent = ({ deactivate }: CommandComponentProps) => {
       <AppModal
         visible={true}
         title="Custom Commands"
-        titleColor={theme.colors.primary}
         onClose={deactivate}
         closeOnEscape={true}
       >

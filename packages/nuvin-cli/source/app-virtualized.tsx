@@ -195,7 +195,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
           if (result.cliMessages && result.cliMessages.length > 0) {
             const memory = orchestratorManager.getMemory();
             if (memory) {
-              await memory.set('cli', result.cliMessages);
+              await memory.set('default', result.cliMessages);
             }
           }
 
@@ -258,7 +258,7 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
       try {
         if (!send) throw new Error('Agent not initialized');
         await send(submission, {
-          conversationId: 'cli',
+          conversationId: 'default',
           stream: true,
           signal: controller.signal,
         });

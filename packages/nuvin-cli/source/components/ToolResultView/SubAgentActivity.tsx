@@ -13,6 +13,7 @@ import { ToolResultView } from './ToolResultView.js';
 import { ToolTimer } from '../ToolTimer.js';
 import { GradientRunText } from '../Gradient.js';
 import { formatCost, formatTokens } from '@/utils/formatters.js';
+import { AutoScrollBox } from '../AutoScrollBox.js';
 
 type SubAgentActivityProps = {
   toolCall: ToolCall;
@@ -183,48 +184,49 @@ export const SubAgentActivity: React.FC<SubAgentActivityProps> = ({
           borderTop={false}
           paddingLeft={2}
         >
-          {subAgentState.toolCalls.map((toolCall) => {
-            // Parse arguments if available
-            let argsDisplay = '';
+          <AutoScrollBox maxHeight={5} showScrollbar={false}>
+            {subAgentState.toolCalls.map((toolCall) => {
+              let argsDisplay = '';
 
-            if (toolCall.arguments) {
-              try {
-                const args = parseToolArguments(toolCall.arguments);
-                const relevantValue = extractRelevantParameter(toolCall.name, args);
+              if (toolCall.arguments) {
+                try {
+                  const args = parseToolArguments(toolCall.arguments);
+                  const relevantValue = extractRelevantParameter(toolCall.name, args);
 
-                if (relevantValue) {
-                  argsDisplay = ` ${relevantValue}`;
+                  if (relevantValue) {
+                    argsDisplay = ` ${relevantValue}`;
+                  }
+                } catch {
+                  // Ignore parse errors
                 }
-              } catch {
-                // Ignore parse errors
               }
-            }
 
-            // Determine status icon and color
-            let statusIcon = '  ';
-            let statusIconColor = theme.colors.textDim;
-            if (toolCall.status === 'success') {
-              statusIcon = '✓ ';
-              statusIconColor = theme.status.success;
-            } else if (toolCall.status === 'error') {
-              statusIcon = '✗ ';
-              statusIconColor = theme.status.error;
-            }
+              // Determine status icon and color
+              let statusIcon = '  ';
+              let statusIconColor = theme.colors.textDim;
+              if (toolCall.status === 'success') {
+                statusIcon = '✓ ';
+                statusIconColor = theme.status.success;
+              } else if (toolCall.status === 'error') {
+                statusIcon = '✗ ';
+                statusIconColor = theme.status.error;
+              }
 
-            return (
-              <Box key={toolCall.id} flexDirection="column">
-                <Box flexDirection="row" height={1}>
-                  {statusIcon ? <Text color={statusIconColor}>{statusIcon}</Text> : null}
-                  <Box flexWrap="nowrap">
-                    <Text dimColor>{toolCall.name}</Text>
-                    <Text dimColor wrap="truncate-end">
-                      {argsDisplay}
-                    </Text>
+              return (
+                <Box key={toolCall.id} flexDirection="column">
+                  <Box flexDirection="row" height={1}>
+                    {statusIcon ? <Text color={statusIconColor}>{statusIcon}</Text> : null}
+                    <Box flexWrap="nowrap">
+                      <Text dimColor>{toolCall.name}</Text>
+                      <Text dimColor wrap="truncate-end">
+                        {argsDisplay}
+                      </Text>
+                    </Box>
                   </Box>
                 </Box>
-              </Box>
-            );
-          })}
+              );
+            })}
+          </AutoScrollBox>
         </Box>
       </Box>
 

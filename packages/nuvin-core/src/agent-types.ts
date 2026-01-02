@@ -43,6 +43,7 @@ export type SpecialistAgentConfig = {
   // From AssignTool parameters
   agentId: string; // Agent ID from tool call
   agentName: string; // Agent human-readable name
+  agentType?: string; // Agent type (template id) for storage key
   taskDescription: string; // Task from tool call
 
   // From AgentTemplate (merged)
@@ -63,6 +64,10 @@ export type SpecialistAgentConfig = {
   conversationId?: string; // For event tracking
   messageId?: string; // For event tracking
   toolCallId?: string; // For event tracking - links to specific assign_task tool call
+
+  // Session resumption
+  resumeSessionId?: string; // Session to resume (reuses existing messages)
+  previousMessages?: Message[]; // Messages from previous session (loaded by factory)
 };
 
 /**
@@ -81,6 +86,7 @@ export type SpecialistAgentResult = {
     events?: AgentEvent[];
     errorMessage?: string;
     metrics?: MetricsSnapshot;
+    sessionId?: string; // Session ID for resume
   };
 };
 
@@ -90,4 +96,7 @@ export type SpecialistAgentResult = {
 export type AssignParams = {
   agent: string; // Required: Agent ID from registry (e.g., "code-reviewer", "researcher")
   task: string; // Required: Task description (3-4 sentences explaining what to do)
+  description?: string; // Short description of the task
+  run_in_background?: boolean; // Run agent in background and return immediately
+  resume?: string; // Session ID to resume a previous agent session
 };

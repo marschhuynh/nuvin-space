@@ -184,7 +184,6 @@ const MCPCommandComponent = ({ context, deactivate }: CommandComponentProps) => 
       <AppModal
         visible={true}
         title="MCP Server Configuration"
-        titleColor={theme.colors.primary}
         onClose={deactivate}
         closeOnEscape={true}
       >

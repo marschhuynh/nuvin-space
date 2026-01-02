@@ -345,7 +345,6 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
     <AppModal
       visible={true}
       title="Authentication"
-      titleColor={theme.colors.secondary}
       onClose={stage === 'provider' ? deactivate : () => resetToProviderStage()}
       closeOnEscape={true}
       closeOnEnter={false}

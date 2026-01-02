@@ -106,7 +106,7 @@ describe.skip('OrchestratorManager - Topic Analysis', () => {
 
   describe('updateConversationTopic', () => {
     it('should update conversation topic in metadata', async () => {
-      const conversationId = 'cli';
+      const conversationId = 'default';
 
       await manager.send('Test message', { conversationId });
 
@@ -117,7 +117,7 @@ describe.skip('OrchestratorManager - Topic Analysis', () => {
     });
 
     it('should preserve existing metadata when updating topic', async () => {
-      const conversationId = 'cli';
+      const conversationId = 'default';
 
       await manager.send('First message', { conversationId });
       await manager.updateConversationTopic(conversationId, 'Initial Topic');
@@ -156,14 +156,14 @@ describe.skip('OrchestratorManager - Topic Analysis', () => {
       expect(metadata.topic).toBe(topic);
     });
 
-    it('should use default conversation id "cli"', async () => {
+    it('should use default conversation id "default"', async () => {
       const userMessage = 'Test message';
 
-      await manager.send(userMessage, { conversationId: 'cli' });
+      await manager.send(userMessage, { conversationId: 'default' });
 
       const topic = await manager.analyzeAndUpdateTopic(userMessage);
 
-      const metadata = await manager.getConversationMetadata('cli');
+      const metadata = await manager.getConversationMetadata('default');
       expect(metadata.topic).toBe(topic);
     });
 
@@ -182,7 +182,7 @@ describe.skip('OrchestratorManager - Topic Analysis', () => {
 
   describe('getConversationMetadata', () => {
     it('should return metadata for existing conversation', async () => {
-      const conversationId = 'cli';
+      const conversationId = 'default';
 
       await manager.send('Test message', { conversationId });
       await manager.updateConversationTopic(conversationId, 'Test Topic');
@@ -195,7 +195,7 @@ describe.skip('OrchestratorManager - Topic Analysis', () => {
     });
 
     it('should return default metadata for conversation without explicit metadata', async () => {
-      const conversationId = 'cli';
+      const conversationId = 'default';
 
       await manager.send('Test message', { conversationId });
 
@@ -284,7 +284,7 @@ describe.skip('OrchestratorManager - Topic Analysis', () => {
 
   describe('integration with conversation flow', () => {
     it('should track metadata across multiple messages', async () => {
-      const conversationId = 'cli';
+      const conversationId = 'default';
 
       await manager.send('First message', { conversationId });
       await manager.updateConversationTopic(conversationId, 'Test Topic');
@@ -299,7 +299,7 @@ describe.skip('OrchestratorManager - Topic Analysis', () => {
     });
 
     it('should maintain topic across new messages', async () => {
-      const conversationId = 'cli';
+      const conversationId = 'default';
 
       await manager.send('Initial message', { conversationId });
       await manager.updateConversationTopic(conversationId, 'Persistent Topic');
@@ -311,7 +311,7 @@ describe.skip('OrchestratorManager - Topic Analysis', () => {
     });
 
     it('should handle topic analysis workflow', async () => {
-      const conversationId = 'cli';
+      const conversationId = 'default';
       const userMessage = 'How to optimize React performance?';
 
       await manager.send(userMessage, { conversationId });

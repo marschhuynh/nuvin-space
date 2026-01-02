@@ -31,7 +31,7 @@ export type DelegationMetadata = {
   agentId: string;
   agentName: string;
   delegationDepth: number;
-  status: 'success' | 'error' | 'timeout';
+  status?: 'success' | 'error' | 'timeout';
 
   executionTimeMs: number;
   toolCallsExecuted: number;
@@ -44,4 +44,7 @@ export type DelegationMetadata = {
   model?: string;
   conversationHistoryLength?: number;
   eventsEmitted?: number;
+
+  sessionId?: string;
+  runningInBackground?: boolean;
 };

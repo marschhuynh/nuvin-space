@@ -49,7 +49,7 @@ const AgentPreviewContent: React.FC<AgentPreviewProps> = ({ preview, onSave, onE
   const { theme } = useTheme();
 
   return (
-    <AppModal visible={true} title="Preview Generated Agent" titleColor={theme.colors.primary}>
+    <AppModal visible={true} title="Preview Generated Agent" >
       <Box flexDirection="column" marginTop={1}>
         <Box marginBottom={1}>
           <Text color={theme.colors.primary} bold>

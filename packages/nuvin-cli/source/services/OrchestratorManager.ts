@@ -136,6 +136,7 @@ export class OrchestratorManager {
   private configManager: ConfigManager;
   private llmFactory: LLMFactory;
   private sessionInitialized: boolean = false;
+  private toolRegistry: ToolRegistry | null = null;
 
   private static readonly WARNING_THRESHOLD = 0.85;
   private static readonly AUTO_SUMMARY_THRESHOLD = 0.95;
@@ -199,10 +200,14 @@ export class OrchestratorManager {
   /**
    * Create a memory instance (persisted or in-memory) based on configuration.
    */
-  private createMemory(sessionDir: string, memPersist: boolean): MemoryPort<Message> {
-    return memPersist
-      ? new PersistedMemory<Message>(new JsonFileMemoryPersistence(path.join(sessionDir, 'history.json')))
-      : new InMemoryMemory<Message>();
+  /**
+   * Create a persisted memory for the given session directory and agent ID.
+   * @param sessionDir - The session directory path
+   * @param agentId - Agent identifier: 'cli' for main CLI, or 'agent:{type}:{id}' for sub-agents
+   */
+  private createMemory(sessionDir: string, agentId: string): MemoryPort<Message> {
+    const filename = `history.${agentId}.json`;
+    return new PersistedMemory<Message>(new JsonFileMemoryPersistence(path.join(sessionDir, filename)));
   }
 
   /**
@@ -270,7 +275,7 @@ export class OrchestratorManager {
 
       // Start with in-memory unless explicit session provided
       const memory = hasExplicitSession
-        ? this.createMemory(sessionDir, this.memPersist)
+        ? this.createMemory(sessionDir, 'cli')
         : new InMemoryMemory<Message>();
 
       // Initialize agent persistence and registry
@@ -362,7 +367,7 @@ export class OrchestratorManager {
         topP: 1,
         model: currentConfig.model,
         enabledTools,
-        maxToolConcurrency: 3,
+        maxToolConcurrency: 10,
         requireToolApproval: currentConfig.requireToolApproval,
         reasoningEffort: currentConfig.reasoningEffort,
         thinking: currentConfig.thinking,
@@ -390,7 +395,13 @@ export class OrchestratorManager {
           };
         };
 
-        toolRegistry.setOrchestrator(agentConfig, agentTools, llmFactoryAdapter, configResolver);
+        // Create memory factory for sub-agents - each agent gets its own file with {"default": [...]} format
+        // Bind sessionDir so sub-agents only need to provide their agentKey
+        const createAgentMemory = hasExplicitSession
+          ? (agentKey: string) => this.createMemory(sessionDir, agentKey)
+          : () => new InMemoryMemory<Message>();
+
+        toolRegistry.setOrchestrator(agentConfig, agentTools, llmFactoryAdapter, configResolver, createAgentMemory);
         toolRegistry.setEnabledAgents(enabledAgentsConfig);
       }
 
@@ -402,6 +413,7 @@ export class OrchestratorManager {
       this.sessionDir = hasExplicitSession && this.memPersist ? sessionDir : null;
       this.sessionInitialized = hasExplicitSession;
       this.mcpManager = mcpManager;
+      this.toolRegistry = toolRegistry;
 
       // Set initial LLM - will be refreshed on each send() call
       const initialLLM = this.createLLM();
@@ -599,12 +611,18 @@ export class OrchestratorManager {
     const currentConfig = this.getCurrentConfig();
     const persistEventLog = currentConfig.config.session?.persistEventLog ?? false;
 
-    const newMemory = this.createMemory(sessionDir, true);
+    const newMemory = this.createMemory(sessionDir, 'cli');
     const newEventAdapter = this.createEventAdapter(sessionDir, this.handlers, persistEventLog, this.streamingChunks);
 
     this.orchestrator.setMemory(newMemory);
     this.orchestrator.setEvents(newEventAdapter);
     this.orchestrator.setMetrics(new SessionBoundMetricsPort(sessionId, sessionMetricsService));
+
+    // Also reinitialize sub-agent memory with persisted storage
+    if (this.toolRegistry) {
+      const createAgentMemory = (agentKey: string) => this.createMemory(sessionDir, agentKey);
+      this.toolRegistry.setSharedMemory(createAgentMemory);
+    }
 
     this.memory = newMemory;
     this.conversationStore = new ConversationStore(newMemory);
@@ -977,7 +995,7 @@ export class OrchestratorManager {
     const currentConfig = this.getCurrentConfig();
     const persistEventLog = currentConfig.config.session?.persistEventLog ?? false;
 
-    const newMemory = this.createMemory(sessionDir, memPersist);
+    const newMemory = this.createMemory(sessionDir, 'cli');
 
     const newEventAdapter = this.createEventAdapter(sessionDir, this.handlers, persistEventLog, this.streamingChunks);
 
@@ -1017,7 +1035,7 @@ export class OrchestratorManager {
     const currentConfig = this.getCurrentConfig();
     const persistEventLog = currentConfig.config.session?.persistEventLog ?? false;
 
-    const newMemory = this.createMemory(sessionDir, true);
+    const newMemory = this.createMemory(sessionDir, 'cli');
 
     const newEventAdapter = this.createEventAdapter(sessionDir, this.handlers, persistEventLog, this.streamingChunks);
 

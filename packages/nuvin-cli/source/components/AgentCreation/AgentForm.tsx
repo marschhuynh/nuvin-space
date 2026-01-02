@@ -78,7 +78,7 @@ const AgentFormContent: React.FC<AgentFormProps> = ({
   const editingTitle = mode === 'edit' ? 'Edit Agent' : 'Edit Generated Agent';
 
   return (
-    <AppModal visible={true} title={editingTitle} titleColor={theme.colors.primary}>
+    <AppModal visible={true} title={editingTitle}>
       <Box flexDirection="column" marginTop={1}>
         {error ? (
           <Box marginBottom={1}>

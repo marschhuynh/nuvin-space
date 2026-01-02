@@ -605,7 +605,6 @@ const AgentCommandComponent = ({ context, deactivate }: CommandComponentProps) =
       <AppModal
         visible={true}
         title="Agent Configuration"
-        titleColor={theme.colors.primary}
         onClose={deactivate}
         closeOnEscape={true}
       >

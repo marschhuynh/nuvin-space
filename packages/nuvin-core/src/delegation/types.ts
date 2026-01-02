@@ -6,22 +6,6 @@ export interface AgentCatalog {
   get(agentId: string): AgentTemplate | undefined;
 }
 
-export interface DelegationPolicyInput {
-  agent: AgentTemplate;
-  enabledAgents: Record<string, boolean>;
-  params: AssignParams;
-  context?: ToolExecutionContext;
-}
-
-export interface PolicyDecision {
-  allowed: boolean;
-  reason?: string;
-}
-
-export interface DelegationPolicy {
-  evaluate(input: DelegationPolicyInput): PolicyDecision;
-}
-
 export interface SpecialistAgentFactoryInput {
   template: AgentTemplate;
   params: AssignParams;
@@ -30,7 +14,7 @@ export interface SpecialistAgentFactoryInput {
 }
 
 export interface SpecialistAgentFactory {
-  create(input: SpecialistAgentFactoryInput): SpecialistAgentConfig;
+  create(input: SpecialistAgentFactoryInput): SpecialistAgentConfig | Promise<SpecialistAgentConfig>;
 }
 
 export interface AgentCommandRunner {
@@ -44,13 +28,17 @@ export interface DelegationResult {
   error?: string;
 }
 
-export interface DelegationResultFormatter {
-  formatSuccess(agentId: string, result: SpecialistAgentResult): Pick<DelegationResult, 'summary' | 'metadata'>;
-  formatError(error: unknown): string;
+export interface BackgroundDelegationResult {
+  success: boolean;
+  sessionId?: string;
+  error?: string;
 }
 
 export interface DelegationService {
   setEnabledAgents(enabledAgents: Record<string, boolean>): void;
   listEnabledAgents(): AgentTemplate[];
   delegate(params: AssignParams, context?: ToolExecutionContext): Promise<DelegationResult>;
+  delegateBackground?(params: AssignParams, context?: ToolExecutionContext): Promise<BackgroundDelegationResult>;
+  getBackgroundResult?(sessionId: string, blocking?: boolean): Promise<DelegationResult | null>;
+  isBackgroundAgentRunning?(sessionId: string): boolean;
 }

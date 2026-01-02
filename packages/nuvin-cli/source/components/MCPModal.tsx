@@ -277,7 +277,6 @@ export const MCPModal: React.FC<MCPModalProps> = ({
     <AppModal
       visible={visible}
       title="MCP Server Configuration"
-      titleColor={theme.colors.primary}
       onClose={undefined}
       closeOnEscape={false}
       paddingX={2}

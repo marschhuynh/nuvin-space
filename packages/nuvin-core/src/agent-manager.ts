@@ -1,15 +1,18 @@
-import type { AgentConfig, LLMPort, ToolPort, Message, MessageResponse, AgentEvent, LLMFactory } from './ports.js';
+import type { AgentConfig, LLMPort, ToolPort, Message, MessageResponse, AgentEvent, LLMFactory, MemoryPort } from './ports.js';
 import { AgentEventTypes } from './ports.js';
 import { LLMResolver } from './delegation/LLMResolver.js';
+import { DefaultAgentStateManager, type AgentStateManager } from './delegation/AgentStateManager.js';
 import type { SpecialistAgentConfig, SpecialistAgentResult } from './agent-types.js';
 import { AgentOrchestrator } from './orchestrator.js';
 import { SimpleContextBuilder } from './context.js';
 import { InMemoryMemory } from './persistent/index.js';
+import { ConversationStore, type ConversationMetadata } from './conversation-store.js';
 import { SimpleId } from './id.js';
 import { SystemClock } from './clock.js';
 import { SimpleCost } from './cost.js';
 import { NoopReminders } from './reminders.js';
 import { InMemoryMetricsPort } from './metrics.js';
+import type { MetricsPort } from './ports.js';
 
 const DEFAULT_TIMEOUT_MS = 3000000; // 50 minutes
 const MAX_DELEGATION_DEPTH = 3;
@@ -21,6 +24,8 @@ export class AgentManager {
   private llmResolver: LLMResolver | null = null;
   private activeAgents = new Map<string, AgentOrchestrator>();
   private eventCollectors = new Map<string, AgentEvent[]>();
+  private stateManager: AgentStateManager;
+  private createMemoryForAgent?: (agentKey: string) => MemoryPort<Message>;
 
   constructor(
     private delegatingConfig: AgentConfig,
@@ -28,10 +33,14 @@ export class AgentManager {
     private llmFactory?: LLMFactory,
     private eventCallback?: (event: AgentEvent) => void,
     private configResolver?: () => Partial<AgentConfig>,
+    createMemoryForAgent?: (agentKey: string) => MemoryPort<Message>,
+    private metricsPort?: MetricsPort,
   ) {
     if (this.llmFactory) {
       this.llmResolver = new LLMResolver(this.llmFactory);
     }
+    this.stateManager = new DefaultAgentStateManager();
+    this.createMemoryForAgent = createMemoryForAgent;
   }
 
   /**
@@ -71,6 +80,11 @@ export class AgentManager {
       };
     }
 
+    // Register session in state manager
+    const agentType = config.agentType ?? 'unknown';
+    this.stateManager.create(agentType, config.conversationId ?? 'default', config.taskDescription);
+    this.stateManager.update(agentId, { state: 'running' });
+
     // Emit SubAgentStarted event
     await this.eventCallback?.({
       type: AgentEventTypes.SubAgentStarted,
@@ -81,11 +95,30 @@ export class AgentManager {
       toolCallId: config.toolCallId ?? '',
     });
 
-    // Create specialist agent memory
-    const memory = new InMemoryMemory<Message>();
+    // Create memory for this specific agent using the factory
+    // Each agent gets its own file: history.agent:{type}:{id}.json with {"default": [...]} format
+    const agentKey = `agent:${agentType}:${agentId}`;
+    const memory: MemoryPort<Message> = this.createMemoryForAgent
+      ? this.createMemoryForAgent(agentKey)
+      : new InMemoryMemory<Message>();
 
-    // If context sharing is enabled, seed with delegating agent's context
-    if (config.shareContext && config.delegatingMemory && config.delegatingMemory.length > 0) {
+    // Wrap memory in ConversationStore to track metadata
+    const conversationStore = new ConversationStore(memory);
+
+    // Initialize default metadata for the sub-agent conversation
+    const initialMetadata: ConversationMetadata = {
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      messageCount: 0,
+      topic: `${config.agentName}: ${config.taskDescription.substring(0, 50)}...`,
+    };
+    await conversationStore.updateMetadata('default', initialMetadata);
+
+    // Priority: resumeMessages > delegatingMemory
+    // Note: With per-agent files, previous messages are loaded from the agent's own file
+    if (config.previousMessages && config.previousMessages.length > 0) {
+      await memory.set('default', config.previousMessages);
+    } else if (config.shareContext && config.delegatingMemory && config.delegatingMemory.length > 0) {
       await memory.set('default', config.delegatingMemory);
     }
 
@@ -144,7 +177,8 @@ export class AgentManager {
     };
 
     // Create metrics port for this specialist agent
-    const metricsPort = new InMemoryMetricsPort((snapshot) => {
+    // If a metricsPort is passed, use it; otherwise create one for events
+    const metrics = this.metricsPort ?? new InMemoryMetricsPort((snapshot) => {
       this.eventCallback?.({
         type: AgentEventTypes.SubAgentMetrics,
         conversationId: config.conversationId ?? 'default',
@@ -169,15 +203,15 @@ export class AgentManager {
       cost: new SimpleCost(),
       reminders: new NoopReminders(),
       events: eventPort,
-      metrics: metricsPort,
+      metrics,
     });
 
     this.activeAgents.set(agentId, specialistOrchestrator);
 
     try {
-      // Execute the task with timeout
+      // Execute the task with timeout - use 'default' as conversation key since each agent has its own memory
       const timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-      const response = await this.executeWithTimeout(specialistOrchestrator, config.taskDescription, timeoutMs, signal, config.stream);
+      const response = await this.executeWithTimeout(specialistOrchestrator, config.taskDescription, 'default', timeoutMs, signal, config.stream);
 
       const executionTimeMs = Date.now() - startTime;
       const conversationHistory = await memory.get('default');
@@ -194,7 +228,7 @@ export class AgentManager {
       }
 
       // Capture final metrics snapshot
-      const snapshot = metricsPort.getSnapshot();
+      const snapshot = metrics.getSnapshot();
 
       // Emit SubAgentCompleted event
       await this.eventCallback?.({
@@ -206,6 +240,30 @@ export class AgentManager {
         status: 'success',
         resultMessage: response.content || '',
         totalDurationMs: executionTimeMs,
+      });
+
+      // Update conversation metadata with execution results
+      await conversationStore.updateMetadata('default', {
+        updatedAt: new Date().toISOString(),
+        messageCount: conversationHistory.length,
+        totalTokens: totalTokens || response.metadata?.totalTokens,
+        promptTokens: response.metadata?.promptTokens,
+        completionTokens: response.metadata?.completionTokens,
+        toolCallCount: toolCallsExecuted,
+        totalTimeMs: executionTimeMs,
+      });
+
+      // Note: Messages are already saved incrementally via sharedMemory (no batch save needed)
+      // Update state manager for session tracking
+      this.stateManager.update(agentId, {
+        state: 'completed',
+        endTime: Date.now(),
+        result: response.content || '',
+        metrics: {
+          tokensUsed: totalTokens || response.metadata?.totalTokens,
+          toolCallsExecuted,
+          executionTimeMs,
+        },
       });
 
       return {
@@ -220,6 +278,7 @@ export class AgentManager {
           conversationHistory,
           events,
           metrics: snapshot,
+          sessionId: agentId,
         },
       };
     } catch (error) {
@@ -228,6 +287,13 @@ export class AgentManager {
       const isTimeout = error instanceof Error && error.message.includes('timeout');
       const isAborted = error instanceof Error && (error.message.includes('aborted') || error.name === 'AbortError');
       const status = isTimeout ? 'timeout' : isAborted ? 'error' : 'error';
+
+      // Update state manager on failure
+      this.stateManager.update(agentId, {
+        state: 'failed',
+        endTime: Date.now(),
+        error: errorMessage,
+      });
 
       // Emit SubAgentCompleted event
       await this.eventCallback?.({
@@ -251,6 +317,7 @@ export class AgentManager {
           executionTimeMs,
           errorMessage,
           events,
+          sessionId: agentId,
         },
       };
     } finally {
@@ -278,6 +345,7 @@ export class AgentManager {
   private async executeWithTimeout(
     orchestrator: AgentOrchestrator,
     taskDescription: string,
+    conversationId: string,
     timeoutMs: number,
     signal?: AbortSignal,
     stream?: boolean,
@@ -290,7 +358,7 @@ export class AgentManager {
     try {
       return await Promise.race([
         orchestrator.send(taskDescription, {
-          conversationId: 'default',
+          conversationId,
           signal: combinedSignal,
           stream,
         }),
@@ -335,5 +403,12 @@ export class AgentManager {
   cleanup(): void {
     this.activeAgents.clear();
     this.eventCollectors.clear();
+  }
+
+  /**
+   * Get the state manager for querying sessions
+   */
+  getStateManager(): AgentStateManager {
+    return this.stateManager;
   }
 }

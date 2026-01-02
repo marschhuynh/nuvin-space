@@ -15,7 +15,7 @@ export const AgentLoading: React.FC<AgentLoadingProps> = ({ mode }) => {
   const loadingColor = mode === 'edit' ? theme.colors.primary : theme.colors.warning;
 
   return (
-    <AppModal visible={true} title={loadingTitle} titleColor={loadingColor}>
+    <AppModal visible={true} title={loadingTitle}>
       <Box marginTop={1}>
         <Text color={loadingColor}>{loadingMessage}</Text>
       </Box>

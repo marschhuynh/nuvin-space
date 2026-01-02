@@ -53,7 +53,7 @@ export const CommandForm: React.FC<CommandFormProps> = ({
   };
 
   return (
-    <AppModal visible={true} title={title} titleColor={theme.colors.primary}>
+    <AppModal visible={true} title={title}>
       <Box flexDirection="column" marginTop={1}>
         {error && (
           <Box marginBottom={1}>

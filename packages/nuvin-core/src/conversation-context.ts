@@ -1,5 +1,5 @@
 export class ConversationContext {
-  private activeConversationId: string = 'cli';
+  private activeConversationId: string = 'default';
 
   getActiveConversationId(): string {
     return this.activeConversationId;

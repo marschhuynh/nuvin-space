@@ -1,12 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DefaultDelegationService } from '../delegation/DefaultDelegationService.js';
-import type {
-  AgentCatalog,
-  AgentCommandRunner,
-  DelegationPolicy,
-  DelegationResultFormatter,
-  SpecialistAgentFactory,
-} from '../delegation/types.js';
+import type { AgentCatalog, AgentCommandRunner, SpecialistAgentFactory } from '../delegation/types.js';
 import type { AssignParams, SpecialistAgentConfig, SpecialistAgentResult, AgentTemplate } from '../agent-types.js';
 
 const createCatalog = (agents: AgentTemplate[]): AgentCatalog => ({
@@ -31,10 +25,6 @@ describe('DefaultDelegationService', () => {
   const context = {};
 
   const createDeps = () => {
-    const policy: DelegationPolicy = {
-      evaluate: vi.fn(() => ({ allowed: true })),
-    };
-
     const factory: SpecialistAgentFactory = {
       create: vi.fn(() => ({
         agentId: 'researcher-1',
@@ -53,78 +43,49 @@ describe('DefaultDelegationService', () => {
         result: 'All done',
         metadata: {
           agentId: 'researcher-1',
+          agentName: 'Researcher',
           executionTimeMs: 100,
           toolCallsExecuted: 2,
         },
       } satisfies SpecialistAgentResult)),
     };
 
-    const formatter: DelegationResultFormatter = {
-      formatSuccess: vi.fn(() => ({
-        summary: 'Task completed',
-        metadata: { status: 'success' },
-      })),
-      formatError: vi.fn((error) => (error instanceof Error ? error.message : String(error))),
-    };
-
-    return { policy, factory, runner, formatter };
+    return { factory, runner };
   };
 
   it('delegates successfully when policy allows', async () => {
     const deps = createDeps();
-    const service = new DefaultDelegationService(
-      createCatalog([agent]),
-      deps.policy,
-      deps.factory,
-      deps.runner,
-      deps.formatter,
-    );
+    const service = new DefaultDelegationService(createCatalog([agent]), deps.factory, deps.runner);
 
     const result = await service.delegate(params, context);
 
     expect(result.success).toBe(true);
-    expect(result.summary).toBe('Task completed');
-    expect(result.metadata).toEqual({ status: 'success' });
+    expect(result.summary).toBe('All done');
+    expect(result.metadata?.status).toBe('success');
 
-    expect(deps.policy.evaluate).toHaveBeenCalled();
     expect(deps.factory.create).toHaveBeenCalled();
     expect(deps.runner.run).toHaveBeenCalled();
-    expect(deps.formatter.formatSuccess).toHaveBeenCalled();
   });
 
   it('returns error when agent not found', async () => {
     const deps = createDeps();
-    const service = new DefaultDelegationService(
-      createCatalog([]),
-      deps.policy,
-      deps.factory,
-      deps.runner,
-      deps.formatter,
-    );
+    const service = new DefaultDelegationService(createCatalog([]), deps.factory, deps.runner);
 
     const result = await service.delegate(params, context);
 
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/Agent "researcher" not found/);
-    expect(deps.policy.evaluate).not.toHaveBeenCalled();
   });
 
-  it('returns error when policy denies delegation', async () => {
+  it('returns error when agent is disabled', async () => {
     const deps = createDeps();
-    deps.policy.evaluate = vi.fn(() => ({ allowed: false, reason: 'Disabled' }));
-
-    const service = new DefaultDelegationService(
-      createCatalog([agent]),
-      deps.policy,
-      deps.factory,
-      deps.runner,
-      deps.formatter,
-    );
+    const service = new DefaultDelegationService(createCatalog([agent]), deps.factory, deps.runner);
+    service.setEnabledAgents({ researcher: false });
 
     const result = await service.delegate(params, context);
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe('Disabled');
+    expect(result.error).toContain('disabled');
     expect(deps.runner.run).not.toHaveBeenCalled();
   });
 
@@ -134,30 +95,17 @@ describe('DefaultDelegationService', () => {
       throw new Error('boom');
     });
 
-    const service = new DefaultDelegationService(
-      createCatalog([agent]),
-      deps.policy,
-      deps.factory,
-      deps.runner,
-      deps.formatter,
-    );
+    const service = new DefaultDelegationService(createCatalog([agent]), deps.factory, deps.runner);
 
     const result = await service.delegate(params, context);
 
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/Failed to execute specialist agent: boom/);
-    expect(deps.formatter.formatError).toHaveBeenCalledWith(expect.any(Error));
   });
 
   it('filters disabled agents when listing', () => {
     const deps = createDeps();
-    const service = new DefaultDelegationService(
-      createCatalog([agent]),
-      deps.policy,
-      deps.factory,
-      deps.runner,
-      deps.formatter,
-    );
+    const service = new DefaultDelegationService(createCatalog([agent]), deps.factory, deps.runner);
 
     service.setEnabledAgents({ researcher: false });
     const enabledAgents = service.listEnabledAgents();

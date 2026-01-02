@@ -14,7 +14,7 @@ export const AgentDescriptionInput: React.FC<AgentDescriptionInputProps> = ({ de
   const { theme } = useTheme();
 
   return (
-    <AppModal visible={true} title="Create New Agent" titleColor={theme.colors.primary}>
+    <AppModal visible={true} title="Create New Agent">
       <Box flexDirection="column" marginTop={1}>
         <Text color={theme.modal.help}>
           Describe what you want this agent to do. Be specific about its role, expertise, and approach.

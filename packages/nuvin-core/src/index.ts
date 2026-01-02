@@ -12,7 +12,7 @@ export { generateFolderTree } from './folder-tree-utils.js';
 export type { FolderTreeOptions } from './folder-tree-utils.js';
 
 // Memory and persistence
-export { InMemoryMemory, PersistedMemory, JsonFileMemoryPersistence } from './persistent/index.js';
+export { InMemoryMemory, PersistedMemory, JsonFileMemoryPersistence, MultiFileMemoryPersistence } from './persistent/index.js';
 export { InMemoryMetadata, MemoryPortMetadataAdapter } from './persistent/metadata-memory.js';
 export { ConversationStore } from './conversation-store.js';
 export { ConversationContext } from './conversation-context.js';
@@ -151,6 +151,12 @@ export type { WebFetchResult, WebFetchSuccessResult, WebFetchParams } from './to
 export type { TodoWriteResult, TodoWriteSuccessResult } from './tools/TodoWriteTool.js';
 export type { AssignResult, AssignSuccessResult, AssignErrorResult } from './tools/AssignTool.js';
 export type {
+  TaskOutputParams,
+  TaskOutputResult,
+  TaskOutputSuccessResult,
+  TaskOutputMetadata,
+} from './tools/TaskOutputTool.js';
+export type {
   FileMetadata,
   LineRangeMetadata,
   CommandMetadata,
@@ -218,12 +224,11 @@ export type { SubAgentState, SubAgentToolCall } from './sub-agent-types.js';
 export { parseSubAgentToolCallArguments } from './sub-agent-types.js';
 export {
   DefaultDelegationService,
-  DefaultDelegationPolicy,
   DefaultSpecialistAgentFactory,
-  DefaultDelegationResultFormatter,
   AgentManagerCommandRunner,
+  DefaultAgentStateManager,
 } from './delegation/index.js';
-export type { DelegationService, AgentCatalog, DelegationServiceConfig } from './delegation/index.js';
+export type { DelegationService, AgentCatalog, DelegationServiceConfig, AgentStateManager, AgentSession } from './delegation/index.js';
 export { DelegationServiceFactory, LLMResolver } from './delegation/index.js';
 
 // LLM providers

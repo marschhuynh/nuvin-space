@@ -24,7 +24,7 @@ export const Markdown: React.FC<MarkdownProps> = ({
 
   const rendererConfig = useMemo(
     () => ({
-      width: maxWidth ?? cols - 4,
+      width: maxWidth ?? cols - 8,
       reflowText,
     }),
     [cols, reflowText, maxWidth],

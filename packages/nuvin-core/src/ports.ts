@@ -380,6 +380,7 @@ export interface OrchestratorAwareToolPort {
     tools: ToolPort,
     llmFactory?: LLMFactory,
     configResolver?: () => Partial<AgentConfig>,
+    createMemoryForAgent?: (agentKey: string) => MemoryPort<Message>,
   ): void;
 }
 

@@ -59,7 +59,6 @@ export const CommandModal: React.FC<CommandModalProps> = ({
     <AppModal
       visible={visible}
       title={title}
-      titleColor={theme.colors.primary}
       onClose={undefined}
       closeOnEscape={false}
       paddingX={2}

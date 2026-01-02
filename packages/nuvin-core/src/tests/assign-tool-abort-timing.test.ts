@@ -1,13 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AssignTool } from '../tools/AssignTool.js';
-import { AgentManager } from '../agent-manager.js';
 import { AgentRegistry } from '../agent-registry.js';
 import {
   DefaultDelegationService,
-  DefaultDelegationPolicy,
   DefaultSpecialistAgentFactory,
   AgentManagerCommandRunner,
-  DefaultDelegationResultFormatter,
 } from '../delegation/index.js';
 import type { LLMPort, ToolPort, AgentConfig, CompletionResult, ToolDefinition, LLMFactory } from '../ports.js';
 
@@ -71,7 +68,6 @@ describe('AssignTool - Abort Timing Tests', () => {
 
     const delegationService = new DefaultDelegationService(
       agentRegistry,
-      new DefaultDelegationPolicy(),
       new DefaultSpecialistAgentFactory({
         agentListProvider: () =>
           agentRegistry.list().map((a) => ({
@@ -81,7 +77,6 @@ describe('AssignTool - Abort Timing Tests', () => {
           })),
       }),
       new AgentManagerCommandRunner(delegatingConfig, mockTools, mockFactory),
-      new DefaultDelegationResultFormatter(),
     );
 
     delegationService.setEnabledAgents({ 'test-reviewer': true });

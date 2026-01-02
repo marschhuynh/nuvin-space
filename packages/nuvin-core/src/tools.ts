@@ -8,6 +8,7 @@ import type {
   MemoryPort,
   AgentConfig,
   LLMFactory,
+  Message,
 } from './ports.js';
 import { ErrorReason } from './ports.js';
 import { InMemoryMemory } from './persistent/index.js';
@@ -28,12 +29,18 @@ import { AssignTool } from './tools/AssignTool.js';
 import { AgentManagerCommandRunner, DelegationServiceFactory } from './delegation/index.js';
 
 export class ToolRegistry implements ToolPort, AgentAwareToolPort, OrchestratorAwareToolPort {
-  private tools = new Map<string, FunctionTool>();
+  private tools = new Map<string, FunctionTool<unknown, unknown>>();
   private toolsMemory?: MemoryPort<string>;
   private agentRegistry: AgentRegistry;
   private delegationServiceFactory?: DelegationServiceFactory;
   private assignTool?: AssignTool;
   private enabledAgentsConfig: Record<string, boolean> = {};
+
+  // Stored for re-initialization when memory changes (lazy session init)
+  private orchestratorConfig?: AgentConfig;
+  private orchestratorTools?: ToolPort;
+  private orchestratorLLMFactory?: LLMFactory;
+  private orchestratorConfigResolver?: () => Partial<AgentConfig>;
 
   constructor(opts?: {
     todoMemory?: MemoryPort<StoreTodo>;
@@ -96,8 +103,15 @@ export class ToolRegistry implements ToolPort, AgentAwareToolPort, OrchestratorA
     tools: ToolPort,
     llmFactory?: LLMFactory,
     configResolver?: () => Partial<AgentConfig>,
+    createMemoryForAgent?: (agentKey: string) => MemoryPort<Message>,
   ): void {
-    const commandRunner = new AgentManagerCommandRunner(config, tools, llmFactory, configResolver);
+    // Store for re-initialization
+    this.orchestratorConfig = config;
+    this.orchestratorTools = tools;
+    this.orchestratorLLMFactory = llmFactory;
+    this.orchestratorConfigResolver = configResolver;
+
+    const commandRunner = new AgentManagerCommandRunner(config, tools, llmFactory, configResolver, createMemoryForAgent);
 
     const factory = this.delegationServiceFactory ?? new DelegationServiceFactory();
     const delegationService = factory.create({
@@ -109,13 +123,33 @@ export class ToolRegistry implements ToolPort, AgentAwareToolPort, OrchestratorA
           name: agent.name,
           description: agent.description,
         })),
+      createMemoryForAgent, // Pass memory factory for resume functionality
     });
 
     delegationService.setEnabledAgents(this.enabledAgentsConfig);
 
     this.assignTool = new AssignTool(delegationService);
     this.tools.set('assign_task', this.assignTool);
+
     void this.persistToolNames();
+  }
+
+  /**
+   * Update memory factory for sub-agent sessions.
+   * Called when session is lazily initialized and memory needs to switch from in-memory to persisted.
+   */
+  setSharedMemory(createMemoryForAgent: (agentKey: string) => MemoryPort<Message>): void {
+    if (!this.orchestratorConfig || !this.orchestratorTools) {
+      return; // Not initialized yet
+    }
+    // Re-initialize with new memory factory
+    this.setOrchestrator(
+      this.orchestratorConfig,
+      this.orchestratorTools,
+      this.orchestratorLLMFactory,
+      this.orchestratorConfigResolver,
+      createMemoryForAgent,
+    );
   }
 
   /**
