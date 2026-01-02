@@ -111,8 +111,8 @@ const TOOL_REGISTRY: Record<string, ToolConfig> = {
           <Box>
             <Text color={theme.toolApproval.statusText}>Todo Items ({todos.length}):</Text>
           </Box>
-          {todos.slice(0, 5).map((todo, idx) => (
-            <Box key={idx} marginLeft={2} flexWrap="wrap">
+          {todos.slice(0, 5).map((todo) => (
+            <Box key={todo.content} marginLeft={2} flexWrap="wrap">
               <Text dimColor>
                 [{todo.status}] {todo.content}
               </Text>

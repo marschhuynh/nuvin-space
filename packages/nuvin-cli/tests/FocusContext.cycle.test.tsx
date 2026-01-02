@@ -1,7 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import React, { useEffect, useRef } from 'react';
-import { Text } from 'ink';
-import { FocusProvider, useFocus, useFocusCycle } from '../source/contexts/InputContext/FocusContext.js';
 
 describe('FocusContext unit tests', () => {
   it('should add id to focusableIdsRef when register is called', () => {

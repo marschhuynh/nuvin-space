@@ -15,7 +15,6 @@ function reflowLine(line: string, width: number): string[] {
   const effectiveWidth = width - indentWidth;
   if (effectiveWidth <= 0) return [line];
 
-  // biome-ignore lint/suspicious/noControlCharactersInRegex: ANSI escape sequences are intentional for terminal formatting
   const fragments = content.split(/(\u001b\[(?:\d{1,3})(?:;\d{1,3})*m)/g);
   const reflowed: string[] = [];
   let column = 0;

@@ -57,7 +57,7 @@ function Scrollbar({
   return (
     <Box flexDirection="column" flexShrink={0}>
       {track.map((char, i) => (
-        <Text key={i} color={char === '┃' ? color : trackColor}>
+        <Text key={`track-${i}-${char}`} color={char === '┃' ? color : trackColor}>
           {char}
         </Text>
       ))}

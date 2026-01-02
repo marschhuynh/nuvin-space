@@ -22,7 +22,7 @@ describe('get', () => {
 
   it('should return default value when path not found', () => {
     const obj = { metadata: {} };
-    expect(get(obj, 'metadata.stats', { total: 0 } as any)).toEqual({ total: 0 });
+    expect(get(obj, 'metadata.stats', { total: 0 } as Record<string, number>)).toEqual({ total: 0 });
   });
 
   it('should get top-level property', () => {

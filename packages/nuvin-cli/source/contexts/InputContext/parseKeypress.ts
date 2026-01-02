@@ -134,9 +134,9 @@ const KITTY_KEYCODE_MAP: Record<number, keyof Key> = {
 
 function parseKittyProtocol(data: string): ParseResult | null {
   const match = KITTY_CSI_U_RE.exec(data);
-  if (!match) return null;
+  if (!match || !match[1]) return null;
 
-  const keycode = parseInt(match[1]!, 10);
+  const keycode = parseInt(match[1], 10);
   const modifierValue = match[2] ? parseInt(match[2], 10) - 1 : 0;
 
   const key = createEmptyKey();
@@ -210,8 +210,8 @@ export const parseKeypress = (data: string): ParseResult => {
     return { input: s, key };
   } else if ((parts = metaKeyCodeRe.exec(s))) {
     key.meta = true;
-    key.shift = /^[A-Z]$/.test(parts[1]);
-    return { input: parts[1]!, key };
+    key.shift = /^[A-Z]$/.test(parts[1] ?? '');
+    return { input: parts[1] ?? '', key };
   } else if (s.startsWith('\x1b[200~') || s.startsWith('[200~')) {
     return { input: data, key };
   } else if ((parts = fnKeyRe.exec(s))) {
@@ -270,9 +270,9 @@ export function parseMouseEvent(data: string): MouseParseResult {
   let lastY = 0;
 
   while ((match = sgrRegex.exec(data)) !== null) {
-    const button = parseInt(match[1]!, 10);
-    const x = parseInt(match[2]!, 10);
-    const y = parseInt(match[3]!, 10);
+    const button = parseInt(match[1] ?? '0', 10);
+    const x = parseInt(match[2] ?? '0', 10);
+    const y = parseInt(match[3] ?? '0', 10);
     const isRelease = match[4] === 'm';
     lastX = x;
     lastY = y;

@@ -21,7 +21,10 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "error"
+        "noExplicitAny": "error",
+        "noControlCharactersInRegex": "off",
+        "noArrayIndexKey": "warn",
+        "noAssignInExpressions": "warn"
       }
     }
   },

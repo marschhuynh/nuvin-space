@@ -7,7 +7,7 @@ import { DEFAULT_PROFILE } from '@/config/profile-types.js';
 import type { CommandRegistry, FunctionCommand } from '@/modules/commands/types.js';
 
 let customCommandRegistry: CustomCommandRegistry | null = null;
-let registeredCommandIds: Set<string> = new Set();
+const registeredCommandIds: Set<string> = new Set();
 
 export function getCustomCommandRegistry(): CustomCommandRegistry | null {
   return customCommandRegistry;

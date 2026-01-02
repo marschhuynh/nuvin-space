@@ -31,15 +31,17 @@ export type MouseEvent = {
  * Input handler function that processes keyboard input.
  * @param input - The raw input string
  * @param key - Parsed key information (ctrl, shift, meta, etc.)
- * @returns true to stop propagation, false/void to continue to lower priority handlers
+ * @returns true to stop propagation, false/undefined to continue to lower priority handlers
  */
+// biome-ignore lint/suspicious/noConfusingVoidType: void is intentional for handlers that don't need to return
 export type InputHandler = (input: string, key: Key) => void | boolean;
 
 /**
  * Mouse event handler function that processes mouse events.
  * @param event - The mouse event details
- * @returns true to stop propagation, false/void to continue to lower priority handlers
+ * @returns true to stop propagation, false/undefined to continue to lower priority handlers
  */
+// biome-ignore lint/suspicious/noConfusingVoidType: void is intentional for handlers that don't need to return
 export type MouseHandler = (event: MouseEvent) => void | boolean;
 
 /**

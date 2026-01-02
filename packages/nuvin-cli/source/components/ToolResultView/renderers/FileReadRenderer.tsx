@@ -34,7 +34,7 @@ export const FileReadRenderer: React.FC<FileReadRendererProps> = ({
     return (
       <Box flexDirection="column" width={cols - LAYOUT.CONTENT_MARGIN}>
         {linesToRender.map((line, idx) => (
-          <Text key={`${messageId}-${idx}`} dimColor color={detailColor}>
+          <Text key={`${messageId}-line-${idx}`} dimColor color={detailColor}>
             {line}
           </Text>
         ))}

@@ -24,7 +24,10 @@ vi.mock('node:fs', () => {
         error.code = 'ENOENT';
         throw error;
       }
-      mockFs[newPath] = mockFs[oldPath]!;
+      const oldContent = mockFs[oldPath];
+      if (oldContent !== undefined) {
+        mockFs[newPath] = oldContent;
+      }
       delete mockFs[oldPath];
     }),
     unlink: vi.fn(async (filePath: string) => {

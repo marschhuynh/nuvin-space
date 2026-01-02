@@ -13,15 +13,17 @@ export function estimateMessageHeight(message: MessageLine, width: number): numb
     case 'thinking':
       return estimateTextHeight(message.content, contentWidth) + 1;
 
-    case 'tool':
+    case 'tool': {
       const toolCalls = message.metadata?.toolCalls?.length || 1;
       return 2 + toolCalls;
+    }
 
-    case 'tool_result':
+    case 'tool_result': {
       const resultContent = message.content;
       const baseHeight = 3;
       const contentHeight = estimateTextHeight(String(resultContent), contentWidth);
       return Math.min(baseHeight + contentHeight, 10);
+    }
 
     case 'system':
     case 'info':

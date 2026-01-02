@@ -100,7 +100,7 @@ export class AgentCreator {
         let agentConfig: Partial<AgentTemplate>;
         try {
           agentConfig = JSON.parse(jsonStr);
-        } catch (parseError) {
+        } catch (_parseError) {
           if (attempt < maxRetries) {
             lastError = `Failed to parse LLM response as JSON`;
             continue;

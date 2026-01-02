@@ -34,7 +34,7 @@ export const CommandDetails: React.FC<CommandDetailsProps> = ({
     if (lines.length <= maxLines) {
       return prompt;
     }
-    return lines.slice(0, maxLines).join('\n') + '\n...';
+    return `${lines.slice(0, maxLines).join('\n')}\n...`;
   };
 
   return (

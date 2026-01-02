@@ -61,7 +61,7 @@ export const BaseRenderer: React.FC<BaseRendererProps> = ({
         </Text>
       )}
       {linesToShow.map((line, idx) => (
-        <Text key={`${messageId}-${idx}`} dimColor color={detailColor}>
+        <Text key={`${messageId}-line-${idx}`} dimColor color={detailColor}>
           {truncateLine(line, effectiveMaxLineLength, fullMode)}
         </Text>
       ))}

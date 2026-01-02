@@ -28,13 +28,25 @@ vi.mock('../source/utils/file-logger.js', () => ({
   },
 }));
 
+interface UseInputHistoryProps {
+  memory: MemoryPort<Message>;
+  currentInput: string;
+  onRecall: (message: string) => void;
+}
+
+interface UseInputHistoryResult {
+  addMessage: (message: string) => void;
+  handleUpArrow: (lineInfo: { lineIndex: number; lines: string[] }) => void;
+  handleDownArrow: (lineInfo: { lineIndex: number; lines: string[] }) => void;
+}
+
 // Helper component to expose hook internals
 function HookWrapper({ 
   hookProps, 
   onRender 
 }: { 
-  hookProps: any, 
-  onRender: (result: any) => void 
+  hookProps: UseInputHistoryProps, 
+  onRender: (result: UseInputHistoryResult) => void 
 }) {
   const result = useInputHistory(hookProps);
   useEffect(() => {
@@ -68,15 +80,15 @@ describe('useInputHistory Hook', () => {
     vi.clearAllMocks();
   });
 
-  const getHookResult = (props: any) => {
-    let result: any;
+  const getHookResult = (props: UseInputHistoryProps): UseInputHistoryResult => {
+    let result: UseInputHistoryResult | undefined;
     render(
       <HookWrapper 
         hookProps={props} 
         onRender={(r) => { result = r; }} 
       />
     );
-    return result;
+    return result as UseInputHistoryResult;
   };
 
   it('should NOT write user messages to memory (orchestrator handles persistence)', () => {
@@ -95,14 +107,14 @@ describe('useInputHistory Hook', () => {
 
   describe('Local State Management', () => {
     it('should prevent duplicate consecutive messages in local state', async () => {
-      let hookResult: any;
+      let hookResult: UseInputHistoryResult;
       const props = {
         memory: mockMemory,
         currentInput: '',
         onRecall: vi.fn(),
       };
       
-      const { rerender } = render(
+      render(
         <HookWrapper 
           hookProps={props} 
           onRender={(r) => { hookResult = r; }} 
@@ -146,7 +158,7 @@ describe('useInputHistory Hook', () => {
     });
 
     it('should ignore empty messages', () => {
-      let hookResult: any;
+      let hookResult: UseInputHistoryResult | undefined;
       const onRecall = vi.fn();
       const props = { memory: mockMemory, currentInput: '', onRecall };
       
@@ -157,11 +169,13 @@ describe('useInputHistory Hook', () => {
         />
       );
 
-      hookResult.addMessage('');
-      hookResult.addMessage('   ');
-      
-      // Navigate Up
-      hookResult.handleUpArrow({ lineIndex: 0, lines: [''] });
+      if (hookResult) {
+        hookResult.addMessage('');
+        hookResult.addMessage('   ');
+        
+        // Navigate Up
+        hookResult.handleUpArrow({ lineIndex: 0, lines: [''] });
+      }
       
       // Should handle empty history gracefully (navigatePrev returns null)
       expect(onRecall).not.toHaveBeenCalled();

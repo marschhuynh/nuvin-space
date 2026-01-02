@@ -206,9 +206,9 @@ export class MCPCliHandler {
         case '--env': {
           if (!config.env) config.env = {};
           const eqIdx = value?.indexOf('=') ?? -1;
-          if (eqIdx > 0) {
-            const key = value!.slice(0, eqIdx);
-            const val = value!.slice(eqIdx + 1);
+          if (eqIdx > 0 && value) {
+            const key = value.slice(0, eqIdx);
+            const val = value.slice(eqIdx + 1);
             config.env[key] = val;
           }
           i++;
@@ -226,9 +226,9 @@ export class MCPCliHandler {
         case '--header': {
           if (!config.headers) config.headers = {};
           const hEqIdx = value?.indexOf('=') ?? -1;
-          if (hEqIdx > 0) {
-            const hkey = value!.slice(0, hEqIdx);
-            const hval = value!.slice(hEqIdx + 1);
+          if (hEqIdx > 0 && value) {
+            const hkey = value.slice(0, hEqIdx);
+            const hval = value.slice(hEqIdx + 1);
             config.headers[hkey] = hval;
           }
           i++;
@@ -372,18 +372,24 @@ export class MCPCliHandler {
       let client: InstanceType<typeof CoreMCPClient>;
 
       if (transport === 'http') {
+        if (!config.url) {
+          throw new Error('HTTP transport requires a URL');
+        }
         client = new CoreMCPClient(
-          { type: 'http', url: config.url!, headers: config.headers },
+          { type: 'http', url: config.url, headers: config.headers },
           timeoutMs,
         );
       } else {
+        if (!config.command) {
+          throw new Error('Stdio transport requires a command');
+        }
         const stderrStream = new PassThrough();
         stderrStream.on('data', (chunk: Buffer) => {
           stderrOutput += chunk.toString();
         });
 
         client = new CoreMCPClient(
-          { type: 'stdio', command: config.command!, args: config.args, env: config.env, stderr: stderrStream },
+          { type: 'stdio', command: config.command, args: config.args, env: config.env, stderr: stderrStream },
           timeoutMs,
         );
       }

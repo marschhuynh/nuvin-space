@@ -52,18 +52,22 @@ export class CustomCommandRegistry {
       if (!this.allCommands.has(complete.id)) {
         this.allCommands.set(complete.id, []);
       }
-      this.allCommands.get(complete.id)!.push(complete);
+      this.allCommands.get(complete.id)?.push(complete);
     }
 
     for (const [id, versions] of this.allCommands) {
       const sorted = this.sortByPriority(versions);
+      const firstItem = sorted[0];
       
       for (let i = 1; i < sorted.length; i++) {
-        sorted[i]!.shadowedBy = sorted[0]!.source;
+        const item = sorted[i];
+        if (item && firstItem) {
+          item.shadowedBy = firstItem.source;
+        }
       }
 
-      if (sorted[0]) {
-        this.commands.set(id, sorted[0]);
+      if (firstItem) {
+        this.commands.set(id, firstItem);
       }
     }
   }
@@ -110,7 +114,9 @@ export class CustomCommandRegistry {
       this.allCommands.set(complete.id, []);
     }
     
-    const versions = this.allCommands.get(complete.id)!;
+    const versions = this.allCommands.get(complete.id);
+    if (!versions) return;
+    
     const existingIndex = versions.findIndex(v => v.source === complete.source);
     if (existingIndex >= 0) {
       versions[existingIndex] = complete;
@@ -119,12 +125,16 @@ export class CustomCommandRegistry {
     }
 
     const sorted = this.sortByPriority(versions);
+    const firstItem = sorted[0];
     for (let i = 1; i < sorted.length; i++) {
-      sorted[i]!.shadowedBy = sorted[0]!.source;
+      const item = sorted[i];
+      if (item && firstItem) {
+        item.shadowedBy = firstItem.source;
+      }
     }
-    if (sorted[0]) {
-      sorted[0].shadowedBy = undefined;
-      this.commands.set(complete.id, sorted[0]);
+    if (firstItem) {
+      firstItem.shadowedBy = undefined;
+      this.commands.set(complete.id, firstItem);
     }
   }
 
@@ -142,12 +152,16 @@ export class CustomCommandRegistry {
           this.commands.delete(commandId);
         } else {
           const sorted = this.sortByPriority(versions);
+          const firstItem = sorted[0];
           for (let i = 1; i < sorted.length; i++) {
-            sorted[i]!.shadowedBy = sorted[0]!.source;
+            const item = sorted[i];
+            if (item && firstItem) {
+              item.shadowedBy = firstItem.source;
+            }
           }
-          if (sorted[0]) {
-            sorted[0].shadowedBy = undefined;
-            this.commands.set(commandId, sorted[0]);
+          if (firstItem) {
+            firstItem.shadowedBy = undefined;
+            this.commands.set(commandId, firstItem);
           }
         }
       }

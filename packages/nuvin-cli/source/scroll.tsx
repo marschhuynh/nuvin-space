@@ -88,9 +88,9 @@ const sections = [
 function parseMouseEvent(data: string): { type: 'wheel-up' | 'wheel-down' | 'other'; x: number; y: number } | null {
   const sgrMatch = data.match(/\x1b\[<(\d+);(\d+);(\d+)([Mm])/);
   if (sgrMatch) {
-    const button = parseInt(sgrMatch[1]!, 10);
-    const x = parseInt(sgrMatch[2]!, 10);
-    const y = parseInt(sgrMatch[3]!, 10);
+    const button = parseInt(sgrMatch[1] ?? '0', 10);
+    const x = parseInt(sgrMatch[2] ?? '0', 10);
+    const y = parseInt(sgrMatch[3] ?? '0', 10);
     if (button === 64) return { type: 'wheel-up', x, y };
     if (button === 65) return { type: 'wheel-down', x, y };
     return { type: 'other', x, y };

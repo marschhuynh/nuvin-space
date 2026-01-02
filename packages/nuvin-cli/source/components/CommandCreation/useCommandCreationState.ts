@@ -69,13 +69,15 @@ export const useCommandCreationState = (
   const nextField = useCallback(() => {
     const currentIndex = FIELD_ORDER.indexOf(activeField);
     const nextIndex = (currentIndex + 1) % FIELD_ORDER.length;
-    setActiveField(FIELD_ORDER[nextIndex]!);
+    const nextFieldValue = FIELD_ORDER[nextIndex];
+    if (nextFieldValue) setActiveField(nextFieldValue);
   }, [activeField]);
 
   const prevField = useCallback(() => {
     const currentIndex = FIELD_ORDER.indexOf(activeField);
     const prevIndex = (currentIndex - 1 + FIELD_ORDER.length) % FIELD_ORDER.length;
-    setActiveField(FIELD_ORDER[prevIndex]!);
+    const prevFieldValue = FIELD_ORDER[prevIndex];
+    if (prevFieldValue) setActiveField(prevFieldValue);
   }, [activeField]);
 
   const handleFieldSubmit = useCallback((_field: EditingField) => {
@@ -92,7 +94,8 @@ export const useCommandCreationState = (
       newIndex = (currentIndex + 1) % availableScopes.length;
     }
     
-    setEditedScope(availableScopes[newIndex]!);
+    const newScope = availableScopes[newIndex];
+    if (newScope) setEditedScope(newScope);
   }, [editedScope, availableScopes]);
 
   const validate = useCallback((): boolean => {
