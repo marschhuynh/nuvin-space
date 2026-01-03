@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { DefaultSpecialistAgentFactory } from '../delegation/DefaultSpecialistAgentFactory.js';
+import { DefaultSpecialistAgentFactory } from '../delegation/agent-factory.js';
 import { InMemoryMemory } from '../persistent/memory.js';
 import type { AgentTemplate, AssignParams } from '../agent-types.js';
 import type { Message, MemoryPort } from '../ports.js';

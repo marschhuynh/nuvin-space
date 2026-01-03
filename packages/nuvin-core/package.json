@@ -28,7 +28,8 @@
 		"test": "vitest --typecheck run",
 		"test:watch": "vitest --typecheck",
 		"prepack": "rm -rf dist && pnpm run build",
-		"format": "pnpm exec biome format --changed --no-errors-on-unmatched --write ."
+		"format": "pnpm exec biome format --changed --no-errors-on-unmatched --write .",
+		"gen:fixture": "tsx scripts/events-to-fixture.ts src/tests/message-flow/events.json src/tests/message-flow/fixtures/real-conversation-test.json"
 	},
 	"publishConfig": {
 		"access": "public"

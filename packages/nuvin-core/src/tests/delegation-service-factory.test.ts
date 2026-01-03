@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { DelegationServiceFactory, type DelegationServiceConfig } from '../delegation/DelegationServiceFactory.js';
+import { DelegationServiceFactory, type DelegationServiceConfig } from '../delegation/delegation-service-factory.js';
 import { AgentRegistry } from '../agent-registry.js';
 import type { AgentCommandRunner } from '../delegation/types.js';
 import type { SpecialistAgentConfig, SpecialistAgentResult } from '../agent-types.js';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DefaultSpecialistAgentFactory } from '../delegation/DefaultSpecialistAgentFactory.js';
+import { DefaultSpecialistAgentFactory } from '../delegation/agent-factory.js';
 import type { AgentTemplate, AssignParams } from '../agent-types.js';
 
 const template: AgentTemplate = {

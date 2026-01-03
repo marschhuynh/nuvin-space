@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DefaultDelegationService } from '../delegation/DefaultDelegationService.js';
+import { DefaultDelegationService } from '../delegation/delegation-service.js';
 import type { AgentCatalog, AgentCommandRunner, SpecialistAgentFactory } from '../delegation/types.js';
 import type { AssignParams, SpecialistAgentConfig, SpecialistAgentResult, AgentTemplate } from '../agent-types.js';
 

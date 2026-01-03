@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { DefaultAgentStateManager } from '../delegation/AgentStateManager.js';
+import { DefaultAgentStateManager } from '../delegation/agent-manager.js';
 
 describe('AgentStateManager', () => {
   let manager: DefaultAgentStateManager;
