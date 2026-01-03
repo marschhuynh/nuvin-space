@@ -99,14 +99,14 @@ export const scanAvailableSessions = async (limit?: number, profile?: string): P
           break;
         }
 
-        const historyFile = path.join(dir, sessionIdStr, 'history.json');
+        const historyFile = path.join(dir, sessionIdStr, 'history.cli.json');
         try {
           const historyData = await readJson<Record<string, unknown>>(historyFile);
           if (!historyData) {
             continue;
           }
 
-          const cliMessages = (historyData?.cli ?? []) as Message[];
+          const cliMessages = (historyData?.default ?? []) as Message[];
           if (cliMessages.length === 0) {
             continue;
           }
@@ -172,12 +172,12 @@ export const createNewSession = async (customId?: string, profile?: string): Pro
 
 export const loadHistoryFromFile = async (historyFile: string): Promise<LoadResult> => {
   try {
-    const historyData = await readJson<{ cli?: Message[] }>(historyFile);
+    const historyData = await readJson<Record<string, unknown>>(historyFile);
     if (!historyData) {
       return { kind: 'empty', reason: 'not_found' };
     }
 
-    const cliMessages = historyData.cli || [];
+    const cliMessages = (historyData?.default ?? []) as Message[];
     if (cliMessages.length === 0) return { kind: 'empty', reason: 'no_messages' };
 
     const { processMessageToUILines } = await import('../utils/messageProcessor.js');
@@ -208,7 +208,7 @@ export const loadHistoryFromFile = async (historyFile: string): Promise<LoadResu
 
 export const loadSessionHistory = async (selectedSessionId: string, profile?: string): Promise<LoadResult> => {
   const dir = sessionsDir(profile);
-  const historyFile = path.join(dir, selectedSessionId, 'history.json');
+  const historyFile = path.join(dir, selectedSessionId, 'history.cli.json');
   return loadHistoryFromFile(historyFile);
 };
 

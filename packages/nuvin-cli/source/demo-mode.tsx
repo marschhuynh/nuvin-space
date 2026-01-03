@@ -87,14 +87,14 @@ export class DemoMode {
       const resolvedPath = path.resolve(this.historyPath);
 
       const fileContent = await fs.readFile(resolvedPath, 'utf-8');
-      const historyData = JSON.parse(fileContent) as { cli?: Message[] };
+      const historyData = JSON.parse(fileContent) as { default?: Message[] };
 
-      if (!historyData.cli || historyData.cli.length === 0) {
+      if (!historyData.default || historyData.default.length === 0) {
         console.error('Error: No messages found in history file');
         process.exit(1);
       }
 
-      const cliMessages = historyData.cli;
+      const cliMessages = historyData.default;
       const uiMessages: MessageLine[] = [];
 
       for (const msg of cliMessages) {

@@ -384,7 +384,7 @@ const cli = meow(
   if (resumeFlag && !historyPath) {
     if (initialSessions && initialSessions.length > 0) {
       const latestSession = initialSessions[0];
-      historyPath = path.join(getSessionDir(latestSession.sessionId, normalizedProfile), 'history.json');
+      historyPath = path.join(getSessionDir(latestSession.sessionId, normalizedProfile), 'history.cli.json');
     } else {
       console.warn('No previous sessions found to resume.');
     }
