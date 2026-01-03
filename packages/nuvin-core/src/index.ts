@@ -12,7 +12,7 @@ export { generateFolderTree } from './folder-tree-utils.js';
 export type { FolderTreeOptions } from './folder-tree-utils.js';
 
 // Memory and persistence
-export { InMemoryMemory, PersistedMemory, JsonFileMemoryPersistence, MultiFileMemoryPersistence } from './persistent/index.js';
+export { InMemoryMemory, PersistedMemory, JsonFileMemoryPersistence } from './persistent/index.js';
 export { InMemoryMetadata, MemoryPortMetadataAdapter } from './persistent/metadata-memory.js';
 export { ConversationStore } from './conversation-store.js';
 export { ConversationContext } from './conversation-context.js';

@@ -137,11 +137,6 @@ export function AutoScrollBox({
 
   const handleMouseEvent = useCallback(
     (event: MouseEvent) => {
-      // if (event.type === 'click') {
-      //   focus();
-      //   return true;
-      // }
-
       const multiplier = event.count || 1;
       if (event.type === 'wheel-up') {
         scrollBy(-scrollStep * multiplier);
