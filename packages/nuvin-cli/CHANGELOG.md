@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.25.7
+
+### Patch Changes
+
+- [`d9a0756`](https://github.com/marschhuynh/nuvin-space/commit/d9a0756c39f4d5bc258881cedb08445c04f94ff5) Thanks [@marschhuynh](https://github.com/marschhuynh)! - fix(cli): use correct history file name and format
+
 ## 1.25.6
 
 ### Patch Changes
