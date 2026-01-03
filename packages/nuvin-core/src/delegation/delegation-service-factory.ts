@@ -1,7 +1,7 @@
 import type { AgentCatalog, AgentCommandRunner, DelegationService } from './types.js';
 import type { MemoryPort, Message } from '../ports.js';
-import { DefaultDelegationService } from './DefaultDelegationService.js';
-import { DefaultSpecialistAgentFactory } from './DefaultSpecialistAgentFactory.js';
+import { DefaultDelegationService } from './delegation-service.js';
+import { DefaultSpecialistAgentFactory } from './agent-factory.js';
 
 export interface DelegationServiceConfig {
   agentRegistry: AgentCatalog;

@@ -1,7 +1,7 @@
 import type { AgentConfig, LLMPort, ToolPort, Message, MessageResponse, AgentEvent, LLMFactory, MemoryPort } from './ports.js';
 import { AgentEventTypes } from './ports.js';
-import { LLMResolver } from './delegation/LLMResolver.js';
-import { DefaultAgentStateManager, type AgentStateManager } from './delegation/AgentStateManager.js';
+import { LLMResolver } from './delegation/llm-resolver.js';
+import { DefaultAgentStateManager, type AgentStateManager } from './delegation/agent-manager.js';
 import type { SpecialistAgentConfig, SpecialistAgentResult } from './agent-types.js';
 import { AgentOrchestrator } from './orchestrator.js';
 import { SimpleContextBuilder } from './context.js';
