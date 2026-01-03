@@ -1,5 +1,11 @@
 # @nuvin/nuvin-core
 
+## 1.13.4
+
+### Patch Changes
+
+- [`124f83b`](https://github.com/marschhuynh/nuvin-space/commit/124f83b40145ae76c131e0c54c5d4ecc933ea774) Thanks [@marschhuynh](https://github.com/marschhuynh)! - refactor(core): rename delegation module files to kebab-case
+
 ## 1.13.3
 
 ### Patch Changes
