@@ -21,7 +21,7 @@ const WelcomeLogo = ({ recentSessions }: { recentSessions: SessionInfo[] }) => {
   const { cols } = useStdoutDimensionsContext();
   return (
     <Box flexDirection="row" width="100%" marginTop={1} marginBottom={4} flexWrap="nowrap">
-      <Box justifyContent="center" flexDirection="column" alignItems="center" marginRight={2}>
+      <Box justifyContent="center" flexDirection="column" alignItems="center" marginRight={2} minWidth={20}>
         <Gradient colors={['#FF5F6D', '#FFC371']}>
           <Text>{`${ICON_2}`}</Text>
         </Gradient>

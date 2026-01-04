@@ -80,7 +80,9 @@ const COLORS = {
   textBold: COLOR_TOKENS.white,
 
   // Backgrounds and borders
-  background: COLOR_TOKENS.black,
+  // background: COLOR_TOKENS.black,
+  background: '#1e2123',
+  
   border: COLOR_TOKENS.gray,
 
   // Badge and status indicators

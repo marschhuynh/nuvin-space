@@ -10,7 +10,7 @@ import { Footer, type InputAreaHandle } from './components/index.js';
 import { InteractionArea } from './components/InteractionArea.js';
 import { ErrorBoundary } from './components/ErrorBoundary.js';
 import { InitialConfigSetup } from './components/InitialConfigSetup.js';
-import { FlexLayout } from './components/VirtualizedList/index.js';
+import { FlexLayout } from './components/FlexLayout/FlexLayout.js';
 import {
   useOrchestrator,
   useSessionManagement,
@@ -32,9 +32,6 @@ import type { SessionInfo } from './types.js';
 import { createEmptySnapshot } from '@nuvin/nuvin-core';
 import { OrchestratorStatus } from './types/orchestrator.js';
 import { useTheme } from './contexts/ThemeContext.js';
-
-const ENTER_ALT_SCREEN = '\x1b[?1049h';
-const EXIT_ALT_SCREEN = '\x1b[?1049l';
 
 type Props = {
   provider?: ProviderKey;
@@ -103,14 +100,6 @@ export default function App({ apiKey: _apiKey, memPersist = false, historyPath, 
     handleError,
     memPersist,
   });
-
-  useEffect(() => {
-    process.stdout.write(ENTER_ALT_SCREEN);
-
-    return () => {
-      process.stdout.write(EXIT_ALT_SCREEN);
-    };
-  }, []);
 
   useEffect(() => {
     currentSessionIdRef.current = sessionId ?? null;

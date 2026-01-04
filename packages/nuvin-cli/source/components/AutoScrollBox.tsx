@@ -202,7 +202,7 @@ export function AutoScrollBox({
       flexDirection="row"
       {...(maxHeight !== undefined ? { maxHeight } : {})}
       overflow="hidden"
-      backgroundColor={isFocused ? theme.tokens.dim : 'transparent'}
+      backgroundColor={isFocused ? theme.tokens.dim : undefined}
     >
       <Box ref={boxRef} overflow="scroll" flexGrow={1} {...boxProps} flexDirection="column">
         <Box ref={contentRef} flexShrink={0} flexDirection="column">

@@ -6,11 +6,13 @@ import type { CommandRegistry, CommandComponentProps } from '@/modules/commands/
 import { HistorySelection } from '@/components/HistorySelection.js';
 import { scanAvailableSessions, loadSessionHistory, getSessionDir } from '@/hooks/useSessionManagement.js';
 import { ConfigManager } from '@/config/manager.js';
+import { AppModal } from '@/components/AppModal.js';
 
 import type { SessionInfo } from '@/types.js';
-import { theme } from '@/theme';
+import { useTheme } from '@/contexts/ThemeContext.js';
 
 const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps) => {
+  const { theme } = useTheme();
   const [availableSessions, setAvailableSessions] = useState<SessionInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,7 +63,7 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
     };
 
     loadSessions();
-  }, [context.eventBus, deactivate, currentProfile]);
+  }, [context.eventBus, deactivate, currentProfile, theme.tokens.red, theme.tokens.yellow]);
 
   useEffect(() => {
     const handleHistorySelected = async (session: SessionInfo) => {
@@ -133,13 +135,20 @@ const HistoryCommandComponent = ({ context, deactivate }: CommandComponentProps)
     currentProfile,
     context.orchestratorManager?.switchToSession,
     context.orchestratorManager?.getOrchestrator,
+    theme.tokens.green,
+    theme.tokens.red,
+    theme.tokens.yellow,
   ]);
 
   if (loading || availableSessions.length === 0) {
     return null;
   }
 
-  return <HistorySelection availableSessions={availableSessions} />;
+  return (
+    <AppModal visible={true} title="Session History" onClose={deactivate} closeOnEscape={true}>
+      <HistorySelection availableSessions={availableSessions} />
+    </AppModal>
+  );
 };
 
 export function registerHistoryCommand(registry: CommandRegistry) {

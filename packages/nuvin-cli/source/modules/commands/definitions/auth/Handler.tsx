@@ -348,7 +348,7 @@ export const AuthCommandComponent = ({ context, deactivate }: CommandComponentPr
       onClose={stage === 'provider' ? deactivate : () => resetToProviderStage()}
       closeOnEscape={true}
       closeOnEnter={false}
-      height={16}
+      height={18}
     >
       {renderStage()}
 

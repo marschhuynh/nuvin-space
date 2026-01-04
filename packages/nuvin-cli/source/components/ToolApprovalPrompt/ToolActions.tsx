@@ -38,7 +38,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
 
   return (
     <Box alignItems="center">
-      <Text color={isFocused ? theme.toolApproval.actionSelected : 'transparent'} bold>
+      <Text color={isFocused ? theme.toolApproval.actionSelected : undefined} bold>
         {isFocused ? '❯ ' : '  '}
       </Text>
       <Text dimColor={!isFocused} color={isFocused ? labelSelectedColor : labelDefaultColor} bold>

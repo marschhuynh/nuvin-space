@@ -24,6 +24,9 @@ import { orchestratorManager } from './services/OrchestratorManager.js';
 import ansiEscapes from 'ansi-escapes';
 import { AltModeProvider } from './contexts/AltModeContext.js';
 
+const ENTER_ALT_SCREEN = '\x1b[?1049h';
+const EXIT_ALT_SCREEN = '\x1b[?1049l';
+
 declare global {
   // var __clipboardFiles: Buffer[] | undefined;
   var __fullClear: () => void;
@@ -234,6 +237,10 @@ const cli = meow(
     process.exit(0);
   }
 
+  if (cli.flags.alt) {
+    process.stdout.write(ENTER_ALT_SCREEN);
+  }
+
   // Handle config subcommand
   if (cli.input.length > 0 && cli.input[0] === 'config') {
     const configHandler = new ConfigCliHandler();
@@ -400,7 +407,7 @@ const cli = meow(
   const { waitUntilExit } = render(
     <ThemeProvider>
       <AltModeProvider altMode={cli.flags.alt}>
-        <StdoutDimensionsProvider altMode={cli.flags.alt}>
+        <StdoutDimensionsProvider>
           <InputProvider middleware={defaultMiddleware}>
             <ConfigProvider initialConfig={mergedConfig}>
               <NotificationProvider>
@@ -430,11 +437,16 @@ const cli = meow(
       exitOnCtrlC: false,
       patchConsole: true,
       incrementalRendering: true,
-      maxFps: 60,
+      maxFps: 30,
     },
   );
 
   await waitUntilExit();
+
+  if (cli.flags.alt) {
+    process.stdout.write(EXIT_ALT_SCREEN);
+  }
+
   process.stdout.write('\x1b[?2004l');
   process.exit(0);
 })();

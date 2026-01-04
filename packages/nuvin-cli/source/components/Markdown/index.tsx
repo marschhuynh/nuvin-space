@@ -17,7 +17,7 @@ export const Markdown: React.FC<MarkdownProps> = ({
   children,
   disableMarkdown,
   enableCache = true,
-  reflowText = true,
+  reflowText = false,
   maxWidth,
 }) => {
   const { cols } = useStdoutDimensions();

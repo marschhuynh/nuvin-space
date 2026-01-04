@@ -9,6 +9,7 @@ import { useStdoutDimensions } from '@/hooks/useStdoutDimensions';
 import { ToolCallViewer } from './ToolCallViewer';
 import { SubAgentActivity } from './ToolResultView/SubAgentActivity.js';
 import { AutoScrollBox } from './AutoScrollBox';
+import { useAltMode } from '@/contexts/AltModeContext';
 
 type MessageLineProps = {
   key: string;
@@ -22,6 +23,7 @@ type MessageLineProps = {
 
 const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundColor, liveMessage = false }) => {
   const { rows } = useStdoutDimensions();
+  const { altMode } = useAltMode()
   const { theme } = useTheme();
   const isStreaming = message.metadata?.isStreaming === true;
   const streamingContent = message.content;
@@ -43,7 +45,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
         );
 
       case 'assistant': {
-        if (isStreaming) {
+        if (isStreaming && !altMode) {
           return (
             <Box flexDirection="column" marginY={1} width={'100%'} maxHeight={rows - 10}>
               <Box flexShrink={0} marginRight={1} position="sticky" top={0}>
@@ -179,7 +181,7 @@ const MessageLineComponent: React.FC<MessageLineProps> = ({ message, backgroundC
         );
 
       case 'thinking': {
-        if (isStreaming) {
+        if (isStreaming && !altMode) {
           return (
             <Box flexDirection="column" marginY={1} width={'100%'} maxHeight={Math.min(rows - 10, 15)}>
               <Box flexShrink={0} marginRight={1} position="sticky" top={0}>

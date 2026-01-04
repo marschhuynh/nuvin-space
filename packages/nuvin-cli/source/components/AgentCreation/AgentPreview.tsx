@@ -35,7 +35,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({ label, onExecute, autoFocus
 
   return (
     <Box alignItems="center">
-      <Text color={isFocused ? theme.colors.primary : 'transparent'} bold>
+      <Text color={isFocused ? theme.colors.primary : undefined} bold>
         {isFocused ? '❯ ' : '  '}
       </Text>
       <Text dimColor={!isFocused} color={isFocused ? theme.colors.primary : theme.modal.help} bold={isFocused}>
@@ -49,7 +49,7 @@ const AgentPreviewContent: React.FC<AgentPreviewProps> = ({ preview, onSave, onE
   const { theme } = useTheme();
 
   return (
-    <AppModal visible={true} title="Preview Generated Agent" >
+    <AppModal visible={true} title="Preview Generated Agent">
       <Box flexDirection="column" marginTop={1}>
         <Box marginBottom={1}>
           <Text color={theme.colors.primary} bold>

@@ -275,7 +275,14 @@ export function processAgentEvent(
     }
 
     case AgentEventTypes.StreamFinish: {
-      return state;
+      if (state.reasoningMessageId) {
+        callbacks.updateLineMetadata?.(state.reasoningMessageId, { isStreaming: false });
+      }
+      return {
+        ...state,
+        reasoningMessageId: null,
+        reasoningContent: '',
+      };
     }
 
     case AgentEventTypes.Done: {

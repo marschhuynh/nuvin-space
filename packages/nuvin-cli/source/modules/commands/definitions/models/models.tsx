@@ -56,10 +56,7 @@ const AuthNavigationPrompt = ({ onNavigate, onCancel }: AuthNavigationPromptProp
       </Text>
       <Box marginTop={1} flexDirection="row" gap={2}>
         <Box alignItems="center">
-          <Text
-            color={selectedAction === 0 ? theme.toolApproval?.actionSelected || theme.tokens.cyan : 'transparent'}
-            bold
-          >
+          <Text color={selectedAction === 0 ? theme.toolApproval?.actionSelected || theme.tokens.cyan : undefined} bold>
             {selectedAction === 0 ? '❯ ' : '  '}
           </Text>
           <Text
@@ -71,10 +68,7 @@ const AuthNavigationPrompt = ({ onNavigate, onCancel }: AuthNavigationPromptProp
           </Text>
         </Box>
         <Box alignItems="center">
-          <Text
-            color={selectedAction === 1 ? theme.toolApproval?.actionSelected || theme.tokens.cyan : 'transparent'}
-            bold
-          >
+          <Text color={selectedAction === 1 ? theme.toolApproval?.actionSelected || theme.tokens.cyan : undefined} bold>
             {selectedAction === 1 ? '❯ ' : '  '}
           </Text>
           <Text

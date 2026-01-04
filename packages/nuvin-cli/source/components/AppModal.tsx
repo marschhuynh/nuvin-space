@@ -2,6 +2,7 @@ import type { ReactNode, FC } from 'react';
 import { Box, Text } from 'ink';
 import { useInput } from '@/contexts/InputContext/index.js';
 import { useTheme } from '@/contexts/ThemeContext';
+import { theme } from '@/theme';
 
 export type AppModalType = 'info' | 'error' | 'warning' | 'success' | 'default';
 
@@ -62,7 +63,14 @@ export const AppModal: FC<AppModalProps> = ({
   if (!visible) return null;
 
   return (
-    <Box height={height} flexDirection="column" borderStyle="single" borderColor={finalBorderColor} width="100%">
+    <Box
+      height={height}
+      flexDirection="column"
+      borderStyle="single"
+      borderColor={finalBorderColor}
+      width="100%"
+      backgroundColor={theme.colors.background}
+    >
       <Box flexWrap="wrap" justifyContent="space-between" backgroundColor={globalTheme.modal.titleBackground}>
         {title ? (
           <Box>
