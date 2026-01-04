@@ -1,5 +1,11 @@
 # @nuvin/nuvin-cli
 
+## 1.26.0
+
+### Minor Changes
+
+- [`c6ada2a`](https://github.com/marschhuynh/nuvin-space/commit/c6ada2ad87c3cd5b55f6fa3ed9098e0d7603af41) Thanks [@marschhuynh](https://github.com/marschhuynh)! - feat: add VirtualizedList component with scrollbar for chat virtualization
+
 ## 1.25.7
 
 ### Patch Changes
